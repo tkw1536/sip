@@ -1,0 +1,26 @@
+{
+  "name": "sifp",
+  "version": "1.0.0",
+  "description": "Supreme Inspector For Pathbuilders",
+  "main": "./src/index.html",
+  "author": "Tom Wiesing <tom.wiesing@gmail.com>",
+  "devDependencies": {
+    "parcel-bundler": "^1.12.5",
+    "typescript": "^5.4.5"
+  },
+  "dependencies": {
+    "@types/xmldom": "^0.1.34",
+    "preact": "^10.22.0",
+    "react-drag-drop-files": "^2.3.10",
+    "react-tabs": "^6.0.2",
+    "xmldom": "^0.6.0"
+  },
+  "alias": {
+    "react": "preact/compat",
+    "react-dom": "preact/compat"
+  },
+  "scripts": {
+    "start": "parcel src/index.html",
+    "build": "parcel build src/index.html"
+  }
+}
