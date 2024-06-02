@@ -1,38 +1,88 @@
+/** NamespaceMap is an immutable NamespaceMap */
 export class NamespaceMap {
-    private elements = new Map<string, string>();
-    private reverse = new Map<string, string>();
-    /** add adds a new version of short to this namespace map*/
-    add(long: string, short: string) {
-        if (short === "") return; // ignore empty prefix
+    private readonly parent: NamespaceMap | null;
+    private readonly short: string | null;
+    private readonly long: string | null;
 
-        this.remove(long);
-
-        this.elements.set(long, short);
-        this.reverse.set(short, long)
+    private constructor(parent: NamespaceMap | null, long: string | null, short: string | null, ) {
+        this.parent = parent
+        this.short = short
+        this.long = long
     }
 
-    /** remove removes a prefix from this namespace map */
-    remove(short: string) {
-        if (!this.reverse.has(short)) {
-            return
+
+    // map holds a map for quickly accessing specific elements.
+    private map: Map<string, string> | null = null;
+
+    /** toMapInternal returns a reference to the internal map (which should not be mutated) */
+    private toMapInternal(): Map<string, string> | null {
+        // if we already have a map, return it!
+        if (this.map !== null) return this.map;
+
+        // collect all the pairs (these will be in reverse order)
+        const pairs: Array<[string, string]> = [];
+        let ns: NamespaceMap | null = this;
+        while(ns.parent !== null) {
+            if (ns.short !== null && ns.long !== null) {
+                pairs.push([ns.long, ns.short]);
+            }
+            ns = ns.parent
+        }
+        
+        // reverse them to get the right order
+        pairs.reverse()
+        
+        // create a map for it
+        const map = new Map<string, string>();
+        pairs.forEach(([long, short]) => {
+            map.set(long, short);
+        });
+
+        // store and return the map!
+        this.map = map;
+        return map;
+    }
+
+    /** toMap turns this NamespaceMap into a map */
+    toMap(): Map<string, string> {
+        return new Map(this.toMapInternal());
+    }
+
+    hasLong(long: string): boolean {
+        return this.toMapInternal().has(long)
+    }
+    hasShort(short: string): boolean {
+        return new Set(this.toMapInternal().values()).has(short)
+    }
+
+    /** add creates a new namespace map with long set to short */
+    add(long: string, short: string): NamespaceMap {
+        // don't permit invalid regexes
+        if(!/^[a-zA-Z0-9_-]+$/.test(short)) {
+            return this;
         }
 
-        const long = this.reverse.get(short)!;
-        this.reverse.delete(short);
-        this.elements.delete(long);
+        return new NamespaceMap(this, long, short)
+    }
+
+    /** remove removes a long url from this ns-map */
+    remove(long: string): NamespaceMap {
+        const elements = this.toMap();
+        elements.delete(long)
+        return NamespaceMap.fromMap(elements);
     }
 
     /** apply applies this namespace-map to a string */
     apply(uri: string): string {
         const prefix = this.prefix(uri);
         if (prefix === "") return uri;
-        return this.elements.get(prefix) + ":" + uri.substring(prefix.length);
+        return this.toMapInternal().get(prefix) + ":" + uri.substring(prefix.length);
     }
 
     /** prefix returns the longest prefix of uri for which a namespace is contained within this map */
     prefix(uri: string): string {
         let prefix = "";     // prefix used
-        this.elements.forEach((short, long) => {
+        this.toMapInternal().forEach((short, long) => {
             // must actually be a prefix
             if (!uri.startsWith(long)) {
                 return;
@@ -44,20 +94,25 @@ export class NamespaceMap {
                 return;
             }
             prefix = long;
+            return;
         });
         return prefix;
     }
 
-    /** returns a map from long => short **/
-    toMap(): Map<string, string> {
-        return new Map(this.elements);
-    }
+    
 
     /** creates a new namespace map from the given map */
     static fromMap(elements: Map<string, string>): NamespaceMap {
-        const ns = new NamespaceMap();
-        elements.forEach((short, long) => ns.add(long, short));
+        let ns = this.empty();
+        elements.forEach((short, long) => ns = ns.add(long, short));
+        // avoid having to re-compute the internal map (we already know it)
+        ns.map = new Map(elements);
         return ns 
+    }
+
+    /** empty returns an empty NamespaceMap */
+    static empty(): NamespaceMap {
+        return new NamespaceMap(null, null, null);
     }
 
     /** generate automatically generates a prefix map */
@@ -104,7 +159,7 @@ export class NamespaceMap {
             prefixes.add(prefix);
         })
 
-        const ns = new NamespaceMap();
+        const ns = new Map<string, string>();
 
         const seen = new Map<string, number>();
         prefixes.forEach(prefix => {
@@ -120,9 +175,8 @@ export class NamespaceMap {
                 seen.set(theName, 1);
             }
 
-            ns.add(prefix, theName); // TODO: smarter prefixing
-        })
-        return ns;
+            ns.set(prefix, theName); // TODO: smarter prefixing
+        });
+        return this.fromMap(ns);
     }
-
 }

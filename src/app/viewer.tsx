@@ -4,9 +4,15 @@ import { h, Component } from 'preact';
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import 'react-tabs/style/react-tabs.css';
 
-export type ViewProps = ViewerProps & ViewerState
+export type ViewProps = ViewerProps & ViewerState & ViewerCallbacks
 type ViewerProps = { data: Pathbuilder }
-type ViewerState = { ns: NamespaceMap } 
+type ViewerState = { ns: NamespaceMap, newNSKey: number }
+type ViewerCallbacks = {
+    deleteNS: (long: string) => void
+    updateNS: (long: string, newShort: string) => void;
+    addNS: (long: string, short: string) => void;
+    resetNS: () => void;
+}
 
 import JSONView from "./views/json";
 import XMLView from "./views/xml";
@@ -25,12 +31,58 @@ export class Viewer extends Component<ViewerProps & { onClose: () => void}, View
             paths.add(p.datatype_property)
             p.path_array.forEach(p => paths.add(p))
         })
-        return { ns: NamespaceMap.generate(paths), }
+        return { ns: NamespaceMap.generate(paths), newNSKey: 0 }
+    }
+
+    /** deleteNS deletes a specific entry from the namespace map */
+    private deleteNS = (long: string) => {
+        this.setState({ ns: this.state.ns.remove(long) })
+    }
+
+    /** updateNS updates the given long with the newShort */
+    private updateNS = (long: string, newShort: string) => {
+        const mp = this.state.ns.toMap();
+        if (!mp.has(long)) {
+            return
+        }
+
+        // update and use a new map!
+        mp.set(long, newShort);
+        this.setState({ ns: NamespaceMap.fromMap(mp)})
+    }
+
+    private addNS = (long: string, short: string) => {
+        this.setState(({ newNSKey, ns }) => {
+
+            // if we already have the short or the long don't do anything
+            if (ns.hasShort(short) || ns.hasLong(long)) {
+                return;
+            }
+
+            return {
+                ns: ns.add(long, short),
+                newNSKey: newNSKey + 1,
+            }
+        })
+    }
+
+    /** resetNS resets the namespaces to default */
+    private resetNS = () => {
+        this.setState(({ newNSKey }) => {
+            const { ns } = this.initState(this.props.data);
+            return { ns: ns };
+        });
     }
 
     render() {
         const { onClose, ...props } = this.props
-        const view = {...props, ...this.state};
+        const callbacks: ViewerCallbacks = {
+            deleteNS: this.deleteNS,
+            updateNS: this.updateNS,
+            addNS: this.addNS,
+            resetNS: this.resetNS,
+        }
+        const view = {...props, ...this.state, ...callbacks};
         return <Tabs>
             <TabList>
                 <Tab>List</Tab>
