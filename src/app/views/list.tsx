@@ -9,11 +9,11 @@ export default class ListView extends Component<ViewProps> {
         const tree = this.props.tree;
         const ns = this.props.ns;
         return <Fragment>
-            <h2>List View</h2>
+            <h2>Overview</h2>
 
             <p>
-                This view displays the pathbuilder in a plain list.
-                It is similar to the WissKI Interface, but read-only.
+                This page displays the pathbuilder  as a hierarchical structure.
+                It is similar to the WissKI Interface, except read-only.
             </p>
 
             <table className={styles.table}>

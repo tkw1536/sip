@@ -94,7 +94,7 @@ export class Viewer extends Component<ViewerProps & { onClose: () => void}, View
         const view = {...props, ...this.state, ...callbacks};
         return <Tabs>
             <TabList>
-                <Tab>List</Tab>
+                <Tab>Overview</Tab>
                 <Tab>Graph</Tab>
                 <Tab>XML</Tab>
                 <Tab>Namespace Map</Tab>
