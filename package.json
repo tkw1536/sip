@@ -2,10 +2,10 @@
   "name": "sifp",
   "version": "1.0.0",
   "description": "Supreme Inspector For Pathbuilders",
-  "main": "./src/index.html",
   "author": "Tom Wiesing <tom.wiesing@gmail.com>",
   "devDependencies": {
-    "parcel-bundler": "^1.12.5",
+    "parcel": "^2.12.0",
+    "process": "^0.11.10",
     "typescript": "^5.4.5"
   },
   "dependencies": {
@@ -17,7 +17,9 @@
   },
   "alias": {
     "react": "preact/compat",
-    "react-dom": "preact/compat"
+    "react-dom/test-utils": "preact/test-utils",
+    "react-dom": "preact/compat",
+    "react/jsx-runtime": "preact/jsx-runtime"
   },
   "scripts": {
     "start": "parcel src/index.html",
