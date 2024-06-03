@@ -97,7 +97,6 @@ export class Viewer extends Component<ViewerProps & { onClose: () => void}, View
                 <Tab>List</Tab>
                 <Tab>Graph</Tab>
                 <Tab>XML</Tab>
-                <Tab>JSON</Tab>
                 <Tab>Namespace Map</Tab>
                 <Tab>Close</Tab>
             </TabList>
@@ -110,9 +109,6 @@ export class Viewer extends Component<ViewerProps & { onClose: () => void}, View
             </TabPanel>
             <TabPanel>
                 <XMLView {...view} />
-            </TabPanel>
-            <TabPanel>
-                <JSONView {...view} />
             </TabPanel>
             <TabPanel>
                 <MapView {...view} />
