@@ -9,8 +9,6 @@ export default class ListView extends Component<ViewProps> {
         const tree = this.props.tree;
         const ns = this.props.ns;
         return <Fragment>
-            <h2>Overview</h2>
-
             <p>
                 This page displays the pathbuilder  as a hierarchical structure.
                 It is similar to the WissKI Interface, except read-only.
@@ -27,7 +25,7 @@ export default class ListView extends Component<ViewProps> {
                     </tr>
                 </thead>
                 <tbody>
-                    {tree.mainBundles.map(b => <BundleRows visible={true} ns={ns} bundle={b} level={0} key={b.path.id}/>)}
+                    {tree.mainBundles.map(b => <BundleRows visible={true} ns={ns} bundle={b} level={0} key={b.path.id} />)}
                 </tbody>
             </table>
         </Fragment>
@@ -42,7 +40,7 @@ class BundleRows extends Component<{ ns: NamespaceMap, bundle: Bundle, level: nu
     private toggle = (evt: MouseEvent) => {
         evt.preventDefault();
 
-        this.setState(({expanded}) => ({expanded: !expanded}));
+        this.setState(({ expanded }) => ({ expanded: !expanded }));
     }
 
     render() {
@@ -51,9 +49,9 @@ class BundleRows extends Component<{ ns: NamespaceMap, bundle: Bundle, level: nu
         const path = bundle.path;
         return <Fragment>
             <tr className={!visible ? styles.hidden : ""}>
-                <td style={{paddingLeft: INDENT_PER_LEVEL*level}}>
+                <td style={{ paddingLeft: INDENT_PER_LEVEL * level }}>
                     <button onClick={this.toggle} aria-role="toggle" disabled={bundle.childBundles.length === 0 && bundle.childFields.size === 0}>
-                        { expanded ? "∨" : ">" }
+                        {expanded ? "∨" : ">"}
                     </button>
                     &nbsp;
                     {path.name}
@@ -62,17 +60,17 @@ class BundleRows extends Component<{ ns: NamespaceMap, bundle: Bundle, level: nu
                     <code>{path.id}</code>
                 </td>
                 <td>
-                {path.path_array.map((p, i) => {
-                    let role: Role;
-                    if (i === 2 * path.disamb - 2) {
-                        role = 'disambiguation'
-                    } else if (i % 2 === 0) {
-                        role = 'object';
-                    } else {
-                        role = 'predicate';
-                    }
-                    return <PathElement role={role} key={p} ns={ns} uri={p} />
-                })}
+                    {path.path_array.map((p, i) => {
+                        let role: Role;
+                        if (i === 2 * path.disamb - 2) {
+                            role = 'disambiguation'
+                        } else if (i % 2 === 0) {
+                            role = 'object';
+                        } else {
+                            role = 'predicate';
+                        }
+                        return <PathElement role={role} key={p} ns={ns} uri={p} />
+                    })}
                 </td>
                 <td>
                 </td>
@@ -81,18 +79,18 @@ class BundleRows extends Component<{ ns: NamespaceMap, bundle: Bundle, level: nu
                 </td>
             </tr>
 
-            { Array.from(bundle.childFields.entries()).map(([id, field]) => <FieldRow visible={visible && expanded} level={level + 1} ns={ns} field={field} key={id} />)}
-            { bundle.childBundles.map((bundle) => <BundleRows visible={visible && expanded} level={level + 1} ns={ns} bundle={bundle} key={bundle.path.id} />)}
+            {Array.from(bundle.childFields.entries()).map(([id, field]) => <FieldRow visible={visible && expanded} level={level + 1} ns={ns} field={field} key={id} />)}
+            {bundle.childBundles.map((bundle) => <BundleRows visible={visible && expanded} level={level + 1} ns={ns} bundle={bundle} key={bundle.path.id} />)}
         </Fragment>;
     }
 }
 
-class FieldRow extends Component<{ns: NamespaceMap, field: Field, level: number, visible: boolean}> {
+class FieldRow extends Component<{ ns: NamespaceMap, field: Field, level: number, visible: boolean }> {
     render() {
-        const {ns, field, level, visible} = this.props;
+        const { ns, field, level, visible } = this.props;
         const path = field.path;
         return <tr className={!visible ? styles.hidden : ""}>
-            <td style={{paddingLeft: INDENT_PER_LEVEL*level}}>
+            <td style={{ paddingLeft: INDENT_PER_LEVEL * level }}>
                 {path.name}
             </td>
             <td>
@@ -110,7 +108,7 @@ class FieldRow extends Component<{ns: NamespaceMap, field: Field, level: number,
                     }
                     return <PathElement role={role} key={p} ns={ns} uri={p} />
                 })}
-                {path.datatype_property !== '' && <PathElement role={'datatype'} ns={ns} uri={path.datatype_property} /> }
+                {path.datatype_property !== '' && <PathElement role={'datatype'} ns={ns} uri={path.datatype_property} />}
             </td>
             <td>
                 {path.field_type_informative || path.fieldtype}
@@ -124,7 +122,7 @@ class FieldRow extends Component<{ns: NamespaceMap, field: Field, level: number,
 
 type Role = 'datatype' | 'disambiguation' | 'object' | 'predicate';
 
-class PathElement extends Component<{uri: string, role: Role, ns: NamespaceMap}> {
+class PathElement extends Component<{ uri: string, role: Role, ns: NamespaceMap }> {
     render() {
         const { uri, ns, role } = this.props;
         const className = styles['path'] + ' ' + (role ? styles[`path_${role}`] : '');

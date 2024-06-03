@@ -1,4 +1,4 @@
-import { DOMParser } from 'xmldom';
+import { DOMParser, DOMImplementation, XMLSerializer } from 'xmldom';
 export class Pathbuilder {
     constructor(
         public paths: Path[],
@@ -23,6 +23,16 @@ export class Pathbuilder {
         // parse all the paths
         const paths = Array.from(node.childNodes).filter(node => node.nodeType == node.ELEMENT_NODE)
         return new Pathbuilder(paths.map(n => Path.fromNode(n as Element)));
+    }
+    toXML(): string {
+        const xml = new DOMImplementation().createDocument(undefined, 'pathbuilder.xml')
+
+        // create the interface
+        const pb = xml.createElement('pathbuilderinterface');
+        this.paths.map(p => p.toXML(xml)).forEach(path => pb.appendChild(path));
+
+        xml.appendChild(pb);
+        return new XMLSerializer().serializeToString(pb);
     }
 }
 
@@ -56,7 +66,7 @@ export class Path {
         if (children.length > 1) {
             throw new Error(`expected exactly one <${name}> child, but got ${children.length}`);
         }
-        
+
         // if there are no children, pretend it is empty
         if (children.length == 0) {
             return parser("");
@@ -118,7 +128,7 @@ export class Path {
             p("weight", int),
             p("enabled", bool),
             p("group_id", str0),
-            
+
             p("bundle", str),
             p("field", str),
             p("fieldtype", str),
@@ -126,8 +136,8 @@ export class Path {
             p("formatterwidget", str),
             p("cardinality", int),
             p("field_type_informative", str),
-            
-            this.parsePathArray(node), 
+
+            this.parsePathArray(node),
             p("datatype_property", strEmpty),
             p("short_name", str),
             p("disamb", int),
@@ -136,5 +146,66 @@ export class Path {
             p("is_group", bool),
             p("name", str),
         )
+    }
+
+    private static serializeElement<T>(xml: XMLDocument, path: Element, name: string, serializer: (value: T) => string, value: T) {
+        const element = xml.createElement(name);
+        element.appendChild(xml.createTextNode(serializer(value)))
+        path.appendChild(element);
+    }
+
+    toXML(xml: XMLDocument): Element {
+        const path = xml.createElement("path");
+
+        const str = (value: string) => value;
+        const str0 = (value: string) => {
+            if (value === "") return "0";
+            return value;
+        }
+        const strEmpty = (value: string) => {
+            if (value === "") return "empty";
+            return value;
+        }
+        const int = (value: number): string => {
+            return value.toString();
+        }
+        const bool = (value: boolean): string => {
+            return value ? "1" : "0";
+        }
+
+        const s = Path.serializeElement.bind(Path, xml, path);
+
+        s("id", str, this.id)
+        s("weight", int, this.weight)
+        s("enabled", bool, this.enabled)
+        s("group_id", str0, this.group_id)
+
+        s("bundle", str, this.bundle)
+        s("field", str, this.field)
+        s("fieldtype", str, this.fieldtype)
+        s("displaywidget", str, this.displaywidget)
+        s("formatterwidget", str, this.formatterwidget)
+        s("cardinality", int, this.cardinality)
+        s("field_type_informative", str, this.field_type_informative)
+
+        const path_array = xml.createElement('path_array');
+        path.appendChild(path_array);
+
+        this.path_array.forEach((p, i) => {
+            const xy = xml.createElement(i % 2 == 0 ? 'x' : 'y');
+            xy.appendChild(xml.createTextNode(p))
+            path_array.appendChild(xy);
+        })
+
+        // this.parsePathArray(node), // todo
+        s("datatype_property", strEmpty, this.datatype_property)
+        s("short_name", str, this.short_name)
+        s("disamb", int, this.disamb)
+        s("description", str, this.description)
+        s("uuid", str, this.uuid)
+        s("is_group", bool, this.is_group)
+        s("name", str, this.name)
+
+        return path;
     }
 }

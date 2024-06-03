@@ -5,7 +5,7 @@ import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import 'react-tabs/style/react-tabs.css';
 
 export type ViewProps = ViewerProps & ViewerState & ViewerCallbacks
-type ViewerProps = { data: Pathbuilder }
+type ViewerProps = { data: Pathbuilder, filename: string }
 type ViewerState = { tree: PathTree, ns: NamespaceMap, newNSKey: number }
 type ViewerCallbacks = {
     deleteNS: (long: string) => void
@@ -14,8 +14,7 @@ type ViewerCallbacks = {
     resetNS: () => void;
 }
 
-import JSONView from "./views/json";
-import XMLView from "./views/xml";
+import ExportView from "./views/export";
 import ListView from "./views/list";
 import GraphView from "./views/graph";
 
@@ -96,8 +95,8 @@ export class Viewer extends Component<ViewerProps & { onClose: () => void}, View
             <TabList>
                 <Tab>Overview</Tab>
                 <Tab>Graph</Tab>
-                <Tab>XML</Tab>
                 <Tab>Namespace Map</Tab>
+                <Tab>Export</Tab>
                 <Tab>Close</Tab>
             </TabList>
 
@@ -108,10 +107,10 @@ export class Viewer extends Component<ViewerProps & { onClose: () => void}, View
                 <GraphView {...view} />
             </TabPanel>
             <TabPanel>
-                <XMLView {...view} />
+                <MapView {...view} />
             </TabPanel>
             <TabPanel>
-                <MapView {...view} />
+                <ExportView {...view} />
             </TabPanel>
             <TabPanel>
                 <p>

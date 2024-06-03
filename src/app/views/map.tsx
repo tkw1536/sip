@@ -1,4 +1,4 @@
-import { h, Component, JSX, Fragment, ComponentType } from 'preact';
+import { h, Component, Fragment, ComponentType } from 'preact';
 import { useId } from 'preact/compat';
 import type { ViewProps } from "../viewer";
 import styles from './map.module.css';
@@ -15,11 +15,12 @@ export default class MapView extends Component<ViewProps> {
             )
         })
         return <Fragment>
-            <h2>Namespace Map</h2>
             <p>
-                This namespace map was automatically generated from the paths contained in the pathbuilder.
-                It is used only for display purposes, as exports always contain the full URI.
-                You can manually adjust it here.
+                The Namespace Map is used to shorten URIs for display within the inspector.
+                The underlying pathbuilder always contains the full URIs, and namespaces are not saved across reloads.
+                <br />
+                The initial version is generated automatically from all URIs found in the pathbuilder.
+                You can manually adjust it here, by adding, removing or editing abbreviations.
             </p>
             <table className={styles.table}>
                 <thead>

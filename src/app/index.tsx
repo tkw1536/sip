@@ -5,7 +5,8 @@ import Loader from "./loader";
 import styles from './index.module.css';
 
 interface State {
-    data: Pathbuilder | string | false 
+    pathbuilder: Pathbuilder | string | false,
+    filename: string, 
 }
 
 class Wrapper extends Component {
@@ -29,25 +30,28 @@ class Wrapper extends Component {
 
 export default class App extends Component<{}, State> {
     state: State = {
-        data: false,
+        pathbuilder: false,
+        filename: "",
     }
     private onClose = () => {
-        this.setState({data: false})
+        this.setState({pathbuilder: false, filename: ""})
     }
     private doLoad = async (file: File): Promise<void> => {
         // read the source file
         const source = await file.text();
 
         let data: Pathbuilder | string;
+        let filename: string = ""
         try {
             data = Pathbuilder.parse(source);
+            filename = file.name
         } catch (e: any) {
             data = e.toString()
         }
 
         // only set the state if we're still mounted
         if (!this.mounted) return
-        this.setState({data: data})
+        this.setState({pathbuilder: data, filename})
     }
 
     private mounted = false
@@ -59,14 +63,14 @@ export default class App extends Component<{}, State> {
     }
 
     render() {
-        const { data } = this.state;
-        if (data === false) {
+        const { pathbuilder, filename } = this.state;
+        if (pathbuilder === false) {
             return <Wrapper><Loader onLoad={this.doLoad} /></Wrapper>;
         }
-        if (typeof data === 'string') {
-            return <Wrapper><Loader onLoad={this.doLoad} error={data} /></Wrapper>;
+        if (typeof pathbuilder === 'string') {
+            return <Wrapper><Loader onLoad={this.doLoad} error={pathbuilder} /></Wrapper>;
         }
-        return <Wrapper><Viewer data={data} onClose={this.onClose}/></Wrapper>;
+        return <Wrapper><Viewer data={pathbuilder} filename={filename} onClose={this.onClose}/></Wrapper>;
     }
 }
 
