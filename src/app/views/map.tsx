@@ -1,7 +1,7 @@
 import { h, Component, JSX, Fragment, ComponentType } from 'preact';
 import { useId } from 'preact/compat';
 import type { ViewProps } from "../viewer";
-import './map.css';
+import styles from './map.module.css';
 
 export default class MapView extends Component<ViewProps> {
     render() {
@@ -17,11 +17,11 @@ export default class MapView extends Component<ViewProps> {
         return <Fragment>
             <h2>Namespace Map</h2>
             <p>
-                This namespace map was automatically generated from the paths contained in the pathbuildero.
+                This namespace map was automatically generated from the paths contained in the pathbuilder.
                 It is used only for display purposes, as exports always contain the full URI.
                 You can manually adjust it here.
             </p>
-            <table>
+            <table className={styles.table}>
                 <thead>
                     <tr>
                         <th>
@@ -71,7 +71,7 @@ const AddMapRow = WithID<ViewProps>(class AddMapRow extends Component<ViewProps 
                 <input type="text" value={short} onChange={this.onShortChange} />
             </td>
             <td>
-                <input type="text" className="wide" form={id} value={long} onChange={this.onLongChange} />
+                <input type="text" className={styles["wide"]} form={id} value={long} onChange={this.onLongChange} />
             </td>
             <td>
                 <form id={id} onSubmit={this.onSubmit}>
@@ -110,7 +110,7 @@ function WithID<T>(Component: ComponentType<T & { id: string }>): ComponentType<
 class MapViewRow extends Component<{ long: string, short: string, props: ViewProps }, { value?: string }> {
     state: { value?: string } = {}
 
-    private onSubmit = (evt: SubmitEvent) => {
+    private onSubmit = (evt: Event) => {
         evt.preventDefault();
 
         const { value } = this.state;
@@ -124,11 +124,17 @@ class MapViewRow extends Component<{ long: string, short: string, props: ViewPro
         this.setState({ value: event.currentTarget.value })
     }
 
+    private onDelete = (event: Event) => {
+        event.preventDefault()
+
+        this.props.props.deleteNS(this.props.long);
+    }
+
     render() {
         const { long, short, props: { deleteNS } } = this.props;
         const value = this.state.value ?? short;
         const dirty = value !== short;
-        return <tr className={dirty ? "dirty" : ""}>
+        return <tr>
             <td>
                 <form onSubmit={this.onSubmit}>
                     <input type="text" value={value ?? short} onChange={this.onChange} />
@@ -138,7 +144,11 @@ class MapViewRow extends Component<{ long: string, short: string, props: ViewPro
                 <code>{long}</code>
             </td>
             <td>
-                <button onClick={() => deleteNS(long)}>
+                <button onClick={this.onSubmit} disabled={!dirty}>
+                    Apply
+                </button>
+                &nbsp;
+                <button onClick={this.onDelete}>
                     Delete
                 </button>
             </td>

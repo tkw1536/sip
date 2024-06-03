@@ -2,7 +2,7 @@ import { h, Component, Fragment } from 'preact';
 import { Pathbuilder } from '../lib/pathbuilder';
 import { Viewer } from "./viewer";
 import Loader from "./loader";
-import './index.css';
+import styles from './index.module.css';
 
 interface State {
     data: Pathbuilder | string | false 
@@ -17,10 +17,10 @@ class Wrapper extends Component {
                     Supreme Inspector for Pathbuilders
                 </h1>
             </header>
-            <main>
+            <main className={styles.withLinkColor}>
                 {children}
             </main>
-            <footer>
+            <footer className={`${styles.withLinkColor} ${styles.footer}`}>
                 &copy; Tom Wiesing 2024. All rights reserved. 
             </footer>
         </Fragment>

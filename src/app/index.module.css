@@ -1,9 +1,9 @@
-footer {
+.footer {
     font-size: small;
     margin-top: 10px;
     border-top: 1px solid black;    
 }
 
-a, a:visited {
+.withLinkColor a, .withLinkColor a:visited {
     color: blue;
 }
