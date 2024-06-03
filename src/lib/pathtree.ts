@@ -44,7 +44,6 @@ export class PathTree {
             }
         })
 
-        console.log(bundles);
         return new PathTree(mainBundles);
     }
 }
