@@ -175,7 +175,7 @@ export class NamespaceMap {
                 seen.set(theName, 1);
             }
 
-            ns.set(prefix, theName); // TODO: smarter prefixing
+            ns.set(prefix, theName);
         });
         return this.fromMap(ns);
     }

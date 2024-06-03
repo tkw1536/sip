@@ -6,7 +6,7 @@ import 'react-tabs/style/react-tabs.css';
 
 export type ViewProps = ViewerProps & ViewerState & ViewerCallbacks
 type ViewerProps = { data: Pathbuilder }
-type ViewerState = { ns: NamespaceMap, newNSKey: number }
+type ViewerState = { tree: PathTree, ns: NamespaceMap, newNSKey: number }
 type ViewerCallbacks = {
     deleteNS: (long: string) => void
     updateNS: (long: string, newShort: string) => void;
@@ -22,16 +22,25 @@ import GraphView from "./views/graph";
 import { Pathbuilder } from '../lib/pathbuilder';
 import { NamespaceMap } from "../lib/namespace";
 import MapView from "./views/map";
+import { PathTree } from "../lib/pathtree";
 
 export class Viewer extends Component<ViewerProps & { onClose: () => void}, ViewerState> {
     state: ViewerState = this.initState(this.props.data);
-    private initState(pb: Pathbuilder): ViewerState {
+    private initState(pb: Pathbuilder, previous?: ViewerState): ViewerState {
         const paths = new Set<string>();
         pb.paths.forEach(p => {
             paths.add(p.datatype_property)
             p.path_array.forEach(p => paths.add(p))
         })
-        return { ns: NamespaceMap.generate(paths), newNSKey: 0 }
+
+        const tree = previous?.tree ?? PathTree.fromPathbuilder(pb);
+        
+        const ns = NamespaceMap.generate(paths)
+            .add("http://www.w3.org/1999/02/22-rdf-syntax-ns#", "rdf");
+
+        const newNSKey = (previous?.newNSKey ?? -1) + 1
+        
+        return { ns, newNSKey, tree }
     }
 
     /** deleteNS deletes a specific entry from the namespace map */
@@ -68,9 +77,9 @@ export class Viewer extends Component<ViewerProps & { onClose: () => void}, View
 
     /** resetNS resets the namespaces to default */
     private resetNS = () => {
-        this.setState(({ newNSKey }) => {
-            const { ns } = this.initState(this.props.data);
-            return { ns: ns };
+        this.setState((state) => {
+            const { ns } = this.initState(this.props.data, state);
+            return { ns: ns, newNSKey: state.newNSKey + 1 };
         });
     }
 

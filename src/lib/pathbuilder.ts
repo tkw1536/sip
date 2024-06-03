@@ -42,7 +42,7 @@ export class Path {
         public path_array: string[], /* todo */
         public datatype_property: string,
         public short_name: string,
-        public disam: string,
+        public disamb: number,
         public description: string,
         public uuid: string,
         public is_group: boolean, /* boolean as int */
@@ -90,7 +90,11 @@ export class Path {
         const p = this.parseValue.bind(this, node);
         const str = (value: string) => value;
         const str0 = (value: string) => {
-            if (value == "0") return value
+            if (value === "0") return "";
+            return value;
+        }
+        const strEmpty = (value: string) => {
+            if (value === "empty") return "";
             return value;
         }
         const int = (value: string): number => {
@@ -123,10 +127,10 @@ export class Path {
             p("cardinality", int),
             p("field_type_informative", str),
             
-            this.parsePathArray(node), /* todo: path array */
-            p("datatype_property", str),
+            this.parsePathArray(node), 
+            p("datatype_property", strEmpty),
             p("short_name", str),
-            p("disam", str),
+            p("disamb", int),
             p("description", str),
             p("uuid", str),
             p("is_group", bool),

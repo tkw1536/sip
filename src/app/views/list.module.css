@@ -1,0 +1,23 @@
+.table td, .table th {
+    vertical-align: top;
+}
+
+tr.hidden {
+    display: none;
+}
+
+span.path {
+    display: block;
+    font-family: monospace;
+}
+
+span.path:not(:last-child)::after {
+    content: " →";
+}
+span.path_disambiguation {
+    color: red;
+}
+
+span.path_datatype {
+    color: blue;
+}
