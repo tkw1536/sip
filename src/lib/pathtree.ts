@@ -1,8 +1,9 @@
 import { Path, Pathbuilder } from "./pathbuilder";
 
-abstract class Node {
+export abstract class NodeLike {
     abstract path(): Path | null;
-    abstract children(): Array<Node>;
+    abstract children(): Array<NodeLike>;
+    abstract parent(): NodeLike | null;
 
     /** allChildren returns a set containing the ids of all recursive children of this node */
     allChildren(): Array<string> {
@@ -20,7 +21,7 @@ abstract class Node {
     }
 
     /** find finds the first node with the given id, including itself */
-    find(id: string): Node | null {
+    find(id: string): NodeLike | null {
         const myID = this.path().id;
         if (myID !== id) {
             return this;
@@ -37,13 +38,16 @@ abstract class Node {
     }
 }
 
-export class PathTree extends Node {
+export class PathTree extends NodeLike {
     constructor(
         public mainBundles: Bundle[],
     ) {
         super()
     }
     path(): null {
+        return null;
+    }
+    parent(): null {
         return null;
     }
     children(): Bundle[] {
@@ -73,13 +77,12 @@ export class PathTree extends Node {
                     return;
                 }
 
-                parent.childFields.set(path.field, new Field(path));
+                parent.childFields.set(path.field, new Field(path, parent));
                 return;
             }
 
             const group = get_or_create_bundle(path.id);
-            group.setPath(path);
-            group.parent = parent;
+            group.set(path, parent);
             if (parent !== null) {
                 parent.childBundles.push(group);
             } else {
@@ -91,19 +94,24 @@ export class PathTree extends Node {
     }
 }
 
-export class Bundle extends Node {
+export class Bundle extends NodeLike {
     constructor(
         private _path: Path,
+        private _parent: Bundle | null,
 
-        public parent: Bundle | null,
         public childBundles: Bundle[],
         public childFields: Map<string, Field>,
     ) {
         super()
     }
 
-    setPath(path: Path) {
+    parent(): Bundle | null {
+        return this._parent;
+    }
+
+    set(path: Path, parent: Bundle) {
         this._path = path;
+        this._parent = parent;
     }
 
     path(): Path {
@@ -115,9 +123,13 @@ export class Bundle extends Node {
     }
 }
 
-export class Field extends Node {
-    constructor(private _path: Path) {
+export class Field extends NodeLike {
+    constructor(private _path: Path, private _parent: Bundle) {
         super()
+    }
+
+    parent(): Bundle {
+        return this._parent;
     }
 
     path(): Path {

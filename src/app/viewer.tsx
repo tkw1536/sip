@@ -174,6 +174,7 @@ export class Viewer extends Component<ViewerProps & { onClose: () => void }, Vie
             <TabList>
                 <Tab>Overview</Tab>
                 <Tab>Bundle Graph</Tab>
+                <Tab>Model Graph</Tab>
                 <Tab>Namespace Map</Tab>
                 <Tab>Export</Tab>
                 <Tab>Close</Tab>
@@ -184,6 +185,9 @@ export class Viewer extends Component<ViewerProps & { onClose: () => void }, Vie
             </TabPanel>
             <TabPanel>
                 <BundleGraphView {...view} />
+            </TabPanel>
+            <TabPanel>
+                <ModelGraphView {...view} />
             </TabPanel>
             <TabPanel>
                 <MapView {...view} />
