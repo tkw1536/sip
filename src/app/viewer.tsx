@@ -46,6 +46,7 @@ import { NamespaceMap } from "../lib/namespace";
 import MapView from "./views/map";
 import { PathTree } from "../lib/pathtree";
 import Selection from "../lib/selection";
+import ModelGraphView from "./views/graph/model";
 
 export class Viewer extends Component<ViewerProps & { onClose: () => void }, ViewerState> {
     state: ViewerState = this.initState(this.props.pathbuilder);

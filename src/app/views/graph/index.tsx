@@ -1,6 +1,6 @@
 import { h, Component, createRef } from 'preact';
 
-import { Network } from "vis-network";
+import { Network, Data } from "vis-network";
 import { DataSet } from "vis-data";
 import type { Options } from "vis-network";
 
@@ -31,7 +31,7 @@ export type Size = {
 export default abstract class VisJSGraph<T extends Size> extends Component<T> {
 
     /** prepare prepares the dataset of nodes and edges to be rendered */
-    abstract prepare(nodes: DataSet<Node<string>>, edges: DataSet<Edge<string>>): void;
+    abstract prepare(dataset: Dataset): void;
 
     /** options returns the options for the graph */
     protected options(): Options {
@@ -65,16 +65,13 @@ export default abstract class VisJSGraph<T extends Size> extends Component<T> {
     private ref = createRef<HTMLDivElement>();
     private network: Network
     componentDidMount(): void {
-        const nodes = new DataSet<Node<string>>();
-        const edges = new DataSet<Edge<string>>();
-
-        this.prepare(nodes, edges);
+        const dataset = new Dataset();
+        this.prepare(dataset);
 
         const container = this.ref.current!;
-        const data = { nodes, edges } as unknown; 
         const options = this.options();
 
-        this.network = new Network(container, data, options);
+        this.network = new Network(container, dataset.toData(), options);
     }
 
     componentWillUnmount(): void {
@@ -84,8 +81,22 @@ export default abstract class VisJSGraph<T extends Size> extends Component<T> {
         this.network.destroy();
     }
 
-
     render() {
         return <div style={{ width: this.props.width, height: this.props.height }} ref={this.ref}></div>
+    }
+}
+
+export class Dataset {
+    private nodes = new DataSet<Node<string>>();
+    private edges = new DataSet<Edge<string>>();
+
+    addNode(node: Node<string>): string {
+        return this.nodes.add(node)[0] as string;
+    }
+    addEdge(edge: Edge<string>): string {
+        return this.edges.add(edge)[0] as string
+    }
+    toData(): Data {
+        return { nodes: this.nodes, edges: this.edges } as unknown;
     }
 }
