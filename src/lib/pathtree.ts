@@ -7,7 +7,7 @@ export class PathTree {
 
     static fromPathbuilder(pb: Pathbuilder): PathTree {
         const bundles = new Map<string, Bundle>();
-        
+
         const get_or_create_bundle = (id: string): Bundle => {
             if (!bundles.has(id)) {
                 const bundle = new Bundle(null, null, [], new Map<string, Field>());
@@ -18,15 +18,13 @@ export class PathTree {
 
         const mainBundles: Array<Bundle> = [];
 
-        pb.paths.forEach(path => {
+        pb.paths.filter(path => path.enabled).forEach(path => {
             const parent = path.group_id !== "" ? get_or_create_bundle(path.group_id) : null;
 
             // not a group => it is just a field
             if (!path.is_group) {
                 if (parent === null) {
-                    if (path.enabled) {
-                        console.warn(`non-group path missing group_id`, path);
-                    }
+                    console.warn(`non-group path missing group_id`, path);
                     return;
                 }
 

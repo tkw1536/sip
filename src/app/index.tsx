@@ -18,7 +18,7 @@ class Wrapper extends Component {
                     Supreme Inspector for Pathbuilders
                 </h1>
             </header>
-            <main className={styles.withLinkColor}>
+            <main className={`${styles.withLinkColor} ${styles.main}`}>
                 {children}
             </main>
             <footer className={`${styles.withLinkColor} ${styles.footer}`}>

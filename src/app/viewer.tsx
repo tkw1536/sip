@@ -5,8 +5,16 @@ import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import 'react-tabs/style/react-tabs.css';
 
 export type ViewProps = ViewerProps & ViewerState & ViewerCallbacks
-type ViewerProps = { data: Pathbuilder, filename: string }
-type ViewerState = { tree: PathTree, ns: NamespaceMap, newNSKey: number }
+type ViewerProps = {
+    data: Pathbuilder,
+    filename: string,
+}
+type ViewerState = {
+    pathbuilderKey: number, // to determine if the pathbuilder has been updated and requires re-rendering
+    tree: PathTree, 
+    ns: NamespaceMap, 
+    newNSKey: number, // to determine if a new "new namespace" is needed
+ }
 type ViewerCallbacks = {
     deleteNS: (long: string) => void
     updateNS: (long: string, newShort: string) => void;
@@ -16,7 +24,7 @@ type ViewerCallbacks = {
 
 import ExportView from "./views/export";
 import ListView from "./views/list";
-import GraphView from "./views/graph";
+import BundleGraphView from "./views/graph/bundle";
 
 import { Pathbuilder } from '../lib/pathbuilder';
 import { NamespaceMap } from "../lib/namespace";
@@ -38,8 +46,9 @@ export class Viewer extends Component<ViewerProps & { onClose: () => void}, View
             .add("http://www.w3.org/1999/02/22-rdf-syntax-ns#", "rdf");
 
         const newNSKey = (previous?.newNSKey ?? -1) + 1
+        const pathbuilderKey = (previous?.pathbuilderKey ?? -1 ) + 1
         
-        return { ns, newNSKey, tree }
+        return { ns, newNSKey, tree, pathbuilderKey }
     }
 
     /** deleteNS deletes a specific entry from the namespace map */
@@ -94,7 +103,7 @@ export class Viewer extends Component<ViewerProps & { onClose: () => void}, View
         return <Tabs>
             <TabList>
                 <Tab>Overview</Tab>
-                <Tab>Graph</Tab>
+                <Tab>Bundle Graph</Tab>
                 <Tab>Namespace Map</Tab>
                 <Tab>Export</Tab>
                 <Tab>Close</Tab>
@@ -104,7 +113,7 @@ export class Viewer extends Component<ViewerProps & { onClose: () => void}, View
                 <ListView {...view} />
             </TabPanel>
             <TabPanel>
-                <GraphView {...view} />
+                <BundleGraphView {...view} />
             </TabPanel>
             <TabPanel>
                 <MapView {...view} />
