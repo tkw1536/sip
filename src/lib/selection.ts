@@ -1,30 +1,30 @@
 export default class Selection {
-    private map = new Map<string, boolean>();
-    private constructor(private dflt: boolean, values: Iterable<[string, boolean]>) {
-        this.map = new Map(values);
+    private set = new Set<string>();
+    private constructor(private dflt: boolean, values: Iterable<string>) {
+        this.set = new Set(values);
     }
 
     /** includes checks if the selecion includes the given key */
     includes(key: string): boolean {
-        if(this.map.has(key)) {
-            return this.map.get(key)
+        if (this.set.has(key)) {
+            return !this.dflt;
         }
         return this.dflt;
     }
 
     /** with returns a new selection with the specified key set to the specified value */
     with(pairs: Array<[string, boolean]>): Selection {
-        const mp = new Map(this.map);
-
+        const set = new Set(this.set);
+        
         pairs.forEach(([key, value]) => {
             if (value === this.dflt) {
-                mp.delete(key)
+                set.delete(key)
             } else {
-                mp.set(key, value)
+                set.add(key)
             }
         })
 
-        return new Selection(this.dflt, mp);
+        return new Selection(this.dflt, set);
     }
 
     static none(): Selection {
