@@ -27,6 +27,18 @@ export default class Selection {
         return new Selection(this.dflt, set);
     }
 
+    toggle(value: string) {
+        const set = new Set(this.set);
+
+        if (set.has(value)) {
+            set.delete(value);
+        } else {
+            set.add(value);
+        }
+
+        return new Selection(this.dflt, set);
+    }
+
     static none(): Selection {
         return new Selection(false, []);
     }

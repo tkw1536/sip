@@ -17,7 +17,9 @@ type ViewerState = {
     ns: NamespaceMap, // the current namespace map
 
     selectionVersion: number;
-    selection: Selection, // the selection 
+    selection: Selection, // the selection
+
+    collapsed: Selection,
 }
 type ViewerCallbacks = {
     deleteNS: (long: string) => void
@@ -28,7 +30,12 @@ type ViewerCallbacks = {
     updateSelection: (pairs: Array<[string, boolean]>) => void;
     selectAll: () => void,
     selectNone: () => void;
+
+    toggleCollapsed: (id: string) => void; 
+    collapseAll: () => void;
+    expandAll: () => void;
 }
+
 
 import ExportView from "./views/export";
 import ListView from "./views/list";
@@ -55,12 +62,13 @@ export class Viewer extends Component<ViewerProps & { onClose: () => void }, Vie
             .add("http://www.w3.org/1999/02/22-rdf-syntax-ns#", "rdf");
 
         const selection = Selection.all();
+        const collapsed = Selection.none();
 
         const selectionVersion = (previous?.selectionVersion ?? -1 ) + 1
         const namespaceVersion = (previous?.namespaceVersion ?? -1) + 1
         const pathbuilderVersion = (previous?.pathbuilderVersion ?? -1) + 1
 
-        return { namespaceVersion, ns, pathbuilderVersion, tree, selectionVersion, selection }
+        return { namespaceVersion, ns, pathbuilderVersion, tree, selectionVersion, selection, collapsed }
     }
 
     private updateSelection = (pairs: Array<[string, boolean]>) => {
@@ -130,6 +138,22 @@ export class Viewer extends Component<ViewerProps & { onClose: () => void }, Vie
         });
     }
 
+    private toggleCollapsed = (value: string) => {
+        this.setState(
+            ({collapsed}) => ({
+                collapsed: collapsed.toggle(value),
+            }),
+        );
+    }
+
+    private collapseAll = () => {
+        this.setState({ collapsed: Selection.all() })
+    }
+
+    private expandAll = () => {
+        this.setState({ collapsed: Selection.none() })
+    }
+
     render() {
         const { onClose, ...props } = this.props
         const callbacks: ViewerCallbacks = {
@@ -140,6 +164,9 @@ export class Viewer extends Component<ViewerProps & { onClose: () => void }, Vie
             updateSelection: this.updateSelection,
             selectAll: this.selectAll,
             selectNone: this.selectNone,
+            toggleCollapsed: this.toggleCollapsed,
+            collapseAll: this.collapseAll,
+            expandAll: this.expandAll,
         }
         const view = { ...props, ...this.state, ...callbacks };
         return <Tabs>

@@ -14,6 +14,15 @@ export default class ListView extends Component<ViewProps> {
         evt.preventDefault();
         this.props.selectNone();
     }
+    
+    private expandAll = (evt: Event) => {
+        evt.preventDefault();
+        this.props.expandAll();
+    }
+    private collapseAll = (evt: Event) => {
+        evt.preventDefault();
+        this.props.collapseAll();
+    }
 
     render() {
         const { tree } = this.props;
@@ -21,8 +30,6 @@ export default class ListView extends Component<ViewProps> {
             <p>
                 This page displays the pathbuilder  as a hierarchical structure.
                 It is similar to the WissKI Interface, except read-only.
-
-               
             </p>
             <p>
                 The checkboxes here are used to include the bundle in the graph displays.
@@ -48,6 +55,12 @@ export default class ListView extends Component<ViewProps> {
                             <button onClick={this.selectNone}>None</button>
                         </td>
                     </tr>
+                    <tr>
+                        <td colSpan={6}>
+                            <button onClick={this.collapseAll}>Collapse All</button> &nbsp;
+                            <button onClick={this.expandAll}>Expand All</button>
+                        </td>
+                    </tr>
                     {tree.mainBundles.map(b => <BundleRows {...this.props} visible={true} bundle={b} level={0} key={b.path().id} />)}
                 </tbody>
             </table>
@@ -57,13 +70,12 @@ export default class ListView extends Component<ViewProps> {
 
 const INDENT_PER_LEVEL = 50;
 
-class BundleRows extends Component<ViewProps & { bundle: Bundle, level: number, visible: boolean }, { expanded: boolean }> {
-    state = { expanded: true }
+class BundleRows extends Component<ViewProps & { bundle: Bundle, level: number, visible: boolean }> {
 
-    private toggleExpanded = (evt: MouseEvent) => {
+    private toggleCollapsed = (evt: Event) => {
         evt.preventDefault();
 
-        this.setState(({ expanded }) => ({ expanded: !expanded }));
+        this.props.toggleCollapsed(this.props.bundle.path().id);
     }
 
     private shiftHeld = false;
@@ -84,16 +96,17 @@ class BundleRows extends Component<ViewProps & { bundle: Bundle, level: number, 
 
     render() {
         const { bundle, level, visible, ...props } = this.props; 
-        const { ns, selection } = props;
-        const { expanded } = this.state;
+        const { ns, selection, collapsed } = props;
+        
         const path = bundle.path();
+        const expanded = !collapsed.includes(path.id);
         return <Fragment>
             <tr className={!visible ? styles.hidden : ""}>
                 <td>
                     <input type="checkbox" checked={selection.includes(path.id)} onClick={this.storeShift} onChange={this.updateSelection}></input>
                 </td>
                 <td style={{ paddingLeft: INDENT_PER_LEVEL * level }}>
-                    <button onClick={this.toggleExpanded} aria-role="toggle" disabled={bundle.childBundles.length === 0 && bundle.childFields.size === 0}>
+                    <button onClick={this.toggleCollapsed} aria-role="toggle" disabled={bundle.childBundles.length === 0 && bundle.childFields.size === 0}>
                         {expanded ? "∨" : ">"}
                     </button>
                     &nbsp;
