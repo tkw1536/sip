@@ -70,7 +70,7 @@ export default class App extends Component<{}, State> {
         if (typeof pathbuilder === 'string') {
             return <Wrapper><Loader onLoad={this.doLoad} error={pathbuilder} /></Wrapper>;
         }
-        return <Wrapper><Viewer data={pathbuilder} filename={filename} onClose={this.onClose}/></Wrapper>;
+        return <Wrapper><Viewer pathbuilder={pathbuilder} filename={filename} onClose={this.onClose}/></Wrapper>;
     }
 }
 

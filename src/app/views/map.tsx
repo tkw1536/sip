@@ -5,7 +5,7 @@ import styles from './map.module.css';
 
 export default class MapView extends Component<ViewProps> {
     render() {
-        const {newNSKey, ns} = this.props;
+        const {namespaceVersion: newNSKey, ns} = this.props;
         const mp = ns.toMap();
 
         const rows = new Array();

@@ -5,7 +5,7 @@ export default class ExportView extends Component<ViewProps> {
     private export = (evt: MouseEvent) => {
         evt.preventDefault();
 
-        const file = new Blob([this.props.data.toXML()], {'type': 'application/xml'});
+        const file = new Blob([this.props.pathbuilder.toXML()], {'type': 'application/xml'});
         const url = URL.createObjectURL(file);
 
         const a = document.createElement("a");
@@ -20,7 +20,7 @@ export default class ExportView extends Component<ViewProps> {
         }, 0); 
     }
     render() {
-        const { filename } = this.props;
+        const { filename: filename } = this.props;
         return <Fragment>
             <p>
                 Use the button below to save the pathbuilder as an xml file.

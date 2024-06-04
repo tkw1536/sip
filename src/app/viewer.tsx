@@ -6,20 +6,28 @@ import 'react-tabs/style/react-tabs.css';
 
 export type ViewProps = ViewerProps & ViewerState & ViewerCallbacks
 type ViewerProps = {
-    data: Pathbuilder,
+    pathbuilder: Pathbuilder,
     filename: string,
 }
 type ViewerState = {
-    pathbuilderKey: number, // to determine if the pathbuilder has been updated and requires re-rendering
-    tree: PathTree, 
-    ns: NamespaceMap, 
-    newNSKey: number, // to determine if a new "new namespace" is needed
- }
+    pathbuilderVersion: number, // this number is updated every time the pathbuilder changes
+    tree: PathTree, // the tree corresponding to the pathbuilder
+ 
+    namespaceVersion: number, // this number is updated every time the namespaceMap is updated
+    ns: NamespaceMap, // the current namespace map
+
+    selectionVersion: number;
+    selection: Selection, // the selection 
+}
 type ViewerCallbacks = {
     deleteNS: (long: string) => void
     updateNS: (long: string, newShort: string) => void;
     addNS: (long: string, short: string) => void;
     resetNS: () => void;
+
+    updateSelection: (pairs: Array<[string, boolean]>) => void;
+    selectAll: () => void,
+    selectNone: () => void;
 }
 
 import ExportView from "./views/export";
@@ -30,9 +38,10 @@ import { Pathbuilder } from '../lib/pathbuilder';
 import { NamespaceMap } from "../lib/namespace";
 import MapView from "./views/map";
 import { PathTree } from "../lib/pathtree";
+import Selection from "../lib/selection";
 
-export class Viewer extends Component<ViewerProps & { onClose: () => void}, ViewerState> {
-    state: ViewerState = this.initState(this.props.data);
+export class Viewer extends Component<ViewerProps & { onClose: () => void }, ViewerState> {
+    state: ViewerState = this.initState(this.props.pathbuilder);
     private initState(pb: Pathbuilder, previous?: ViewerState): ViewerState {
         const paths = new Set<string>();
         pb.paths.forEach(p => {
@@ -41,35 +50,65 @@ export class Viewer extends Component<ViewerProps & { onClose: () => void}, View
         })
 
         const tree = previous?.tree ?? PathTree.fromPathbuilder(pb);
-        
+
         const ns = NamespaceMap.generate(paths)
             .add("http://www.w3.org/1999/02/22-rdf-syntax-ns#", "rdf");
 
-        const newNSKey = (previous?.newNSKey ?? -1) + 1
-        const pathbuilderKey = (previous?.pathbuilderKey ?? -1 ) + 1
-        
-        return { ns, newNSKey, tree, pathbuilderKey }
+        const selection = Selection.all();
+
+        const selectionVersion = (previous?.selectionVersion ?? -1 ) + 1
+        const namespaceVersion = (previous?.namespaceVersion ?? -1) + 1
+        const pathbuilderVersion = (previous?.pathbuilderVersion ?? -1) + 1
+
+        return { namespaceVersion, ns, pathbuilderVersion, tree, selectionVersion, selection }
+    }
+
+    private updateSelection = (pairs: Array<[string, boolean]>) => {
+        this.setState(({ selection, selectionVersion }) => ({
+            selection: selection.with(pairs),
+            selectionVersion: selectionVersion + 1,
+        }))
+    }
+
+    private selectAll = () => {
+        this.setState(({ selection, selectionVersion }) => ({
+            selection: Selection.all(),
+            selectionVersion: selectionVersion + 1,
+        }))
+    }
+
+    private selectNone = () => {
+        this.setState(({ selection, selectionVersion }) => ({
+            selection: Selection.none(),
+            selectionVersion: selectionVersion + 1,
+        })) 
     }
 
     /** deleteNS deletes a specific entry from the namespace map */
     private deleteNS = (long: string) => {
-        this.setState({ ns: this.state.ns.remove(long) })
+        this.setState(({ namespaceVersion }) => ({
+            ns: this.state.ns.remove(long),
+            namespaceVersion: namespaceVersion + 1,
+        }))
     }
 
     /** updateNS updates the given long with the newShort */
     private updateNS = (long: string, newShort: string) => {
-        const mp = this.state.ns.toMap();
-        if (!mp.has(long)) {
-            return
-        }
+        this.setState(({ namespaceVersion }) => {
+            const mp = this.state.ns.toMap();
+            if (!mp.has(long)) {
+                return
+            }
 
-        // update and use a new map!
-        mp.set(long, newShort);
-        this.setState({ ns: NamespaceMap.fromMap(mp)})
+            // update and use a new map!
+            mp.set(long, newShort);
+
+            return { ns: NamespaceMap.fromMap(mp), namespaceVersion: namespaceVersion + 1 };
+        })
     }
 
     private addNS = (long: string, short: string) => {
-        this.setState(({ newNSKey, ns }) => {
+        this.setState(({ namespaceVersion, ns }) => {
 
             // if we already have the short or the long don't do anything
             if (ns.hasShort(short) || ns.hasLong(long)) {
@@ -78,7 +117,7 @@ export class Viewer extends Component<ViewerProps & { onClose: () => void}, View
 
             return {
                 ns: ns.add(long, short),
-                newNSKey: newNSKey + 1,
+                namespaceVersion: namespaceVersion + 1
             }
         })
     }
@@ -86,8 +125,8 @@ export class Viewer extends Component<ViewerProps & { onClose: () => void}, View
     /** resetNS resets the namespaces to default */
     private resetNS = () => {
         this.setState((state) => {
-            const { ns } = this.initState(this.props.data, state);
-            return { ns: ns, newNSKey: state.newNSKey + 1 };
+            const { ns } = this.initState(this.props.pathbuilder, state);
+            return { ns: ns, namespaceVersion: state.namespaceVersion + 1 };
         });
     }
 
@@ -98,8 +137,11 @@ export class Viewer extends Component<ViewerProps & { onClose: () => void}, View
             updateNS: this.updateNS,
             addNS: this.addNS,
             resetNS: this.resetNS,
+            updateSelection: this.updateSelection,
+            selectAll: this.selectAll,
+            selectNone: this.selectNone,
         }
-        const view = {...props, ...this.state, ...callbacks};
+        const view = { ...props, ...this.state, ...callbacks };
         return <Tabs>
             <TabList>
                 <Tab>Overview</Tab>

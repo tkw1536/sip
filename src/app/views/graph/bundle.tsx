@@ -8,8 +8,10 @@ import VisJSGraph, { Size, Node, Edge } from ".";
 
 export default class BundleGraphView extends Component<ViewProps> {
     render() {
+        const { pathbuilderVersion, namespaceVersion, selectionVersion } = this.props;
+
         return <Fragment>
-            <BundleGraph width="100%" height="80vh" key={this.props.pathbuilderKey} {...this.props} />;
+            <BundleGraph width="100%" height="80vh" key={`${pathbuilderVersion}-${namespaceVersion}-${selectionVersion}`} {...this.props} />;
         </Fragment>
     }
 }
@@ -32,29 +34,43 @@ class BundleGraph extends VisJSGraph<ViewProps & Size> {
         };
     }
     prepare(nodes: DataSet<Node<string>, "id">, edges: DataSet<Edge<string>, "id">): void {
-        // const root = nodes.add({ label: 'Pathbuilder\n' + this.props.filename })[0] as string;
+        const { selection, tree: { mainBundles } } = this.props;
 
-        this.props.tree.mainBundles.forEach(b => {
+        mainBundles.forEach(b => {
             this.addBundle(nodes, edges, b, 0);
-            // edges.add({ from: root, to: b.path.id, arrows: 'to' })
         })
     }
-    private addBundle(nodes: DataSet<Node<string>>, edges: DataSet<Edge<string>>, bundle: Bundle, level: number) {
-        // add the bundle itself
-        nodes.add({ id: bundle.path.id, label: "Bundle\n" + bundle.path.name, level: 2*level });
+    private addBundle(nodes: DataSet<Node<string>>, edges: DataSet<Edge<string>>, bundle: Bundle, level: number): boolean {
+        const { selection } = this.props;
+
+        // add the node for this bundle
+        const includeSelf = selection.includes(bundle.path().id);
+        if (includeSelf) {
+            nodes.add({ id: bundle.path().id, label: "Bundle\n" + bundle.path().name, level: 2 * level });
+        }
 
         // add all the child bundles
         bundle.childBundles.forEach(cb => {
-            this.addBundle(nodes, edges, cb, level + 1)
-
-            edges.add({ from: bundle.path.id, to: cb.path.id, arrows: 'to' })
+            const includeChild = this.addBundle(nodes, edges, cb, level + 1);
+            
+            if (includeSelf && includeChild) {
+                edges.add({ from: bundle.path().id, to: cb.path().id, arrows: 'to' })
+            }
         });
 
         // add all the child fields
         bundle.childFields.forEach(cf => {
-            nodes.add({ id: cf.path.id, label: cf.path.name, color: 'orange', level: 2*level + 1 });
+            const includeField = selection.includes(cf.path().id);
 
-            edges.add({ from: bundle.path.id, to: cf.path.id, arrows: 'to' })
+            if (includeField) {
+                nodes.add({ id: cf.path().id, label: cf.path().name, color: 'orange', level: 2 * level + 1 });
+            }
+
+            if (includeField && includeSelf) {
+                edges.add({ from: bundle.path().id, to: cf.path().id, arrows: 'to' })
+            }
         })
+
+        return includeSelf
     }
 }

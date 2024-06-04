@@ -7,7 +7,8 @@
     "moduleResolution": "node",
     "target": "es6",
     "jsx": "react",
-    "jsxFactory": "h"
+    "jsxFactory": "h",
+    "lib": ["es2020"],
   },
   "include": [
     "./src/**/*"
