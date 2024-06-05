@@ -25,12 +25,9 @@ type CommonProps = {
     font?: string;
 }
 
-export type Size = {
-    height: number | string;
-    width: number | string;
-}
-
-export default abstract class VisJSGraph<T extends Size> extends Component<T> {
+type VisState = { size?: [number, number] };
+export default abstract class VisJSGraph<T> extends Component<T, VisState> {
+    state: VisState = {}
 
     /** prepare prepares the dataset of nodes and edges to be rendered */
     abstract prepare(dataset: Dataset): void;
@@ -40,28 +37,100 @@ export default abstract class VisJSGraph<T extends Size> extends Component<T> {
         return {};
     }
 
+    private wrapperRef = createRef<HTMLDivElement>();
+    private networkRef = createRef<HTMLDivElement>();
 
-    private ref = createRef<HTMLDivElement>();
+    private observer: ResizeObserver
     private network: Network
+
+    private onResize = () => {
+        const wrapper = this.wrapperRef.current;
+        if (!wrapper) return;
+
+        const width = wrapper.clientWidth;
+        const height = wrapper.clientHeight;
+
+        this.setState(({ size }) => {
+            // if the previous size is identical, don't resize
+            if (size && size[0] === width && size[1] === height) {
+                return;
+            }
+            return { size: [width, height] };
+        })
+    }
+
     componentDidMount(): void {
-        const dataset = new Dataset();
-        this.prepare(dataset);
-
-        const container = this.ref.current!;
-        const options = this.options();
-
-        this.network = new Network(container, dataset.toData(), options);
+        if (!this.observer) {
+            this.observer = new ResizeObserver(this.onResize);
+            this.observer.observe(this.wrapperRef.current);
+        }
     }
 
     componentWillUnmount(): void {
-        if (!this.network) {
-            return
+        if (this.observer) {
+            this.observer.disconnect();
+            this.observer = null;
         }
+        this.destroyNetwork();
+    }
+
+    private createOrUpdateNetwork = () => {
+        if (!this.network) {
+            const container = this.networkRef.current;
+            if (!container) return;
+
+            const dataset = new Dataset();
+            this.prepare(dataset);
+
+            const options = this.options();
+            options.autoResize = false;
+            this.network = new Network(container, dataset.toData(), options);
+        };
+
+        const { size } = this.state;
+        if (!size) return;
+
+        const nextSize = [`${size[0]}px`, `${size[1]}px`];
+
+        // draw on the next animation frame
+        this.onAnimationFrame(() => {
+            if (!this.network) return;
+
+            this.network.setSize(nextSize[0], nextSize[1]);
+            this.network.redraw();
+        });
+    }
+
+    private lastAnim: number | null;
+    private onAnimationFrame(callback: () => void) {
+        if (this.lastAnim) { window.cancelAnimationFrame(this.lastAnim) }
+
+        this.lastAnim = window.requestAnimationFrame(() => {
+            this.lastAnim = null;
+            callback();
+        })
+    }
+
+    private destroyNetwork = () => {
+        if (!this.network) return;
+
         this.network.destroy();
+        this.network = null;
+    }
+
+    componentDidUpdate() {
+        if (this.state.size) {
+            this.createOrUpdateNetwork();
+        } else {
+            this.destroyNetwork();
+        }
     }
 
     render() {
-        return <div style={{ width: this.props.width, height: this.props.height }} ref={this.ref}></div>
+        const { size } = this.state;
+        return <div ref={this.wrapperRef} style={{ height: '100%', width: '100%' }}>
+            {size && <div ref={this.networkRef} width={size[0]} height={size[1]}></div>}
+        </div>
     }
 }
 

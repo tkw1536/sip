@@ -13,7 +13,7 @@ class Wrapper extends Component {
     render() {
         const { children } = this.props;
         return <Fragment>
-            <header>
+            <header className={styles.header}>
                 <h1>
                     Supreme Inspector for Pathbuilders
                 </h1>

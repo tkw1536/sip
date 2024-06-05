@@ -3,19 +3,16 @@ import type { ViewProps } from "../../viewer";
 
 import { Bundle } from "../../../lib/pathtree";
 
-import VisJSGraph, { Size, Dataset } from ".";
+import VisJSGraph, { Dataset } from ".";
 
 export default class BundleGraphView extends Component<ViewProps> {
     render() {
         const { pathbuilderVersion, namespaceVersion, selectionVersion } = this.props;
-
-        return <Fragment>
-            <BundleGraph width="100%" height="80vh" key={`${pathbuilderVersion}-${namespaceVersion}-${selectionVersion}`} {...this.props} />;
-        </Fragment>
+        return <BundleGraph key={`${pathbuilderVersion}-${namespaceVersion}-${selectionVersion}`} {...this.props} />;
     }
 }
 
-class BundleGraph extends VisJSGraph<ViewProps & Size> {
+class BundleGraph extends VisJSGraph<ViewProps> {
     options() {
         return {
             layout: {
@@ -33,7 +30,7 @@ class BundleGraph extends VisJSGraph<ViewProps & Size> {
         };
     }
     prepare(dataset: Dataset): void {
-        const { selection, tree: { mainBundles } } = this.props;
+        const { tree: { mainBundles } } = this.props;
 
         mainBundles.forEach(b => {
             this.addBundle(dataset, b, 0);

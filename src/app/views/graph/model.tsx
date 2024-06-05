@@ -3,22 +3,18 @@ import type { ViewProps } from "../../viewer";
 
 import { Bundle, NodeLike } from "../../../lib/pathtree";
 
-import VisJSGraph, { Size, Dataset } from ".";
+import VisJSGraph, { Dataset } from ".";
 
 export default class ModelGraphView extends Component<ViewProps> {
     render() {
         const { pathbuilderVersion, namespaceVersion, selectionVersion } = this.props;
-
-        return <Fragment>
-            <ModelGraph width="100%" height="80vh" key={`${pathbuilderVersion}-${namespaceVersion}-${selectionVersion}`} {...this.props} />;
-        </Fragment>
+        return <ModelGraph key={`${pathbuilderVersion}-${namespaceVersion}-${selectionVersion}`} {...this.props} />
     }
 }
 
-class ModelGraph extends VisJSGraph<ViewProps & Size> {
+class ModelGraph extends VisJSGraph<ViewProps> {
     options() {
         return {
-            autoResize: true,
             physics: {
                 barnesHut: {
                     springConstant: 0,

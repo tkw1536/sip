@@ -3,6 +3,7 @@ import { h, Component } from 'preact';
 
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import 'react-tabs/style/react-tabs.css';
+import styles from './viewer.module.css';
 
 export type ViewProps = ViewerProps & ViewerState & ViewerCallbacks
 type ViewerProps = {
@@ -175,7 +176,7 @@ export class Viewer extends Component<ViewerProps & { onClose: () => void }, Vie
                 <Tab>Overview</Tab>
                 <Tab>Bundle Graph</Tab>
                 <Tab>Model Graph</Tab>
-                <Tab>Namespace Map</Tab>
+                <Tab>Namespace Map &#9881;&#65039;</Tab>
                 <Tab>Export</Tab>
                 <Tab>Close</Tab>
             </TabList>
@@ -204,7 +205,7 @@ export class Viewer extends Component<ViewerProps & { onClose: () => void }, Vie
                     <button onClick={onClose}>Close</button>
                 </p>
             </TabPanel>
-        </Tabs>;
+        </Tabs>
     }
 }
 
