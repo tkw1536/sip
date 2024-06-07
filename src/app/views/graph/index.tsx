@@ -3,6 +3,7 @@ import { h, Component, createRef } from 'preact';
 import { Network, Data } from "vis-network";
 import { DataSet } from "vis-data";
 import type { Options } from "vis-network";
+import styles from './index.module.css';
 
 export type Node<T extends string | number> = {
     id?: T,
@@ -43,12 +44,8 @@ export default abstract class VisJSGraph<T> extends Component<T, VisState> {
     private observer: ResizeObserver
     private network: Network
 
-    private onResize = () => {
-        const wrapper = this.wrapperRef.current;
-        if (!wrapper) return;
-
-        const width = wrapper.clientWidth;
-        const height = wrapper.clientHeight;
+    private onResize = ([entry]: [ResizeObserverEntry]) => {
+        const [ width, height ] = VisJSGraph.getVisibleSize(entry.target);
 
         this.setState(({ size }) => {
             // if the previous size is identical, don't resize
@@ -57,6 +54,16 @@ export default abstract class VisJSGraph<T> extends Component<T, VisState> {
             }
             return { size: [width, height] };
         })
+    }
+
+    /* returns the size of the part of target that is visible in the view port */
+    private static getVisibleSize = (target: Element) => {
+        const { top, bottom, left, right }  = target.getBoundingClientRect();
+
+        return [
+            Math.max(Math.min(right, window.innerWidth) - Math.max(left, 0), 0),
+            Math.max(Math.min(bottom, window.innerHeight) - Math.max(top, 0), 0)
+        ];
     }
 
     componentDidMount(): void {
@@ -128,8 +135,8 @@ export default abstract class VisJSGraph<T> extends Component<T, VisState> {
 
     render() {
         const { size } = this.state;
-        return <div ref={this.wrapperRef} style={{ height: '100%', width: '100%' }}>
-            {size && <div ref={this.networkRef} width={size[0]} height={size[1]}></div>}
+        return <div ref={this.wrapperRef} className={styles.wrapper}>
+            {size && <div ref={this.networkRef} style={{width: size[0], height: size[1]}} className={styles.network}></div>}
         </div>
     }
 }
