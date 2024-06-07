@@ -5,10 +5,40 @@ import { Bundle, NodeLike } from "../../../lib/pathtree";
 
 import VisJSGraph, { Dataset } from ".";
 
-export default class ModelGraphView extends Component<ViewProps> {
+import styles from './model.module.css';
+
+type State = { open: boolean; }
+
+export default class ModelGraphView extends Component<ViewProps, State> {
+    state: State = { open: false }
+
+    private toggle = () => {
+        this.setState(({open}) => ({open: !open}))
+    }
+
     render() {
         const { pathbuilderVersion, namespaceVersion, selectionVersion } = this.props;
-        return <ModelGraph key={`${pathbuilderVersion}-${namespaceVersion}-${selectionVersion}`} {...this.props} />
+        const { open } = this.state;
+
+        return <div className={styles.wrapper}>
+            <div className={`${styles.options} ${open ? styles.optionsOpen : styles.optionsClosed }`}>
+                <h2>Model Graph Options</h2>
+                <p>
+                    Use these options to adjust the model graph.
+                    You have to click apply for the options to take effect. 
+                </p>
+            
+                <p>
+                    (options will be added in a future revision of SIfP)
+                </p>
+            </div>
+            <button className={styles.handle} onClick={this.toggle}>
+                { open ? "<<" : ">>"}
+            </button>
+            <div className={styles.main}>
+                <ModelGraph key={`${pathbuilderVersion}-${namespaceVersion}-${selectionVersion}`} {...this.props} />
+            </div>
+        </div>
     }
 }
 
