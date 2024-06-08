@@ -2,13 +2,16 @@ import { h, Component, createRef } from 'preact';
 
 import { Network, Data } from "vis-network";
 import { DataSet } from "vis-data";
-import type { Options } from "vis-network";
+import type { Options, Position } from "vis-network";
 import styles from './index.module.css';
+import { FullItem } from "vis-data/declarations/data-interface";
 
 export type Node<T extends string | number> = {
     id?: T,
     shape?: Shape,
     level?: number,
+    x?: number,
+    y?: number,
 } & CommonProps;
 
 type Shape = 'ellipse' | 'circle' | 'database' | 'box' | 'text' | 'image' | 'circularImage' | 'diamond' | 'dot' | 'star' | 'triangle' | 'triangleDown' | 'hexagon' | 'square' | 'icon';
@@ -31,11 +34,17 @@ export default abstract class VisJSGraph<T> extends Component<T, VisState> {
     state: VisState = {}
 
     /** prepare prepares the dataset of nodes and edges to be rendered */
-    abstract prepare(dataset: Dataset): void;
+    protected abstract prepare(dataset: Dataset): void;
 
     /** options returns the options for the graph */
     protected options(): Options {
         return {};
+    }
+
+    async toBlob([width, height]: [number, number], type?: string, quality?: number): Promise<Blob> {
+        if (!this.dataset || !this.network) return null;
+
+        return this.dataset.drawNetworkClone(this.network, width, height)
     }
 
     private wrapperRef = createRef<HTMLDivElement>();
@@ -43,9 +52,10 @@ export default abstract class VisJSGraph<T> extends Component<T, VisState> {
 
     private observer: ResizeObserver
     private network: Network
+    private dataset: Dataset
 
     private onResize = ([entry]: [ResizeObserverEntry]) => {
-        const [ width, height ] = VisJSGraph.getVisibleSize(entry.target);
+        const [width, height] = VisJSGraph.getVisibleSize(entry.target);
 
         this.setState(({ size }) => {
             // if the previous size is identical, don't resize
@@ -58,7 +68,7 @@ export default abstract class VisJSGraph<T> extends Component<T, VisState> {
 
     /* returns the size of the part of target that is visible in the view port */
     private static getVisibleSize = (target: Element) => {
-        const { top, bottom, left, right }  = target.getBoundingClientRect();
+        const { top, bottom, left, right } = target.getBoundingClientRect();
 
         return [
             Math.max(Math.min(right, window.innerWidth) - Math.max(left, 0), 0),
@@ -86,12 +96,12 @@ export default abstract class VisJSGraph<T> extends Component<T, VisState> {
             const container = this.networkRef.current;
             if (!container) return;
 
-            const dataset = new Dataset();
-            this.prepare(dataset);
+            this.dataset = new Dataset();
+            this.prepare(this.dataset);
 
             const options = this.options();
             options.autoResize = false;
-            this.network = new Network(container, dataset.toData(), options);
+            this.network = new Network(container, this.dataset.toData(), options);
         };
 
         const { size } = this.state;
@@ -123,6 +133,7 @@ export default abstract class VisJSGraph<T> extends Component<T, VisState> {
 
         this.network.destroy();
         this.network = null;
+        this.dataset = null;
     }
 
     componentDidUpdate() {
@@ -136,7 +147,7 @@ export default abstract class VisJSGraph<T> extends Component<T, VisState> {
     render() {
         const { size } = this.state;
         return <div ref={this.wrapperRef} className={styles.wrapper}>
-            {size && <div ref={this.networkRef} style={{width: size[0], height: size[1]}} className={styles.network}></div>}
+            {size && <div ref={this.networkRef} style={{ width: size[0], height: size[1] }} className={styles.network}></div>}
         </div>
     }
 }
@@ -155,4 +166,72 @@ export class Dataset {
     toData(): Data {
         return { nodes: this.nodes, edges: this.edges } as unknown;
     }
+
+    /** drawNetworkClone draws a clone of this dataset from the given network */
+    async drawNetworkClone(network: Network, width: number, height: number, type?: string, quality?: number): Promise<Blob> {
+        // get the original canvas size
+        const orgCanvas = (await draw(network)).canvas;
+
+        // copy nodes, edges, positions
+        const nodes = cloneObject(this.nodes.get());
+        const edges = cloneObject(this.edges.get());
+        const positions = cloneObject(network.getPositions())
+
+        // create a new set of nodes
+        const nodeSet = new DataSet<Node<string>>();
+        nodes.forEach(node => {
+            const { x, y } = positions[node.id];
+            nodeSet.add({...node, x, y})
+        })
+        
+        // create a new set of edges
+        const edgeSet = new DataSet<Edge<string>>();
+        edges.forEach(edge => edgeSet.add(edge))
+
+        // create a temporary container with the original size
+        const container = document.createElement('div');
+        container.style.boxSizing = 'border-box';
+        container.style.width = `${orgCanvas.width}px`;
+        container.style.height = `${orgCanvas.height}px`;
+        document.body.append(container);
+
+        // create a clone of the network
+        const networkClone = new Network(container, { nodes: nodeSet, edges: edgeSet } as unknown, {
+            autoResize: false,
+            physics: false,
+            layout: {
+                randomSeed: network.getSeed(),
+            },
+        });
+
+        // reset the size and fit all the nodes on it
+        networkClone.setSize(`${width}px`, `${height}px`)
+        networkClone.moveTo({ scale: Math.max(width / orgCanvas.width, height / orgCanvas.height) })
+        networkClone.fit({ animation: false });
+
+        // export the network as a png
+        return new Promise<Blob>(async (rs, rj) => {
+            const canvas = (await draw(networkClone)).canvas;
+            canvas.toBlob((blob) => rs(blob), type, quality);
+        }).finally(() => {
+            networkClone.destroy()
+            document.body.removeChild(container)
+        })
+
+    }
+}
+
+function cloneObject<T>(x: T): T {
+    if (typeof structuredClone === 'function') {
+        return structuredClone(x);
+    }
+
+    return JSON.parse(JSON.stringify(x))
+}
+
+async function draw(network: Network): Promise<CanvasRenderingContext2D> {
+    return new Promise((rs) => {
+        network.once('afterDrawing', (ctx) => rs(ctx))
+        network.redraw()
+    })
 }

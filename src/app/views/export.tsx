@@ -1,23 +1,13 @@
 import { h, Component, Fragment } from 'preact';
 import type { ViewProps } from "../viewer";
+import { download } from "../../lib/download";
 
 export default class ExportView extends Component<ViewProps> {
     private export = (evt: MouseEvent) => {
         evt.preventDefault();
 
         const file = new Blob([this.props.pathbuilder.toXML()], {'type': 'application/xml'});
-        const url = URL.createObjectURL(file);
-
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = this.props.filename || 'pathbuilder.xml';
-        document.body.appendChild(a);
-        a.click();
-
-        setTimeout(function() {
-            document.body.removeChild(a);
-            window.URL.revokeObjectURL(url);  
-        }, 0); 
+        download(file, this.props.filename || 'pathbuilder.xml');
     }
     render() {
         const { filename: filename } = this.props;

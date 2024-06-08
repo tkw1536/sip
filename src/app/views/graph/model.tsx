@@ -1,6 +1,6 @@
-import { h, Component, Fragment } from 'preact';
+import { h, Component, Fragment, createRef } from 'preact';
 import type { ViewProps } from "../../viewer";
-
+import { download } from "../../../lib/download";
 import { Bundle, NodeLike } from "../../../lib/pathtree";
 
 import VisJSGraph, { Dataset } from ".";
@@ -15,6 +15,22 @@ export default class ModelGraphView extends Component<ViewProps, State> {
     private toggle = () => {
         this.setState(({open}) => ({open: !open}))
     }
+
+    private graphRef = createRef<ModelGraph>();
+
+    private doExport = (evt: MouseEvent) => {
+        evt.preventDefault();
+
+        const { current } = this.graphRef;
+        if (!current) return;
+
+        current.toBlob([this.widthRef.current!.valueAsNumber, this.heightRef.current!.valueAsNumber], 'image/png', 1).then((blob) => {
+            download(blob, 'model.png');
+        })
+    }
+
+    private widthRef = createRef<HTMLInputElement>();
+    private heightRef = createRef<HTMLInputElement>();
 
     render() {
         const { pathbuilderVersion, namespaceVersion, selectionVersion } = this.props;
@@ -31,19 +47,33 @@ export default class ModelGraphView extends Component<ViewProps, State> {
                 <p>
                     (options will be added in a future revision of SIfP)
                 </p>
+
+                <h2>Export</h2>
+
+                <p>
+                    Click the button below to save the currently visible part of the graph as a png image.
+                    Before being saved, the graph will be redrawn in the selection resolution.
+                </p>
+
+                <p>
+                    <input type="number" ref={this.widthRef} min={100} max={10000} value={1000}></input>x
+                    <input type="number" ref={this.heightRef} min={100} max={10000} value={1000}></input>
+                    &nbsp;
+                    <button onClick={this.doExport}>Export Graph</button>
+                </p>
             </div>
             <button className={styles.handle} onClick={this.toggle}>
                 { open ? "<<" : ">>"}
             </button>
             <div className={styles.main}>
-                <ModelGraph key={`${pathbuilderVersion}-${namespaceVersion}-${selectionVersion}`} {...this.props} />
+                <ModelGraph ref={this.graphRef} key={`${pathbuilderVersion}-${namespaceVersion}-${selectionVersion}`} {...this.props} />
             </div>
         </div>
     }
 }
 
 class ModelGraph extends VisJSGraph<ViewProps> {
-    options() {
+    protected options() {
         return {
             physics: {
                 barnesHut: {
@@ -62,7 +92,7 @@ class ModelGraph extends VisJSGraph<ViewProps> {
             },
         }
     }
-    prepare(dataset: Dataset): void {
+    protected prepare(dataset: Dataset): void {
         const { tree: { mainBundles } } = this.props;
 
         const tracker = new ArrayTracker<string>((left, right) => left === right);
