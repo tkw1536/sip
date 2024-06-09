@@ -1,30 +1,24 @@
+import { Edge } from "../app/views/graph";
+import clone from "./clone";
+
 /** Graph implements a generic directed graph */
-class Graph {
+export default class Graph<NodeLabel, EdgeLabel> {
     constructor() {}
 
-    private nodes = new Map<number, Set<string>>()
-    private edges = new Map<number, Map<number, Set<string>>>();
+    private nodes = new Map<number, NodeLabel>()
+    private edges = new Map<number, Map<number, EdgeLabel>>();
     private ids = new IDMap<string>();
 
 
-    /** addNode adds a new Node with the given labels */
-    addNode(id?: string, ...labels: string[]): number {
+    /** addNode adds a new Node with the given label. If it already exists, it is overwritten. */
+    addNode(label: NodeLabel, id?: string): number {
         const theId = (typeof id === 'string') ? this.ids.getOrCreate(id) : this.ids.next();
-        
-        let set = this.nodes.get(theId);
-        if (!set) {
-            set = new Set<string>();
-            this.nodes.set(theId, set);
-        }
-
-        labels.forEach(label => set.add(label))
-
+        this.nodes.set(theId, label);
         return theId;
     }
 
-    /** getOrAddNode adds a new node with the given id */
-    getOrAddNode(id: number | string): number | null {
-
+    /** getNode gets the node or returns null */
+    getNode(id: number | string): number | null {
         // if we are given an id, ensure that we have the number
         if (typeof id === 'number') {
             if (!this.nodes.has(id)) {
@@ -35,7 +29,7 @@ class Graph {
         
         const theId = this.ids.getOrCreate(id);
         if (!this.nodes.has(theId)) {
-            this.nodes.set(theId, new Set<string>());
+            return null;
         }
         return theId;
     }
@@ -68,80 +62,91 @@ class Graph {
     }
 
     /** getNodes gets the ids of the given nodes */
-    getNodes(): Set<number> {
-        return new Set(this.nodes.keys());
+    getNodes(): Array<[number, NodeLabel]> {
+        const nodes: Array<[number, NodeLabel]> = [];
+        this.nodes.forEach((value, key) => {
+            nodes.push([key, clone(value)]);
+        })
+        return nodes;
     }
 
     /** getNodeLabels gets the labels of the provided node, if any */
-    getNodeLabels(id: string | number): Set<string> | null {
-        const set = this.nodes.get(this.getNodeId(id));
-        if (set === null) {
+    getNodeLabels(id: string | number): NodeLabel | null {
+        const theId = this.getNodeId(id);
+        if (!this.nodes.has(theId)) {
             return null;
         }
-        return new Set(set);
+        return this.nodes.get(theId)!;
     }
 
     /** addEdge adds an edge with the given labels. If the labels are invalid, returns an error. */
-    addEdge(from: string | number, to: string | number, ...labels: string[]): boolean {
-        const fromId = this.getOrAddNode(from);
+    addEdge(from: string | number, to: string | number, label: EdgeLabel): boolean {
+        const fromId = this.getNode(from);
         if (typeof fromId !== 'number') return false;
 
-        const toId = this.getOrAddNode(to);
+        const toId = this.getNode(to);
         if (typeof toId !== 'number') return false;
 
         // get or initialize this.edges[fromId]
         let fromMap = this.edges.get(fromId);
         if (!fromMap) {
-            fromMap = new Map<number, Set<string>>();
+            fromMap = new Map<number, EdgeLabel>();
             this.edges.set(fromId, fromMap);
         }
 
-            // get or initialize this.edges[fromId][toId];
-        let toSet = fromMap.get(toId);
-        if (!toSet) {
-            toSet = new Set<string>();
-            fromMap.set(toId, toSet);
-        }
-
-        // add all the labels
-        labels.forEach(label => toSet.add(label))
+        // get or initialize this.edges[fromId][toId];
+        fromMap.set(toId, label);
         
         // and done!
         return true;
     }
 
+    /** check if we have an edge */
+    hasEdge(from: string | number, to: string | number): boolean {
+        const fromId = this.getNode(from);
+        if (typeof fromId !== 'number') return false;
+
+        const toId = this.getNode(to);
+        if (typeof toId !== 'number') return false;
+
+        if (!this.edges.has(fromId)) return false;
+        return this.edges.get(fromId)!.has(toId);
+    }
+
     /** getEdgeLabels gets the labels of the edge from from to to, or null */
-    getEdgeLabels(from: string | number, to: string | number): Set<string> | null {
-        const fromId = this.getOrAddNode(from);
+    getEdgeLabels(from: string | number, to: string | number): EdgeLabel | null {
+        const fromId = this.getNode(from);
         if (typeof fromId !== 'number') return null;
 
-        const toId = this.getOrAddNode(to);
+        const toId = this.getNode(to);
         if (typeof toId !== 'number') return null;
 
         const fromMap = this.edges.get(fromId);
         if (!fromMap) return null;
 
-        const toSet = fromMap.get(toId);
-        if (!toSet) return null;
-
-        return new Set(toSet);
+        if (!fromMap.has(toId)) return null;
+        return fromMap.get(toId)!;
     }
 
     /** getEdges gets the set of all edges */
-    getEdges(): Map<number, Set<number>> {
-        const edges = new Map<number, Set<number>>();
-        this.edges.forEach((edge, id) => {
-            edges.set(id, new Set(edge.keys()));
+    getEdges(): Array<[number, number, EdgeLabel]> {
+        const edges: Array<[number, number, EdgeLabel]> = [];
+
+        this.edges.forEach((fromMap, from) => {
+            fromMap.forEach((label, to) => {
+                edges.push([from, to, clone(label)]);
+            });
         })
+
         return edges;
     }
 
     /** deleteEdge removes the between the given edges and any associated labels  */
     deleteEdge(from: number | string, to: number|string): void {
-        const fromId = this.getOrAddNode(from);
+        const fromId = this.getNode(from);
         if (typeof fromId !== 'number') return;
 
-        const toId = this.getOrAddNode(to);
+        const toId = this.getNode(to);
         if (typeof toId !== 'number') return;
         
         const fromMap = this.edges.get(fromId);

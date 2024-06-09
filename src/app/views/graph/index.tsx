@@ -4,6 +4,7 @@ import { Network, Data } from "vis-network";
 import { DataSet } from "vis-data";
 import type { Options, Position } from "vis-network";
 import styles from './index.module.css';
+import clone from "../../../lib/clone";
 
 export type Node<T extends string | number> = {
     id?: T,
@@ -152,14 +153,14 @@ export default abstract class VisJSGraph<T> extends Component<T, VisState> {
 }
 
 export class Dataset {
-    private nodes = new DataSet<Node<string>>();
-    private edges = new DataSet<Edge<string>>();
+    private nodes = new DataSet<Node<string | number>>();
+    private edges = new DataSet<Edge<string | number>>();
 
-    addNode(node: Node<string>): string {
+    addNode(node: Node<string | number>): string {
         const id = this.nodes.add(node)[0] as string;
         return id;
     }
-    addEdge(edge: Edge<string>): string {
+    addEdge(edge: Edge<string | number>): string {
         return this.edges.add(edge)[0] as string
     }
     toData(): Data {
@@ -172,12 +173,12 @@ export class Dataset {
         const orgCanvas = (await draw(network)).canvas;
 
         // copy nodes, edges, positions
-        const nodes = cloneObject(this.nodes.get());
-        const edges = cloneObject(this.edges.get());
-        const positions = cloneObject(network.getPositions())
+        const nodes = clone(this.nodes.get());
+        const edges = clone(this.edges.get());
+        const positions = clone(network.getPositions())
 
         // create a new set of nodes
-        const nodeSet = new DataSet<Node<string>>();
+        const nodeSet = new DataSet<Node<string | number>>();
         nodes.forEach(node => {
             const { x, y } = positions[node.id];
             nodeSet.add({...node, x, y})
@@ -226,13 +227,6 @@ export class Dataset {
     }
 }
 
-function cloneObject<T>(x: T): T {
-    if (typeof structuredClone === 'function') {
-        return structuredClone(x);
-    }
-
-    return JSON.parse(JSON.stringify(x))
-}
 
 async function draw(network: Network): Promise<CanvasRenderingContext2D> {
     return new Promise((rs) => {
