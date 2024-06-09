@@ -9,6 +9,7 @@
     "jsx": "react",
     "jsxFactory": "h",
     "lib": ["es2020"],
+    "strict": true,
   },
   "include": [
     "./src/**/*"

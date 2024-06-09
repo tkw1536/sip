@@ -4,7 +4,6 @@ import { Network, Data } from "vis-network";
 import { DataSet } from "vis-data";
 import type { Options, Position } from "vis-network";
 import styles from './index.module.css';
-import { FullItem } from "vis-data/declarations/data-interface";
 
 export type Node<T extends string | number> = {
     id?: T,
@@ -42,7 +41,7 @@ export default abstract class VisJSGraph<T> extends Component<T, VisState> {
     }
 
     async toBlob([width, height]: [number, number], type?: string, quality?: number): Promise<Blob> {
-        if (!this.dataset || !this.network) return null;
+        if (!this.dataset || !this.network) return Promise.reject('no network or dataset');
 
         return this.dataset.drawNetworkClone(this.network, width, height)
     }
@@ -50,17 +49,17 @@ export default abstract class VisJSGraph<T> extends Component<T, VisState> {
     private wrapperRef = createRef<HTMLDivElement>();
     private networkRef = createRef<HTMLDivElement>();
 
-    private observer: ResizeObserver
-    private network: Network
-    private dataset: Dataset
+    private observer: ResizeObserver | null = null;
+    private network: Network | null = null;
+    private dataset: Dataset | null = null;
 
-    private onResize = ([entry]: [ResizeObserverEntry]) => {
+    private onResize = ([entry]: ResizeObserverEntry[]) => {
         const [width, height] = VisJSGraph.getVisibleSize(entry.target);
 
         this.setState(({ size }) => {
             // if the previous size is identical, don't resize
             if (size && size[0] === width && size[1] === height) {
-                return;
+                return null;
             }
             return { size: [width, height] };
         })
@@ -79,7 +78,7 @@ export default abstract class VisJSGraph<T> extends Component<T, VisState> {
     componentDidMount(): void {
         if (!this.observer) {
             this.observer = new ResizeObserver(this.onResize);
-            this.observer.observe(this.wrapperRef.current);
+            this.observer.observe(this.wrapperRef.current!);
         }
     }
 
@@ -118,7 +117,7 @@ export default abstract class VisJSGraph<T> extends Component<T, VisState> {
         });
     }
 
-    private lastAnim: number | null;
+    private lastAnim: number | null = null;
     private onAnimationFrame(callback: () => void) {
         if (this.lastAnim) { window.cancelAnimationFrame(this.lastAnim) }
 
@@ -164,7 +163,7 @@ export class Dataset {
         return this.edges.add(edge)[0] as string
     }
     toData(): Data {
-        return { nodes: this.nodes, edges: this.edges } as unknown;
+        return { nodes: this.nodes, edges: this.edges } as unknown as Data;
     }
 
     /** drawNetworkClone draws a clone of this dataset from the given network */
@@ -196,7 +195,7 @@ export class Dataset {
         document.body.append(container);
 
         // create a clone of the network
-        const networkClone = new Network(container, { nodes: nodeSet, edges: edgeSet } as unknown, {
+        const networkClone = new Network(container, { nodes: nodeSet, edges: edgeSet } as unknown as any, {
             autoResize: false,
             physics: false,
             layout: {
@@ -212,7 +211,13 @@ export class Dataset {
         // export the network as a png
         return new Promise<Blob>(async (rs, rj) => {
             const canvas = (await draw(networkClone)).canvas;
-            canvas.toBlob((blob) => rs(blob), type, quality);
+            canvas.toBlob((blob) => {
+                if (!blob) {
+                    rj('no blob');
+                    return;
+                }
+                rs(blob)
+            }, type, quality);
         }).finally(() => {
             networkClone.destroy()
             document.body.removeChild(container)
