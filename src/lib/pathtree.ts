@@ -12,8 +12,8 @@ export abstract class NodeLike {
         return children;
     }
     private collectChildren(children: Array<string>) {
-        const myID = this.path().id;
-        if (myID !== null) {
+        const myID = this.path()?.id;
+        if (typeof myID === 'string') {
             children.push(myID);
         }
 
@@ -22,8 +22,8 @@ export abstract class NodeLike {
 
     /** find finds the first node with the given id, including itself */
     find(id: string): NodeLike | null {
-        const myID = this.path().id;
-        if (myID !== id) {
+        const myID = this.path()?.id;
+        if (myID === id) {
             return this;
         }
 
@@ -59,7 +59,7 @@ export class PathTree extends NodeLike {
 
         const get_or_create_bundle = (id: string): Bundle => {
             if (!bundles.has(id)) {
-                const bundle = new Bundle(null, null, [], new Map<string, Field>());
+                const bundle = new Bundle(Path.empty(), null, [], new Map<string, Field>());
                 bundles.set(id, bundle);
             }
             return bundles.get(id)!;
@@ -109,7 +109,7 @@ export class Bundle extends NodeLike {
         return this._parent;
     }
 
-    set(path: Path, parent: Bundle) {
+    set(path: Path, parent: Bundle | null) {
         this._path = path;
         this._parent = parent;
     }

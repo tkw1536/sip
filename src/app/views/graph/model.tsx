@@ -136,8 +136,8 @@ class ModelGraph extends VisJSGraph<ViewProps> {
         const parent = node.parent();
         const displayParent = this.props.selection.includes(parent?.path()?.id ?? '');
         if (parent && displayParent) {
-            const length = parent.path().path_array.length;
-            if (length >= 0 && length % 2 == 0) {
+            const length = parent.path()?.path_array?.length;
+            if (typeof length === 'number' && length >= 0 && length % 2 == 0) {
                 ownPath = ownPath.slice(length);
             }
         }

@@ -15,7 +15,7 @@ export class NamespaceMap {
     private map: Map<string, string> | null = null;
 
     /** toMapInternal returns a reference to the internal map (which should not be mutated) */
-    private toMapInternal(): Map<string, string> | null {
+    private toMapInternal(): Map<string, string> {
         // if we already have a map, return it!
         if (this.map !== null) return this.map;
 

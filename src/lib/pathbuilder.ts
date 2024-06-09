@@ -25,7 +25,7 @@ export class Pathbuilder {
         return new Pathbuilder(paths.map(n => Path.fromNode(n as Element)));
     }
     toXML(): string {
-        const xml = new DOMImplementation().createDocument(undefined, 'pathbuilder.xml')
+        const xml = new DOMImplementation().createDocument(null, 'pathbuilder.xml')
 
         // create the interface
         const pb = xml.createElement('pathbuilderinterface');
@@ -61,6 +61,12 @@ export class Path {
 
     }
 
+    static empty(): Path {
+        return new Path(
+            "", -1, false, "", "", "", "", "", "", -1, "", [], "", "", -1, "", "", false, "",
+        )
+    }
+
     private static parseValue<T>(element: Element, name: string, parser: (value: string) => T): T {
         const children = Array.from(element.childNodes).filter(node => node.nodeName === name);
         if (children.length > 1) {
@@ -89,7 +95,7 @@ export class Path {
                 if (got != want) {
                     throw new Error(`expected a <${want}>, but got a <${got}>`)
                 }
-                return p.textContent
+                return p.textContent ?? '';
             });
     }
     static fromNode(node: Element): Path {
@@ -97,7 +103,8 @@ export class Path {
             throw new Error(`expected a <path>, but got a <${node.nodeName}>`);
         }
 
-        const p = this.parseValue.bind(this, node);
+        const p = this.parseValue.bind(this, node) as <T>(f: string, p: (v: string) => T) => T;
+
         const str = (value: string) => value;
         const str0 = (value: string) => {
             if (value === "0") return "";
@@ -173,7 +180,7 @@ export class Path {
             return value ? "1" : "0";
         }
 
-        const s = Path.serializeElement.bind(Path, xml, path);
+        const s = Path.serializeElement.bind(Path, xml, path) as <T>(f: string, s: (v: T) => string, v: T) => void;
 
         s("id", str, this.id)
         s("weight", int, this.weight)

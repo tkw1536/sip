@@ -5,7 +5,7 @@ import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import 'react-tabs/style/react-tabs.css';
 import styles from './viewer.module.css';
 
-export type ViewProps = ViewerProps & ViewerState & ViewerCallbacks
+export type ViewProps = {} & ViewerProps & ViewerState & ViewerCallbacks
 type ViewerProps = {
     pathbuilder: Pathbuilder,
     filename: string,
@@ -107,7 +107,7 @@ export class Viewer extends Component<ViewerProps & { onClose: () => void }, Vie
         this.setState(({ namespaceVersion }) => {
             const mp = this.state.ns.toMap();
             if (!mp.has(long)) {
-                return
+                return null;
             }
 
             // update and use a new map!
@@ -122,7 +122,7 @@ export class Viewer extends Component<ViewerProps & { onClose: () => void }, Vie
 
             // if we already have the short or the long don't do anything
             if (ns.hasShort(short) || ns.hasLong(long)) {
-                return;
+                return null;
             }
 
             return {

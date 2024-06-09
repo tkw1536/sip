@@ -45,7 +45,7 @@ export default class MapView extends Component<ViewProps> {
     }
 }
 
-const AddMapRow = WithID<ViewProps>(class AddMapRow extends Component<ViewProps & { id: "string" }> {
+const AddMapRow = WithID<ViewProps>(class AddMapRow extends Component<ViewProps & { id: string }> {
     state = {short: "", long: ""}
 
     private onSubmit = (evt: SubmitEvent) => {
