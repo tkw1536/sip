@@ -66,9 +66,7 @@ export class Viewer extends Component<ViewerProps & { onClose: () => void }, Vie
 
         const tree = previous?.tree ?? PathTree.fromPathbuilder(pb);
 
-        const ns = NamespaceMap.generate(paths)
-            .add("http://www.w3.org/1999/02/22-rdf-syntax-ns#", "rdf");
-
+        const ns = NamespaceMap.generate(paths);
         const selection = Selection.all();
         const collapsed = Selection.none();
 

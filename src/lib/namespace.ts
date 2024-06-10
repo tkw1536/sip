@@ -100,7 +100,6 @@ export class NamespaceMap {
     }
 
     
-
     /** creates a new namespace map from the given map */
     static fromMap(elements: Map<string, string>): NamespaceMap {
         let ns = this.empty();
@@ -163,10 +162,7 @@ export class NamespaceMap {
 
         const seen = new Map<string, number>();
         prefixes.forEach(prefix => {
-            const name = (prefix.indexOf('://') >= 0) ? prefix.substring(prefix.indexOf('://') + '://'.length) : prefix;
-            const match = (name.match(/([a-zA-Z0-9]+)/g) ?? []).find(v => v !== "www") ?? "prefix";
-            
-            let theName = match.substring(0, len);
+            let theName = this.makeNamespacePrefix(prefix).substring(0, len);
             if (seen.has(theName)) {
                 const counter = seen.get(theName)!;
                 seen.set(theName, counter + 1);
@@ -179,4 +175,34 @@ export class NamespaceMap {
         });
         return this.fromMap(ns);
     }
+
+    /**
+     * returns a suitable prefix for the given url
+     */
+    private static makeNamespacePrefix(uri: string) {
+        
+        // trim off the header
+        const index = uri.indexOf('://')
+        const name = (index >= 0) ? uri.substring(index + '://'.length) : uri;
+
+        // check if we have a special prefix
+        const special = this.specialPrefixes.find(([prefix]) => name.startsWith(prefix));
+        if (special) {
+            return special[1];
+        }
+        
+        // guesstimate a special prefix
+        return (name.match(/([a-zA-Z0-9]+)/g) ?? []).find(v => v !== "www") ?? "prefix";
+    }
+
+    /**
+     * Special prefixes used to generate specific names.
+     * These are re-used by some WissKIs.
+     */
+    private static specialPrefixes = Object.entries({
+        'erlangen-crm.org/': 'ecrm',
+        'www.cidoc-crm.org/': 'crm',
+        'www.w3.org/1999/02/22-rdf-syntax-ns#': 'rdf',
+    })
+
 }
