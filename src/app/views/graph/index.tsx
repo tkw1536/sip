@@ -4,7 +4,6 @@ import { Network, Data } from "vis-network";
 import { DataSet } from "vis-data";
 import type { Options, Position } from "vis-network";
 import styles from './index.module.css';
-import clone from "../../../lib/clone";
 
 export type Node<T extends string | number> = {
     id?: T,
@@ -173,9 +172,9 @@ export class Dataset {
         const orgCanvas = (await draw(network)).canvas;
 
         // copy nodes, edges, positions
-        const nodes = clone(this.nodes.get());
-        const edges = clone(this.edges.get());
-        const positions = clone(network.getPositions())
+        const nodes = this.nodes.get();
+        const edges = this.edges.get();
+        const positions = network.getPositions();
 
         // create a new set of nodes
         const nodeSet = new DataSet<Node<string | number>>();

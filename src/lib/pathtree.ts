@@ -59,7 +59,7 @@ export class PathTree extends NodeLike {
 
         const get_or_create_bundle = (id: string): Bundle => {
             if (!bundles.has(id)) {
-                const bundle = new Bundle(Path.empty(), null, [], new Map<string, Field>());
+                const bundle = new Bundle(Path.create(), null, [], new Map<string, Field>());
                 bundles.set(id, bundle);
             }
             return bundles.get(id)!;

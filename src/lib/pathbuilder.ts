@@ -61,7 +61,7 @@ export class Path {
 
     }
 
-    static empty(): Path {
+    static create(): Path {
         return new Path(
             "", -1, false, "", "", "", "", "", "", -1, "", [], "", "", -1, "", "", false, "",
         )

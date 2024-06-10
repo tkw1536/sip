@@ -1,5 +1,4 @@
 import { Edge } from "../app/views/graph";
-import clone from "./clone";
 
 /** Graph implements a generic directed graph */
 export default class Graph<NodeLabel, EdgeLabel> {
@@ -15,6 +14,19 @@ export default class Graph<NodeLabel, EdgeLabel> {
         const theId = (typeof id === 'string') ? this.ids.getOrCreate(id) : this.ids.next();
         this.nodes.set(theId, label);
         return theId;
+    }
+
+    /** addOrUpdateNode creates or updates a node */
+    addOrUpdateNode(id: string, update: (label?: NodeLabel) => NodeLabel): number {
+        // node already exists => update
+        const oldId = this.getNode(id);
+        if (typeof oldId === 'number') {
+            this.nodes.set(oldId, update(this.nodes.get(oldId)!));
+            return oldId;
+        }
+
+        // node doesn't exist yet => create it
+        return this.addNode(update(), id);
     }
 
     /** getNode gets the node or returns null */
@@ -65,7 +77,7 @@ export default class Graph<NodeLabel, EdgeLabel> {
     getNodes(): Array<[number, NodeLabel]> {
         const nodes: Array<[number, NodeLabel]> = [];
         this.nodes.forEach((value, key) => {
-            nodes.push([key, clone(value)]);
+            nodes.push([key, value]);
         })
         return nodes;
     }
@@ -82,10 +94,16 @@ export default class Graph<NodeLabel, EdgeLabel> {
     /** addEdge adds an edge with the given labels. If the labels are invalid, returns an error. */
     addEdge(from: string | number, to: string | number, label: EdgeLabel): boolean {
         const fromId = this.getNode(from);
-        if (typeof fromId !== 'number') return false;
+        if (typeof fromId !== 'number') {
+            console.warn('unknown from', from);
+            return false;
+        }
 
         const toId = this.getNode(to);
-        if (typeof toId !== 'number') return false;
+        if (typeof toId !== 'number') {
+            console.warn('unknown to', to);
+            return false;
+        }
 
         // get or initialize this.edges[fromId]
         let fromMap = this.edges.get(fromId);
@@ -134,7 +152,7 @@ export default class Graph<NodeLabel, EdgeLabel> {
 
         this.edges.forEach((fromMap, from) => {
             fromMap.forEach((label, to) => {
-                edges.push([from, to, clone(label)]);
+                edges.push([from, to, label]);
             });
         })
 

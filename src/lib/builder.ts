@@ -4,10 +4,35 @@ import { Bundle, Field, NodeLike, PathTree } from "./pathtree";
 
 export type Options = {
     include?(uri: string): boolean;
+    deduplication?: Deduplication
 }
 
+export enum Deduplication {
+    Full = 'full',
+    Main = 'main',
+}
 
-type ModelLabel = { 'type': 'path', 'data': string } | { 'type': 'field', 'data': Path }
+type ModelNode = {
+    /* represents a single class node */
+    type: 'class',
+    clz: string,
+
+    /** bundles rooted at this node */
+    bundles: Set<Bundle>,
+} | {
+    type: 'field',
+    field: Field, /** the field at this path */
+}
+
+type ModelEdge = {
+    /* represents a property between two class nodes */
+    type: 'property',
+    property: string,
+} | {
+    /** represents a datatype property */
+    type: 'data',
+    field: Field,
+}
 
 /** builds a new graph for a specific model */
 export class GraphBuilder {
@@ -21,10 +46,10 @@ export class GraphBuilder {
     }
 
     private done: boolean = false;
-    private graph = new Graph<ModelLabel, ModelLabel>();
+    private graph = new Graph<ModelNode, ModelEdge>();
     private tracker = new ArrayTracker<string>();
     
-    public build(): Graph<ModelLabel, ModelLabel> {
+    public build(): typeof this.graph {
 
         // ensure that we're only called once!
         if (this.done) {
@@ -38,10 +63,40 @@ export class GraphBuilder {
         return this.graph;
     }
 
+    private addBundleSelf(bundle: Bundle, level: number) {
+        const path = bundle.path().path_array
+        
+        let index = path.length - 1;
+        if (index % 2 !== 0) {
+            console.warn('bundle of even length, ignoring last element', bundle);
+            index--;
+        }
+
+        if (index < 0) {
+            console.warn('bundle path has no elements', bundle);
+            return;
+        }
+
+        const clz = path[index];
+        this.graph.addOrUpdateNode(clz, (previous) => {
+            if (previous?.type === 'field') {
+                console.warn('uri used as both property and field', clz);
+                return previous;
+            }
+
+            const bundles = new Set(previous?.bundles ?? []);
+            bundles.add(bundle)
+            return { 'type': 'class', clz: clz, bundles }
+        })
+    }
 
     private addBundle(bundle: Bundle, level: number): boolean {
         // add the node for this bundle
         const includeSelf = this.includes(bundle.path().id);
+
+        if (includeSelf) {
+            this.addBundleSelf(bundle, level);
+        }
 
         // add all the child bundles
         bundle.childBundles.forEach(cb => {
@@ -53,13 +108,13 @@ export class GraphBuilder {
             const includeField = this.includes(cf.path().id);
             if (!includeField) return;
 
-            this.addPath(cf);
+            this.addField(cf);
         })
 
         return includeSelf
     }
 
-    private addPath(node: NodeLike) {
+    private addField(node: Field) {
         // get the actual path to add
         const path = node.path();
         if (!path) return;
@@ -80,9 +135,11 @@ export class GraphBuilder {
         // make a function to add a node
         const addNodeIfNotExists = (i: number): string => {
             const node = ownPath[i];
-            if (this.tracker.add([node])) {
-                this.graph.addNode({ 'type': 'path', 'data': ownPath[i] })
+            
+            if (!this.graph.hasNode(node)) {
+                this.graph.addNode({'type': 'class', clz: node, bundles: new Set() }, node);
             }
+            
             return node;
         }
     
@@ -90,8 +147,12 @@ export class GraphBuilder {
         let prev = addNodeIfNotExists(0)
         for (let i = 1; i + 1 < ownPath.length; i += 2) {
             const next = addNodeIfNotExists(i + 1);
-            if (this.tracker.add([prev, next, ownPath[i]])) {
-                this.graph.addEdge(prev, next, {'type': 'path', 'data': ownPath[i]});
+            const property = ownPath[i]
+            if (this.tracker.add([prev, next, property])) {
+                this.graph.addEdge(prev, next, {
+                    'type': 'property',
+                    property,
+                });
             }
             prev = next;
         }
@@ -102,8 +163,17 @@ export class GraphBuilder {
         }
     
         // add the datatype property (if any)
-        const data = this.graph.addNode({'type': 'field', 'data': path });
-        this.graph.addEdge(prev, data, {'type': 'field', 'data': path });
+        const datatype = this.graph.addNode({
+            type: 'field',
+            field: node,
+        });
+        this.graph.addEdge(
+            prev, datatype,
+            {
+                type: 'data',
+                field: node,
+            }
+        );
     }
 
 }

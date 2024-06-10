@@ -20,6 +20,9 @@ type ViewerState = {
     selectionVersion: number;
     selection: Selection, // the selection
 
+    optionVersion: number;
+    deduplication: Deduplication;
+
     collapsed: Selection,
 }
 type ViewerCallbacks = {
@@ -35,6 +38,8 @@ type ViewerCallbacks = {
     toggleCollapsed: (id: string) => void; 
     collapseAll: () => void;
     expandAll: () => void;
+
+    setDeduplication: (dup: Deduplication) => void;
 }
 
 
@@ -48,6 +53,7 @@ import MapView from "./views/map";
 import { PathTree } from "../lib/pathtree";
 import Selection from "../lib/selection";
 import ModelGraphView from "./views/graph/model";
+import { Deduplication } from "../lib/builder";
 
 export class Viewer extends Component<ViewerProps & { onClose: () => void }, ViewerState> {
     state: ViewerState = this.initState(this.props.pathbuilder);
@@ -66,11 +72,15 @@ export class Viewer extends Component<ViewerProps & { onClose: () => void }, Vie
         const selection = Selection.all();
         const collapsed = Selection.none();
 
+        const deduplication = previous?.deduplication ?? Deduplication.Full;
+
         const selectionVersion = (previous?.selectionVersion ?? -1 ) + 1
         const namespaceVersion = (previous?.namespaceVersion ?? -1) + 1
         const pathbuilderVersion = (previous?.pathbuilderVersion ?? -1) + 1
+        const optionVersion = (previous?.optionVersion ?? -1) + 1
 
-        return { namespaceVersion, ns, pathbuilderVersion, tree, selectionVersion, selection, collapsed }
+
+        return { namespaceVersion, ns, pathbuilderVersion, tree, selectionVersion, selection, collapsed, optionVersion, deduplication }
     }
 
     private updateSelection = (pairs: Array<[string, boolean]>) => {
@@ -156,6 +166,10 @@ export class Viewer extends Component<ViewerProps & { onClose: () => void }, Vie
         this.setState({ collapsed: Selection.none() })
     }
 
+    private setDeduplication = (dup: Deduplication) => {
+        this.setState(({ optionVersion }) => ({ deduplication: dup, optionVersion: optionVersion + 1 }))
+    }
+
     render() {
         const { onClose, ...props } = this.props
         const callbacks: ViewerCallbacks = {
@@ -169,6 +183,7 @@ export class Viewer extends Component<ViewerProps & { onClose: () => void }, Vie
             toggleCollapsed: this.toggleCollapsed,
             collapseAll: this.collapseAll,
             expandAll: this.expandAll,
+            setDeduplication: this.setDeduplication,
         }
         const view = { ...props, ...this.state, ...callbacks };
         return <Tabs>
