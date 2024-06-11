@@ -1,13 +1,11 @@
 import { h, Ref, Fragment } from 'preact';
 
 import ModelGraphBuilder, { Deduplication, ModelEdge, ModelNode } from "../../../lib/builders/model";
-import { VisJSModelRenderer } from "./renderers/visjs";
-import Graph from "../../../lib/graph";
 import GraphView from ".";
 
 export default class ModelGraphView extends GraphView<ModelNode, ModelEdge, any> {
     protected getRenderer() {
-        return VisJSModelRenderer;
+        return this.props.modelGraphRenderer;
     }
     protected newGraphBuilder() {
         const { tree, selection, deduplication } = this.props;

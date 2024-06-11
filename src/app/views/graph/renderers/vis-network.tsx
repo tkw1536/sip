@@ -4,9 +4,9 @@ import { Data, Network, Options } from "vis-network";
 import { DataSet } from "vis-data";
 import { ModelEdge, ModelNode } from "../../../../lib/builders/model";
 import { BundleEdge, BundleNode } from "../../../../lib/builders/bundle";
-import styles from './visjs.module.css';
+import styles from './vis-network.module.css';
 
-abstract class VisJSRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRenderer<NodeLabel, EdgeLabel, Network, Dataset> {
+abstract class VisNetworkRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRenderer<NodeLabel, EdgeLabel, Network, Dataset> {
     protected abstract addNode(dataset: Dataset, id: number, node: NodeLabel): void;
     protected abstract addEdge(dataset: Dataset, from: number, to: number, edge: EdgeLabel): void;
     protected options(): Options {
@@ -41,7 +41,7 @@ abstract class VisJSRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRenderer<
     }
 }
 
-export class VisJsBundleRenderer extends VisJSRenderer<BundleNode, BundleEdge> {
+export class VisNetworkBundleRenderer extends VisNetworkRenderer<BundleNode, BundleEdge> {
     options() {
         return {
             layout: {
@@ -83,7 +83,7 @@ export class VisJsBundleRenderer extends VisJSRenderer<BundleNode, BundleEdge> {
     }
 }
 
-export class VisJSModelRenderer extends VisJSRenderer<ModelNode, ModelEdge> {
+export class VisNetworkModelRenderer extends VisNetworkRenderer<ModelNode, ModelEdge> {
     protected options() {
         return {
             physics: {

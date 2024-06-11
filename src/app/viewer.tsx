@@ -1,9 +1,23 @@
 import { h, Component } from 'preact';
 
-
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import 'react-tabs/style/react-tabs.css';
-import styles from './viewer.module.css';
+
+import ExportView from "./views/export";
+import ListView from "./views/list";
+import BundleGraphView from "./views/graph/bundle";
+
+import { Pathbuilder } from '../lib/pathbuilder';
+import { NamespaceMap } from "../lib/namespace";
+import MapView from "./views/map";
+import { PathTree } from "../lib/pathtree";
+import Selection from "../lib/selection";
+import ModelGraphView from "./views/graph/model";
+import { Deduplication, ModelEdge, ModelNode } from "../lib/builders/model";
+import { GraphRendererClass } from "./views/graph/renderers";
+import { BundleEdge, BundleNode } from "../lib/builders/bundle";
+import { VisNetworkModelRenderer, VisNetworkBundleRenderer } from "./views/graph/renderers/vis-network";
+import GraphConfigView from "./views/config";
 
 export type ViewProps = {} & ViewerProps & ViewerState & ViewerCallbacks
 type ViewerProps = {
@@ -13,7 +27,7 @@ type ViewerProps = {
 type ViewerState = {
     pathbuilderVersion: number, // this number is updated every time the pathbuilder changes
     tree: PathTree, // the tree corresponding to the pathbuilder
- 
+
     namespaceVersion: number, // this number is updated every time the namespaceMap is updated
     ns: NamespaceMap, // the current namespace map
 
@@ -22,6 +36,10 @@ type ViewerState = {
 
     optionVersion: number;
     deduplication: Deduplication;
+
+    // renders for the graphs
+    bundleGraphRenderer: GraphRendererClass<BundleNode, BundleEdge, any>;
+    modelGraphRenderer: GraphRendererClass<ModelNode, ModelEdge, any>;
 
     collapsed: Selection,
 }
@@ -35,25 +53,15 @@ type ViewerCallbacks = {
     selectAll: () => void,
     selectNone: () => void;
 
-    toggleCollapsed: (id: string) => void; 
+    toggleCollapsed: (id: string) => void;
     collapseAll: () => void;
     expandAll: () => void;
 
     setDeduplication: (dup: Deduplication) => void;
+
+    setBundleRenderer: (renderer: ViewerState["bundleGraphRenderer"]) => void;
+    setModelRenderer: (renderer: ViewerState["modelGraphRenderer"]) => void;
 }
-
-
-import ExportView from "./views/export";
-import ListView from "./views/list";
-import BundleGraphView from "./views/graph/bundle";
-
-import { Pathbuilder } from '../lib/pathbuilder';
-import { NamespaceMap } from "../lib/namespace";
-import MapView from "./views/map";
-import { PathTree } from "../lib/pathtree";
-import Selection from "../lib/selection";
-import ModelGraphView from "./views/graph/model";
-import { Deduplication } from "../lib/builders/model";
 
 export class Viewer extends Component<ViewerProps & { onClose: () => void }, ViewerState> {
     state: ViewerState = this.initState(this.props.pathbuilder);
@@ -72,13 +80,28 @@ export class Viewer extends Component<ViewerProps & { onClose: () => void }, Vie
 
         const deduplication = previous?.deduplication ?? Deduplication.Full;
 
-        const selectionVersion = (previous?.selectionVersion ?? -1 ) + 1
+        const selectionVersion = (previous?.selectionVersion ?? -1) + 1
         const namespaceVersion = (previous?.namespaceVersion ?? -1) + 1
         const pathbuilderVersion = (previous?.pathbuilderVersion ?? -1) + 1
         const optionVersion = (previous?.optionVersion ?? -1) + 1
 
+        const bundleGraphRenderer = VisNetworkBundleRenderer;
+        const modelGraphRenderer = VisNetworkModelRenderer;
 
-        return { namespaceVersion, ns, pathbuilderVersion, tree, selectionVersion, selection, collapsed, optionVersion, deduplication }
+        return { 
+            namespaceVersion, ns, 
+            
+            pathbuilderVersion, tree, 
+            
+            selectionVersion, selection, 
+            
+            collapsed, 
+            
+            optionVersion, deduplication,
+        
+            bundleGraphRenderer,
+            modelGraphRenderer,
+        }
     }
 
     private updateSelection = (pairs: Array<[string, boolean]>) => {
@@ -99,7 +122,7 @@ export class Viewer extends Component<ViewerProps & { onClose: () => void }, Vie
         this.setState(({ selection, selectionVersion }) => ({
             selection: Selection.none(),
             selectionVersion: selectionVersion + 1,
-        })) 
+        }))
     }
 
     /** deleteNS deletes a specific entry from the namespace map */
@@ -150,7 +173,7 @@ export class Viewer extends Component<ViewerProps & { onClose: () => void }, Vie
 
     private toggleCollapsed = (value: string) => {
         this.setState(
-            ({collapsed}) => ({
+            ({ collapsed }) => ({
                 collapsed: collapsed.toggle(value),
             }),
         );
@@ -168,6 +191,13 @@ export class Viewer extends Component<ViewerProps & { onClose: () => void }, Vie
         this.setState(({ optionVersion }) => ({ deduplication: dup, optionVersion: optionVersion + 1 }))
     }
 
+    private setBundleRenderer = (renderer: ViewerState["bundleGraphRenderer"]) => {
+        this.setState({ bundleGraphRenderer: renderer})
+    }
+    private setModelRenderer = (renderer: ViewerState["modelGraphRenderer"]) => {
+        this.setState({ modelGraphRenderer: renderer})
+    }
+
     render() {
         const { onClose, ...props } = this.props
         const callbacks: ViewerCallbacks = {
@@ -182,6 +212,8 @@ export class Viewer extends Component<ViewerProps & { onClose: () => void }, Vie
             collapseAll: this.collapseAll,
             expandAll: this.expandAll,
             setDeduplication: this.setDeduplication,
+            setBundleRenderer: this.setBundleRenderer,
+            setModelRenderer: this.setModelRenderer,
         }
         const view = { ...props, ...this.state, ...callbacks };
         return <Tabs>
@@ -190,6 +222,7 @@ export class Viewer extends Component<ViewerProps & { onClose: () => void }, Vie
                 <Tab>Bundle Graph</Tab>
                 <Tab>Model Graph</Tab>
                 <Tab>Namespace Map &#9881;&#65039;</Tab>
+                <Tab>Graph Backends &#9881;&#65039;</Tab>
                 <Tab>Export</Tab>
                 <Tab>Close</Tab>
             </TabList>
@@ -205,6 +238,9 @@ export class Viewer extends Component<ViewerProps & { onClose: () => void }, Vie
             </TabPanel>
             <TabPanel>
                 <MapView {...view} />
+            </TabPanel>
+            <TabPanel>
+                <GraphConfigView {...view} />
             </TabPanel>
             <TabPanel>
                 <ExportView {...view} />
