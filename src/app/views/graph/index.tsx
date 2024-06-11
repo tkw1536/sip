@@ -31,7 +31,7 @@ export default abstract class GraphView<NodeLabel, EdgeLabel, S> extends Compone
         const width = this.widthRef.current?.valueAsNumber ?? 1000;
         const height = this.heightRef.current?.valueAsNumber ?? 1000;
 
-        current.toBlob([width, height], 'image/png', 1).then((blob) => {
+        current.toBlob({width, height}, 'image/png', 1).then((blob) => {
             download(blob, 'model.png');
         })
     }

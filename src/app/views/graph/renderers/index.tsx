@@ -1,11 +1,9 @@
-import { Component, ComponentClass, createRef, h } from 'preact';
+import { Component, ComponentChild, ComponentClass, Ref, createRef, h } from 'preact';
 import Graph from "../../../../lib/graph";
 import { NamespaceMap } from "../../../../lib/namespace";
 import styles from './index.module.css';
 
-export interface GraphRendererProps<NodeLabel, EdgeLabel> extends RendererProps<NodeLabel, EdgeLabel> {
-    width: number, height: number,
-}
+export type GraphRendererProps<NodeLabel, EdgeLabel> = RendererProps<NodeLabel, EdgeLabel> & Size;
 
 type RendererProps<NodeLabel, EdgeLabel> = {
     graph: Graph<NodeLabel, EdgeLabel>,
@@ -13,7 +11,7 @@ type RendererProps<NodeLabel, EdgeLabel> = {
 }
 export abstract class GraphRenderer<NodeLabel, EdgeLabel> extends Component<GraphRendererProps<NodeLabel, EdgeLabel>> {
     /** toBlob renders a copy of the currently rendered graph into a blob */
-    abstract toBlob([width, height]: [number, number], type?: string, quality?: number): Promise<Blob>;
+    abstract toBlob(size: Size, type?: string, quality?: number): Promise<Blob>;
 }
 
 /** An implemented GraphRenderer class */
@@ -23,10 +21,13 @@ export interface GraphRendererClass<NodeLabel, EdgeLabel, S> extends ComponentCl
 
 type RenderProps<NodeLabel, EdgeLabel, S> = RendererProps<NodeLabel, EdgeLabel> & { renderer: GraphRendererClass<NodeLabel, EdgeLabel, S>}
 type RenderState = { size?: [number, number]; };
+/**
+ * Renderer instantiates a renderer onto the page
+ */
 export class Renderer<NodeLabel, EdgeLabel, S> extends Component<RenderProps<NodeLabel, EdgeLabel, S>, RenderState> {
     state: RenderState = {}
 
-    async toBlob(size: [number, number], type?: string, quality?: number): Promise<Blob> {
+    async toBlob(size: Size, type?: string, quality?: number): Promise<Blob> {
         const renderer = this.rendererRef.current;
         if (!renderer) {
             return Promise.reject('no visible graph renderer');    
@@ -81,5 +82,102 @@ export class Renderer<NodeLabel, EdgeLabel, S> extends Component<RenderProps<Nod
         return <div ref={this.wrapperRef} className={styles.wrapper}>
             {size && <Renderer ref={this.rendererRef} {...props} width={size[0]} height={size[1]} />}
         </div>
+    }
+}
+
+export type Size = { width: number; height: number; }
+
+export abstract class LibraryBasedRenderer<NodeLabel, EdgeLabel, RendererObject, RendererSetup> extends GraphRenderer<NodeLabel, EdgeLabel> {
+    private instance: { object: RendererObject, setup: RendererSetup } | null = null;
+
+    protected abstract beginSetup(container: HTMLElement, size: Size): RendererSetup
+    protected abstract addNode(setup: RendererSetup, id: number, node: NodeLabel): RendererSetup | void;
+    protected abstract addEdge(setup: RendererSetup, from: number, to: number, edge: EdgeLabel): RendererSetup | void;
+    protected abstract endSetup(setup: RendererSetup, container: HTMLElement, size: Size): RendererObject
+    
+    protected abstract resizeObject(object: RendererObject, setup: RendererSetup, size: Size): RendererObject | void;
+    protected abstract destroyObject(object: RendererObject, setup: RendererSetup): void;
+
+    protected abstract objectToBlob(object: RendererObject, setup: RendererSetup, size: Size, type?: string, quality?: number): Promise<Blob>
+
+    private createRenderer() {
+        const current = this.container.current;
+        if (this.instance || !current) {
+            return;
+        }
+
+        const { graph, width, height } = this.props;
+
+        // begin setup
+        let setup = this.beginSetup(current, {width, height});
+
+        // add all nodes and edges
+        graph.getNodes().forEach(([id, node]) => {
+            const newSetup = this.addNode(setup, id, node);
+            if (typeof newSetup === 'undefined') return;
+            setup = newSetup;
+        })
+        graph.getEdges().forEach(([from, to, edge]) => {
+            const newSetup = this.addEdge(setup, from, to, edge);
+            if (typeof newSetup === 'undefined') return;
+            setup = newSetup;
+        })
+
+        this.instance = {
+            object: this.endSetup(setup, current, {width, height}),
+            setup: setup,
+        }
+        this.updateRendererSize();
+    }
+
+    private destroyRenderer() {
+        if (this.instance === null) return;
+        this.destroyObject(this.instance.object, this.instance.setup);
+        this.instance = null;
+    }
+
+    private updateRendererSize() {
+        if(!this.instance) return;
+        const { width, height } = this.props;
+        
+        const next = this.resizeObject(this.instance.object, this.instance.setup, { width, height });
+        if (typeof next === 'undefined') return;
+        this.instance.object = next;
+    }
+
+    async toBlob(size: Size, type?: string, quality?: number): Promise<Blob> {
+        if (!this.instance) return Promise.reject('renderer object not setup');
+        
+        return this.objectToBlob(this.instance.object, this.instance.setup, size, type, quality);
+    }
+
+    componentDidMount(): void {
+        this.createRenderer();
+    }
+    componentDidUpdate(previousProps: GraphRendererProps<NodeLabel, EdgeLabel>): void {
+        const { width, height, graph } = this.props;
+
+        // if we got a new graph, re-create the network!
+        if (previousProps.graph != graph) {
+            this.destroyRenderer();
+            this.createRenderer();
+            return; // automatically resized properly
+        }
+
+        if (previousProps.width === width && previousProps.height !== height) {
+            return; // size didn't change => no need to do anything
+        }
+
+        this.updateRendererSize()
+    }
+
+    private container = createRef<HTMLDivElement>()
+    render() {
+        const { width, height } = this.props;
+        return this.renderDiv({ width, height }, this.container);
+    }
+
+    protected renderDiv({ width, height }: Size, ref: Ref<HTMLDivElement>): ComponentChild {
+        return <div ref={ref} style={{width, height}} />;
     }
 }

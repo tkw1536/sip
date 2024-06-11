@@ -1,98 +1,43 @@
-import { createRef, h } from 'preact';
-import { GraphRenderer, GraphRendererProps } from ".";
+import { ComponentChild, Ref, createRef, h } from 'preact';
+import { GraphRenderer, GraphRendererProps, LibraryBasedRenderer, Size } from ".";
 import { Data, Network, Options } from "vis-network";
 import { DataSet } from "vis-data";
 import { ModelEdge, ModelNode } from "../../../../lib/builders/model";
 import { BundleEdge, BundleNode } from "../../../../lib/builders/bundle";
 import styles from './visjs.module.css';
 
-/** Implements a renderer for VisJS-like graph */
-abstract class VisJSRenderer<NodeLabel, EdgeLabel> extends GraphRenderer<NodeLabel, EdgeLabel> {
-    async toBlob([width, height]: [number, number], type?: string, quality?: number): Promise<Blob> {
-        const network = this.network;
-        if (!network) {
-            return Promise.reject('no network');
-        }
-
-        const dataset = this.dataset;
-        if (!dataset) {
-            return Promise.reject('no dataset');
-        }
-
-        return dataset.drawNetworkClone(network, width, height, type, quality);
-    }
-
+abstract class VisJSRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRenderer<NodeLabel, EdgeLabel, Network, Dataset> {
     protected abstract addNode(dataset: Dataset, id: number, node: NodeLabel): void;
     protected abstract addEdge(dataset: Dataset, from: number, to: number, edge: EdgeLabel): void;
-
     protected options(): Options {
         return {};
     }
 
-    private network: Network | null = null;
-    private dataset: Dataset | null = null;
-
-    private createNetwork() {
-        if (this.network || !this.container.current) {
-            return;
-        }
-
-        const { graph, width, height } = this.props;
-
-        // create a dataset from the graph
-        const dataset = new Dataset();
-        graph.getNodes().forEach(([id, node]) => {
-            this.addNode(dataset, id, node);
-        })
-        graph.getEdges().forEach(([from, to, edge]) => {
-            this.addEdge(dataset, from, to, edge);
-        })
-
+    protected beginSetup(container: HTMLElement, size: Size): Dataset {
+        return new Dataset();
+    }
+    
+    protected endSetup(dataset: Dataset, container: HTMLElement, size: Size): Network {
         const options = this.options();
         options.autoResize = false;
-
-        const network = new Network(this.container.current!, dataset.toData(), options);
-        network.setSize(`${width}px`, `${height}px`);
-        network.redraw();
-
-        this.network = network;
-        this.dataset = dataset;
+        return new Network(container, dataset.toData(), options);
     }
-
-    private destroyNetwork() {
-        this.dataset = null;
-
-        if (!this.network) { return; }
-        this.network.destroy();
-        this.network = null;
-    }
-
-    componentDidMount(): void {
-        this.createNetwork();
-    }
-    componentDidUpdate(previousProps: GraphRendererProps<NodeLabel, EdgeLabel>): void {
-        const { width, height, graph } = this.props;
-
-        // if we got a new graph, re-create the network!
-        if (previousProps.graph != graph) {
-            this.destroyNetwork();
-            this.createNetwork();
-            return; // automatically resized properly
-        }
-
-        if (previousProps.width === width && previousProps.height !== height) {
-            return; // size didn't change => no need to do anything
-        }
-
-        const network = this.network!;
+    
+    protected resizeObject(network: Network, dataset: Dataset, {width, height}: Size): void {
         network.setSize(`${width}px`, `${height}px`);
         network.redraw();
     }
 
-    private container = createRef<HTMLDivElement>()
-    render() {
-        const { width, height } = this.props;
-        return <div ref={this.container} style={{width, height}} className={styles.container}></div>;
+    protected destroyObject(network: Network, dataset: Dataset): void {
+        network.destroy();
+    }
+
+    protected objectToBlob(network: Network, dataset: Dataset, {width, height}: Size, type?: string, quality?: number): Promise<Blob> {
+        return dataset.drawNetworkClone(network, width, height, type, quality);
+    }
+
+    protected renderDiv({ width, height }: Size, ref: Ref<HTMLDivElement>): ComponentChild {
+        return <div ref={ref} style={{width, height}} className={styles.container} />;
     }
 }
 
