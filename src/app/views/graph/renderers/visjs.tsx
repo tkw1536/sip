@@ -1,5 +1,5 @@
-import { ComponentChild, Ref, createRef, h } from 'preact';
-import { GraphRenderer, GraphRendererProps, LibraryBasedRenderer, Size } from ".";
+import { ComponentChild, Ref, h } from 'preact';
+import {  LibraryBasedRenderer, Size } from ".";
 import { Data, Network, Options } from "vis-network";
 import { DataSet } from "vis-data";
 import { ModelEdge, ModelNode } from "../../../../lib/builders/model";
@@ -82,7 +82,6 @@ export class VisJsBundleRenderer extends VisJSRenderer<BundleNode, BundleEdge> {
         throw new Error('never reached')
     }
 }
-
 
 export class VisJSModelRenderer extends VisJSRenderer<ModelNode, ModelEdge> {
     protected options() {
