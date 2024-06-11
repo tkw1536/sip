@@ -53,7 +53,7 @@ import MapView from "./views/map";
 import { PathTree } from "../lib/pathtree";
 import Selection from "../lib/selection";
 import ModelGraphView from "./views/graph/model";
-import { Deduplication } from "../lib/builder";
+import { Deduplication } from "../lib/builders/model";
 
 export class Viewer extends Component<ViewerProps & { onClose: () => void }, ViewerState> {
     state: ViewerState = this.initState(this.props.pathbuilder);

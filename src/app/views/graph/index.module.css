@@ -1,11 +1,27 @@
 .wrapper {
     width: 100%;
     height: 100%;
-
-    overflow: 'hidden';
+    display: flex;
 }
 
-.network {
+.main {
+    flex: 1 auto;
+    overflow: hidden;
+}
+
+.handle {
+    flex: 0 auto;
+}
+
+.options {
+    flex: 0 auto;
     box-sizing: border-box;
-    border: 1px solid black;
+}
+
+.optionsOpen {
+    width: 500px;
+}
+
+.optionsClosed {
+    display: none;
 }

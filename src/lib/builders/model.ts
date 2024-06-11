@@ -1,6 +1,5 @@
-import Graph from './graph';
-import { Path } from "./pathbuilder";
-import { Bundle, Field, NodeLike, PathTree } from "./pathtree";
+import GraphBuilder from ".";
+import { Bundle, Field, PathTree } from "../pathtree";
 
 export type Options = {
     include?(uri: string): boolean;
@@ -12,7 +11,7 @@ export enum Deduplication {
     Main = 'main',
 }
 
-type ModelNode = {
+export type ModelNode = {
     /* represents a single class node */
     type: 'class',
     clz: string,
@@ -24,7 +23,7 @@ type ModelNode = {
     field: Field, /** the field at this path */
 }
 
-type ModelEdge = {
+export type ModelEdge = {
     /* represents a property between two class nodes */
     type: 'property',
     property: string,
@@ -35,32 +34,20 @@ type ModelEdge = {
 }
 
 /** builds a new graph for a specific model */
-export class GraphBuilder {
+export default class ModelGraphBuilder extends GraphBuilder<ModelNode, ModelEdge> {
     constructor(private tree: PathTree, private options: Options) {
+        super();
     }
 
+    /** checks if the given uri is included in the graph */
     private includes(uri: string): boolean {
         if (!this.options.include) return true;
 
         return this.options.include(uri);
     }
-
-    private done: boolean = false;
-    private graph = new Graph<ModelNode, ModelEdge>();
-    private tracker = new ArrayTracker<string>();
     
-    public build(): typeof this.graph {
-
-        // ensure that we're only called once!
-        if (this.done) {
-            return this.graph;
-        }
-        this.done = true;
-
+    protected doBuild(): void {
         this.tree.mainBundles.forEach(bundle => this.addBundle(bundle, 0));
-
-        // and return the graph;
-        return this.graph;
     }
 
     private addBundleSelf(bundle: Bundle, level: number) {
@@ -176,44 +163,4 @@ export class GraphBuilder {
         );
     }
 
-}
-
-class ArrayTracker<T> {
-    private equality: (l: T, r: T) => boolean;
-    constructor(equality?: (left: T, right: T) => boolean) {
-        this.equality = equality ?? ((l, r) => l === r);
-    }
-
-    private seen: T[][] = [];
-
-    /** add adds element unless it is already there */
-    add(element: T[]) {
-        if (this.has(element)) return false; // don't add it again!
-        this.seen.push(element.slice(0)); // add it!
-        return true;
-    }
-
-    /** has checks if element is there  */
-    has(element: T[]) {
-        return this.index(element) >= 0;
-    }
-    private index(element: T[]): number {
-        for (let i = 0; i < this.seen.length; i++) {
-            const candidate = this.seen[i];
-            if (candidate.length !== element.length) {
-                continue;
-            }
-
-            let ok = true;
-            for (let j = 0; j < candidate.length; j++) {
-                if (!this.equality(candidate[j], element[j])) {
-                    ok = false;
-                    break;
-                }
-            }
-
-            if (ok) { return i; }
-        }
-        return -1;
-    }
 }
