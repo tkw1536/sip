@@ -73,17 +73,17 @@ export default class ModelGraphView extends GraphView<ModelNode, ModelEdge, any>
 
 const dedupValues = [
     Deduplication.Full,
-    Deduplication.Main,
+    Deduplication.Bundle,
     Deduplication.None,
 ]
 const dedupNames = Object.freeze({
     [Deduplication.Full]: "Full",
-    [Deduplication.Main]: "Main Bundles",
+    [Deduplication.Bundle]: "Bundle",
     [Deduplication.None]: "None",
 })
 
 const dedupExplanations = Object.freeze({
     [Deduplication.Full]: "Draw each class at most once. This corresponds to drawing a subset of the associated ontology with their domains and ranges. ",
-    [Deduplication.Main]: "Draw each main bundle at most once. ",
+    [Deduplication.Bundle]: "Draw nodes once within the current bundle",
     [Deduplication.None]: "Do not deduplicate nodes at all (except for shared parent paths). "
 })

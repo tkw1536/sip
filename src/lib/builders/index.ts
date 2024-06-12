@@ -2,7 +2,7 @@ import Graph from "../graph";
 
 export default abstract class GraphBuilder<NodeLabel, EdgeLabel> {
     private done: boolean = false;
-    protected readonly graph = new Graph<NodeLabel, EdgeLabel>();
+    protected readonly graph = new Graph<NodeLabel, EdgeLabel>(false);
     protected readonly tracker = new ArrayTracker<string>(); 
     
     public build(): typeof this.graph {
@@ -22,7 +22,7 @@ export default abstract class GraphBuilder<NodeLabel, EdgeLabel> {
     protected abstract doBuild(): void;
 }
 
-class ArrayTracker<T> {
+export class ArrayTracker<T> {
     private equality: (l: T, r: T) => boolean;
     constructor(equality?: (left: T, right: T) => boolean) {
         this.equality = equality ?? ((l, r) => l === r);

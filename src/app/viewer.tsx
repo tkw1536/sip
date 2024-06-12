@@ -18,6 +18,7 @@ import { GraphRendererClass } from "./views/graph/renderers";
 import { BundleEdge, BundleNode } from "../lib/builders/bundle";
 import GraphConfigView from "./views/config";
 import { CytoBundleRenderer, CytoModelRenderer } from "./views/graph/renderers/cytoscape";
+import { VisNetworkModelRenderer } from "./views/graph/renderers/vis-network";
 
 export type ViewProps = {} & ViewerProps & ViewerState & ViewerCallbacks
 type ViewerProps = {
@@ -79,7 +80,7 @@ export class Viewer extends Component<ViewerProps & { onClose: () => void }, Vie
         const selection = Selection.all();
         const collapsed = Selection.none();
 
-        const deduplication = previous?.deduplication ?? Deduplication.Full;
+        const deduplication = previous?.deduplication ?? Deduplication.Bundle;
 
         const selectionVersion = (previous?.selectionVersion ?? -1) + 1
         const namespaceVersion = (previous?.namespaceVersion ?? -1) + 1
@@ -87,7 +88,7 @@ export class Viewer extends Component<ViewerProps & { onClose: () => void }, Vie
         const optionVersion = (previous?.optionVersion ?? -1) + 1
 
         const bundleGraphRenderer = CytoBundleRenderer;
-        const modelGraphRenderer = CytoModelRenderer;
+        const modelGraphRenderer = VisNetworkModelRenderer;
 
         return { 
             namespaceVersion, ns, 

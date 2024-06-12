@@ -67,6 +67,11 @@ export class Path {
         )
     }
 
+    public getDisambiguation(): string | null {
+        const index = 2 * this.disamb - 2;
+        return this.path_array[index] ?? null;
+    }
+
     private static parseValue<T>(element: Element, name: string, parser: (value: string) => T): T {
         const children = Array.from(element.childNodes).filter(node => node.nodeName === name);
         if (children.length > 1) {
