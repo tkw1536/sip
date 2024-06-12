@@ -14,52 +14,59 @@ export default class ModelGraphView extends GraphView<ModelNode, ModelEdge, any>
             deduplication,
         });
     }
-    private onChangeMode = (evt: Event & { currentTarget: HTMLSelectElement }) => {
-        this.props.setDeduplication(evt.currentTarget.value as Deduplication)
+    private onChangeMode = (evt: Event) => {
+        this.props.setDeduplication((evt.target as HTMLInputElement).value as Deduplication)
     }
     protected renderPanel(widthRef: Ref<HTMLInputElement>, heightRef: Ref<HTMLInputElement>) {
-        const { deduplication } = this.props;
+        const { deduplication, id } = this.props;
         return <Fragment>
-            <h2>Model Graph Options</h2>
-            <p>
-                Use these options to adjust the model graph.
-                You have to click apply for the options to take effect.
-            </p>
+            <fieldset>
+                <legend>Deduplication</legend>
 
-            <h3>Deduplication</h3>
-            <p>
-                Classes may occur in the pathbuilder more than once.
-                Usually, each class would be shown as many times as each occurs.
-                Instead, it might make sense to deduplicate nodes and only show classes fewer times.
+                <p>
+                    Classes may occur in the pathbuilder more than once.
+                    Usually, each class would be shown as many times as each occurs.
+                    Instead, it might make sense to deduplicate nodes and only show classes fewer times.
+                </p>
+                <p>
+                    Changing this value will re-render the graph.
+                </p>
 
-            </p>
-            <p>
-                Changing this value will re-render the graph.
-            </p>
-            <p>
-                <select value={deduplication} onChange={this.onChangeMode}>
-                    {
-                        dedupValues.map(v => <option key={v} value={v}>{dedupNames[v]}</option>)
-                    }
-                </select>
-            </p>
-            <p>
-                {dedupExplanations[deduplication]}
-            </p>
+                <div onChange={this.onChangeMode}>{
+                    dedupValues.map(v => (<p key={v}>
+                        <input name={`${id}-dedup-mode`} id={`${id}-dedup-mode-${v}`} type="radio" checked={deduplication === v} value={v} />
+                        <label for={`${id}-dedup-mode-${v}`}>
+                            <em>{dedupNames[v]}.</em>&nbsp;
+                            {dedupExplanations[v]}
+                        </label>
+                    </p>))
+                }</div>
+            </fieldset>
 
-            <h2>Export</h2>
+            <fieldset>
+                <legend>Graph Export</legend>
 
-            <p>
-                Click the button below to save the currently visible part of the graph as a png image.
-                Before being saved, the graph will be redrawn in the selection resolution.
-            </p>
+                <p>
+                    Click the button below to save the currently visible part of the graph as a png image.
+                    Before being saved, the graph will be redrawn in the selection resolution.
+                </p>
+                <p>
+                    <label for={`${id}-export-width`}>Width: </label>
+                    <input type="number" id={`${id}-export-width`} ref={widthRef} min={100} max={10000} value={1000} />
+                </p>
+                <p>
+                    <label for={`${id}-export-height`}>Height: </label>
+                    <input type="number" id={`${id}-export-height`} ref={heightRef} min={100} max={10000} value={1000} />
+                </p>
 
-            <p>
-                <input type="number" ref={widthRef} min={100} max={10000} value={1000}></input>x
-                <input type="number" ref={heightRef} min={100} max={10000} value={1000}></input>
-                &nbsp;
-                <button onClick={this.doExport}>Export Graph</button>
-            </p>
+                <p>
+                    <em>Some Rendering Backends may ignore the size options.</em>
+                </p>
+
+                <p>
+                    <button onClick={this.doExport}>Export Graph</button>
+                </p>
+            </fieldset>
         </Fragment>
     }
 }
@@ -67,13 +74,16 @@ export default class ModelGraphView extends GraphView<ModelNode, ModelEdge, any>
 const dedupValues = [
     Deduplication.Full,
     Deduplication.Main,
+    Deduplication.None,
 ]
 const dedupNames = Object.freeze({
     [Deduplication.Full]: "Full",
-    [Deduplication.Main]: "Main Bundles"
+    [Deduplication.Main]: "Main Bundles",
+    [Deduplication.None]: "None",
 })
 
 const dedupExplanations = Object.freeze({
     [Deduplication.Full]: "Draw each class at most once. This corresponds to drawing a subset of the associated ontology with their domains and ranges. ",
-    [Deduplication.Main]: "Draw each main bundle at most once. "
+    [Deduplication.Main]: "Draw each main bundle at most once. ",
+    [Deduplication.None]: "Do not deduplicate nodes at all (except for shared parent paths). "
 })

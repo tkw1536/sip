@@ -65,8 +65,9 @@ export default abstract class GraphView<NodeLabel, EdgeLabel, S> extends Compone
     render() {
         const panel = this.renderPanel(this.widthRef, this.heightRef);
 
+        const { ns, id } = this.props;
         const { open, graph } = this.state;
-        const renderer = graph && <Renderer ref={this.graphRef} renderer={this.getRenderer()} graph={graph} ns={this.props.ns} />;
+        const renderer = graph && <Renderer ref={this.graphRef} renderer={this.getRenderer()} graph={graph} ns={ns} id={id} />;
 
         // if we don't have a child, directly use the renderer
         if (panel === null) {

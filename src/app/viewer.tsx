@@ -16,7 +16,6 @@ import ModelGraphView from "./views/graph/model";
 import { Deduplication, ModelEdge, ModelNode } from "../lib/builders/model";
 import { GraphRendererClass } from "./views/graph/renderers";
 import { BundleEdge, BundleNode } from "../lib/builders/bundle";
-import { VisNetworkModelRenderer, VisNetworkBundleRenderer } from "./views/graph/renderers/vis-network";
 import GraphConfigView from "./views/config";
 import { CytoBundleRenderer, CytoModelRenderer } from "./views/graph/renderers/cytoscape";
 
@@ -24,6 +23,7 @@ export type ViewProps = {} & ViewerProps & ViewerState & ViewerCallbacks
 type ViewerProps = {
     pathbuilder: Pathbuilder,
     filename: string,
+    id: string,
 }
 type ViewerState = {
     pathbuilderVersion: number, // this number is updated every time the pathbuilder changes

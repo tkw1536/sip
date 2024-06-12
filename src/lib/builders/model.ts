@@ -9,6 +9,7 @@ export type Options = {
 export enum Deduplication {
     Full = 'full',
     Main = 'main',
+    None = 'none',
 }
 
 export type ModelNode = {

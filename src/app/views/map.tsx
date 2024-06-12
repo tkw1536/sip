@@ -2,6 +2,7 @@ import { h, Component, Fragment, ComponentType } from 'preact';
 import { useId } from 'preact/compat';
 import type { ViewProps } from "../viewer";
 import styles from './map.module.css';
+import { WithID } from "../../lib/wrapper";
 
 export default class MapView extends Component<ViewProps> {
     render() {
@@ -101,11 +102,7 @@ class ResetNSRow extends Component<ViewProps> {
     }
 }
 
-function WithID<T>(Component: ComponentType<T & { id: string }>): ComponentType<T> {
-    return function (props: T) {
-        return <Component {...props} id={useId()} />
-    }
-}
+
 
 
 class MapViewRow extends Component<{ long: string, short: string, props: ViewProps }, { value?: string }> {

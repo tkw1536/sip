@@ -1,5 +1,3 @@
-import { Edge } from "../app/views/graph";
-
 /** Graph implements a generic directed graph */
 export default class Graph<NodeLabel, EdgeLabel> {
     constructor() {}

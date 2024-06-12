@@ -2,12 +2,14 @@ import { Component, ComponentChild, ComponentClass, Ref, createRef, h } from 'pr
 import Graph from "../../../../lib/graph";
 import { NamespaceMap } from "../../../../lib/namespace";
 import styles from './index.module.css';
+import { WithID } from "../../../../lib/wrapper";
 
 export type GraphRendererProps<NodeLabel, EdgeLabel> = RendererProps<NodeLabel, EdgeLabel> & Size;
 
 type RendererProps<NodeLabel, EdgeLabel> = {
     graph: Graph<NodeLabel, EdgeLabel>,
-    ns: NamespaceMap, 
+    ns: NamespaceMap,
+    id: string, // some globally unique id 
 }
 export abstract class GraphRenderer<NodeLabel, EdgeLabel> extends Component<GraphRendererProps<NodeLabel, EdgeLabel>> {
     /** toBlob renders a copy of the currently rendered graph into a blob */

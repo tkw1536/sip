@@ -3,6 +3,7 @@ import { Pathbuilder } from '../lib/pathbuilder';
 import { Viewer } from "./viewer";
 import Loader from "./loader";
 import styles from './index.module.css';
+import { WithID } from "../lib/wrapper";
 
 interface State {
     pathbuilder: Pathbuilder | string | false,
@@ -28,7 +29,7 @@ class Wrapper extends Component {
     }
 }
 
-export default class App extends Component<{}, State> {
+export const App = WithID<{}>(class A extends Component<{id: string}, State> {
     state: State = {
         pathbuilder: false,
         filename: "",
@@ -63,6 +64,7 @@ export default class App extends Component<{}, State> {
     }
 
     render() {
+        const { id } = this.props;
         const { pathbuilder, filename } = this.state;
         if (pathbuilder === false) {
             return <Wrapper><Loader onLoad={this.doLoad} /></Wrapper>;
@@ -70,7 +72,7 @@ export default class App extends Component<{}, State> {
         if (typeof pathbuilder === 'string') {
             return <Wrapper><Loader onLoad={this.doLoad} error={pathbuilder} /></Wrapper>;
         }
-        return <Wrapper><Viewer pathbuilder={pathbuilder} filename={filename} onClose={this.onClose}/></Wrapper>;
+        return <Wrapper><Viewer id={id} pathbuilder={pathbuilder} filename={filename} onClose={this.onClose}/></Wrapper>;
     }
-}
+});
 
