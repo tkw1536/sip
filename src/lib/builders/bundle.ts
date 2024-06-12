@@ -24,7 +24,8 @@ export default class BundleGraphBuilder extends GraphBuilder<BundleNode, BundleE
     }
 
     protected doBuild(): void {
-        this.tree.mainBundles.forEach(bundle => this.addBundle(bundle, 0))        
+        this.tree.mainBundles.forEach(bundle => this.addBundle(bundle, 0))
+        this.graph.definitelyAcyclic = true; 
     }
     private addBundle(bundle: Bundle, level: number): boolean {
         const id = bundle.path().id;

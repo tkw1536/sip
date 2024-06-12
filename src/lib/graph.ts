@@ -1,6 +1,6 @@
 /** Graph implements a generic directed graph */
 export default class Graph<NodeLabel, EdgeLabel> {
-    constructor() {}
+    constructor(public definitelyAcyclic: boolean) {}
 
     private nodes = new Map<number, NodeLabel>()
     private edges = new Map<number, Map<number, EdgeLabel>>();

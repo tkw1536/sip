@@ -9,7 +9,7 @@ export type GraphRendererProps<NodeLabel, EdgeLabel> = RendererProps<NodeLabel, 
 type RendererProps<NodeLabel, EdgeLabel> = {
     graph: Graph<NodeLabel, EdgeLabel>,
     ns: NamespaceMap,
-    id: string, // some globally unique id 
+    id: string, // some globally unique id
 }
 export abstract class GraphRenderer<NodeLabel, EdgeLabel> extends Component<GraphRendererProps<NodeLabel, EdgeLabel>> {
     /** toBlob renders a copy of the currently rendered graph into a blob */
@@ -92,10 +92,10 @@ export type Size = { width: number; height: number; }
 export abstract class LibraryBasedRenderer<NodeLabel, EdgeLabel, RendererObject, RendererSetup> extends GraphRenderer<NodeLabel, EdgeLabel> {
     private instance: { object: RendererObject, setup: RendererSetup } | null = null;
 
-    protected abstract beginSetup(container: HTMLElement, size: Size): RendererSetup
+    protected abstract beginSetup(container: HTMLElement, size: Size, definitelyAcylic: boolean): RendererSetup
     protected abstract addNode(setup: RendererSetup, id: number, node: NodeLabel): RendererSetup | void;
     protected abstract addEdge(setup: RendererSetup, from: number, to: number, edge: EdgeLabel): RendererSetup | void;
-    protected abstract endSetup(setup: RendererSetup, container: HTMLElement, size: Size): RendererObject
+    protected abstract endSetup(setup: RendererSetup, container: HTMLElement, size: Size, definitelyAcylic: boolean): RendererObject
     
     protected abstract resizeObject(object: RendererObject, setup: RendererSetup, size: Size): RendererObject | void;
     protected abstract destroyObject(object: RendererObject, setup: RendererSetup): void;
@@ -111,7 +111,7 @@ export abstract class LibraryBasedRenderer<NodeLabel, EdgeLabel, RendererObject,
         const { graph, width, height } = this.props;
 
         // begin setup
-        let setup = this.beginSetup(current, {width, height});
+        let setup = this.beginSetup(current, {width, height}, graph.definitelyAcyclic);
 
         // add all nodes and edges
         graph.getNodes().forEach(([id, node]) => {
@@ -126,7 +126,7 @@ export abstract class LibraryBasedRenderer<NodeLabel, EdgeLabel, RendererObject,
         })
 
         this.instance = {
-            object: this.endSetup(setup, current, {width, height}),
+            object: this.endSetup(setup, current, {width, height}, graph.definitelyAcyclic),
             setup: setup,
         }
         this.updateRendererSize();

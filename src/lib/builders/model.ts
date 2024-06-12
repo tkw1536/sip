@@ -54,8 +54,8 @@ export default class ModelGraphBuilder extends GraphBuilder<ModelNode, ModelEdge
             case Deduplication.None:
                 return this.doBuildNone();
             default:
-                console.warn('unimplemented mode, falling back to full');
-                return this.doBuildFull(); 
+                console.warn('unimplemented mode');
+                return;
         }
     }
 
@@ -181,6 +181,7 @@ export default class ModelGraphBuilder extends GraphBuilder<ModelNode, ModelEdge
     // #region "None"
     protected doBuildNone() {
         this.tree.mainBundles.forEach(bundle => this.addBundleNone(null, bundle, 0));
+        this.graph.definitelyAcyclic = true;
     }
 
     private addBundleNone(parentNode: number | null, bundle: Bundle, level: number): boolean {

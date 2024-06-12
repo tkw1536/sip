@@ -1,5 +1,5 @@
 import { ComponentChild, Ref, h } from 'preact';
-import {  LibraryBasedRenderer, Size } from ".";
+import { LibraryBasedRenderer, Size } from ".";
 import { Data, Network, Options } from "vis-network";
 import { DataSet } from "vis-data";
 import { ModelEdge, ModelNode } from "../../../../lib/builders/model";
@@ -9,41 +9,8 @@ import styles from './vis-network.module.css';
 abstract class VisNetworkRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRenderer<NodeLabel, EdgeLabel, Network, Dataset> {
     protected abstract addNode(dataset: Dataset, id: number, node: NodeLabel): void;
     protected abstract addEdge(dataset: Dataset, from: number, to: number, edge: EdgeLabel): void;
-    protected options(): Options {
-        return {};
-    }
-
-    protected beginSetup(container: HTMLElement, size: Size): Dataset {
-        return new Dataset();
-    }
-    
-    protected endSetup(dataset: Dataset, container: HTMLElement, size: Size): Network {
-        const options = this.options();
-        options.autoResize = false;
-        return new Network(container, dataset.toData(), options);
-    }
-    
-    protected resizeObject(network: Network, dataset: Dataset, {width, height}: Size): void {
-        network.setSize(`${width}px`, `${height}px`);
-        network.redraw();
-    }
-
-    protected destroyObject(network: Network, dataset: Dataset): void {
-        network.destroy();
-    }
-
-    protected objectToBlob(network: Network, dataset: Dataset, {width, height}: Size, type?: string, quality?: number): Promise<Blob> {
-        return dataset.drawNetworkClone(network, width, height, type, quality);
-    }
-
-    protected renderDiv({ width, height }: Size, ref: Ref<HTMLDivElement>): ComponentChild {
-        return <div ref={ref} style={{width, height}} className={styles.container} />;
-    }
-}
-
-export class VisNetworkBundleRenderer extends VisNetworkRenderer<BundleNode, BundleEdge> {
-    options() {
-        return {
+    protected options(definitelyAcyclic: boolean): Options {
+        return definitelyAcyclic ? {
             layout: {
                 hierarchical: {
                     direction: 'UD',
@@ -56,9 +23,55 @@ export class VisNetworkBundleRenderer extends VisNetworkRenderer<BundleNode, Bun
                     avoidOverlap: 10,
                 },
             },
-        };
+        } : {
+            physics: {
+                barnesHut: {
+                    springConstant: 0,
+                    avoidOverlap: 10,
+                    damping: 0.09,
+                },
+            },
+            edges: {
+                smooth: {
+                    enabled: true,
+                    type: "continuous",
+                    forceDirection: "none",
+                    roundness: 0.6,
+                },
+            },
+        }
+        return {};
     }
 
+    protected beginSetup(container: HTMLElement, size: Size, definitelyAcyclic: boolean): Dataset {
+        return new Dataset();
+    }
+
+    protected endSetup(dataset: Dataset, container: HTMLElement, size: Size, definitelyAcyclic: boolean): Network {
+        const options = this.options(definitelyAcyclic);
+        options.autoResize = false;
+        return new Network(container, dataset.toData(), options);
+    }
+
+    protected resizeObject(network: Network, dataset: Dataset, { width, height }: Size): void {
+        network.setSize(`${width}px`, `${height}px`);
+        network.redraw();
+    }
+
+    protected destroyObject(network: Network, dataset: Dataset): void {
+        network.destroy();
+    }
+
+    protected objectToBlob(network: Network, dataset: Dataset, { width, height }: Size, type?: string, quality?: number): Promise<Blob> {
+        return dataset.drawNetworkClone(network, width, height, type, quality);
+    }
+
+    protected renderDiv({ width, height }: Size, ref: Ref<HTMLDivElement>): ComponentChild {
+        return <div ref={ref} style={{ width, height }} className={styles.container} />;
+    }
+}
+
+export class VisNetworkBundleRenderer extends VisNetworkRenderer<BundleNode, BundleEdge> {
     protected addNode(dataset: Dataset, id: number, node: BundleNode): void {
         if (node.type === 'bundle') {
             dataset.addNode({ id, label: "Bundle\n" + node.bundle.path().name, level: node.level });
@@ -84,26 +97,6 @@ export class VisNetworkBundleRenderer extends VisNetworkRenderer<BundleNode, Bun
 }
 
 export class VisNetworkModelRenderer extends VisNetworkRenderer<ModelNode, ModelEdge> {
-    protected options() {
-        return {
-            physics: {
-                barnesHut: {
-                    springConstant: 0,
-                    avoidOverlap: 10,
-                    damping: 0.09,
-                },
-            },
-            edges: {
-                smooth: {
-                    enabled: true,
-                    type: "continuous",
-                    forceDirection: "none",
-                    roundness: 0.6,
-                },
-            },
-        }
-    }
-
     protected addNode(dataset: Dataset, id: number, node: ModelNode): void {
         const { ns } = this.props;
         if (node.type === 'field') {
@@ -211,9 +204,9 @@ class Dataset {
         const nodeSet = new DataSet<VisNode<string | number>>();
         nodes.forEach(node => {
             const { x, y } = positions[node.id];
-            nodeSet.add({...node, x, y})
+            nodeSet.add({ ...node, x, y })
         })
-        
+
         // create a new set of edges
         const edgeSet = new DataSet<VisEdge<string>>();
         edges.forEach(edge => edgeSet.add(edge))
