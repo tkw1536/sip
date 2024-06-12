@@ -4,7 +4,8 @@ import { GraphRendererClass } from "./graph/renderers";
 import { ModelEdge, ModelNode } from "../../lib/builders/model";
 import { BundleEdge, BundleNode } from "../../lib/builders/bundle";
 import { VisNetworkModelRenderer, VisNetworkBundleRenderer } from "./graph/renderers/vis-network";
-import { SigmaBundleRenderer } from "./graph/renderers/sigma";
+import { SigmaBundleRenderer, SigmaModelRenderer } from "./graph/renderers/sigma";
+import { CytoBundleRenderer, CytoModelRenderer } from "./graph/renderers/cytoscape";
 
 export default class GraphConfigView extends Component<ViewProps> {
     private onChangeBundleGraph = (evt: Event & { currentTarget: HTMLSelectElement}) => {
@@ -59,8 +60,11 @@ export default class GraphConfigView extends Component<ViewProps> {
 
 const modelRenderers = new Map<string, GraphRendererClass<ModelNode, ModelEdge, any>>([
     ["vis-network", VisNetworkModelRenderer],
+    ["sigma.js", SigmaModelRenderer],
+    ["Cytoscape", CytoModelRenderer],
 ])
 const bundleRenderers = new Map<string, GraphRendererClass<BundleNode, BundleEdge, any>>([
     ["vis-network", VisNetworkBundleRenderer],
     ["sigma.js", SigmaBundleRenderer],
+    ["Cytoscape", CytoBundleRenderer]
 ])

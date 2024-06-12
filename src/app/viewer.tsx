@@ -18,6 +18,7 @@ import { GraphRendererClass } from "./views/graph/renderers";
 import { BundleEdge, BundleNode } from "../lib/builders/bundle";
 import { VisNetworkModelRenderer, VisNetworkBundleRenderer } from "./views/graph/renderers/vis-network";
 import GraphConfigView from "./views/config";
+import { CytoBundleRenderer, CytoModelRenderer } from "./views/graph/renderers/cytoscape";
 
 export type ViewProps = {} & ViewerProps & ViewerState & ViewerCallbacks
 type ViewerProps = {
@@ -85,8 +86,8 @@ export class Viewer extends Component<ViewerProps & { onClose: () => void }, Vie
         const pathbuilderVersion = (previous?.pathbuilderVersion ?? -1) + 1
         const optionVersion = (previous?.optionVersion ?? -1) + 1
 
-        const bundleGraphRenderer = VisNetworkBundleRenderer;
-        const modelGraphRenderer = VisNetworkModelRenderer;
+        const bundleGraphRenderer = CytoBundleRenderer;
+        const modelGraphRenderer = CytoModelRenderer;
 
         return { 
             namespaceVersion, ns, 

@@ -10,6 +10,7 @@
     "jsxFactory": "h",
     "lib": ["es2020"],
     "strict": true,
+    "allowSyntheticDefaultImports": true
   },
   "include": [
     "./src/**/*"

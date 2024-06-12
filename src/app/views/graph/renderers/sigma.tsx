@@ -6,6 +6,7 @@ import { Settings } from "sigma/dist/declarations/src/settings";
 import { BundleEdge, BundleNode } from "../../../../lib/builders/bundle";
 import forceAtlas2 from 'graphology-layout-forceatlas2';
 import circular from 'graphology-layout/circular';
+import { ModelEdge, ModelNode } from "../../../../lib/builders/model";
 
 abstract class SigmaRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRenderer<NodeLabel, EdgeLabel, Sigma, Graph> {
     protected abstract addNode(graph: Graph, id: number, node: NodeLabel): void;
@@ -20,11 +21,13 @@ abstract class SigmaRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRenderer<
         return new Graph();
     }
 
-    protected endSetup(graph: Graph, container: HTMLElement, size: Size, skipLayout?: boolean): Sigma {
+    protected endSetup(graph: Graph, container: HTMLElement, size: Size): Sigma {
         // setup an initial layout
-        if (!skipLayout) {
-            circular.assign(graph, {scale: 100});
-        }
+        circular.assign(graph, { scale: 100 });
+        forceAtlas2.assign(graph, {
+            iterations: 500,
+            settings: forceAtlas2.inferSettings(graph),
+        });
 
         const settings = this.settings();
         return new Sigma(graph, container, settings);
@@ -49,15 +52,6 @@ abstract class SigmaRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRenderer<
 }
 
 export class SigmaBundleRenderer extends SigmaRenderer<BundleNode, BundleEdge> {
-    protected endSetup(graph: Graph, container: HTMLElement, size: Size, skipLayout?: boolean): Sigma {
-        circular.assign(graph, {scale: 100});
-        forceAtlas2.assign(graph, {
-            iterations: 500,
-            settings: forceAtlas2.inferSettings(graph),
-        });
-        
-        return super.endSetup(graph, container, size, true);
-    }
     protected addNode(graph: Graph, id: number, node: BundleNode): void {
         if (node.type === 'bundle') {
             graph.addNode(id, { label: "Bundle\n" + node.bundle.path().name, color: 'blue', size: 20 });
@@ -71,11 +65,58 @@ export class SigmaBundleRenderer extends SigmaRenderer<BundleNode, BundleEdge> {
     }
     protected addEdge(graph: Graph, from: number, to: number, edge: BundleEdge): void {
         if (edge.type === 'child_bundle') {
-            graph.addDirectedEdge(from, to, { color: 'black', type: 'arrow', arrow: 'target', size: 5});
+            graph.addDirectedEdge(from, to, { color: 'black', type: 'arrow', arrow: 'target', size: 5 });
             return;
         }
         if (edge.type === 'field') {
-            graph.addDirectedEdge(from, to, { color: 'black', type: 'arrow', arrow: 'target',  size: 5});
+            graph.addDirectedEdge(from, to, { color: 'black', type: 'arrow', arrow: 'target', size: 5 });
+            return;
+        }
+        throw new Error('never reached')
+    }
+}
+
+export class SigmaModelRenderer extends SigmaRenderer<ModelNode, ModelEdge> {
+    protected addNode(graph: Graph, id: number, node: ModelNode): void {
+        const { ns } = this.props;
+        if (node.type === 'field') {
+            graph.addNode(id, {
+                label: node.field.path().name,
+
+                color: 'orange',
+                size: 10,
+            });
+            return;
+        }
+        if (node.type === 'class' && node.bundles.size === 0) {
+            graph.addNode(id, {
+                label: ns.apply(node.clz),
+
+                color: 'blue',
+                size: 10,
+            });
+            return;
+        }
+        if (node.type === 'class' && node.bundles.size > 0) {
+            const array_names = Array.from(node.bundles).map((bundle) => "Bundle " + bundle.path().name).join("\n\n");
+            const label = ns.apply(node.clz) + "\n\n" + array_names;
+
+            graph.addNode(id, {
+                label,
+
+                color: 'blue',
+                size: 10,
+            });
+            return;
+        }
+    }
+    protected addEdge(graph: Graph, from: number, to: number, edge: ModelEdge): void {
+        if (edge.type === 'data') {
+            graph.addDirectedEdge(from, to, { color: 'black', type: 'arrow', arrow: 'target', size: 5 });
+            return;
+        }
+        if (edge.type === 'property') {
+            graph.addDirectedEdge(from, to, { color: 'black', type: 'arrow', arrow: 'target', size: 5 });
             return;
         }
         throw new Error('never reached')
