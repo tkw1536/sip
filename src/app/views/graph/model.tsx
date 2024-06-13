@@ -57,7 +57,7 @@ export default class ModelGraphView extends GraphView<ModelNode, ModelEdge, any>
                     Layout: &nbsp;
                     <select value={this.layoutProp()} onChange={this.onChangeLayout}>
                         {
-                            modelGraphRenderer.supportedLayouts().map(name => <option key={name}>{name}</option>)
+                            modelGraphRenderer.supportedLayouts.map(name => <option key={name}>{name}</option>)
                         }
                     </select>
                 </p>

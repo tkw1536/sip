@@ -10,12 +10,8 @@ abstract class VisNetworkRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRend
     protected abstract addNode(dataset: Dataset, id: number, node: NodeLabel): void;
     protected abstract addEdge(dataset: Dataset, from: number, to: number, edge: EdgeLabel): void;
 
-    static defaultLayout(): string {
-        return this.supportedLayouts()[0];
-    }
-    static supportedLayouts(): string[] {
-        return ["auto", "hierarchical", "force2atlas"];
-    }
+    static readonly supportedLayouts = ["auto", "hierarchical", "force2atlas"];
+    static readonly defaultLayout = this.supportedLayouts[0];
 
     protected options(definitelyAcyclic: boolean): Options {
         const hierarchical = this.props.layout === "auto" ? definitelyAcyclic : this.props.layout === "hierarchical";

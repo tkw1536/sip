@@ -20,8 +20,8 @@ export abstract class GraphRenderer<NodeLabel, EdgeLabel> extends Component<Grap
 export interface GraphRendererClass<NodeLabel, EdgeLabel, S> extends ComponentClass<S, any> {
     new (props: GraphRendererProps<NodeLabel, EdgeLabel>, context?: any): GraphRenderer<NodeLabel, EdgeLabel>;
 
-    defaultLayout(): string;
-    supportedLayouts(): string[];
+    readonly defaultLayout: string;
+    readonly supportedLayouts: Readonly<string[]>;
 }
 
 type RenderProps<NodeLabel, EdgeLabel, S> = RendererProps<NodeLabel, EdgeLabel> & { renderer: GraphRendererClass<NodeLabel, EdgeLabel, S>}

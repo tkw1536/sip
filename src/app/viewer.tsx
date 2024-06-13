@@ -91,9 +91,9 @@ export class Viewer extends Component<ViewerProps & { onClose: () => void }, Vie
         const optionVersion = (previous?.optionVersion ?? -1) + 1
 
         const bundleGraphRenderer = previous?.bundleGraphRenderer ?? defaultBundle;
-        const bundleGraphLayout = previous?.bundleGraphLayout ?? bundleGraphRenderer.defaultLayout();
+        const bundleGraphLayout = previous?.bundleGraphLayout ?? bundleGraphRenderer.defaultLayout;
         const modelGraphRenderer = previous?.modelGraphRenderer ?? defaultModel;
-        const modelGraphLayout = previous?.modelGraphLayout ?? modelGraphRenderer.defaultLayout();
+        const modelGraphLayout = previous?.modelGraphLayout ?? modelGraphRenderer.defaultLayout;
 
         return {
             namespaceVersion, ns,
@@ -199,12 +199,12 @@ export class Viewer extends Component<ViewerProps & { onClose: () => void }, Vie
     private setBundleRenderer = (renderer: BundleRenderer) => {
         this.setState({ 
             bundleGraphRenderer: renderer,
-            bundleGraphLayout: renderer.defaultLayout(),
+            bundleGraphLayout: renderer.defaultLayout,
         })
     }
     private setBundleLayout = (layout: string) => {
         this.setState(({ bundleGraphRenderer }) => {
-            if (bundleGraphRenderer.supportedLayouts().indexOf(layout) < 0) {
+            if (bundleGraphRenderer.supportedLayouts.indexOf(layout) < 0) {
                 return null;
             }
             return { bundleGraphLayout: layout }
@@ -213,12 +213,12 @@ export class Viewer extends Component<ViewerProps & { onClose: () => void }, Vie
     private setModelRenderer = (renderer: ModelRenderer) => {
         this.setState({ 
             modelGraphRenderer: renderer,
-            modelGraphLayout: renderer.defaultLayout(),
+            modelGraphLayout: renderer.defaultLayout,
         })
     }
     private setModelLayout = (layout: string) => {
         this.setState(({ modelGraphRenderer }) => {
-            if (modelGraphRenderer.supportedLayouts().indexOf(layout) < 0) {
+            if (modelGraphRenderer.supportedLayouts.indexOf(layout) < 0) {
                 return null;
             }
             return { modelGraphLayout: layout }
