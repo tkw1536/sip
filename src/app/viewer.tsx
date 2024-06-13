@@ -13,13 +13,9 @@ import MapView from "./views/map";
 import { PathTree } from "../lib/pathtree";
 import Selection from "../lib/selection";
 import ModelGraphView from "./views/graph/model";
-import { ModelEdge, ModelNode } from "../lib/builders/model";
-import { GraphRendererClass } from "./views/graph/renderers";
-import { BundleEdge, BundleNode } from "../lib/builders/bundle";
 import GraphConfigView from "./views/config";
-import { CytoBundleRenderer } from "./views/graph/renderers/cytoscape";
-import { VisNetworkModelRenderer } from "./views/graph/renderers/vis-network";
 import Deduplication, { defaultValue as deduplicationDefault } from "./state/deduplication";
+import { BundleRenderer, ModelRenderer, defaultBundle, defaultModel } from "./state/renderers";
 
 export type ViewProps = {} & ViewerProps & ViewerState & ViewerCallbacks
 type ViewerProps = {
@@ -41,8 +37,8 @@ type ViewerState = {
     deduplication: Deduplication;
 
     // renders for the graphs
-    bundleGraphRenderer: GraphRendererClass<BundleNode, BundleEdge, any>;
-    modelGraphRenderer: GraphRendererClass<ModelNode, ModelEdge, any>;
+    bundleGraphRenderer: BundleRenderer; 
+    modelGraphRenderer: ModelRenderer;
 
     collapsed: Selection,
 }
@@ -62,8 +58,8 @@ type ViewerCallbacks = {
 
     setDeduplication: (dup: Deduplication) => void;
 
-    setBundleRenderer: (renderer: ViewerState["bundleGraphRenderer"]) => void;
-    setModelRenderer: (renderer: ViewerState["modelGraphRenderer"]) => void;
+    setBundleRenderer: (renderer: BundleRenderer) => void;
+    setModelRenderer: (renderer: ModelRenderer) => void;
 }
 
 export class Viewer extends Component<ViewerProps & { onClose: () => void }, ViewerState> {
@@ -88,14 +84,12 @@ export class Viewer extends Component<ViewerProps & { onClose: () => void }, Vie
         const pathbuilderVersion = (previous?.pathbuilderVersion ?? -1) + 1
         const optionVersion = (previous?.optionVersion ?? -1) + 1
 
-        const bundleGraphRenderer = CytoBundleRenderer;
-        const modelGraphRenderer = VisNetworkModelRenderer;
+        const bundleGraphRenderer = previous?.bundleGraphRenderer ?? defaultBundle;
+        const modelGraphRenderer = previous?.modelGraphRenderer ?? defaultModel;
 
         return { 
             namespaceVersion, ns, 
-            
             pathbuilderVersion, tree, 
-            
             selectionVersion, selection, 
             
             collapsed, 
@@ -194,10 +188,10 @@ export class Viewer extends Component<ViewerProps & { onClose: () => void }, Vie
         this.setState(({ optionVersion }) => ({ deduplication: dup, optionVersion: optionVersion + 1 }))
     }
 
-    private setBundleRenderer = (renderer: ViewerState["bundleGraphRenderer"]) => {
+    private setBundleRenderer = (renderer: BundleRenderer) => {
         this.setState({ bundleGraphRenderer: renderer})
     }
-    private setModelRenderer = (renderer: ViewerState["modelGraphRenderer"]) => {
+    private setModelRenderer = (renderer: ModelRenderer) => {
         this.setState({ modelGraphRenderer: renderer})
     }
 

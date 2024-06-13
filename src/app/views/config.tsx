@@ -1,16 +1,11 @@
 import { h, Component, Fragment } from 'preact';
 import type { ViewProps } from "../viewer";
-import { GraphRendererClass } from "./graph/renderers";
-import { ModelEdge, ModelNode } from "../../lib/builders/model";
-import { BundleEdge, BundleNode } from "../../lib/builders/bundle";
-import { VisNetworkModelRenderer, VisNetworkBundleRenderer } from "./graph/renderers/vis-network";
-import { SigmaBundleRenderer, SigmaModelRenderer } from "./graph/renderers/sigma";
-import { CytoBundleRenderer, CytoModelRenderer } from "./graph/renderers/cytoscape";
+import { bundles, models } from "../state/renderers";
 
 export default class GraphConfigView extends Component<ViewProps> {
     private onChangeBundleGraph = (evt: Event & { currentTarget: HTMLSelectElement}) => {
         evt.preventDefault();
-        const renderer = bundleRenderers.get(evt.currentTarget.value);
+        const renderer = bundles.get(evt.currentTarget.value);
         if (!renderer) {
             return;
         }
@@ -18,7 +13,7 @@ export default class GraphConfigView extends Component<ViewProps> {
     }
     private onChangeModelGraph = (evt: Event & { currentTarget: HTMLSelectElement}) => {
         evt.preventDefault();
-        const renderer = modelRenderers.get(evt.currentTarget.value);
+        const renderer = models.get(evt.currentTarget.value);
         if (!renderer) {
             return;
         }
@@ -28,8 +23,8 @@ export default class GraphConfigView extends Component<ViewProps> {
     render() {
         const { bundleGraphRenderer, modelGraphRenderer } = this.props;
 
-        const bundleGraphName = Array.from(bundleRenderers.entries()).find(([name, clz]) => clz === bundleGraphRenderer)?.[0]
-        const modelGraphName = Array.from(modelRenderers.entries()).find(([name, clz]) => clz === modelGraphRenderer)?.[0]
+        const bundleGraphName = Array.from(bundles.entries()).find(([_, clz]) => clz === bundleGraphRenderer)?.[0]
+        const modelGraphName = Array.from(models.entries()).find(([_, clz]) => clz === modelGraphRenderer)?.[0]
 
         return <Fragment>
             <p>
@@ -41,7 +36,7 @@ export default class GraphConfigView extends Component<ViewProps> {
                 Bundle Graph Renderer: &nbsp;
                 <select value={bundleGraphName} onChange={this.onChangeBundleGraph}>
                     {
-                        Array.from(bundleRenderers.keys()).map(name => <option key={name}>{name}</option>)
+                        Array.from(bundles.keys()).map(name => <option key={name}>{name}</option>)
                     }
                 </select>
             </p>
@@ -50,21 +45,10 @@ export default class GraphConfigView extends Component<ViewProps> {
                 Model Graph Renderer: &nbsp;
                 <select value={modelGraphName} onChange={this.onChangeModelGraph}>
                     {
-                        Array.from(modelRenderers.keys()).map(name => <option key={name}>{name}</option>)
+                        Array.from(models.keys()).map(name => <option key={name}>{name}</option>)
                     }
                 </select>
             </p>
         </Fragment>
     }
 }
-
-const modelRenderers = new Map<string, GraphRendererClass<ModelNode, ModelEdge, any>>([
-    ["vis-network", VisNetworkModelRenderer],
-    ["sigma.js", SigmaModelRenderer],
-    ["Cytoscape", CytoModelRenderer],
-])
-const bundleRenderers = new Map<string, GraphRendererClass<BundleNode, BundleEdge, any>>([
-    ["vis-network", VisNetworkBundleRenderer],
-    ["sigma.js", SigmaBundleRenderer],
-    ["Cytoscape", CytoBundleRenderer]
-])
