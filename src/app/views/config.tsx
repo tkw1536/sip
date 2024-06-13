@@ -1,6 +1,6 @@
 import { h, Component, Fragment } from 'preact';
 import type { ViewProps } from "../viewer";
-import { bundles, models } from "../state/renderers";
+import { bundles, getBundleName, getModelName, models } from "../state/renderers";
 
 export default class GraphConfigView extends Component<ViewProps> {
     private onChangeBundleGraph = (evt: Event & { currentTarget: HTMLSelectElement}) => {
@@ -23,8 +23,8 @@ export default class GraphConfigView extends Component<ViewProps> {
     render() {
         const { bundleGraphRenderer, modelGraphRenderer } = this.props;
 
-        const bundleGraphName = Array.from(bundles.entries()).find(([_, clz]) => clz === bundleGraphRenderer)?.[0]
-        const modelGraphName = Array.from(models.entries()).find(([_, clz]) => clz === modelGraphRenderer)?.[0]
+        const bundleGraphName = getBundleName(bundleGraphRenderer)
+        const modelGraphName = getModelName(modelGraphRenderer)
 
         return <Fragment>
             <p>

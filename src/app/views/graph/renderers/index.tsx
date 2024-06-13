@@ -2,11 +2,11 @@ import { Component, ComponentChild, ComponentClass, Ref, createRef, h } from 'pr
 import Graph from "../../../../lib/graph";
 import { NamespaceMap } from "../../../../lib/namespace";
 import styles from './index.module.css';
-import { WithID } from "../../../../lib/wrapper";
 
-export type GraphRendererProps<NodeLabel, EdgeLabel> = RendererProps<NodeLabel, EdgeLabel> & Size;
+export type GraphRendererProps<NodeLabel, EdgeLabel> = RendererProps<NodeLabel, EdgeLabel> & Size & { layout: string };
 
 type RendererProps<NodeLabel, EdgeLabel> = {
+    layout: string;
     graph: Graph<NodeLabel, EdgeLabel>,
     ns: NamespaceMap,
     id: string, // some globally unique id
@@ -19,6 +19,9 @@ export abstract class GraphRenderer<NodeLabel, EdgeLabel> extends Component<Grap
 /** An implemented GraphRenderer class */
 export interface GraphRendererClass<NodeLabel, EdgeLabel, S> extends ComponentClass<S, any> {
     new (props: GraphRendererProps<NodeLabel, EdgeLabel>, context?: any): GraphRenderer<NodeLabel, EdgeLabel>;
+
+    defaultLayout(): string;
+    supportedLayouts(): string[];
 }
 
 type RenderProps<NodeLabel, EdgeLabel, S> = RendererProps<NodeLabel, EdgeLabel> & { renderer: GraphRendererClass<NodeLabel, EdgeLabel, S>}
@@ -27,7 +30,7 @@ type RenderState = { size?: [number, number]; };
  * Renderer instantiates a renderer onto the page
  */
 export class Renderer<NodeLabel, EdgeLabel, S> extends Component<RenderProps<NodeLabel, EdgeLabel, S>, RenderState> {
-    state: RenderState = {}
+    state: RenderState = { }
 
     async toBlob(size: Size, type?: string, quality?: number): Promise<Blob> {
         const renderer = this.rendererRef.current;
@@ -82,7 +85,7 @@ export class Renderer<NodeLabel, EdgeLabel, S> extends Component<RenderProps<Nod
         const { renderer: Renderer, ...props } = this.props;
         const { size } = this.state;
         return <div ref={this.wrapperRef} className={styles.wrapper}>
-            {size && <Renderer ref={this.rendererRef} {...props} width={size[0]} height={size[1]} />}
+            {size && <Renderer  ref={this.rendererRef} {...props} width={size[0]} height={size[1]} />}
         </div>
     }
 }
@@ -110,25 +113,33 @@ export abstract class LibraryBasedRenderer<NodeLabel, EdgeLabel, RendererObject,
 
         const { graph, width, height } = this.props;
 
-        // begin setup
-        let setup = this.beginSetup(current, {width, height}, graph.definitelyAcyclic);
+        try {
+            // begin setup
+            let setup = this.beginSetup(current, {width, height}, graph.definitelyAcyclic);
 
-        // add all nodes and edges
-        graph.getNodes().forEach(([id, node]) => {
-            const newSetup = this.addNode(setup, id, node);
-            if (typeof newSetup === 'undefined') return;
-            setup = newSetup;
-        })
-        graph.getEdges().forEach(([from, to, edge]) => {
-            const newSetup = this.addEdge(setup, from, to, edge);
-            if (typeof newSetup === 'undefined') return;
-            setup = newSetup;
-        })
+            // add all nodes and edges
+            graph.getNodes().forEach(([id, node]) => {
+                const newSetup = this.addNode(setup, id, node);
+                if (typeof newSetup === 'undefined') return;
+                setup = newSetup;
+            })
+            graph.getEdges().forEach(([from, to, edge]) => {
+                const newSetup = this.addEdge(setup, from, to, edge);
+                if (typeof newSetup === 'undefined') return;
+                setup = newSetup;
+            })
+            const object = this.endSetup(setup, current, {width, height}, graph.definitelyAcyclic);
 
-        this.instance = {
-            object: this.endSetup(setup, current, {width, height}, graph.definitelyAcyclic),
-            setup: setup,
+            this.instance = {
+                object: object,
+                setup: setup,
+            }
+        } catch(e) {
+            console.error("failed to render graph");
+            console.error(e);
+            return;
         }
+
         this.updateRendererSize();
     }
 

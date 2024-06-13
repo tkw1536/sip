@@ -13,6 +13,12 @@ type State<NodeLabel, EdgeLabel> = { open: boolean; graph?: Graph<NodeLabel, Edg
 export default abstract class GraphView<NodeLabel, EdgeLabel, S> extends Component<ViewProps, State<NodeLabel, EdgeLabel>> {
     state: State<NodeLabel, EdgeLabel> = { open: false }
 
+    // key used to determine the layout
+    protected abstract layoutKey: keyof ViewProps;
+    protected layoutProp(): string {
+        return this.props[this.layoutKey] as string;
+    }
+
     private toggle = () => {
         this.setState(({ open }) => ({ open: !open }))
     }
@@ -67,7 +73,8 @@ export default abstract class GraphView<NodeLabel, EdgeLabel, S> extends Compone
 
         const { ns, id } = this.props;
         const { open, graph } = this.state;
-        const renderer = graph && <Renderer ref={this.graphRef} renderer={this.getRenderer()} graph={graph} ns={ns} id={id} />;
+        const layout = this.layoutProp();
+        const renderer = graph && <Renderer layout={layout} key={layout} ref={this.graphRef} renderer={this.getRenderer()} graph={graph} ns={ns} id={id} />;
 
         // if we don't have a child, directly use the renderer
         if (panel === null) {

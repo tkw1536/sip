@@ -2,6 +2,7 @@ import GraphView from ".";
 import BundleGraphBuilder, { BundleEdge, BundleNode } from "../../../lib/builders/bundle";
 
 export default class BundleGraphView extends GraphView<BundleNode, BundleEdge, any> {
+    protected readonly layoutKey = 'bundleGraphLayout';
     protected getRenderer() {
         return this.props.bundleGraphRenderer;
     }

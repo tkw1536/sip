@@ -18,3 +18,13 @@ declare module "cytoscape-elk" {
     const ext: cytoscape.Ext; 
     export default ext; 
 }
+declare module "cytoscape-fcose" {
+    import * as cytoscape from "cytoscape";
+    const ext: cytoscape.Ext; 
+    export default ext; 
+}
+declare module "cytoscape-avsdf" {
+    import * as cytoscape from "cytoscape";
+    const ext: cytoscape.Ext; 
+    export default ext; 
+}

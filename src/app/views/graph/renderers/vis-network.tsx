@@ -9,8 +9,18 @@ import styles from './vis-network.module.css';
 abstract class VisNetworkRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRenderer<NodeLabel, EdgeLabel, Network, Dataset> {
     protected abstract addNode(dataset: Dataset, id: number, node: NodeLabel): void;
     protected abstract addEdge(dataset: Dataset, from: number, to: number, edge: EdgeLabel): void;
+
+    static defaultLayout(): string {
+        return this.supportedLayouts()[0];
+    }
+    static supportedLayouts(): string[] {
+        return ["auto", "hierarchical", "force2atlas"];
+    }
+
     protected options(definitelyAcyclic: boolean): Options {
-        return definitelyAcyclic ? {
+        const hierarchical = this.props.layout === "auto" ? definitelyAcyclic : this.props.layout === "hierarchical";
+
+        return hierarchical ? {
             layout: {
                 hierarchical: {
                     direction: 'UD',

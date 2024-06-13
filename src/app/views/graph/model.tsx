@@ -3,8 +3,10 @@ import { h, Ref, Fragment } from 'preact';
 import ModelGraphBuilder, { ModelEdge, ModelNode } from "../../../lib/builders/model";
 import GraphView from ".";
 import Deduplication, { explanations, names, values } from "../../state/deduplication";
+import { getModelName, models } from "../../state/renderers";
 
 export default class ModelGraphView extends GraphView<ModelNode, ModelEdge, any> {
+    protected readonly layoutKey = 'modelGraphLayout';
     protected getRenderer() {
         return this.props.modelGraphRenderer;
     }
@@ -18,9 +20,48 @@ export default class ModelGraphView extends GraphView<ModelNode, ModelEdge, any>
     private onChangeMode = (evt: Event) => {
         this.props.setDeduplication((evt.target as HTMLInputElement).value as Deduplication)
     }
+    private onChangeModelGraph = (evt: Event & { currentTarget: HTMLSelectElement}) => {
+        evt.preventDefault();
+        const renderer = models.get(evt.currentTarget.value);
+        if (!renderer) {
+            return;
+        }
+        this.props.setModelRenderer(renderer);
+    }
+    private onChangeLayout = (evt: Event) => {
+        this.props.setModelLayout((evt.target as HTMLInputElement).value as string);
+    }
     protected renderPanel(widthRef: Ref<HTMLInputElement>, heightRef: Ref<HTMLInputElement>) {
-        const { deduplication, id } = this.props;
+        const { deduplication, modelGraphRenderer, id } = this.props;
+        const modelGraphName = getModelName(modelGraphRenderer);
         return <Fragment>
+            <fieldset>
+                <legend>Renderer</legend>
+
+                <p>
+                    The model graph can be shown using different renderers.
+                    Each renderer supports different layouts.
+                </p>
+                <p>
+                    Changing either value will re-render the graph.
+                </p>
+
+                <p>
+                    Renderer: &nbsp; 
+                    <select value={modelGraphName} onChange={this.onChangeModelGraph}>
+                        {
+                            Array.from(models.keys()).map(name => <option key={name}>{name}</option>)
+                        }
+                    </select>
+                    &nbsp;
+                    Layout: &nbsp;
+                    <select value={this.layoutProp()} onChange={this.onChangeLayout}>
+                        {
+                            modelGraphRenderer.supportedLayouts().map(name => <option key={name}>{name}</option>)
+                        }
+                    </select>
+                </p>
+            </fieldset>
             <fieldset>
                 <legend>Deduplication</legend>
 

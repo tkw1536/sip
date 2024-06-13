@@ -37,8 +37,11 @@ type ViewerState = {
     deduplication: Deduplication;
 
     // renders for the graphs
-    bundleGraphRenderer: BundleRenderer; 
+    bundleGraphRenderer: BundleRenderer;
+    bundleGraphLayout: string;
+
     modelGraphRenderer: ModelRenderer;
+    modelGraphLayout: string;
 
     collapsed: Selection,
 }
@@ -59,7 +62,10 @@ type ViewerCallbacks = {
     setDeduplication: (dup: Deduplication) => void;
 
     setBundleRenderer: (renderer: BundleRenderer) => void;
+    setBundleLayout: (layout: string) => void;
+
     setModelRenderer: (renderer: ModelRenderer) => void;
+    setModelLayout: (layout: string) => void;
 }
 
 export class Viewer extends Component<ViewerProps & { onClose: () => void }, ViewerState> {
@@ -85,19 +91,21 @@ export class Viewer extends Component<ViewerProps & { onClose: () => void }, Vie
         const optionVersion = (previous?.optionVersion ?? -1) + 1
 
         const bundleGraphRenderer = previous?.bundleGraphRenderer ?? defaultBundle;
+        const bundleGraphLayout = previous?.bundleGraphLayout ?? bundleGraphRenderer.defaultLayout();
         const modelGraphRenderer = previous?.modelGraphRenderer ?? defaultModel;
+        const modelGraphLayout = previous?.modelGraphLayout ?? modelGraphRenderer.defaultLayout();
 
-        return { 
-            namespaceVersion, ns, 
-            pathbuilderVersion, tree, 
-            selectionVersion, selection, 
-            
-            collapsed, 
-            
+        return {
+            namespaceVersion, ns,
+            pathbuilderVersion, tree,
+            selectionVersion, selection,
+
+            collapsed,
+
             optionVersion, deduplication,
-        
-            bundleGraphRenderer,
-            modelGraphRenderer,
+
+            bundleGraphRenderer, bundleGraphLayout,
+            modelGraphRenderer, modelGraphLayout,
         }
     }
 
@@ -189,10 +197,32 @@ export class Viewer extends Component<ViewerProps & { onClose: () => void }, Vie
     }
 
     private setBundleRenderer = (renderer: BundleRenderer) => {
-        this.setState({ bundleGraphRenderer: renderer})
+        this.setState({ 
+            bundleGraphRenderer: renderer,
+            bundleGraphLayout: renderer.defaultLayout(),
+        })
+    }
+    private setBundleLayout = (layout: string) => {
+        this.setState(({ bundleGraphRenderer }) => {
+            if (bundleGraphRenderer.supportedLayouts().indexOf(layout) < 0) {
+                return null;
+            }
+            return { bundleGraphLayout: layout }
+        })
     }
     private setModelRenderer = (renderer: ModelRenderer) => {
-        this.setState({ modelGraphRenderer: renderer})
+        this.setState({ 
+            modelGraphRenderer: renderer,
+            modelGraphLayout: renderer.defaultLayout(),
+        })
+    }
+    private setModelLayout = (layout: string) => {
+        this.setState(({ modelGraphRenderer }) => {
+            if (modelGraphRenderer.supportedLayouts().indexOf(layout) < 0) {
+                return null;
+            }
+            return { modelGraphLayout: layout }
+        })
     }
 
     render() {
@@ -210,7 +240,9 @@ export class Viewer extends Component<ViewerProps & { onClose: () => void }, Vie
             expandAll: this.expandAll,
             setDeduplication: this.setDeduplication,
             setBundleRenderer: this.setBundleRenderer,
+            setBundleLayout: this.setBundleLayout,
             setModelRenderer: this.setModelRenderer,
+            setModelLayout: this.setModelLayout,
         }
         const view = { ...props, ...this.state, ...callbacks };
         return <Tabs>

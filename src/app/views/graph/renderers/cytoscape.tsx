@@ -3,9 +3,13 @@ import cytoscape from "cytoscape";
 import cola from "cytoscape-cola";
 import dagre from "cytoscape-dagre";
 import elk from "cytoscape-elk";
+import fcose from "cytoscape-fcose";
+import avsdf from "cytoscape-avsdf";
 cytoscape.use(cola);
 cytoscape.use(dagre);
 cytoscape.use(elk);
+cytoscape.use(fcose);
+cytoscape.use(avsdf);
 import { LibraryBasedRenderer, Size } from ".";
 import { BundleEdge, BundleNode } from "../../../../lib/builders/bundle";
 import { ModelEdge, ModelNode } from "../../../../lib/builders/model";
@@ -18,10 +22,43 @@ abstract class CytoscapeRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRende
     protected abstract addNode(elements: Elements, id: number, node: NodeLabel): void;
     protected abstract addEdge(elements: Elements, from: number, to: number, edge: EdgeLabel): void;
 
-    protected layout(): Options["layout"] {
-        return { name: 'dagre', padding: 100 } as unknown as any;
+    static defaultLayout(): string {
+        return this.supportedLayouts()[0];
     }
-    protected options(): Options {
+    static supportedLayouts(): string[] {
+        return ["auto", "grid", "circle", "concentric", "avsdf", "dagre", "breadthfirst", "fcose", "cola", "elk",];
+    }
+
+    protected layoutOptions(definitelyAcyclic: boolean): Options["layout"] {
+        let { layout } = this.props;
+        if (layout === 'auto') {
+            layout = definitelyAcyclic ? 'elk' : 'cola';
+        }
+
+        const maxSimulationTime = 365 * 24 * 60 * 60 * 1000; // 1 year
+        switch(this.props.layout) {
+            case 'grid':
+                return { name: 'grid'}
+            case 'circle':
+                return { name: 'circle'}
+            case 'concentric':
+                return { name: 'concentric'}
+            case 'avsdf':
+                return { name: 'avsdf' }
+            case 'cola':
+                return { name: 'cola', maxSimulationTime } as unknown as any;
+            case 'elk':
+                return { name: 'elk', maxSimulationTime } as unknown as any;
+            case 'fcose':
+                return { name: 'fcose', maxSimulationTime } as unknown as any;
+            case 'dagre':
+                return { name: 'breadthfirst' };
+            case 'dagre': /* fallthrough */
+            default:
+                return { name: 'dagre', padding: 100 } as unknown as any;
+        }
+    }
+    protected options(definitelyAcyclic: boolean): Options {
         return {
             style: [
                 {
@@ -43,7 +80,7 @@ abstract class CytoscapeRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRende
                     }
                 }
             ],
-            layout: this.layout(),
+            layout: this.layoutOptions(definitelyAcyclic),
         };
     }
 
@@ -51,8 +88,8 @@ abstract class CytoscapeRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRende
         return [];
     }
 
-    protected endSetup(elements: Elements, container: HTMLElement, size: Size): Cytoscape {
-        const options = this.options();
+    protected endSetup(elements: Elements, container: HTMLElement, size: Size, definitelyAcyclic: boolean): Cytoscape {
+        const options = this.options(definitelyAcyclic);
         return cytoscape({
             container,
             elements,
@@ -111,9 +148,6 @@ export class CytoBundleRenderer extends CytoscapeRenderer<BundleNode, BundleEdge
 }
 
 export class CytoModelRenderer extends CytoscapeRenderer<ModelNode, ModelEdge> {
-    protected layout(): Options["layout"] {
-       return { name: 'elk', maxSimulationTime: 1000 * 1000} as unknown as any;
-    }
     protected addNode(elements: Elements, id: number, node: ModelNode): void {
         const idStr = id.toString();
         const { ns } = this.props;

@@ -6,11 +6,19 @@ import { Settings } from "sigma/dist/declarations/src/settings";
 import { BundleEdge, BundleNode } from "../../../../lib/builders/bundle";
 import forceAtlas2 from 'graphology-layout-forceatlas2';
 import circular from 'graphology-layout/circular';
+import circlepack from 'graphology-layout/circlepack';
 import { ModelEdge, ModelNode } from "../../../../lib/builders/model";
 
 abstract class SigmaRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRenderer<NodeLabel, EdgeLabel, Sigma, Graph> {
     protected abstract addNode(graph: Graph, id: number, node: NodeLabel): void;
     protected abstract addEdge(graph: Graph, from: number, to: number, edge: EdgeLabel): void;
+
+    static defaultLayout(): string {
+        return this.supportedLayouts()[0];
+    }
+    static supportedLayouts(): string[] {
+        return ["force2atlas", "circular", "circlepack"];
+    }
 
     protected settings(): Partial<Settings> {
         return {
@@ -22,12 +30,25 @@ abstract class SigmaRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRenderer<
     }
 
     protected endSetup(graph: Graph, container: HTMLElement, size: Size): Sigma {
+        // determine the right layout
+        switch (this.props.layout) {
+            case "force2atlas":
+                circular.assign(graph, { scale: 100 });
+                forceAtlas2.assign(graph, {
+                    iterations: 500,
+                    settings: forceAtlas2.inferSettings(graph),
+                });
+                break;
+            case "circlepack":
+                circlepack.assign(graph);
+                break;
+            case "circular": /* fallthrough */
+            default:
+                circular.assign(graph, { scale: 100 });
+        }
         // setup an initial layout
-        circular.assign(graph, { scale: 100 });
-        forceAtlas2.assign(graph, {
-            iterations: 500,
-            settings: forceAtlas2.inferSettings(graph),
-        });
+        
+        
 
         const settings = this.settings();
         return new Sigma(graph, container, settings);
