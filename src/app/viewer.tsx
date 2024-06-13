@@ -13,12 +13,13 @@ import MapView from "./views/map";
 import { PathTree } from "../lib/pathtree";
 import Selection from "../lib/selection";
 import ModelGraphView from "./views/graph/model";
-import { Deduplication, ModelEdge, ModelNode } from "../lib/builders/model";
+import { ModelEdge, ModelNode } from "../lib/builders/model";
 import { GraphRendererClass } from "./views/graph/renderers";
 import { BundleEdge, BundleNode } from "../lib/builders/bundle";
 import GraphConfigView from "./views/config";
-import { CytoBundleRenderer, CytoModelRenderer } from "./views/graph/renderers/cytoscape";
+import { CytoBundleRenderer } from "./views/graph/renderers/cytoscape";
 import { VisNetworkModelRenderer } from "./views/graph/renderers/vis-network";
+import Deduplication, { defaultValue as deduplicationDefault } from "./state/deduplication";
 
 export type ViewProps = {} & ViewerProps & ViewerState & ViewerCallbacks
 type ViewerProps = {
@@ -80,7 +81,7 @@ export class Viewer extends Component<ViewerProps & { onClose: () => void }, Vie
         const selection = Selection.all();
         const collapsed = Selection.none();
 
-        const deduplication = previous?.deduplication ?? Deduplication.Bundle;
+        const deduplication = previous?.deduplication ?? deduplicationDefault;
 
         const selectionVersion = (previous?.selectionVersion ?? -1) + 1
         const namespaceVersion = (previous?.namespaceVersion ?? -1) + 1

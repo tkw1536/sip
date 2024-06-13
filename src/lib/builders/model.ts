@@ -1,4 +1,5 @@
 import GraphBuilder, { ArrayTracker } from ".";
+import Deduplication from "../../app/state/deduplication";
 import Graph from "../graph";
 import { Path } from "../pathbuilder";
 import { Bundle, Field, PathTree } from "../pathtree";
@@ -11,11 +12,6 @@ type SharedOptions = {
     include?(uri: string): boolean;
 }
 
-export enum Deduplication {
-    Full = 'full',
-    Bundle = 'bundle',
-    None = 'none',
-}
 
 export type ModelNode = {
     /* represents a single class node */

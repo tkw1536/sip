@@ -1,7 +1,8 @@
 import { h, Ref, Fragment } from 'preact';
 
-import ModelGraphBuilder, { Deduplication, ModelEdge, ModelNode } from "../../../lib/builders/model";
+import ModelGraphBuilder, { ModelEdge, ModelNode } from "../../../lib/builders/model";
 import GraphView from ".";
+import Deduplication, { explanations, names, values } from "../../state/deduplication";
 
 export default class ModelGraphView extends GraphView<ModelNode, ModelEdge, any> {
     protected getRenderer() {
@@ -33,11 +34,11 @@ export default class ModelGraphView extends GraphView<ModelNode, ModelEdge, any>
                 </p>
 
                 <div onChange={this.onChangeMode}>{
-                    dedupValues.map(v => (<p key={v}>
+                    values.map(v => (<p key={v}>
                         <input name={`${id}-dedup-mode`} id={`${id}-dedup-mode-${v}`} type="radio" checked={deduplication === v} value={v} />
                         <label for={`${id}-dedup-mode-${v}`}>
-                            <em>{dedupNames[v]}.</em>&nbsp;
-                            {dedupExplanations[v]}
+                            <em>{names[v]}.</em>&nbsp;
+                            {explanations[v]}
                         </label>
                     </p>))
                 }</div>
@@ -70,20 +71,3 @@ export default class ModelGraphView extends GraphView<ModelNode, ModelEdge, any>
         </Fragment>
     }
 }
-
-const dedupValues = [
-    Deduplication.Full,
-    Deduplication.Bundle,
-    Deduplication.None,
-]
-const dedupNames = Object.freeze({
-    [Deduplication.Full]: "Full",
-    [Deduplication.Bundle]: "Bundle",
-    [Deduplication.None]: "None",
-})
-
-const dedupExplanations = Object.freeze({
-    [Deduplication.Full]: "Draw each class at most once. This corresponds to drawing a subset of the associated ontology with their domains and ranges. ",
-    [Deduplication.Bundle]: "Draw nodes once within the current bundle",
-    [Deduplication.None]: "Do not deduplicate nodes at all (except for shared parent paths). "
-})
