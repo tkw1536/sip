@@ -66,7 +66,20 @@ abstract class CytoscapeRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRende
                     style: {
                         label: 'data(label)',
                         'text-wrap': 'wrap',
-                        color: 'data(color)'
+                        color: 'data(color)',
+
+                    }
+                },
+                {
+                    selector: 'node:selected',
+                    style: {
+                        "text-background-opacity": 1,
+                        "text-background-color": "#fff",
+                        "text-background-shape": "roundrectangle",
+                        "text-background-padding": "5px",
+                        "text-border-color": "#888",
+                        "text-border-width": 1,
+                        "text-border-opacity": 1
                     }
                 },
                 {
@@ -77,6 +90,22 @@ abstract class CytoscapeRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRende
                         'target-arrow-color': 'data(color)',
                         'target-arrow-shape': 'triangle',
                         'curve-style': 'bezier'
+                    }
+                }, {
+                    selector: 'edge[label]',
+                    style: {
+                        'label': 'data(label)',
+                    }
+                }, {
+                    selector: 'edge[label]:selected',
+                    style: {
+                        "text-background-opacity": 1,
+                        "text-background-color": "#fff",
+                        "text-background-shape": "roundrectangle",
+                        "text-background-padding": "5px",
+                        "text-border-color": "#888",
+                        "text-border-width": 1,
+                        "text-border-opacity": 1
                     }
                 }
             ],
