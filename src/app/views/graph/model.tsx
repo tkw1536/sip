@@ -1,32 +1,40 @@
-import { h, Ref, Fragment } from 'preact';
+import { h, Ref, Fragment, RenderableProps } from 'preact';
 
 import ModelGraphBuilder, { ModelEdge, ModelNode } from "../../../lib/builders/model";
 import GraphView from ".";
 import Deduplication, { explanations, names, values } from "../../state/deduplication";
-import { models } from "../../state/renderers";
+import { ModelRenderer, models } from "../../state/renderers";
+import GraphBuilder from "../../../lib/builders";
+import { ViewProps } from "../../viewer";
+import AsyncArraySelector from "../../../lib/async-array-selector";
 
-export default class ModelGraphView extends GraphView<ModelNode, ModelEdge, any> {
+export default class ModelGraphView extends GraphView<ModelRenderer, ModelNode, ModelEdge, any> {
     protected readonly layoutKey = 'modelGraphLayout';
-    protected getRenderer() {
-        return this.props.modelGraphRenderer;
+    
+    protected newRenderer(previousProps: typeof this.props): boolean {
+        return this.props.modelGraphRenderer != previousProps.modelGraphRenderer;
     }
-    protected newGraphBuilder() {
+    protected makeRenderer(): Promise<ModelRenderer> {
+        return models.get(this.props.modelGraphRenderer);
+    }
+    
+    protected newGraphBuilder(previousProps: RenderableProps<ViewProps, any>): boolean {
+        return previousProps.modelGraphRenderer != this.props.modelGraphRenderer;
+    }
+    protected makeGraphBuilder(): Promise<GraphBuilder<ModelNode, ModelEdge>> {
         const { tree, selection, deduplication } = this.props;
-        return new ModelGraphBuilder(tree, {
+        return Promise.resolve(new ModelGraphBuilder(tree, {
             include: (uri: string) => selection.includes(uri),
             deduplication,
-        });
+        }));
     }
+
     private onChangeMode = (evt: Event) => {
         this.props.setDeduplication((evt.target as HTMLInputElement).value as Deduplication)
     }
     private onChangeModelGraph = (evt: Event & { currentTarget: HTMLSelectElement}) => {
         evt.preventDefault();
-        const renderer = models.get(evt.currentTarget.value);
-        if (!renderer) {
-            return;
-        }
-        this.props.setModelRenderer(renderer);
+        this.props.setModelRenderer(evt.currentTarget.value);
     }
     private onChangeLayout = (evt: Event) => {
         this.props.setModelLayout((evt.target as HTMLInputElement).value as string);
@@ -34,9 +42,9 @@ export default class ModelGraphView extends GraphView<ModelNode, ModelEdge, any>
     protected renderPanel() {
         const { deduplication, id } = this.props;
         
-        const renderer = this.getRenderer();
-        const modelGraphName = renderer.rendererName;
-        const exportFormats = renderer.supportedExportFormats;
+        const { renderer } = this.state;
+        const modelGraphName = renderer?.rendererName;
+        const exportFormats = renderer?.supportedExportFormats;
         
         return <Fragment>
             <fieldset>
@@ -51,19 +59,16 @@ export default class ModelGraphView extends GraphView<ModelNode, ModelEdge, any>
                 </p>
 
                 <p>
-                    Renderer: &nbsp; 
-                    <select value={modelGraphName} onChange={this.onChangeModelGraph}>
-                        {
-                            models.map(clz => <option key={clz.rendererName}>{clz.rendererName}</option>)
-                        }
-                    </select>
+                    Renderer: &nbsp;
+                    <AsyncArraySelector value={modelGraphName} onChange={this.props.setModelRenderer} load={models.names} /> 
                     &nbsp;
+                    
                     Layout: &nbsp;
-                    <select value={this.layoutProp()} onChange={this.onChangeLayout}>
+                    { renderer && <select value={this.layoutProp()} onChange={this.onChangeLayout}>
                         {
                             renderer.supportedLayouts.map(name => <option key={name}>{name}</option>)
                         }
-                    </select>
+                    </select>}
                 </p>
             </fieldset>
             <fieldset>
@@ -89,7 +94,7 @@ export default class ModelGraphView extends GraphView<ModelNode, ModelEdge, any>
                 }</div>
             </fieldset>
 
-            { exportFormats.length > 0 && <fieldset>
+            { exportFormats && exportFormats.length > 0 && <fieldset>
                 <legend>Graph Export</legend>
 
                 <p>

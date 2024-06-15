@@ -15,7 +15,7 @@ import Selection from "../lib/selection";
 import ModelGraphView from "./views/graph/model";
 import GraphConfigView from "./views/config";
 import Deduplication, { defaultValue as deduplicationDefault } from "./state/deduplication";
-import { BundleRenderer, ModelRenderer, bundles, models } from "./state/renderers";
+import { bundles, models } from "./state/renderers";
 import { defaultLayout } from "./views/graph/renderers";
 
 export type ViewProps = {} & ViewerProps & ViewerState & ViewerCallbacks
@@ -38,10 +38,10 @@ type ViewerState = {
     deduplication: Deduplication;
 
     // renders for the graphs
-    bundleGraphRenderer: BundleRenderer;
+    bundleGraphRenderer: string;
     bundleGraphLayout: string;
 
-    modelGraphRenderer: ModelRenderer;
+    modelGraphRenderer: string;
     modelGraphLayout: string;
 
     collapsed: Selection,
@@ -62,10 +62,10 @@ type ViewerCallbacks = {
 
     setDeduplication: (dup: Deduplication) => void;
 
-    setBundleRenderer: (renderer: BundleRenderer) => void;
+    setBundleRenderer: (renderer: string) => void;
     setBundleLayout: (layout: string) => void;
 
-    setModelRenderer: (renderer: ModelRenderer) => void;
+    setModelRenderer: (renderer: string) => void;
     setModelLayout: (layout: string) => void;
 }
 
@@ -91,9 +91,9 @@ export class Viewer extends Component<ViewerProps & { onClose: () => void }, Vie
         const pathbuilderVersion = (previous?.pathbuilderVersion ?? -1) + 1
         const optionVersion = (previous?.optionVersion ?? -1) + 1
 
-        const bundleGraphRenderer = previous?.bundleGraphRenderer ?? bundles.getDefault();
+        const bundleGraphRenderer = previous?.bundleGraphRenderer ?? bundles.defaultRenderer;
         const bundleGraphLayout = previous?.bundleGraphLayout ?? defaultLayout;
-        const modelGraphRenderer = previous?.modelGraphRenderer ?? models.getDefault();
+        const modelGraphRenderer = previous?.modelGraphRenderer ?? models.defaultRenderer;
         const modelGraphLayout = previous?.modelGraphLayout ?? defaultLayout;
 
         return {
@@ -197,33 +197,23 @@ export class Viewer extends Component<ViewerProps & { onClose: () => void }, Vie
         this.setState(({ optionVersion }) => ({ deduplication: dup, optionVersion: optionVersion + 1 }))
     }
 
-    private setBundleRenderer = (renderer: BundleRenderer) => {
+    private setBundleRenderer = (renderer: string) => {
         this.setState({ 
             bundleGraphRenderer: renderer,
             bundleGraphLayout: defaultLayout,
         })
     }
     private setBundleLayout = (layout: string) => {
-        this.setState(({ bundleGraphRenderer }) => {
-            if (bundleGraphRenderer.supportedLayouts.indexOf(layout) < 0) {
-                return null;
-            }
-            return { bundleGraphLayout: layout }
-        })
+        this.setState({ bundleGraphLayout: layout })
     }
-    private setModelRenderer = (renderer: ModelRenderer) => {
+    private setModelRenderer = (renderer: string) => {
         this.setState({ 
             modelGraphRenderer: renderer,
             modelGraphLayout: defaultLayout,
         })
     }
     private setModelLayout = (layout: string) => {
-        this.setState(({ modelGraphRenderer }) => {
-            if (modelGraphRenderer.supportedLayouts.indexOf(layout) < 0) {
-                return null;
-            }
-            return { modelGraphLayout: layout }
-        })
+        this.setState({ modelGraphLayout: layout })
     }
 
     render() {

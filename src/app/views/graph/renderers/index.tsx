@@ -92,7 +92,7 @@ export class Renderer<NodeLabel, EdgeLabel, S> extends Component<RenderProps<Nod
         const { renderer: Renderer, ...props } = this.props;
         const { size } = this.state;
         return <div ref={this.wrapperRef} className={styles.wrapper}>
-            {size && <Renderer  ref={this.rendererRef} {...props} width={size[0]} height={size[1]} />}
+            {size && <Renderer ref={this.rendererRef} {...props} width={size[0]} height={size[1]} />}
         </div>
     }
 }

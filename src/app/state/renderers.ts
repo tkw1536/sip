@@ -1,47 +1,75 @@
 import { BundleEdge, BundleNode } from "../../lib/builders/bundle";
 import { ModelEdge, ModelNode } from "../../lib/builders/model"
 import { GraphRendererClass } from "../views/graph/renderers"
-import { CytoBundleRenderer, CytoModelRenderer } from "../views/graph/renderers/cytoscape";
-import { SigmaBundleRenderer, SigmaModelRenderer } from "../views/graph/renderers/sigma";
-import { VisNetworkBundleRenderer, VisNetworkModelRenderer } from "../views/graph/renderers/vis-network";
 
 class RendererCollection<R extends GraphRendererClass<NodeLabel, EdgeLabel, S>, NodeLabel, EdgeLabel, S> {
-    private elements = new Map<string, R>();
-
-    public getDefault(): R {
-        return this.dflt;
+    constructor(public readonly defaultRenderer: string, ...all: Array<() => Promise<R>>) {
+        this.all = all;
     }
-    private readonly dflt: R; 
-    constructor(dflt: number, ...all: Array<R>){
-        all.forEach(clz => this.elements.set(clz.rendererName, clz));
-        if (all.length <= dflt) {
-            throw new Error('RendererCollection: default index too small');
+
+    private map: Map<string, R> | null = null;
+    private waiters: Array<() => void> = [];
+    private all: Array<() => Promise<R>> | null = null;
+    private buildMap(): Promise<Map<string, R>> {
+        return new Promise(rs => {
+            // map already exists
+            if (this.map !== null) {
+                rs(this.map);
+                return;
+            }
+
+            // we are in waiting mode
+            if (this.all === null) {
+                this.waiters.push(() => {
+                    rs(this.map!);
+                })
+                return;
+            }
+
+            // nothing is done yet => start the loading process
+            Promise.all(this.all.map(e => e())).then((elements) => {
+                const map = new Map<string, R>();
+                elements.forEach(e => map.set(e.rendererName, e));
+                this.map = map;
+
+                // call the waiters, and remove them all
+                this.waiters.forEach(callback => callback());
+                this.waiters = [];
+
+                rs(map);
+            });
+            this.all = null;
+        });
+    }
+
+    public async get(name: string): Promise<R> {
+        const elements = await this.buildMap();
+
+        const element = elements.get(name);
+        if (typeof element === 'undefined') {
+            return Promise.reject('no such entry');
         }
-        this.dflt = all[dflt];
-        
+
+        return Promise.resolve(element);
     }
 
-    public get(name: string): R | null{
-        return this.elements.get(name) ?? null;
-    }
-
-    public map<T>(callback: (clz: R) => T): Array<T> {
-        return Array.from(this.elements).map(([_, clz]) => callback(clz));
+    public names = async (): Promise<Array<string>> => {
+        return this.buildMap().then(m => Array.from(m.keys()));
     }
 }
 
 export type ModelRenderer = GraphRendererClass<ModelNode, ModelEdge, any>;
 export const models = new RendererCollection<ModelRenderer, ModelNode, ModelEdge, any>(
-    0,
-    VisNetworkModelRenderer,
-    SigmaModelRenderer,
-    CytoModelRenderer, 
+    "vis-network",
+    async () => import("../views/graph/renderers/vis-network").then(m => m.VisNetworkModelRenderer),
+    async () => import("../views/graph/renderers/sigma").then(m => m.SigmaModelRenderer),
+    async () => import("../views/graph/renderers/cytoscape").then(m => m.CytoModelRenderer),
 );
 
 export type BundleRenderer = GraphRendererClass<BundleNode, BundleEdge, any>;
 export const bundles = new RendererCollection<BundleRenderer, BundleNode, BundleEdge, any>(
-    0,
-    VisNetworkBundleRenderer,
-    SigmaBundleRenderer,
-    CytoBundleRenderer,
+    "vis-network",
+    async () => import("../views/graph/renderers/vis-network").then(m => m.VisNetworkBundleRenderer),
+    async () => import("../views/graph/renderers/sigma").then(m => m.SigmaBundleRenderer),
+    async () => import("../views/graph/renderers/cytoscape").then(m => m.CytoBundleRenderer),
 );

@@ -1,30 +1,11 @@
 import { h, Component, Fragment } from 'preact';
 import type { ViewProps } from "../viewer";
 import { bundles, models } from "../state/renderers";
+import AsyncArraySelector from "../../lib/async-array-selector";
 
 export default class GraphConfigView extends Component<ViewProps> {
-    private onChangeBundleGraph = (evt: Event & { currentTarget: HTMLSelectElement}) => {
-        evt.preventDefault();
-        const renderer = bundles.get(evt.currentTarget.value);
-        if (!renderer) {
-            return;
-        }
-        this.props.setBundleRenderer(renderer);
-    }
-    private onChangeModelGraph = (evt: Event & { currentTarget: HTMLSelectElement}) => {
-        evt.preventDefault();
-        const renderer = models.get(evt.currentTarget.value);
-        if (!renderer) {
-            return;
-        }
-        this.props.setModelRenderer(renderer);
-    }
-
     render() {
         const { bundleGraphRenderer, modelGraphRenderer } = this.props;
-
-        const bundleGraphName = bundleGraphRenderer.rendererName;
-        const modelGraphName = modelGraphRenderer.rendererName;
 
         return <Fragment>
             <p>
@@ -34,21 +15,14 @@ export default class GraphConfigView extends Component<ViewProps> {
 
             <p>
                 Bundle Graph Renderer: &nbsp;
-                <select value={bundleGraphName} onChange={this.onChangeBundleGraph}>
-                    {
-                        bundles.map(bundle => <option key={bundle.rendererName}>{bundle.rendererName}</option>)
-                    }
-                </select>
+                <AsyncArraySelector value={bundleGraphRenderer} onChange={this.props.setBundleRenderer} load={bundles.names}/>
             </p>
 
             <p>
                 Model Graph Renderer: &nbsp;
-                <select value={modelGraphName} onChange={this.onChangeModelGraph}>
-                    {
-                        models.map(model => <option key={model.rendererName}>{model.rendererName}</option>)
-                    }
-                </select>
+                <AsyncArraySelector onChange={this.props.setModelRenderer} value={modelGraphRenderer} load={models.names} />
             </p>
         </Fragment>
     }
 }
+

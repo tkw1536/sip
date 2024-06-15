@@ -1,22 +1,48 @@
-import { h, Component, createRef, ComponentChild, Ref } from 'preact';
+import { h, Component, createRef, ComponentChild, Ref, Fragment } from 'preact';
 import type { ViewProps } from "../../viewer";
 import { download } from "../../../lib/download";
-import { GraphRendererClass, Renderer } from "./renderers";
+import { GraphRendererClass, Renderer, defaultLayout } from "./renderers";
 import Graph from "../../../lib/graph";
 import GraphBuilder from "../../../lib/builders";
 
 import styles from './index.module.css';
 
 
-type State<NodeLabel, EdgeLabel> = { open: boolean; graph?: Graph<NodeLabel, EdgeLabel> }
+type State<NodeLabel, EdgeLabel> = { open: boolean; graph?: Graph<NodeLabel, EdgeLabel>, graphError?: string, renderer?: GraphRendererClass<NodeLabel, EdgeLabel, any>, rendererError?: string }
 
-export default abstract class GraphView<NodeLabel, EdgeLabel, S> extends Component<ViewProps, State<NodeLabel, EdgeLabel>> {
+export default abstract class GraphView<R extends GraphRendererClass<NodeLabel, EdgeLabel, S>, NodeLabel, EdgeLabel, S> extends Component<ViewProps, State<NodeLabel, EdgeLabel>> {
     state: State<NodeLabel, EdgeLabel> = { open: false }
+
+    protected abstract newRenderer(previousProps: typeof this.props): boolean
+    protected abstract makeRenderer(): Promise<R>
+    protected abstract newGraphBuilder(previousProps: typeof this.props): boolean
+    protected abstract makeGraphBuilder(): Promise<GraphBuilder<NodeLabel, EdgeLabel>>;
+    
+    protected abstract renderPanel(): ComponentChild
 
     // key used to determine the layout
     protected abstract layoutKey: keyof ViewProps;
     protected layoutProp(): string {
         return this.props[this.layoutKey] as string;
+    }
+
+    protected doExport = (format: string, evt?: Event) => {
+        if (evt) evt.preventDefault();
+
+        const { current } = this.rendererRef;
+        if (!current) return;
+
+        const clz = current.constructor as R;
+        if (clz.supportedExportFormats.indexOf(format) < 0) {
+            return;
+        }
+
+        current.exportBlob(format).then((blob) => {
+            download(blob);
+        }).catch(e => {
+            console.error('failed to download: ', e);
+            alert('Download has failed: ' + JSON.stringify(e));
+        })
     }
 
     private toggle = () => {
@@ -25,47 +51,67 @@ export default abstract class GraphView<NodeLabel, EdgeLabel, S> extends Compone
 
     private rendererRef = createRef<Renderer<NodeLabel, EdgeLabel, S>>();
 
-    protected abstract getRenderer(): GraphRendererClass<NodeLabel, EdgeLabel, S>;
-    protected abstract newGraphBuilder(): GraphBuilder<NodeLabel, EdgeLabel>;
-    protected abstract renderPanel(): ComponentChild
+    private mounted = false;
+    componentDidMount(): void {
+        this.mounted = true;
 
-    protected doExport = (format: string, evt?: Event) => {
-        if (evt) evt.preventDefault();
+        this.buildGraphModel();
+        this.loadRenderer();
+    }
 
+    componentWillUnmount(): void {
+        this.mounted = false;
+    }
 
-        const { current } = this.rendererRef;
-        if (!current) return;
-
-        const clz = this.getRenderer();
-        if (clz.supportedExportFormats.indexOf(format) < 0) {
-            return;
-        }
-
-        current.exportBlob(format).then((blob) => {
-            download(blob);
-            console.log('blob ok', blob);
+    private lastGraph = 0;
+    private buildGraphModel = () => {
+        const graphID = ++this.lastGraph;
+    
+        this.makeGraphBuilder().then(loader => {
+            const graph = loader.build()
+            this.setState(() => {
+                if (!this.mounted) return null;
+                if (this.lastGraph !== graphID) return null;
+                return { graph, graphError: undefined };
+            })
         }).catch(e => {
-            console.error('failed to download: ', e);
-            alert('Download has failed: ' + JSON.stringify(e));
+            this.setState({ graph: undefined, graphError: e.toString()})
         })
     }
 
-    private buildGraph() {
-        const builder = this.newGraphBuilder();
-        this.setState({ graph: builder.build() });
+    private lastRenderer = 0;
+    private loadRenderer = () => {
+        const rendererID = ++this.lastRenderer;
+
+        this.makeRenderer().then(renderer => {
+            this.setState(({renderer: oldRenderer}) => {
+                if (!this.mounted) return null;
+                if (this.lastRenderer !== rendererID) return null;
+                if (oldRenderer === renderer) return null; // same renderer loaded, no need to re-render
+                return { renderer, rendererError: undefined };
+            })
+        }).catch((e) => {
+            this.setState({ renderer: undefined, rendererError: e.toString()})
+        });
     }
 
-    componentDidMount(): void {
-        this.buildGraph();
-    }
 
     componentDidUpdate(previousProps: Readonly<ViewProps>): void {
-        if (GraphView.graphKey(previousProps) === GraphView.graphKey(this.props)) {
-            return;
+        // builder has changed => return a new changer
+        if (
+            this.newGraphBuilder(previousProps) ||
+            (GraphView.graphKey(previousProps) !== GraphView.graphKey(this.props))
+        ) {
+            this.buildGraphModel();
         }
 
-        this.buildGraph();
+        // renderer has changed => load the new one
+        if (this.newRenderer(previousProps)) {
+            this.loadRenderer();
+        }
     }
+
+
 
     private static graphKey({ pathbuilderVersion, namespaceVersion, selectionVersion, optionVersion }: ViewProps): string {
         return `${pathbuilderVersion}-${namespaceVersion}-${selectionVersion}-${optionVersion}`;
@@ -73,17 +119,14 @@ export default abstract class GraphView<NodeLabel, EdgeLabel, S> extends Compone
 
     render() {
         const panel = this.renderPanel();
-
-        const { ns, id } = this.props;
-        const { open, graph } = this.state;
-        const layout = this.layoutProp();
-        const renderer = graph && <Renderer layout={layout} key={layout} ref={this.rendererRef} renderer={this.getRenderer()} graph={graph} ns={ns} id={id} />;
+        const main = this.renderMain();
 
         // if we don't have a child, directly use the renderer
         if (panel === null) {
-            return renderer;
+            return main;
         }
 
+        const { open } = this.state;
         return <div className={styles.wrapper}>
             <div
                 className={`${styles.options} ${open ? styles.optionsOpen : styles.optionsClosed}`}
@@ -92,8 +135,33 @@ export default abstract class GraphView<NodeLabel, EdgeLabel, S> extends Compone
             <button className={styles.handle} onClick={this.toggle}>
                 {open ? "<<" : ">>"}
             </button>
-            <div className={styles.main} children={renderer} />
+            <div className={styles.main} children={main} />
         </div>
+    }
+
+    private renderMain() {
+        const { graph, graphError, renderer, rendererError } = this.state;
+        
+        if (typeof graphError === 'string' || typeof rendererError === 'string' ) {
+            return <Fragment>
+                { graphError && <p><b>Error loading graph: </b>{graphError}</p>}
+                { rendererError && <p><b>Error loading renderer: </b>{rendererError}</p>}
+            </Fragment>;
+        }
+
+        if (!graph || !renderer) {
+            return null;
+        }
+
+        const { ns, id } = this.props;
+        let layout = this.layoutProp();
+
+        // if we don't have a supported layout, use the default one (or the first one)
+        if (typeof layout !== 'string' || renderer.supportedLayouts.indexOf(layout) < 0) {
+            layout = renderer.supportedLayouts.indexOf(defaultLayout) >= 0 ? defaultLayout : renderer.supportedLayouts[0];
+        }
+
+        return <Renderer layout={layout} key={layout} ref={this.rendererRef} renderer={renderer} graph={graph} ns={ns} id={id} />;
     }
 
     // render the panel 

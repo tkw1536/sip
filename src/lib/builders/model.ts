@@ -192,7 +192,6 @@ class BundleBuilder extends SpecificBuilder {
 
         // insert all the nodes
         this.tree.mainBundles.forEach(bundle => this.addBundle(bundle, 0));
-        this.graph.definitelyAcyclic = true;
     }
 
     private contexts = new Set<string>();
