@@ -68,9 +68,11 @@ abstract class VisNetworkRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRend
         network.destroy();
     }
 
-    protected objectToBlob(network: Network, dataset: Dataset, { width, height }: Size, type?: string, quality?: number): Promise<Blob> {
-        return dataset.drawNetworkClone(network, width, height, type, quality);
+    static readonly supportedExportFormats = ["png"];
+    protected objectToBlob(network: Network, dataset: Dataset, format: string): Promise<Blob> {
+        return dataset.drawNetworkClone(network, 1000, 1000, 'image/png', 1);
     }
+    
 
     protected renderDiv({ width, height }: Size, ref: Ref<HTMLDivElement>): ComponentChild {
         return <div ref={ref} style={{ width, height }} className={styles.container} />;

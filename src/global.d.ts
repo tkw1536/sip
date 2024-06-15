@@ -28,3 +28,8 @@ declare module "cytoscape-avsdf" {
     const ext: cytoscape.Ext; 
     export default ext; 
 }
+declare module "cytoscape-svg" {
+    import * as cytoscape from "cytoscape";
+    const ext: cytoscape.Ext; 
+    export default ext; 
+}

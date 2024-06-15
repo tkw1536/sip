@@ -59,7 +59,8 @@ abstract class SigmaRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRenderer<
         sigma.kill();
     }
 
-    protected objectToBlob(sigma: Sigma, graph: Graph, { width, height }: Size, type?: string, quality?: number): Promise<Blob> {
+    static readonly supportedExportFormats = [];
+    protected objectToBlob(sigma: Sigma, graph: Graph, format: string): Promise<Blob> {
         return Promise.reject("not implemented");
     }
 

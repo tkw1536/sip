@@ -13,7 +13,7 @@ type RendererProps<NodeLabel, EdgeLabel> = {
 }
 export abstract class GraphRenderer<NodeLabel, EdgeLabel> extends Component<GraphRendererProps<NodeLabel, EdgeLabel>> {
     /** toBlob renders a copy of the currently rendered graph into a blob */
-    abstract toBlob(size: Size, type?: string, quality?: number): Promise<Blob>;
+    abstract toBlob(format: string): Promise<Blob>;
 }
 
 /** An implemented GraphRenderer class */
@@ -21,7 +21,8 @@ export interface GraphRendererClass<NodeLabel, EdgeLabel, S> extends ComponentCl
     new (props: GraphRendererProps<NodeLabel, EdgeLabel>, context?: any): GraphRenderer<NodeLabel, EdgeLabel>;
 
     readonly defaultLayout: string;
-    readonly supportedLayouts: Readonly<string[]>;
+    readonly supportedLayouts: string[];
+    readonly supportedExportFormats: string[];
 }
 
 type RenderProps<NodeLabel, EdgeLabel, S> = RendererProps<NodeLabel, EdgeLabel> & { renderer: GraphRendererClass<NodeLabel, EdgeLabel, S>}
@@ -32,13 +33,18 @@ type RenderState = { size?: [number, number]; };
 export class Renderer<NodeLabel, EdgeLabel, S> extends Component<RenderProps<NodeLabel, EdgeLabel, S>, RenderState> {
     state: RenderState = { }
 
-    async toBlob(size: Size, type?: string, quality?: number): Promise<Blob> {
+    async exportBlob(format: string): Promise<Blob> {
         const renderer = this.rendererRef.current;
         if (!renderer) {
             return Promise.reject('no visible graph renderer');    
         }
+        
+        const rendererClass = renderer.constructor as GraphRendererClass<NodeLabel, EdgeLabel, S>; 
+        if (rendererClass.supportedExportFormats.indexOf(format) < 0) {
+            return Promise.reject('format not suppported');
+        }
 
-        return renderer.toBlob(size, type, quality);
+        return renderer.toBlob(format);
     }
 
     private wrapperRef = createRef<HTMLDivElement>();
@@ -103,7 +109,7 @@ export abstract class LibraryBasedRenderer<NodeLabel, EdgeLabel, RendererObject,
     protected abstract resizeObject(object: RendererObject, setup: RendererSetup, size: Size): RendererObject | void;
     protected abstract destroyObject(object: RendererObject, setup: RendererSetup): void;
 
-    protected abstract objectToBlob(object: RendererObject, setup: RendererSetup, size: Size, type?: string, quality?: number): Promise<Blob>
+    protected abstract objectToBlob(object: RendererObject, setup: RendererSetup, format: string): Promise<Blob>
 
     private createRenderer() {
         const current = this.container.current;
@@ -158,10 +164,10 @@ export abstract class LibraryBasedRenderer<NodeLabel, EdgeLabel, RendererObject,
         this.instance.object = next;
     }
 
-    async toBlob(size: Size, type?: string, quality?: number): Promise<Blob> {
+    async toBlob(format: string): Promise<Blob> {
         if (!this.instance) return Promise.reject('renderer object not setup');
         
-        return this.objectToBlob(this.instance.object, this.instance.setup, size, type, quality);
+        return this.objectToBlob(this.instance.object, this.instance.setup, format);
     }
 
     componentDidMount(): void {

@@ -23,29 +23,32 @@ export default abstract class GraphView<NodeLabel, EdgeLabel, S> extends Compone
         this.setState(({ open }) => ({ open: !open }))
     }
 
-    private graphRef = createRef<Renderer<NodeLabel, EdgeLabel, S>>();
-
-    private widthRef = createRef<HTMLInputElement>();
-    private heightRef = createRef<HTMLInputElement>();
-
-    protected doExport = (evt?: Event) => {
-        if (evt) evt.preventDefault();
-
-        const { current } = this.graphRef;
-        if (!current) return;
-
-        const width = this.widthRef.current?.valueAsNumber ?? 1000;
-        const height = this.heightRef.current?.valueAsNumber ?? 1000;
-
-        current.toBlob({width, height}, 'image/png', 1).then((blob) => {
-            download(blob, 'model.png');
-        })
-    }
+    private rendererRef = createRef<Renderer<NodeLabel, EdgeLabel, S>>();
 
     protected abstract getRenderer(): GraphRendererClass<NodeLabel, EdgeLabel, S>;
     protected abstract newGraphBuilder(): GraphBuilder<NodeLabel, EdgeLabel>;
-    protected abstract renderPanel(widthRef: Ref<HTMLInputElement>, heightRef: Ref<HTMLInputElement>): ComponentChild
+    protected abstract renderPanel(): ComponentChild
 
+    protected doExport = (format: string, evt?: Event) => {
+        if (evt) evt.preventDefault();
+
+
+        const { current } = this.rendererRef;
+        if (!current) return;
+
+        const clz = this.getRenderer();
+        if (clz.supportedExportFormats.indexOf(format) < 0) {
+            return;
+        }
+
+        current.exportBlob(format).then((blob) => {
+            download(blob);
+            console.log('blob ok', blob);
+        }).catch(e => {
+            console.error('failed to download: ', e);
+            alert('Download has failed: ' + JSON.stringify(e));
+        })
+    }
 
     private buildGraph() {
         const builder = this.newGraphBuilder();
@@ -69,12 +72,12 @@ export default abstract class GraphView<NodeLabel, EdgeLabel, S> extends Compone
     }
 
     render() {
-        const panel = this.renderPanel(this.widthRef, this.heightRef);
+        const panel = this.renderPanel();
 
         const { ns, id } = this.props;
         const { open, graph } = this.state;
         const layout = this.layoutProp();
-        const renderer = graph && <Renderer layout={layout} key={layout} ref={this.graphRef} renderer={this.getRenderer()} graph={graph} ns={ns} id={id} />;
+        const renderer = graph && <Renderer layout={layout} key={layout} ref={this.rendererRef} renderer={this.getRenderer()} graph={graph} ns={ns} id={id} />;
 
         // if we don't have a child, directly use the renderer
         if (panel === null) {

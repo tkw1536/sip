@@ -14,11 +14,6 @@ class Wrapper extends Component {
     render() {
         const { children } = this.props;
         return <Fragment>
-            <header className={styles.header}>
-                <h1>
-                    Supreme Inspector for Pathbuilders
-                </h1>
-            </header>
             <main className={`${styles.withLinkColor} ${styles.main}`}>
                 {children}
             </main>

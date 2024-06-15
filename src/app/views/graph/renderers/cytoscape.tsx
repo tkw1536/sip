@@ -5,11 +5,13 @@ import dagre from "cytoscape-dagre";
 import elk from "cytoscape-elk";
 import fcose from "cytoscape-fcose";
 import avsdf from "cytoscape-avsdf";
+import svg from "cytoscape-svg";
 cytoscape.use(cola);
 cytoscape.use(dagre);
 cytoscape.use(elk);
 cytoscape.use(fcose);
 cytoscape.use(avsdf);
+cytoscape.use(svg);
 import { LibraryBasedRenderer, Size } from ".";
 import { BundleEdge, BundleNode } from "../../../../lib/builders/bundle";
 import { ModelEdge, ModelNode } from "../../../../lib/builders/model";
@@ -131,8 +133,10 @@ abstract class CytoscapeRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRende
         c.destroy();
     }
 
-    protected objectToBlob(c: Cytoscape, elements: Elements, { width, height }: Size, type?: string, quality?: number): Promise<Blob> {
-        return Promise.reject("not implemented");
+    static readonly supportedExportFormats = ["svg"];
+    protected objectToBlob(cy: Cytoscape, elements: Elements, format: string): Promise<Blob> {
+        const svg = (cy as any).svg() as string;
+        return Promise.resolve(new Blob([svg], {type: 'image/svg'}));
     }
 }
 
