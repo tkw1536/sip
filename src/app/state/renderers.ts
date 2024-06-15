@@ -7,7 +7,11 @@ import { VisNetworkBundleRenderer, VisNetworkModelRenderer } from "../views/grap
 
 class RendererCollection<R extends GraphRendererClass<NodeLabel, EdgeLabel, S>, NodeLabel, EdgeLabel, S> {
     private elements = new Map<string, R>();
-    public readonly dflt: R; 
+
+    public getDefault(): R {
+        return this.dflt;
+    }
+    private readonly dflt: R; 
     constructor(dflt: number, ...all: Array<R>){
         all.forEach(clz => this.elements.set(clz.rendererName, clz));
         if (all.length <= dflt) {

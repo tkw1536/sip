@@ -90,9 +90,9 @@ export class Viewer extends Component<ViewerProps & { onClose: () => void }, Vie
         const pathbuilderVersion = (previous?.pathbuilderVersion ?? -1) + 1
         const optionVersion = (previous?.optionVersion ?? -1) + 1
 
-        const bundleGraphRenderer = previous?.bundleGraphRenderer ?? bundles.dflt;
+        const bundleGraphRenderer = previous?.bundleGraphRenderer ?? bundles.getDefault();
         const bundleGraphLayout = previous?.bundleGraphLayout ?? bundleGraphRenderer.defaultLayout;
-        const modelGraphRenderer = previous?.modelGraphRenderer ?? models.dflt;
+        const modelGraphRenderer = previous?.modelGraphRenderer ?? models.getDefault();
         const modelGraphLayout = previous?.modelGraphLayout ?? modelGraphRenderer.defaultLayout;
 
         return {
