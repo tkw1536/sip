@@ -3,7 +3,7 @@ import { h, Ref, Fragment } from 'preact';
 import ModelGraphBuilder, { ModelEdge, ModelNode } from "../../../lib/builders/model";
 import GraphView from ".";
 import Deduplication, { explanations, names, values } from "../../state/deduplication";
-import { getModelName, models } from "../../state/renderers";
+import { models } from "../../state/renderers";
 
 export default class ModelGraphView extends GraphView<ModelNode, ModelEdge, any> {
     protected readonly layoutKey = 'modelGraphLayout';
@@ -35,7 +35,7 @@ export default class ModelGraphView extends GraphView<ModelNode, ModelEdge, any>
         const { deduplication, id } = this.props;
         
         const renderer = this.getRenderer();
-        const modelGraphName = getModelName(renderer);
+        const modelGraphName = renderer.rendererName;
         const exportFormats = renderer.supportedExportFormats;
         
         return <Fragment>
@@ -54,7 +54,7 @@ export default class ModelGraphView extends GraphView<ModelNode, ModelEdge, any>
                     Renderer: &nbsp; 
                     <select value={modelGraphName} onChange={this.onChangeModelGraph}>
                         {
-                            Array.from(models.keys()).map(name => <option key={name}>{name}</option>)
+                            models.map(clz => <option key={clz.rendererName}>{clz.rendererName}</option>)
                         }
                     </select>
                     &nbsp;

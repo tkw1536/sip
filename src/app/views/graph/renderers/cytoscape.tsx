@@ -24,6 +24,7 @@ abstract class CytoscapeRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRende
     protected abstract addNode(elements: Elements, id: number, node: NodeLabel): void;
     protected abstract addEdge(elements: Elements, from: number, to: number, edge: EdgeLabel): void;
 
+    static readonly rendererName = "Cytoscape";
     static readonly supportedLayouts = ["auto", "grid", "circle", "concentric", "avsdf", "dagre", "breadthfirst", "fcose", "cola", "elk",]
     static readonly defaultLayout = this.supportedLayouts[0];
 

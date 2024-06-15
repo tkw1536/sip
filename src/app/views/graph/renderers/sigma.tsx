@@ -13,6 +13,7 @@ abstract class SigmaRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRenderer<
     protected abstract addNode(graph: Graph, id: number, node: NodeLabel): void;
     protected abstract addEdge(graph: Graph, from: number, to: number, edge: EdgeLabel): void;
 
+    static readonly rendererName = "Sigma.js";
     static readonly supportedLayouts = ["force2atlas", "circular", "circlepack"];
     static readonly defaultLayout = this.supportedLayouts[0];
 

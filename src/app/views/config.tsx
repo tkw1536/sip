@@ -1,6 +1,6 @@
 import { h, Component, Fragment } from 'preact';
 import type { ViewProps } from "../viewer";
-import { bundles, getBundleName, getModelName, models } from "../state/renderers";
+import { bundles, models } from "../state/renderers";
 
 export default class GraphConfigView extends Component<ViewProps> {
     private onChangeBundleGraph = (evt: Event & { currentTarget: HTMLSelectElement}) => {
@@ -23,8 +23,8 @@ export default class GraphConfigView extends Component<ViewProps> {
     render() {
         const { bundleGraphRenderer, modelGraphRenderer } = this.props;
 
-        const bundleGraphName = getBundleName(bundleGraphRenderer)
-        const modelGraphName = getModelName(modelGraphRenderer)
+        const bundleGraphName = bundleGraphRenderer.rendererName;
+        const modelGraphName = modelGraphRenderer.rendererName;
 
         return <Fragment>
             <p>
@@ -36,7 +36,7 @@ export default class GraphConfigView extends Component<ViewProps> {
                 Bundle Graph Renderer: &nbsp;
                 <select value={bundleGraphName} onChange={this.onChangeBundleGraph}>
                     {
-                        Array.from(bundles.keys()).map(name => <option key={name}>{name}</option>)
+                        bundles.map(bundle => <option key={bundle.rendererName}>{bundle.rendererName}</option>)
                     }
                 </select>
             </p>
@@ -45,7 +45,7 @@ export default class GraphConfigView extends Component<ViewProps> {
                 Model Graph Renderer: &nbsp;
                 <select value={modelGraphName} onChange={this.onChangeModelGraph}>
                     {
-                        Array.from(models.keys()).map(name => <option key={name}>{name}</option>)
+                        models.map(model => <option key={model.rendererName}>{model.rendererName}</option>)
                     }
                 </select>
             </p>

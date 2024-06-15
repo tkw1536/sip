@@ -15,7 +15,7 @@ import Selection from "../lib/selection";
 import ModelGraphView from "./views/graph/model";
 import GraphConfigView from "./views/config";
 import Deduplication, { defaultValue as deduplicationDefault } from "./state/deduplication";
-import { BundleRenderer, ModelRenderer, defaultBundle, defaultModel } from "./state/renderers";
+import { BundleRenderer, ModelRenderer, bundles, models } from "./state/renderers";
 
 export type ViewProps = {} & ViewerProps & ViewerState & ViewerCallbacks
 type ViewerProps = {
@@ -90,9 +90,9 @@ export class Viewer extends Component<ViewerProps & { onClose: () => void }, Vie
         const pathbuilderVersion = (previous?.pathbuilderVersion ?? -1) + 1
         const optionVersion = (previous?.optionVersion ?? -1) + 1
 
-        const bundleGraphRenderer = previous?.bundleGraphRenderer ?? defaultBundle;
+        const bundleGraphRenderer = previous?.bundleGraphRenderer ?? bundles.dflt;
         const bundleGraphLayout = previous?.bundleGraphLayout ?? bundleGraphRenderer.defaultLayout;
-        const modelGraphRenderer = previous?.modelGraphRenderer ?? defaultModel;
+        const modelGraphRenderer = previous?.modelGraphRenderer ?? models.dflt;
         const modelGraphLayout = previous?.modelGraphLayout ?? modelGraphRenderer.defaultLayout;
 
         return {
