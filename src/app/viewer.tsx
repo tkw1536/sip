@@ -16,6 +16,7 @@ import ModelGraphView from "./views/graph/model";
 import GraphConfigView from "./views/config";
 import Deduplication, { defaultValue as deduplicationDefault } from "./state/deduplication";
 import { BundleRenderer, ModelRenderer, bundles, models } from "./state/renderers";
+import { defaultLayout } from "./views/graph/renderers";
 
 export type ViewProps = {} & ViewerProps & ViewerState & ViewerCallbacks
 type ViewerProps = {
@@ -91,9 +92,9 @@ export class Viewer extends Component<ViewerProps & { onClose: () => void }, Vie
         const optionVersion = (previous?.optionVersion ?? -1) + 1
 
         const bundleGraphRenderer = previous?.bundleGraphRenderer ?? bundles.getDefault();
-        const bundleGraphLayout = previous?.bundleGraphLayout ?? bundleGraphRenderer.defaultLayout;
+        const bundleGraphLayout = previous?.bundleGraphLayout ?? defaultLayout;
         const modelGraphRenderer = previous?.modelGraphRenderer ?? models.getDefault();
-        const modelGraphLayout = previous?.modelGraphLayout ?? modelGraphRenderer.defaultLayout;
+        const modelGraphLayout = previous?.modelGraphLayout ?? defaultLayout;
 
         return {
             namespaceVersion, ns,
@@ -199,7 +200,7 @@ export class Viewer extends Component<ViewerProps & { onClose: () => void }, Vie
     private setBundleRenderer = (renderer: BundleRenderer) => {
         this.setState({ 
             bundleGraphRenderer: renderer,
-            bundleGraphLayout: renderer.defaultLayout,
+            bundleGraphLayout: defaultLayout,
         })
     }
     private setBundleLayout = (layout: string) => {
@@ -213,7 +214,7 @@ export class Viewer extends Component<ViewerProps & { onClose: () => void }, Vie
     private setModelRenderer = (renderer: ModelRenderer) => {
         this.setState({ 
             modelGraphRenderer: renderer,
-            modelGraphLayout: renderer.defaultLayout,
+            modelGraphLayout: defaultLayout,
         })
     }
     private setModelLayout = (layout: string) => {

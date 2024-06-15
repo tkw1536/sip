@@ -12,7 +12,6 @@ abstract class VisNetworkRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRend
 
     static readonly rendererName = "vis-network";
     static readonly supportedLayouts = ["auto", "hierarchical", "force2atlas"];
-    static readonly defaultLayout = this.supportedLayouts[0];
 
     protected options(definitelyAcyclic: boolean): Options {
         const hierarchical = this.props.layout === "auto" ? definitelyAcyclic : this.props.layout === "hierarchical";

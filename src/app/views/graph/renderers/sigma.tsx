@@ -14,8 +14,7 @@ abstract class SigmaRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRenderer<
     protected abstract addEdge(graph: Graph, from: number, to: number, edge: EdgeLabel): void;
 
     static readonly rendererName = "Sigma.js";
-    static readonly supportedLayouts = ["force2atlas", "circular", "circlepack"];
-    static readonly defaultLayout = this.supportedLayouts[0];
+    static readonly supportedLayouts = ["auto", "force2atlas", "circular", "circlepack"];
 
     protected settings(): Partial<Settings> {
         return {
@@ -27,8 +26,8 @@ abstract class SigmaRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRenderer<
     }
 
     protected endSetup(graph: Graph, container: HTMLElement, size: Size): Sigma {
-        // determine the right layout
         switch (this.props.layout) {
+            case "auto": /* fallthrough */
             case "force2atlas":
                 circular.assign(graph, { scale: 100 });
                 forceAtlas2.assign(graph, {

@@ -11,6 +11,7 @@ type RendererProps<NodeLabel, EdgeLabel> = {
     ns: NamespaceMap,
     id: string, // some globally unique id
 }
+export const defaultLayout = "auto";
 export abstract class GraphRenderer<NodeLabel, EdgeLabel> extends Component<GraphRendererProps<NodeLabel, EdgeLabel>> {
     /** toBlob renders a copy of the currently rendered graph into a blob */
     abstract toBlob(format: string): Promise<Blob>;
@@ -21,7 +22,6 @@ export interface GraphRendererClass<NodeLabel, EdgeLabel, S> extends ComponentCl
     new (props: GraphRendererProps<NodeLabel, EdgeLabel>, context?: any): GraphRenderer<NodeLabel, EdgeLabel>;
 
     readonly rendererName: string;
-    readonly defaultLayout: string;
     readonly supportedLayouts: string[];
     readonly supportedExportFormats: string[];
 }
