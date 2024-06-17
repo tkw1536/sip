@@ -1,63 +1,64 @@
-import Graph from "../graph";
+import Graph from '../graph'
 
 export default abstract class GraphBuilder<NodeLabel, EdgeLabel> {
-    private done: boolean = false;
-    protected readonly graph = new Graph<NodeLabel, EdgeLabel>(false);
-    protected readonly tracker = new ArrayTracker<string>(); 
-    
-    public build(): typeof this.graph {
-        // ensure that we're only called once!
-        if (this.done) {
-            return this.graph;
-        }
-        this.done = true;
+  private done: boolean = false
+  protected readonly graph = new Graph<NodeLabel, EdgeLabel>(false)
+  protected readonly tracker = new ArrayTracker<string>()
 
-        this.doBuild();
-
-        // and return the graph;
-        return this.graph;
+  public build (): typeof this.graph {
+    // ensure that we're only called once!
+    if (this.done) {
+      return this.graph
     }
+    this.done = true
 
-    /** doBuild builds the actual graph */
-    protected abstract doBuild(): void;
+    this.doBuild()
+
+    // and return the graph;
+    return this.graph
+  }
+
+  /** doBuild builds the actual graph */
+  protected abstract doBuild (): void
 }
 
 export class ArrayTracker<T> {
-    private equality: (l: T, r: T) => boolean;
-    constructor(equality?: (left: T, right: T) => boolean) {
-        this.equality = equality ?? ((l, r) => l === r);
-    }
+  private readonly equality: (l: T, r: T) => boolean
+  constructor (equality?: (left: T, right: T) => boolean) {
+    this.equality = equality ?? ((l, r) => l === r)
+  }
 
-    private seen: T[][] = [];
+  private readonly seen: T[][] = []
 
-    /** add adds element unless it is already there */
-    add(element: T[]) {
-        if (this.has(element)) return false; // don't add it again!
-        this.seen.push(element.slice(0)); // add it!
-        return true;
-    }
+  /** add adds element unless it is already there */
+  add (element: T[]): boolean {
+    if (this.has(element)) return false // don't add it again!
+    this.seen.push(element.slice(0)) // add it!
+    return true
+  }
 
-    /** has checks if element is there  */
-    has(element: T[]) {
-        return this.index(element) >= 0;
-    }
-    private index(element: T[]): number {
-        for (let i = 0; i < this.seen.length; i++) {
-            const candidate = this.seen[i];
-            if (candidate.length !== element.length) {
-                continue;
-            }
+  /** has checks if element is there  */
+  has (element: T[]): boolean {
+    return this.index(element) >= 0
+  }
 
-            let ok = true;
-            for (let j = 0; j < candidate.length; j++) {
-                if (!this.equality(candidate[j], element[j])) {
-                    ok = false;
-                    break;
-                }
-            }
+  private index (element: T[]): number {
+    for (let i = 0; i < this.seen.length; i++) {
+      const candidate = this.seen[i]
+      if (candidate.length !== element.length) {
+        continue
+      }
 
-            if (ok) { return i; }
+      let ok = true
+      for (let j = 0; j < candidate.length; j++) {
+        if (!this.equality(candidate[j], element[j])) {
+          ok = false
+          break
         }
-        return -1;
+      }
+
+      if (ok) { return i }
     }
+    return -1
+  }
 }
