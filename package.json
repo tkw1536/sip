@@ -50,6 +50,6 @@
     "build": "parcel build src/index.html",
     "ci": "yarn tsc && yarn lint && yarn spellcheck",
     "lint": "ts-standard --fix .",
-    "spellcheck": "cspell --config cspell.json ."
+    "spellcheck":  "cspell lint . --config cspell.json --quiet"
   }
 }
