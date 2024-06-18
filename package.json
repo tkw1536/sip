@@ -30,7 +30,6 @@
     "graphology-types": "^0.24.7",
     "keycharm": "^0.2.0 || ^0.3.0 || ^0.4.0",
     "preact": "^10.22.0",
-    "react-drag-drop-files": "^2.3.10",
     "react-tabs": "^6.0.2",
     "sigma": "^3.0.0-beta.19",
     "uuid": "^3.4.0 || ^7.0.0 || ^8.0.0 || ^9.0.0",

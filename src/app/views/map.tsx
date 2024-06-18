@@ -1,7 +1,7 @@
 import { h, Component, Fragment, ComponentChild } from 'preact'
 import type { ViewProps } from '../viewer'
 import styles from './map.module.css'
-import { WithID } from '../../lib/wrapper'
+import { WithID } from '../../lib/components/wrapper'
 
 export default class MapView extends Component<ViewProps> {
   render (): ComponentChild {

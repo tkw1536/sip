@@ -1,5 +1,6 @@
 import { h, Component, Fragment, ComponentChild } from 'preact'
-import { FileUploader } from 'react-drag-drop-files'
+import DropArea from '../lib/components/drop-area'
+import styles from './loader.module.css'
 
 /**
  * Loader is responsible for providing an interface to load a pathbuilder.
@@ -19,7 +20,7 @@ export default class Loader extends Component<{ error?: string, onLoad: (file: F
           All processing happens on-device, meaning the server host can not access any data contained within your pathbuilder.
         </p>
         {typeof error === 'string' ? <p><b>Error loading: </b><code>{error}</code></p> : null}
-        <FileUploader handleChange={handleChange} label='Select or drop a pathbuilder here' types={['XML']} />
+        <DropArea className={styles.dropZone} activeClassName={styles.active} onDropFile={handleChange} types={['XML']}>Select or drop a pathbuilder here</DropArea>
       </Fragment>
     )
   }

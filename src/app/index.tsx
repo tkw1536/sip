@@ -3,7 +3,7 @@ import { Pathbuilder } from '../lib/pathbuilder'
 import { Viewer } from './viewer'
 import Loader from './loader'
 import styles from './index.module.css'
-import { WithID } from '../lib/wrapper'
+import { WithID } from '../lib/components/wrapper'
 
 interface State {
   pathbuilder: Pathbuilder | string | false
