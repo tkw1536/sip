@@ -43,15 +43,15 @@ export class Path {
     public id: string,
     public weight: number,
     public enabled: boolean,
-    public groupId: string, 
+    public groupId: string,
     public bundle: string,
     public field: string,
     public fieldType: string,
     public displayWidget: string,
     public formatterWidget: string,
-    public cardinality: number, 
+    public cardinality: number,
     public fieldTypeInformative: string,
-    public pathArray: string[], 
+    public pathArray: string[],
     public datatypeProperty: string,
     public shortName: string,
     public disambiguation: number,
@@ -232,4 +232,4 @@ export class Path {
   }
 }
 
-// spellchecker:words disamb pathbuilderinterface fieldtype displaywidget formatterwidget 
+// spellchecker:words disamb pathbuilderinterface fieldtype displaywidget formatterwidget
