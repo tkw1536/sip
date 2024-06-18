@@ -1,5 +1,4 @@
 import { ComponentChild, Component, h, Fragment, createRef } from 'preact'
-import { ChangeEvent } from 'preact/compat'
 
 interface DropAreaProps {
   onDropFile: (...files: File[]) => void
@@ -70,7 +69,7 @@ export default class DropArea extends Component<DropAreaProps> {
     current.click()
   }
 
-  private readonly handleUploadFile = (event: ChangeEvent<HTMLDivElement>): void => {
+  private readonly handleUploadFile = (event: Event): void => {
     event.preventDefault()
 
     this.callFileHandler(this.fileInput?.current?.files ?? undefined)
