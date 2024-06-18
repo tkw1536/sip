@@ -1,7 +1,7 @@
 import { Component, ComponentChild, ComponentClass, Ref, createRef, h } from 'preact'
 import Graph from '../../../../lib/graph'
 import { NamespaceMap } from '../../../../lib/namespace'
-import styles from './index.module.css'
+import * as styles from './index.module.css'
 
 export type GraphRendererProps<NodeLabel, EdgeLabel> = RendererProps<NodeLabel, EdgeLabel> & Size & { layout: string }
 
@@ -94,7 +94,7 @@ export class Renderer<NodeLabel, EdgeLabel, S> extends Component<RenderProps<Nod
     const { renderer: Renderer, ...props } = this.props
     const { size } = this.state
     return (
-      <div ref={this.wrapperRef} className={styles.wrapper}>
+      <div ref={this.wrapperRef} class={styles.wrapper}>
         {(size != null) && <Renderer ref={this.rendererRef} {...props} width={size[0]} height={size[1]} />}
       </div>
     )

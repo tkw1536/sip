@@ -1,6 +1,6 @@
 import { h, Component, Fragment, ComponentChild } from 'preact'
 import type { ViewProps } from '../viewer'
-import styles from './map.module.css'
+import * as styles from './map.module.css'
 import { WithID } from '../../lib/components/wrapper'
 
 export default class MapView extends Component<ViewProps> {
@@ -17,7 +17,7 @@ export default class MapView extends Component<ViewProps> {
           The initial version is generated automatically from all URIs found in the pathbuilder.
           You can manually adjust it here, by adding, removing or editing abbreviations.
         </p>
-        <table className={styles.table}>
+        <table>
           <thead>
             <tr>
               <th>
@@ -70,7 +70,7 @@ const AddMapRow = WithID<ViewProps>(class AddMapRow extends Component<ViewProps 
           <input type='text' value={short} onChange={this.handleShortChange} />
         </td>
         <td>
-          <input type='text' className={styles.wide} form={id} value={long} onChange={this.handleLongChange} />
+          <input type='text' class={styles.wide} form={id} value={long} onChange={this.handleLongChange} />
         </td>
         <td>
           <form id={id} onSubmit={this.handleSubmit}>

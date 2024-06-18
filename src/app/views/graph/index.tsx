@@ -5,7 +5,8 @@ import { GraphRendererClass, Renderer, defaultLayout } from './renderers'
 import Graph from '../../../lib/graph'
 import GraphBuilder from '../../../lib/builders'
 
-import styles from './index.module.css'
+import * as styles from './index.module.css'
+import { classes } from '../../../lib/classes'
 
 interface State<NodeLabel, EdgeLabel> { open: boolean, graph?: Graph<NodeLabel, EdgeLabel>, graphError?: string, renderer?: GraphRendererClass<NodeLabel, EdgeLabel, any>, rendererError?: string }
 
@@ -126,15 +127,15 @@ export default abstract class GraphView<R extends GraphRendererClass<NodeLabel, 
 
     const { open } = this.state
     return (
-      <div className={styles.wrapper}>
+      <div class={styles.wrapper}>
         <div
-          className={`${styles.options} ${open ? styles.optionsOpen : styles.optionsClosed}`}
+          class={classes(styles.options, open ? styles.optionsOpen : styles.optionsClosed)}
         >{panel}
         </div>
-        <button className={styles.handle} onClick={this.handleToggle}>
+        <button class={styles.handle} onClick={this.handleToggle}>
           {open ? '<<' : '>>'}
         </button>
-        <div className={styles.main}>{main}</div>
+        <div class={styles.main}>{main}</div>
       </div>
     )
   }

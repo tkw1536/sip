@@ -2,7 +2,8 @@ import { h, Component, Fragment, ComponentChild } from 'preact'
 import type { ViewProps } from '../viewer'
 import { NamespaceMap } from '../../lib/namespace'
 import { Bundle, Field } from '../../lib/pathtree'
-import styles from './list.module.css'
+import * as styles from './list.module.css'
+import { classes } from '../../lib/classes'
 
 export default class ListView extends Component<ViewProps> {
   private readonly handleSelectAll = (evt: Event): void => {
@@ -38,7 +39,7 @@ export default class ListView extends Component<ViewProps> {
           Use the shift key to update the all child values recursively.
         </p>
 
-        <table className={styles.table}>
+        <table class={styles.table}>
           <thead>
             <tr>
               <th />
@@ -104,7 +105,7 @@ class BundleRows extends Component<ViewProps & { bundle: Bundle, level: number, 
     const expanded = !collapsed.includes(path.id)
     return (
       <Fragment>
-        <tr className={!visible ? styles.hidden : ''}>
+        <tr class={!visible ? styles.hidden : ''}>
           <td>
             <input type='checkbox' checked={selection.includes(path.id)} onClick={this.handleKeydown} onChange={this.handleChange} />
           </td>
@@ -153,7 +154,7 @@ class FieldRow extends Component<ViewProps & { field: Field, level: number, visi
     const { ns, field, level, visible, selection } = this.props
     const path = field.path()
     return (
-      <tr className={!visible ? styles.hidden : ''}>
+      <tr class={!visible ? styles.hidden : ''}>
         <td>
           <input type='checkbox' checked={selection.includes(path.id)} onChange={this.handleChange} />
         </td>
@@ -193,7 +194,6 @@ type Role = 'datatype' | 'disambiguation' | 'object' | 'predicate'
 class PathElement extends Component<{ uri: string, role: Role, ns: NamespaceMap }> {
   render (): ComponentChild {
     const { uri, ns, role } = this.props
-    const className = styles.path + ' ' + styles[`path_${role}`]
-    return <Fragment><span className={className}>{ns.apply(uri)}</span></Fragment>
+    return <Fragment><span class={classes(styles.path, styles[`path_${role}`])}>{ns.apply(uri)}</span></Fragment>
   }
 }

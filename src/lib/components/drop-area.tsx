@@ -1,12 +1,13 @@
 import { ComponentChild, Component, h, Fragment, createRef } from 'preact'
+import { classes } from '../classes'
 
 interface DropAreaProps {
   onDropFile: (...files: File[]) => void
 
-  className?: string
-  activeValidClassName?: string
-  activeInvalidClassName?: string
-  passiveClassName?: string
+  class?: string
+  activeValidClass?: string
+  activeInvalidClass?: string
+  passiveClass?: string
 
   multiple?: boolean
   types?: string[]
@@ -81,19 +82,19 @@ export default class DropArea extends Component<DropAreaProps> {
 
   render (): ComponentChild {
     const { dragActive, dragValid } = this.state
-    const { className, activeInvalidClassName, activeValidClassName, passiveClassName, children, multiple, types } = this.props
+    const { class: clz, activeInvalidClass, activeValidClass, passiveClass, children, multiple, types } = this.props
 
     // determine classes to apply
-    const classes = [className]
+    const dropClasses = [clz]
     switch (true) {
       case dragActive && dragValid:
-        classes.push(activeValidClassName)
+        dropClasses.push(activeValidClass)
         break
       case dragActive && !dragValid:
-        classes.push(activeInvalidClassName ?? activeValidClassName)
+        dropClasses.push(activeInvalidClass ?? activeValidClass)
         break
       default:
-        classes.push(passiveClassName)
+        dropClasses.push(passiveClass)
     }
 
     const childNodes = typeof children === 'function' ? children(dragActive, dragValid) : children
@@ -109,7 +110,7 @@ export default class DropArea extends Component<DropAreaProps> {
           onChange={this.handleUploadFile}
         />
         <div
-          className={classes.filter(clz => typeof clz === 'string').join(' ')}
+          class={classes(...dropClasses)}
           onDrop={this.handleDropFile} onDragOver={this.handleDropOver} onDragLeave={this.handleDragLeave}
           onClick={this.handleClick}
         >{childNodes}

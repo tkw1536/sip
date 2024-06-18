@@ -1,6 +1,6 @@
 import { h, Component, Fragment, ComponentChild } from 'preact'
 import DropArea from '../lib/components/drop-area'
-import styles from './loader.module.css'
+import * as styles from './loader.module.css'
 
 /**
  * Loader is responsible for providing an interface to load a pathbuilder.
@@ -31,7 +31,7 @@ export default class Loader extends Component<{ error?: string, onLoad: (file: F
           All processing happens on-device, meaning the server host can not access any data contained within your pathbuilder.
         </p>
         {typeof error === 'string' ? <p><b>Error loading: </b><code>{error}</code></p> : null}
-        <DropArea className={styles.dropZone} activeValidClassName={styles.valid} activeInvalidClassName={styles.invalid} onDropFile={handleChange} types={['text/xml']}>{this.dragContent}</DropArea>
+        <DropArea class={styles.dropZone} activeValidClass={styles.valid} activeInvalidClass={styles.invalid} onDropFile={handleChange} types={['text/xml']}>{this.dragContent}</DropArea>
       </Fragment>
     )
   }

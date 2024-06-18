@@ -8,13 +8,20 @@
     "target": "ES2022",
     "jsx": "react",
     "jsxFactory": "h",
-    "lib": ["es2022", "DOM"],
+    "lib": [
+      "es2022",
+      "DOM"
+    ],
     "strict": true,
     "allowSyntheticDefaultImports": true,
     "paths": {
-      "react": ["./node_modules/preact/compat"],
-      "react-dom": ["./node_modules/preact/compat"],
-    }
+      "react": [
+        "./node_modules/preact/compat"
+      ],
+      "react-dom": [
+        "./node_modules/preact/compat"
+      ],
+    },
   },
   "include": [
     "./src/**/*"

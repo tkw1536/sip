@@ -4,7 +4,7 @@ import { Data, Network, Options } from 'vis-network'
 import { DataSet } from 'vis-data'
 import { ModelEdge, ModelNode } from '../../../../lib/builders/model'
 import { BundleEdge, BundleNode } from '../../../../lib/builders/bundle'
-import styles from './vis-network.module.css'
+import * as styles from './vis-network.module.css'
 
 abstract class VisNetworkRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRenderer<NodeLabel, EdgeLabel, Network, Dataset> {
   protected abstract addNode (dataset: Dataset, id: number, node: NodeLabel): undefined
@@ -75,7 +75,7 @@ abstract class VisNetworkRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRend
   }
 
   protected renderDiv ({ width, height }: Size, ref: Ref<HTMLDivElement>): ComponentChild {
-    return <div ref={ref} style={{ width, height }} className={styles.container} />
+    return <div ref={ref} style={{ width, height }} class={styles.container} />
   }
 }
 
