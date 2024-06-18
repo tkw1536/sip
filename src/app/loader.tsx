@@ -7,6 +7,17 @@ import styles from './loader.module.css'
  * The file should be passed to the callback.
  */
 export default class Loader extends Component<{ error?: string, onLoad: (file: File) => void }> {
+  private readonly dragContent = (active: boolean, valid: boolean): ComponentChild => {
+    switch (true) {
+      case active && valid:
+        return <Fragment><b>Release</b> to load <em>Pathbuilder</em></Fragment>
+      case active && !valid:
+        return <Fragment>Invalid <em>Pathbuilder</em>: Must be a <b>xml</b> file</Fragment>
+      default:
+        return <Fragment><b>Select</b> or <b>Drop</b> a <em>Pathbuilder</em> here</Fragment>
+    }
+  }
+
   render (): ComponentChild {
     const { error, onLoad: handleChange } = this.props
 
@@ -20,7 +31,7 @@ export default class Loader extends Component<{ error?: string, onLoad: (file: F
           All processing happens on-device, meaning the server host can not access any data contained within your pathbuilder.
         </p>
         {typeof error === 'string' ? <p><b>Error loading: </b><code>{error}</code></p> : null}
-        <DropArea className={styles.dropZone} activeClassName={styles.active} onDropFile={handleChange} types={['XML']}>Select or drop a pathbuilder here</DropArea>
+        <DropArea className={styles.dropZone} activeValidClassName={styles.valid} activeInvalidClassName={styles.invalid} onDropFile={handleChange} types={['text/xml']}>{this.dragContent}</DropArea>
       </Fragment>
     )
   }

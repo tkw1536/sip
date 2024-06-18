@@ -6,6 +6,11 @@
     padding: 5px
 }
 
-.dropZone.active {
+.dropZone.valid {
     background-color: yellow;
+}
+
+.dropZone.invalid {
+    cursor: no-drop;
+    background-color: red;
 }
