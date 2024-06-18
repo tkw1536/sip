@@ -1,0 +1,25 @@
+// cSpell Settings
+{
+    // Version of the setting file.  Always 0.2
+    "version": "0.2",
+    // language - current active spelling language
+    "language": "en",
+    // words - list of words to be always considered correct
+    "words": [
+        "preact",
+        "compat",
+        "pathbuilder",
+        "pathbuilders",
+        "WissKI",
+        "pathtree",
+        "cytoscape",
+        "cyto",
+        "Wiesing"
+    ],
+    "ignorePaths": ["package.json", "node_modules/**", "dist/**", ".parcel-cache/**"],
+    // flagWords - list of words to be always considered incorrect
+    // This is useful for offensive words and common spelling errors.
+    // For example "hte" should be "the"
+    "flagWords": [
+    ]
+}

@@ -108,7 +108,7 @@ class NoneBuilder extends SpecificBuilder {
   }
 
   private addBundleNodeNone (bundle: Bundle, level: number): number | null {
-    const path = bundle.path().path_array
+    const path = bundle.path().pathArray
 
     let index = path.length - 1
     if (index % 2 !== 0) {
@@ -130,13 +130,13 @@ class NoneBuilder extends SpecificBuilder {
     const path = node.path()
 
     // find the path to include for this element
-    let ownPath = path.path_array
+    let ownPath = path.pathArray
 
     // remove the parent path (if we've already added it)
     const parent = node.parent()
     const displayParent = this.includes(parent)
     if (displayParent && typeof parentNode === 'number') {
-      const length = parent.path()?.path_array?.length
+      const length = parent.path()?.pathArray?.length
       if (typeof length === 'number' && length >= 0 && length % 2 === 0) {
         ownPath = ownPath.slice(length)
       }
@@ -163,7 +163,7 @@ class NoneBuilder extends SpecificBuilder {
     }
 
     // check if we have a datatype property
-    if (path.datatype_property === '') {
+    if (path.datatypeProperty === '') {
       return
     }
 
@@ -194,16 +194,16 @@ class BundleBuilder extends SpecificBuilder {
   private readonly contexts = new Set<string>()
   private collectContexts (bundle: Bundle): void {
     bundle.childFields.forEach(field => {
-      const disamb = field.path().getDisambiguation()
-      if (disamb === null) return
-      this.contexts.add(disamb)
+      const disambiguation = field.path().getDisambiguation()
+      if (disambiguation === null) return
+      this.contexts.add(disambiguation)
     })
 
     // iterate over children
     bundle.childBundles.forEach(bundle => this.collectContexts(bundle))
 
     // add the last subject of the path
-    const path = bundle.path().path_array
+    const path = bundle.path().pathArray
     let index = path.length - 1
     if (index % 2 === 1) {
       index--
@@ -241,9 +241,9 @@ class BundleBuilder extends SpecificBuilder {
     return includeSelf
   }
 
-  /** adds a node for the currn */
+  /** add a bundle node for the current model */
   private addBundleNode (bundle: Bundle, level: number): string {
-    const path = bundle.path().path_array
+    const path = bundle.path().pathArray
 
     let index = path.length - 1
     if (index % 2 !== 0) {
@@ -277,14 +277,14 @@ class BundleBuilder extends SpecificBuilder {
     const path = node.path()
 
     // find the path to include for this element
-    let ownPath = path.path_array
+    let ownPath = path.pathArray
 
     // remove the parent path (if we've already added it)
     const parent = node.parent()
     const displayParent = this.includes(parent)
 
     if (displayParent) {
-      const length = parent.path()?.path_array?.length
+      const length = parent.path()?.pathArray?.length
       if (typeof length === 'number' && length >= 0 && length % 2 === 0) {
         ownPath = ownPath.slice(length)
       }
@@ -320,7 +320,7 @@ class BundleBuilder extends SpecificBuilder {
     }
 
     // check if we have a datatype property
-    if (path.datatype_property === '') {
+    if (path.datatypeProperty === '') {
       return
     }
 
@@ -369,7 +369,7 @@ class FullBuilder extends SpecificBuilder {
   }
 
   private addBundleNode (bundle: Bundle, level: number): void {
-    const path = bundle.path().path_array
+    const path = bundle.path().pathArray
 
     let index = path.length - 1
     if (index % 2 !== 0) {
@@ -400,13 +400,13 @@ class FullBuilder extends SpecificBuilder {
     const path = node.path()
 
     // find the path to include for this element
-    let ownPath = path.path_array
+    let ownPath = path.pathArray
 
     // remove the parent path (if we've already added it)
     const parent = node.parent()
     const displayParent = this.includes(parent)
     if (displayParent) {
-      const length = parent.path()?.path_array?.length
+      const length = parent.path()?.pathArray?.length
       if (typeof length === 'number' && length >= 0 && length % 2 === 0) {
         ownPath = ownPath.slice(length)
       }
@@ -438,7 +438,7 @@ class FullBuilder extends SpecificBuilder {
     }
 
     // check if we have a datatype property
-    if (path.datatype_property === '') {
+    if (path.datatypeProperty === '') {
       return
     }
 

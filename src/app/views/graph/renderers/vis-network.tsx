@@ -146,7 +146,7 @@ export class VisNetworkModelRenderer extends VisNetworkRenderer<ModelNode, Model
         to,
         arrows: 'to',
 
-        label: ns.apply(edge.field.path().datatype_property)
+        label: ns.apply(edge.field.path().datatypeProperty)
       })
       return
     }

@@ -33,3 +33,5 @@ declare module 'cytoscape-svg' {
   const ext: cytoscape.Ext
   export default ext
 }
+
+// spellchecker:words avsdf fcose dagre

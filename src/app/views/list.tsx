@@ -119,9 +119,9 @@ class BundleRows extends Component<ViewProps & { bundle: Bundle, level: number, 
             <code>{path.id}</code>
           </td>
           <td>
-            {path.path_array.map((p, i) => {
+            {path.pathArray.map((p, i) => {
               let role: Role
-              if (i === 2 * path.disamb - 2) {
+              if (i === 2 * path.disambiguation - 2) {
                 role = 'disambiguation'
               } else if (i % 2 === 0) {
                 role = 'object'
@@ -164,9 +164,9 @@ class FieldRow extends Component<ViewProps & { field: Field, level: number, visi
           <code>{path.id}</code>
         </td>
         <td>
-          {path.path_array.map((p, i) => {
+          {path.pathArray.map((p, i) => {
             let role: Role
-            if (i === 2 * path.disamb - 2) {
+            if (i === 2 * path.disambiguation - 2) {
               role = 'disambiguation'
             } else if (i % 2 === 0) {
               role = 'object'
@@ -175,7 +175,7 @@ class FieldRow extends Component<ViewProps & { field: Field, level: number, visi
             }
             return <PathElement role={role} key={p} ns={ns} uri={p} />
           })}
-          {path.datatype_property !== '' && <PathElement role='datatype' ns={ns} uri={path.datatype_property} />}
+          {path.datatypeProperty !== '' && <PathElement role='datatype' ns={ns} uri={path.datatypeProperty} />}
         </td>
         <td>
           {path.getInformativeFieldType()}

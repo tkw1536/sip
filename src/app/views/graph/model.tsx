@@ -118,3 +118,5 @@ export default class ModelGraphView extends GraphView<ModelRenderer, ModelNode, 
     )
   }
 }
+
+// spellchecker:words dedup Renderable

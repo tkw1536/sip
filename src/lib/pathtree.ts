@@ -74,10 +74,10 @@ export class PathTree extends NodeLike {
     const mainBundles: Bundle[] = []
 
     pb.paths.filter(path => path.enabled).forEach(path => {
-      const parent = path.group_id !== '' ? getOrCreateBundle(path.group_id) : null
+      const parent = path.groupId !== '' ? getOrCreateBundle(path.groupId) : null
 
       // not a group => it is just a field
-      if (!path.is_group) {
+      if (!path.isGroup) {
         if (parent === null) {
           console.warn('non-group path missing group_id', path)
           return

@@ -1,4 +1,6 @@
 # SIfP - Supreme Inspector for Pathbuilders
 
-This repository contains SIfp (pronounced like sip, the f is silent), an advanced inspector for pathbuilders.
+This repository contains SIp an advanced inspector for Pathbuilders produced by the [WissKI](https://wiss-ki.eu) software.
 It is a work in progress.
+
+<!-- spellchecker:words pathbuilders wisski -->

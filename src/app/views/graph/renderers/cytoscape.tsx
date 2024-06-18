@@ -209,7 +209,7 @@ export class CytoModelRenderer extends CytoscapeRenderer<ModelNode, ModelEdge> {
     const idStr = fromStr + '-' + toStr
 
     if (edge.type === 'data') {
-      const data = { id: idStr, source: fromStr, target: toStr, label: ns.apply(edge.field.path().datatype_property), color: 'black' }
+      const data = { id: idStr, source: fromStr, target: toStr, label: ns.apply(edge.field.path().datatypeProperty), color: 'black' }
       elements.push({ data })
       return
     }
@@ -221,3 +221,5 @@ export class CytoModelRenderer extends CytoscapeRenderer<ModelNode, ModelEdge> {
     throw new Error('never reached')
   }
 }
+
+// spellchecker:words avsdf breadthfirst roundrectangle fcose dagre

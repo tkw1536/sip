@@ -9,11 +9,11 @@ export class Pathbuilder {
     const result = parser.parseFromString(source, 'text/xml')
 
     // find the top level node
-    const pbiface = Array.from(result.childNodes).filter(x => x.nodeType === result.ELEMENT_NODE)
-    if (pbiface.length !== 1) {
+    const pbInterface = Array.from(result.childNodes).filter(x => x.nodeType === result.ELEMENT_NODE)
+    if (pbInterface.length !== 1) {
       throw new Error('expected exactly one child element in top-level xml')
     }
-    return this.fromNode(pbiface[0])
+    return this.fromNode(pbInterface[0])
   }
 
   static fromNode (node: Node): Pathbuilder {
@@ -42,22 +42,22 @@ export class Path {
   constructor (
     public id: string,
     public weight: number,
-    public enabled: boolean, /* bool as int */
-    public group_id: string, /* string with zero */
+    public enabled: boolean,
+    public groupId: string, 
     public bundle: string,
     public field: string,
-    public fieldtype: string,
-    public displaywidget: string,
-    public formatterwidget: string,
-    public cardinality: number, /* number */
-    public field_type_informative: string,
-    public path_array: string[], /* todo */
-    public datatype_property: string,
-    public short_name: string,
-    public disamb: number,
+    public fieldType: string,
+    public displayWidget: string,
+    public formatterWidget: string,
+    public cardinality: number, 
+    public fieldTypeInformative: string,
+    public pathArray: string[], 
+    public datatypeProperty: string,
+    public shortName: string,
+    public disambiguation: number,
     public description: string,
     public uuid: string,
-    public is_group: boolean, /* boolean as int */
+    public isGroup: boolean,
     public name: string
   ) {
 
@@ -70,15 +70,15 @@ export class Path {
   }
 
   public getInformativeFieldType (): string {
-    if (this.field_type_informative !== '') {
-      return this.field_type_informative
+    if (this.fieldTypeInformative !== '') {
+      return this.fieldTypeInformative
     }
-    return this.fieldtype
+    return this.fieldType
   }
 
   public getDisambiguation (): string | null {
-    const index = 2 * this.disamb - 2
-    return this.path_array[index] ?? null
+    const index = 2 * this.disambiguation - 2
+    return this.pathArray[index] ?? null
   }
 
   private static parseValue<T>(element: Element, name: string, parser: (value: string) => T): T {
@@ -201,34 +201,35 @@ export class Path {
     s('id', str, this.id)
     s('weight', int, this.weight)
     s('enabled', bool, this.enabled)
-    s('group_id', str0, this.group_id)
+    s('group_id', str0, this.groupId)
 
     s('bundle', str, this.bundle)
     s('field', str, this.field)
-    s('fieldtype', str, this.fieldtype)
-    s('displaywidget', str, this.displaywidget)
-    s('formatterwidget', str, this.formatterwidget)
+    s('fieldtype', str, this.fieldType)
+    s('displaywidget', str, this.displayWidget)
+    s('formatterwidget', str, this.formatterWidget)
     s('cardinality', int, this.cardinality)
-    s('field_type_informative', str, this.field_type_informative)
+    s('field_type_informative', str, this.fieldTypeInformative)
 
     const pathArray = xml.createElement('path_array')
     path.appendChild(pathArray)
 
-    this.path_array.forEach((p, i) => {
+    this.pathArray.forEach((p, i) => {
       const xy = xml.createElement(i % 2 === 0 ? 'x' : 'y')
       xy.appendChild(xml.createTextNode(p))
       pathArray.appendChild(xy)
     })
 
-    // this.parsePathArray(node), // todo
-    s('datatype_property', strEmpty, this.datatype_property)
-    s('short_name', str, this.short_name)
-    s('disamb', int, this.disamb)
+    s('datatype_property', strEmpty, this.datatypeProperty)
+    s('short_name', str, this.shortName)
+    s('disamb', int, this.disambiguation)
     s('description', str, this.description)
     s('uuid', str, this.uuid)
-    s('is_group', bool, this.is_group)
+    s('is_group', bool, this.isGroup)
     s('name', str, this.name)
 
     return path
   }
 }
+
+// spellchecker:words disamb pathbuilderinterface fieldtype displaywidget formatterwidget 

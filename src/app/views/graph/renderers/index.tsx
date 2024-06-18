@@ -42,7 +42,7 @@ export class Renderer<NodeLabel, EdgeLabel, S> extends Component<RenderProps<Nod
 
     const rendererClass = renderer.constructor as GraphRendererClass<NodeLabel, EdgeLabel, S>
     if (!rendererClass.supportedExportFormats.includes(format)) {
-      return await Promise.reject(new Error('format not suppported'))
+      return await Promise.reject(new Error('format not supported'))
     }
 
     return await renderer.toBlob(format)
@@ -106,10 +106,10 @@ export interface Size { width: number, height: number }
 export abstract class LibraryBasedRenderer<NodeLabel, EdgeLabel, RendererObject, RendererSetup> extends GraphRenderer<NodeLabel, EdgeLabel> {
   private instance: { object: RendererObject, setup: RendererSetup } | null = null
 
-  protected abstract beginSetup (container: HTMLElement, size: Size, definitelyAcylic: boolean): RendererSetup
+  protected abstract beginSetup (container: HTMLElement, size: Size, definitelyAcyclic: boolean): RendererSetup
   protected abstract addNode (setup: RendererSetup, id: number, node: NodeLabel): RendererSetup | undefined
   protected abstract addEdge (setup: RendererSetup, from: number, to: number, edge: EdgeLabel): RendererSetup | undefined
-  protected abstract endSetup (setup: RendererSetup, container: HTMLElement, size: Size, definitelyAcylic: boolean): RendererObject
+  protected abstract endSetup (setup: RendererSetup, container: HTMLElement, size: Size, definitelyAcyclic: boolean): RendererObject
 
   protected abstract resizeObject (object: RendererObject, setup: RendererSetup, size: Size): RendererObject | undefined
   protected abstract destroyObject (object: RendererObject, setup: RendererSetup): void

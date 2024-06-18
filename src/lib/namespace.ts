@@ -1,4 +1,4 @@
-/** NamespaceMap is an immutable NamespaceMap */
+/** NamespaceMap is an immutable namespace map */
 export class NamespaceMap {
   private readonly parent: NamespaceMap | null
   private readonly short: string | null
@@ -58,7 +58,7 @@ export class NamespaceMap {
 
   /** add creates a new namespace map with long set to short */
   add (long: string, short: string): NamespaceMap {
-    // don't permit invalid regexes
+    // skip invalid shorts
     if (!/^[a-zA-Z0-9_-]+$/.test(short)) {
       return this
     }
@@ -198,8 +198,8 @@ export class NamespaceMap {
      * These are re-used by some WissKIs.
      */
   private static readonly specialPrefixes = Object.entries({
-    'erlangen-crm.org/': 'ecrm',
-    'www.cidoc-crm.org/': 'crm',
-    'www.w3.org/1999/02/22-rdf-syntax-ns#': 'rdf'
+    'erlangen-crm.org/': 'ecrm', // spellchecker:disable-line
+    'www.cidoc-crm.org/': 'crm', // spellchecker:disable-line
+    'www.w3.org/1999/02/22-rdf-syntax-ns#': 'rdf' // spellchecker:disable-line
   })
 }

@@ -139,3 +139,5 @@ export class SigmaModelRenderer extends SigmaRenderer<ModelNode, ModelEdge> {
     throw new Error('never reached')
   }
 }
+
+// spellchecker:words forceatlas circlepack

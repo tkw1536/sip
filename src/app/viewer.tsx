@@ -74,8 +74,8 @@ export class Viewer extends Component<ViewerProps & { onClose: () => void }, Vie
   private initState (pb: Pathbuilder, previous?: ViewerState): ViewerState {
     const paths = new Set<string>()
     pb.paths.forEach(p => {
-      paths.add(p.datatype_property)
-      p.path_array.forEach(p => paths.add(p))
+      paths.add(p.datatypeProperty)
+      p.pathArray.forEach(p => paths.add(p))
     })
 
     const tree = previous?.tree ?? PathTree.fromPathbuilder(pb)

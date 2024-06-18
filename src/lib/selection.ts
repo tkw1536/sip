@@ -1,15 +1,15 @@
 export default class Selection {
   private readonly set = new Set<string>()
-  private constructor (private readonly dflt: boolean, values: Iterable<string>) {
+  private constructor (private readonly defaultValue: boolean, values: Iterable<string>) {
     this.set = new Set(values)
   }
 
-  /** includes checks if the selecion includes the given key */
+  /** includes checks if the selection includes the given key */
   includes (key: string): boolean {
     if (this.set.has(key)) {
-      return !this.dflt
+      return !this.defaultValue
     }
-    return this.dflt
+    return this.defaultValue
   }
 
   /** with returns a new selection with the specified key set to the specified value */
@@ -17,14 +17,14 @@ export default class Selection {
     const set = new Set(this.set)
 
     pairs.forEach(([key, value]) => {
-      if (value === this.dflt) {
+      if (value === this.defaultValue) {
         set.delete(key)
       } else {
         set.add(key)
       }
     })
 
-    return new Selection(this.dflt, set)
+    return new Selection(this.defaultValue, set)
   }
 
   toggle (value: string): Selection {
@@ -36,7 +36,7 @@ export default class Selection {
       set.add(value)
     }
 
-    return new Selection(this.dflt, set)
+    return new Selection(this.defaultValue, set)
   }
 
   static none (): Selection {
