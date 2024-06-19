@@ -4,7 +4,7 @@ import { Viewer } from './viewer'
 import Loader from './loader'
 import * as styles from './index.module.css'
 import { WithID } from '../lib/components/wrapper'
-import { classes } from '../lib/classes'
+import { classes } from '../lib/utils/classes'
 
 interface State {
   pathbuilder: Pathbuilder | string | false

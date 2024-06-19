@@ -1,8 +1,9 @@
-import GraphBuilder, { ArrayTracker } from '.'
-import Deduplication from '../../app/state/deduplication'
-import Graph from '../graph'
-import { Path } from '../pathbuilder'
-import { Bundle, Field, PathTree } from '../pathtree'
+import GraphBuilder from '.'
+import Deduplication from '../../../app/state/deduplication'
+import Graph from '..'
+import { Path } from '../../pathbuilder'
+import { Bundle, Field, PathTree } from '../../pathtree'
+import ArrayTracker from '../../utils/array-tracker'
 
 export type Options = SharedOptions & {
   deduplication?: Deduplication

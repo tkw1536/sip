@@ -3,11 +3,11 @@ import { LibraryBasedRenderer, Size } from '.'
 import Sigma from 'sigma'
 import Graph from 'graphology'
 import { Settings } from 'sigma/dist/declarations/src/settings'
-import { BundleEdge, BundleNode } from '../../../../lib/builders/bundle'
+import { BundleEdge, BundleNode } from '../../../../lib/graph/builders/bundle'
 import forceAtlas2 from 'graphology-layout-forceatlas2'
 import circular from 'graphology-layout/circular'
 import circlepack from 'graphology-layout/circlepack'
-import { ModelEdge, ModelNode } from '../../../../lib/builders/model'
+import { ModelEdge, ModelNode } from '../../../../lib/graph/builders/model'
 
 abstract class SigmaRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRenderer<NodeLabel, EdgeLabel, Sigma, Graph> {
   protected abstract addNode (graph: Graph, id: number, node: NodeLabel): undefined

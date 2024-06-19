@@ -1,5 +1,5 @@
-import { BundleEdge, BundleNode } from '../../lib/builders/bundle'
-import { ModelEdge, ModelNode } from '../../lib/builders/model'
+import { BundleEdge, BundleNode } from '../../lib/graph/builders/bundle'
+import { ModelEdge, ModelNode } from '../../lib/graph/builders/model'
 import { GraphRendererClass } from '../views/graph/renderers'
 
 class RendererCollection<R extends GraphRendererClass<NodeLabel, EdgeLabel, S>, NodeLabel, EdgeLabel, S> {

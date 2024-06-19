@@ -1,12 +1,12 @@
 import { h, Fragment, RenderableProps, ComponentChild } from 'preact'
 
-import ModelGraphBuilder, { ModelEdge, ModelNode } from '../../../lib/builders/model'
+import ModelGraphBuilder, { ModelEdge, ModelNode } from '../../../lib/graph/builders/model'
 import GraphView from '.'
 import Deduplication, { explanations, names, values } from '../../state/deduplication'
 import { ModelRenderer, models } from '../../state/renderers'
-import GraphBuilder from '../../../lib/builders'
+import GraphBuilder from '../../../lib/graph/builders'
 import { ViewProps } from '../../viewer'
-import AsyncArraySelector from '../../../lib/async-array-selector'
+import AsyncArraySelector from '../../../lib/components/async-array-selector'
 
 export default class ModelGraphView extends GraphView<ModelRenderer, ModelNode, ModelEdge, any> {
   protected readonly layoutKey = 'modelGraphLayout'

@@ -1,7 +1,7 @@
 import { h, Component, ComponentChildren, VNode } from 'preact'
 import * as styles from './tabs.module.css'
 import { WithID } from './wrapper'
-import { classes } from '../classes'
+import { classes } from '../utils/classes'
 
 interface TabProps { title: string, disabled?: boolean, children: ComponentChildren }
 export class Tab extends Component<TabProps> {

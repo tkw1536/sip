@@ -1,5 +1,5 @@
 /** Download prompts the user to download the selected blob as a local file */
-export async function download (blob: Blob, filename?: string): Promise<void> {
+export default async function download (blob: Blob, filename?: string): Promise<void> {
   const url = URL.createObjectURL(blob)
 
   const a = document.createElement('a')

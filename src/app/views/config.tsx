@@ -1,7 +1,7 @@
 import { h, Component, Fragment, ComponentChild } from 'preact'
 import type { ViewProps } from '../viewer'
 import { bundles, models } from '../state/renderers'
-import AsyncArraySelector from '../../lib/async-array-selector'
+import AsyncArraySelector from '../../lib/components/async-array-selector'
 
 export default class GraphConfigView extends Component<ViewProps> {
   render (): ComponentChild {

@@ -1,12 +1,12 @@
 import { h, Component, createRef, ComponentChild, Fragment } from 'preact'
 import type { ViewProps } from '../../viewer'
-import { download } from '../../../lib/download'
+import download from '../../../lib/utils/download'
 import { GraphRendererClass, Renderer, defaultLayout } from './renderers'
 import Graph from '../../../lib/graph'
-import GraphBuilder from '../../../lib/builders'
+import GraphBuilder from '../../../lib/graph/builders'
 
 import * as styles from './index.module.css'
-import { classes } from '../../../lib/classes'
+import { classes } from '../../../lib/utils/classes'
 
 interface State<NodeLabel, EdgeLabel> { open: boolean, graph?: Graph<NodeLabel, EdgeLabel>, graphError?: string, renderer?: GraphRendererClass<NodeLabel, EdgeLabel, any>, rendererError?: string }
 

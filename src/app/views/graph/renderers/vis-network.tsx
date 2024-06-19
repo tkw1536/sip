@@ -2,8 +2,8 @@ import { ComponentChild, Ref, h } from 'preact'
 import { LibraryBasedRenderer, Size } from '.'
 import { Data, Network, Options } from 'vis-network'
 import { DataSet } from 'vis-data'
-import { ModelEdge, ModelNode } from '../../../../lib/builders/model'
-import { BundleEdge, BundleNode } from '../../../../lib/builders/bundle'
+import { ModelEdge, ModelNode } from '../../../../lib/graph/builders/model'
+import { BundleEdge, BundleNode } from '../../../../lib/graph/builders/bundle'
 import * as styles from './vis-network.module.css'
 
 abstract class VisNetworkRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRenderer<NodeLabel, EdgeLabel, Network, Dataset> {

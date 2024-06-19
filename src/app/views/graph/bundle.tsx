@@ -1,7 +1,7 @@
 import { ComponentChild } from 'preact'
 import GraphView from '.'
-import GraphBuilder from '../../../lib/builders'
-import BundleGraphBuilder, { BundleEdge, BundleNode } from '../../../lib/builders/bundle'
+import GraphBuilder from '../../../lib/graph/builders'
+import BundleGraphBuilder, { BundleEdge, BundleNode } from '../../../lib/graph/builders/bundle'
 import { BundleRenderer, bundles } from '../../state/renderers'
 
 export default class BundleGraphView extends GraphView<BundleRenderer, BundleNode, BundleEdge, any> {

@@ -1,6 +1,6 @@
 import { h, Component, Fragment, ComponentChild } from 'preact'
 import type { ViewProps } from '../viewer'
-import { download } from '../../lib/download'
+import download from '../../lib/utils/download'
 
 export default class ExportView extends Component<ViewProps> {
   private readonly handleExport = (evt: MouseEvent): void => {

@@ -3,7 +3,7 @@ import type { ViewProps } from '../viewer'
 import { NamespaceMap } from '../../lib/namespace'
 import { Bundle, Field } from '../../lib/pathtree'
 import * as styles from './list.module.css'
-import { classes } from '../../lib/classes'
+import { classes } from '../../lib/utils/classes'
 
 export default class ListView extends Component<ViewProps> {
   private readonly handleSelectAll = (evt: Event): void => {
