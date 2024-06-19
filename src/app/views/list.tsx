@@ -129,7 +129,7 @@ class BundleRows extends Component<ViewProps & { bundle: Bundle, level: number, 
               } else {
                 role = 'predicate'
               }
-              return <PathElement role={role} key={p} ns={ns} uri={p} />
+              return <PathElement role={role} key={`${i}-${p}`} ns={ns} uri={p} />
             })}
           </td>
           <td />
@@ -174,7 +174,7 @@ class FieldRow extends Component<ViewProps & { field: Field, level: number, visi
             } else {
               role = 'predicate'
             }
-            return <PathElement role={role} key={p} ns={ns} uri={p} />
+            return <PathElement role={role} key={`${i}-${p}`} ns={ns} uri={p} />
           })}
           {path.datatypeProperty !== '' && <PathElement role='datatype' ns={ns} uri={path.datatypeProperty} />}
         </td>

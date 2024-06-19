@@ -27,7 +27,7 @@ class Wrapper extends Component {
   }
 }
 
-export const App = WithID<{}>(class A extends Component<{ id: string }, State> {
+export const App = WithID<{}>(class App extends Component<{ id: string }, State> {
   state: State = {
     pathbuilder: false,
     filename: ''
