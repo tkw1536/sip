@@ -3,7 +3,7 @@ import { h, Component, ComponentChild } from 'preact'
 interface AsyncArraySelectorProps {
   load: () => Promise<string[]>
   value?: string
-  onChange: (value: string) => void
+  onInput: (value: string) => void
 }
 
 interface AsyncArraySelectorState {
@@ -45,7 +45,7 @@ export default class AsyncArraySelector extends Component<AsyncArraySelectorProp
 
   private readonly handleChange = (evt: Event & { currentTarget: HTMLSelectElement }): void => {
     evt.preventDefault()
-    this.props.onChange(evt.currentTarget.value)
+    this.props.onInput(evt.currentTarget.value)
   }
 
   render (): ComponentChild {
@@ -55,7 +55,7 @@ export default class AsyncArraySelector extends Component<AsyncArraySelectorProp
       return <select />
     }
     return (
-      <select value={this.props.value} onChange={this.handleChange}>
+      <select value={this.props.value} onInput={this.handleChange}>
         {
                     values.map(value => <option key={value}>{value}</option>)
                 }

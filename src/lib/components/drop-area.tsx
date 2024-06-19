@@ -107,7 +107,7 @@ export default class DropArea extends Component<DropAreaProps> {
           ref={this.fileInput}
           multiple={multiple}
           accept={types?.join(',')}
-          onChange={this.handleUploadFile}
+          onInput={this.handleUploadFile}
         />
         <div
           class={classes(...dropClasses)}

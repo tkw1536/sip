@@ -1,8 +1,5 @@
 import { h, Component, ComponentChild } from 'preact'
 
-import { Tab, Tabs, TabList, TabPanel } from 'react-tabs'
-import 'react-tabs/style/react-tabs.css'
-
 import ExportView from './views/export'
 import ListView from './views/list'
 import BundleGraphView from './views/graph/bundle'
@@ -17,6 +14,7 @@ import GraphConfigView from './views/config'
 import Deduplication, { defaultValue as deduplicationDefault } from './state/deduplication'
 import { bundles, models } from './state/renderers'
 import { defaultLayout } from './views/graph/renderers'
+import Tabs, { Label, Tab } from '../lib/components/tabs'
 
 export type ViewProps = {} & ViewerProps & ViewerState & ViewerReducers
 interface ViewerProps {
@@ -45,6 +43,8 @@ interface ViewerState {
   modelGraphLayout: string
 
   collapsed: Selection
+
+  activeTabIndex: number
 }
 interface ViewerReducers {
   deleteNS: (long: string) => void
@@ -67,6 +67,8 @@ interface ViewerReducers {
 
   setModelRenderer: (renderer: string) => void
   setModelLayout: (layout: string) => void
+
+  setActiveTab: (newIndex: number) => void
 }
 
 export class Viewer extends Component<ViewerProps & { onClose: () => void }, ViewerState> {
@@ -96,6 +98,8 @@ export class Viewer extends Component<ViewerProps & { onClose: () => void }, Vie
     const modelGraphRenderer = previous?.modelGraphRenderer ?? models.defaultRenderer
     const modelGraphLayout = previous?.modelGraphLayout ?? defaultLayout
 
+    const activeTabIndex = previous?.activeTabIndex ?? 0
+
     return {
       namespaceVersion,
       ns,
@@ -112,7 +116,9 @@ export class Viewer extends Component<ViewerProps & { onClose: () => void }, Vie
       bundleGraphRenderer,
       bundleGraphLayout,
       modelGraphRenderer,
-      modelGraphLayout
+      modelGraphLayout,
+
+      activeTabIndex
     }
   }
 
@@ -224,6 +230,10 @@ export class Viewer extends Component<ViewerProps & { onClose: () => void }, Vie
     this.setState({ modelGraphLayout: layout })
   }
 
+  private readonly setActiveTab = (newTab: number): void => {
+    this.setState({ activeTabIndex: newTab })
+  }
+
   render (): ComponentChild {
     const { onClose, ...props } = this.props
     const callbacks: ViewerReducers = {
@@ -241,40 +251,34 @@ export class Viewer extends Component<ViewerProps & { onClose: () => void }, Vie
       setBundleRenderer: this.setBundleRenderer,
       setBundleLayout: this.setBundleLayout,
       setModelRenderer: this.setModelRenderer,
-      setModelLayout: this.setModelLayout
+      setModelLayout: this.setModelLayout,
+      setActiveTab: this.setActiveTab
     }
     const view = { ...props, ...this.state, ...callbacks }
-    return (
-      <Tabs>
-        <TabList>
-          <Tab>Overview</Tab>
-          <Tab>Bundle Graph</Tab>
-          <Tab>Model Graph</Tab>
-          <Tab>Namespace Map &#9881;&#65039;</Tab>
-          <Tab>Graph Backends &#9881;&#65039;</Tab>
-          <Tab>Export</Tab>
-          <Tab>Close</Tab>
-        </TabList>
 
-        <TabPanel>
+    const handleActiveTab = this.setActiveTab
+    return (
+      <Tabs onChangeTab={handleActiveTab} activeIndex={this.state.activeTabIndex}>
+        <Label><b>Supreme Inspector for Pathbuilders</b></Label>
+        <Tab title='Overview'>
           <ListView {...view} />
-        </TabPanel>
-        <TabPanel>
+        </Tab>
+        <Tab title='Bundle Graph'>
           <BundleGraphView {...view} />
-        </TabPanel>
-        <TabPanel>
+        </Tab>
+        <Tab title='Model Graph'>
           <ModelGraphView {...view} />
-        </TabPanel>
-        <TabPanel>
+        </Tab>
+        <Tab title='Namespace Map &#9881;&#65039;'>
           <MapView {...view} />
-        </TabPanel>
-        <TabPanel>
+        </Tab>
+        <Tab title='Graph Backends &#9881;&#65039;'>
           <GraphConfigView {...view} />
-        </TabPanel>
-        <TabPanel>
+        </Tab>
+        <Tab title='Export'>
           <ExportView {...view} />
-        </TabPanel>
-        <TabPanel>
+        </Tab>
+        <Tab title='Close'>
           <p>
             To close this pathbuilder click the following button.
             You can also just close this tab.
@@ -282,7 +286,7 @@ export class Viewer extends Component<ViewerProps & { onClose: () => void }, Vie
           <p>
             <button onClick={onClose}>Close</button>
           </p>
-        </TabPanel>
+        </Tab>
       </Tabs>
     )
   }

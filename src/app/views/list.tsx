@@ -107,7 +107,7 @@ class BundleRows extends Component<ViewProps & { bundle: Bundle, level: number, 
       <Fragment>
         <tr class={!visible ? styles.hidden : ''}>
           <td>
-            <input type='checkbox' checked={selection.includes(path.id)} onClick={this.handleKeydown} onChange={this.handleChange} />
+            <input type='checkbox' checked={selection.includes(path.id)} onClick={this.handleKeydown} onInput={this.handleChange} />
           </td>
           <td style={{ paddingLeft: INDENT_PER_LEVEL * level }}>
             <button onClick={this.handleClick} aria-role='toggle' disabled={bundle.childBundles.length === 0 && bundle.childFields.size === 0}>
@@ -156,7 +156,7 @@ class FieldRow extends Component<ViewProps & { field: Field, level: number, visi
     return (
       <tr class={!visible ? styles.hidden : ''}>
         <td>
-          <input type='checkbox' checked={selection.includes(path.id)} onChange={this.handleChange} />
+          <input type='checkbox' checked={selection.includes(path.id)} onInput={this.handleChange} />
         </td>
         <td style={{ paddingLeft: INDENT_PER_LEVEL * level }}>
           {path.name}

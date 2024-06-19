@@ -67,10 +67,10 @@ const AddMapRow = WithID<ViewProps>(class AddMapRow extends Component<ViewProps 
     return (
       <tr>
         <td>
-          <input type='text' value={short} onChange={this.handleShortChange} />
+          <input type='text' value={short} onInput={this.handleShortChange} />
         </td>
         <td>
-          <input type='text' class={styles.wide} form={id} value={long} onChange={this.handleLongChange} />
+          <input type='text' class={styles.wide} form={id} value={long} onInput={this.handleLongChange} />
         </td>
         <td>
           <form id={id} onSubmit={this.handleSubmit}>
@@ -134,7 +134,7 @@ class MapViewRow extends Component<{ long: string, short: string, props: ViewPro
       <tr>
         <td>
           <form onSubmit={this.handleSubmit}>
-            <input type='text' value={value ?? short} onChange={this.handleChange} />
+            <input type='text' value={value ?? short} onInput={this.handleChange} />
           </form>
         </td>
         <td>

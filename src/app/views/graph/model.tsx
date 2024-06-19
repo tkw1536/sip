@@ -61,12 +61,12 @@ export default class ModelGraphView extends GraphView<ModelRenderer, ModelNode, 
 
           <p>
             Renderer: &nbsp;
-            <AsyncArraySelector value={modelGraphName} onChange={handleChangeModelRenderer} load={models.names} />
+            <AsyncArraySelector value={modelGraphName} onInput={handleChangeModelRenderer} load={models.names} />
             &nbsp;
 
             Layout: &nbsp;
             {(renderer != null) &&
-              <select value={this.layoutProp()} onChange={this.handleChangeLayout}>
+              <select value={this.layoutProp()} onInput={this.handleChangeLayout}>
                 {
                   renderer.supportedLayouts.map(name => <option key={name}>{name}</option>)
                 }
@@ -85,7 +85,7 @@ export default class ModelGraphView extends GraphView<ModelRenderer, ModelNode, 
             Changing this value will re-render the graph.
           </p>
 
-          <div onChange={this.handleChangeMode}>{
+          <div onInput={this.handleChangeMode}>{
             values.map(v =>
               <p key={v}>
                 <input name={`${id}-dedup-mode`} id={`${id}-dedup-mode-${v}`} type='radio' checked={deduplication === v} value={v} />

@@ -16,12 +16,12 @@ export default class GraphConfigView extends Component<ViewProps> {
 
         <p>
           Bundle Graph Renderer: &nbsp;
-          <AsyncArraySelector value={bundleGraphRenderer} onChange={handleSetBundleRenderer} load={bundles.names} />
+          <AsyncArraySelector value={bundleGraphRenderer} onInput={handleSetBundleRenderer} load={bundles.names} />
         </p>
 
         <p>
           Model Graph Renderer: &nbsp;
-          <AsyncArraySelector onChange={handleSetModelRenderer} value={modelGraphRenderer} load={models.names} />
+          <AsyncArraySelector onInput={handleSetModelRenderer} value={modelGraphRenderer} load={models.names} />
         </p>
       </Fragment>
     )
