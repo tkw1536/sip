@@ -1,4 +1,4 @@
-import { h, ComponentType, FunctionComponent } from 'preact'
+import { ComponentType, FunctionComponent } from 'preact'
 import { useId } from 'preact/hooks'
 
 export function WithID<T> (Component: ComponentType<Omit<T, 'id'> & { id: string }>): ComponentType<Omit<T, 'id'>> {

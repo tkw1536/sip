@@ -1,4 +1,4 @@
-import { h, Component, Fragment, ComponentChild } from 'preact'
+import { Component, Fragment, ComponentChild } from 'preact'
 import DropArea from '../lib/components/drop-area'
 import * as styles from './loader.module.css'
 

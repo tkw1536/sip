@@ -6,8 +6,8 @@
     "module": "ES2022",
     "moduleResolution": "node",
     "target": "ES2022",
-    "jsx": "react",
-    "jsxFactory": "h",
+    "jsx": "react-jsx",
+    "jsxImportSource": "preact",
     "lib": [
       "es2022",
       "DOM"

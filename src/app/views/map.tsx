@@ -1,4 +1,4 @@
-import { h, Component, Fragment, ComponentChild } from 'preact'
+import { Component, Fragment, ComponentChild } from 'preact'
 import type { ViewProps } from '../viewer'
 import * as styles from './map.module.css'
 import { WithID } from '../../lib/components/wrapper'

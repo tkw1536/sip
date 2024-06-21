@@ -1,4 +1,4 @@
-import { h, Component, ComponentChild } from 'preact'
+import { Component, ComponentChild } from 'preact'
 
 interface ValueSelectorProps {
   values?: string[]
@@ -6,15 +6,12 @@ interface ValueSelectorProps {
   onInput: (value: string) => void
 }
 
-interface AsyncArraySelectorState {
-  values?: string[]
-}
 export default class ValueSelector extends Component<ValueSelectorProps> {
   private readonly handleChange = (evt: Event & { currentTarget: HTMLSelectElement }): void => {
     evt.preventDefault()
 
     // validate that we have a valid value
-    const { value } = evt.currentTarget 
+    const { value } = evt.currentTarget
     const { values, onInput } = this.props
     if (typeof values === 'undefined' || !values.includes(value)) return
 

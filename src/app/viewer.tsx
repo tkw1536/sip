@@ -1,4 +1,4 @@
-import { h, Component, ComponentChild } from 'preact'
+import { Component, ComponentChild } from 'preact'
 
 import ExportView from './views/export'
 import ListView from './views/list'

@@ -1,4 +1,4 @@
-import { h, Component, Fragment, ComponentChild } from 'preact'
+import { Component, Fragment, ComponentChild } from 'preact'
 import { Pathbuilder } from '../lib/pathbuilder'
 import { Viewer } from './viewer'
 import Loader from './loader'

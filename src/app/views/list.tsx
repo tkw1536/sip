@@ -1,4 +1,4 @@
-import { h, Component, Fragment, ComponentChild } from 'preact'
+import { Component, Fragment, ComponentChild } from 'preact'
 import type { ViewProps } from '../viewer'
 import { NamespaceMap } from '../../lib/namespace'
 import { Bundle, Field } from '../../lib/pathtree'

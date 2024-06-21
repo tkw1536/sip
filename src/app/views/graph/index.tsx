@@ -1,4 +1,4 @@
-import { h, Component, createRef, ComponentChild, Fragment } from 'preact'
+import { Component, createRef, ComponentChild, Fragment } from 'preact'
 import type { ViewProps } from '../../viewer'
 import download from '../../../lib/utils/download'
 import { GraphRendererClass, Renderer, defaultLayout } from './renderers'
@@ -7,17 +7,17 @@ import GraphBuilder from '../../../lib/graph/builders'
 
 import * as styles from './index.module.css'
 import { classes } from '../../../lib/utils/classes'
-import { Operation } from "../../../lib/utils/operation"
+import { Operation } from '../../../lib/utils/operation'
 
 interface State<NodeLabel, EdgeLabel> {
-  open: boolean,
-  
-  graph?: Graph<NodeLabel, EdgeLabel>,
-  graphError?: string,
-  
+  open: boolean
+
+  graph?: Graph<NodeLabel, EdgeLabel>
+  graphError?: string
+
   renderer?: GraphRendererClass<NodeLabel, EdgeLabel, any>
-  rendererLoading?: boolean,  
-  rendererError?: string,
+  rendererLoading?: boolean
+  rendererError?: string
 }
 
 export default abstract class GraphView<R extends GraphRendererClass<NodeLabel, EdgeLabel, S>, NodeLabel, EdgeLabel, S> extends Component<ViewProps, State<NodeLabel, EdgeLabel>> {
@@ -73,7 +73,7 @@ export default abstract class GraphView<R extends GraphRendererClass<NodeLabel, 
     this.rendererOperation.cancel()
   }
 
-  private graphOperation = new Operation()
+  private readonly graphOperation = new Operation()
   private readonly buildGraphModel = (): void => {
     const ticket = this.graphOperation.ticket()
 
@@ -160,10 +160,12 @@ export default abstract class GraphView<R extends GraphRendererClass<NodeLabel, 
       )
     }
 
-    if (rendererLoading) {
-      return <Fragment>
-        <p> &nbsp; Loading ... &nbsp; </p>
-      </Fragment>
+    if (rendererLoading ?? false) {
+      return (
+        <Fragment>
+          <p> &nbsp; Loading ... &nbsp; </p>
+        </Fragment>
+      )
     }
 
     if ((graph == null) || (renderer == null)) {

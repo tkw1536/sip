@@ -1,6 +1,6 @@
 import { BundleEdge, BundleNode } from '../../lib/graph/builders/bundle'
 import { ModelEdge, ModelNode } from '../../lib/graph/builders/model'
-import Once, { Lazy } from "../../lib/utils/once"
+import { Lazy } from '../../lib/utils/once'
 import { GraphRendererClass } from '../views/graph/renderers'
 
 class RendererCollection<R extends GraphRendererClass<NodeLabel, EdgeLabel, S>, NodeLabel, EdgeLabel, S> {
@@ -9,13 +9,13 @@ class RendererCollection<R extends GraphRendererClass<NodeLabel, EdgeLabel, S>, 
     if (!this.loaders.has(this.defaultRenderer)) throw new Error('defaultRenderer not contained in loaders')
 
     // setup lazy values
-    for (const key of this.loaders.keys() ) {
+    for (const key of this.loaders.keys()) {
       this.values.set(key, new Lazy<R>())
     }
   }
 
-  private values = new Map<string, Lazy<R>>()
-  private loaders = new Map<string, () => Promise<R>>()
+  private readonly values = new Map<string, Lazy<R>>()
+  private readonly loaders = new Map<string, () => Promise<R>>()
 
   public async get (name: string): Promise<R> {
     const lazy = this.values.get(name)
@@ -42,7 +42,7 @@ class RendererCollection<R extends GraphRendererClass<NodeLabel, EdgeLabel, S>, 
     return renderer
   }
 
-  get names(): string[] {
+  get names (): string[] {
     return Array.from(this.loaders.keys())
   }
 }
@@ -51,12 +51,12 @@ export type ModelRenderer = GraphRendererClass<ModelNode, ModelEdge, any>
 export const models = new RendererCollection<ModelRenderer, ModelNode, ModelEdge, any>(
   'vis-network',
   [
-   'vis-network',
-   async () => await import('../views/graph/renderers/vis-network').then(m => m.VisNetworkModelRenderer),
+    'vis-network',
+    async () => await import('../views/graph/renderers/vis-network').then(m => m.VisNetworkModelRenderer)
   ],
   [
     'Sigma.js',
-    async () => await import('../views/graph/renderers/sigma').then(m => m.SigmaModelRenderer),
+    async () => await import('../views/graph/renderers/sigma').then(m => m.SigmaModelRenderer)
   ],
   [
     'Cytoscape',
@@ -69,14 +69,14 @@ export const bundles = new RendererCollection<BundleRenderer, BundleNode, Bundle
   'vis-network',
   [
     'vis-network',
-    async () => await import('../views/graph/renderers/vis-network').then(m => m.VisNetworkBundleRenderer),
-   ],
-   [
-     'Sigma.js',
-     async () => await import('../views/graph/renderers/sigma').then(m => m.SigmaBundleRenderer),
-   ],
-   [
-     'Cytoscape',
-     async () => await import('../views/graph/renderers/cytoscape').then(m => m.CytoBundleRenderer),
-    ]
+    async () => await import('../views/graph/renderers/vis-network').then(m => m.VisNetworkBundleRenderer)
+  ],
+  [
+    'Sigma.js',
+    async () => await import('../views/graph/renderers/sigma').then(m => m.SigmaBundleRenderer)
+  ],
+  [
+    'Cytoscape',
+    async () => await import('../views/graph/renderers/cytoscape').then(m => m.CytoBundleRenderer)
+  ]
 )

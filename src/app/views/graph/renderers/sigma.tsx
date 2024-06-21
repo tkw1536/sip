@@ -1,4 +1,4 @@
-import { ComponentChild, Ref, h } from 'preact'
+import { ComponentChild, Ref } from 'preact'
 import { assertGraphRendererClass, LibraryBasedRenderer, Size } from '.'
 import Sigma from 'sigma'
 import Graph from 'graphology'
@@ -70,7 +70,6 @@ abstract class SigmaRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRenderer<
 
 @assertGraphRendererClass<BundleNode, BundleEdge>()
 export class SigmaBundleRenderer extends SigmaRenderer<BundleNode, BundleEdge> {
-  
   protected addNode (graph: Graph, id: number, node: BundleNode): undefined {
     if (node.type === 'bundle') {
       graph.addNode(id, { label: 'Bundle\n' + node.bundle.path().name, color: 'blue', size: 20 })

@@ -1,4 +1,4 @@
-import { ComponentChild, Component, h, Fragment, createRef } from 'preact'
+import { ComponentChild, Component, Fragment, createRef } from 'preact'
 import { classes } from '../utils/classes'
 
 interface DropAreaProps {

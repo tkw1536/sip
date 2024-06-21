@@ -1,4 +1,4 @@
-import { Component, ComponentChild, ComponentClass, Ref, createRef, h } from 'preact'
+import { Component, ComponentChild, ComponentClass, Ref, createRef } from 'preact'
 import Graph from '../../../../lib/graph'
 import { NamespaceMap } from '../../../../lib/namespace'
 import * as styles from './index.module.css'

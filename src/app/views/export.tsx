@@ -1,4 +1,4 @@
-import { h, Component, Fragment, ComponentChild } from 'preact'
+import { Component, Fragment, ComponentChild } from 'preact'
 import type { ViewProps } from '../viewer'
 import download from '../../lib/utils/download'
 

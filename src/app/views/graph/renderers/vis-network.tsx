@@ -1,4 +1,4 @@
-import { ComponentChild, Ref, h } from 'preact'
+import { ComponentChild, Ref } from 'preact'
 import { assertGraphRendererClass, LibraryBasedRenderer, Size } from '.'
 import { Data, Network, Options } from 'vis-network'
 import { DataSet } from 'vis-data'

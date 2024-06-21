@@ -1,4 +1,4 @@
-import { h, Component, ComponentChildren, VNode } from 'preact'
+import { Component, ComponentChildren, VNode } from 'preact'
 import * as styles from './tabs.module.css'
 import { WithID } from './wrapper'
 import { classes } from '../utils/classes'

@@ -1,4 +1,4 @@
-import { h, Fragment, RenderableProps, ComponentChild, Component } from 'preact'
+import { Fragment, RenderableProps, ComponentChild, Component } from 'preact'
 
 import ModelGraphBuilder, { ModelEdge, ModelNode } from '../../../lib/graph/builders/model'
 import GraphView from '.'
@@ -144,6 +144,5 @@ class ValueSelector extends Component<AsyncArraySelectorProps> {
     )
   }
 }
-
 
 // spellchecker:words dedup Renderable
