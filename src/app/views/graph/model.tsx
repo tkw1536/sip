@@ -1,4 +1,4 @@
-import { h, Fragment, RenderableProps, ComponentChild } from 'preact'
+import { h, Fragment, RenderableProps, ComponentChild, Component } from 'preact'
 
 import ModelGraphBuilder, { ModelEdge, ModelNode } from '../../../lib/graph/builders/model'
 import GraphView from '.'
@@ -6,7 +6,6 @@ import Deduplication, { explanations, names, values } from '../../state/deduplic
 import { ModelRenderer, models } from '../../state/renderers'
 import GraphBuilder from '../../../lib/graph/builders'
 import { ViewProps } from '../../viewer'
-import AsyncArraySelector from '../../../lib/components/async-array-selector'
 
 export default class ModelGraphView extends GraphView<ModelRenderer, ModelNode, ModelEdge, any> {
   protected readonly layoutKey = 'modelGraphLayout'
@@ -61,7 +60,7 @@ export default class ModelGraphView extends GraphView<ModelRenderer, ModelNode, 
 
           <p>
             Renderer: &nbsp;
-            <AsyncArraySelector value={modelGraphName} onInput={handleChangeModelRenderer} load={models.names} />
+            <ValueSelector values={models.names} value={modelGraphName} onInput={handleChangeModelRenderer} />
             &nbsp;
 
             Layout: &nbsp;
@@ -118,5 +117,33 @@ export default class ModelGraphView extends GraphView<ModelRenderer, ModelNode, 
     )
   }
 }
+
+interface AsyncArraySelectorProps {
+  values: string[]
+  value?: string
+  onInput: (value: string) => void
+}
+
+class ValueSelector extends Component<AsyncArraySelectorProps> {
+  private readonly handleChange = (evt: Event & { currentTarget: HTMLSelectElement }): void => {
+    evt.preventDefault()
+    this.props.onInput(evt.currentTarget.value)
+  }
+
+  render (): ComponentChild {
+    const { value, values } = this.props
+    if ((values == null) || typeof value !== 'string') {
+      return <select />
+    }
+    return (
+      <select value={this.props.value} onInput={this.handleChange}>
+        {
+          values.map(value => <option key={value}>{value}</option>)
+        }
+      </select>
+    )
+  }
+}
+
 
 // spellchecker:words dedup Renderable

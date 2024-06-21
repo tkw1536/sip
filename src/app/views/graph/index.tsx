@@ -7,6 +7,7 @@ import GraphBuilder from '../../../lib/graph/builders'
 
 import * as styles from './index.module.css'
 import { classes } from '../../../lib/utils/classes'
+import { Operation } from "../../../lib/utils/operation"
 
 interface State<NodeLabel, EdgeLabel> {
   open: boolean,
@@ -62,27 +63,24 @@ export default abstract class GraphView<R extends GraphRendererClass<NodeLabel, 
 
   private readonly rendererRef = createRef<Renderer<NodeLabel, EdgeLabel, S>>()
 
-  private mounted = false
   componentDidMount (): void {
-    this.mounted = true
-
     this.buildGraphModel()
     this.loadRenderer()
   }
 
   componentWillUnmount (): void {
-    this.mounted = false
+    this.graphOperation.cancel()
+    this.rendererOperation.cancel()
   }
 
-  private lastGraph = 0
+  private graphOperation = new Operation()
   private readonly buildGraphModel = (): void => {
-    const graphID = ++this.lastGraph
+    const ticket = this.graphOperation.ticket()
 
     this.makeGraphBuilder().then(loader => {
       const graph = loader.build()
       this.setState(() => {
-        if (!this.mounted) return null
-        if (this.lastGraph !== graphID) return null
+        if (!ticket()) return null
         return { graph, graphError: undefined }
       })
     }).catch(e => {
@@ -90,9 +88,9 @@ export default abstract class GraphView<R extends GraphRendererClass<NodeLabel, 
     })
   }
 
-  private lastRenderer = 0
+  private readonly rendererOperation = new Operation()
   private readonly loadRenderer = (): void => {
-    const rendererID = ++this.lastRenderer
+    const ticket = this.rendererOperation.ticket()
 
     this.makeRenderer()
       .then(async (renderer) => {
@@ -101,8 +99,7 @@ export default abstract class GraphView<R extends GraphRendererClass<NodeLabel, 
       })  
       .then(renderer => {
         this.setState(({ renderer: oldRenderer }) => {
-          if (!this.mounted) return null
-          if (this.lastRenderer !== rendererID) return null
+          if (!ticket()) return null
           if (oldRenderer === renderer) return null // same renderer loaded, no need to re-render
           return { renderer, rendererLoading: false, rendererError: undefined }
         })

@@ -1,7 +1,7 @@
 import { h, Component, Fragment, ComponentChild } from 'preact'
 import type { ViewProps } from '../viewer'
 import { bundles, models } from '../state/renderers'
-import AsyncArraySelector from '../../lib/components/async-array-selector'
+import ValueSelector from '../../lib/components/selector'
 
 export default class GraphConfigView extends Component<ViewProps> {
   render (): ComponentChild {
@@ -16,12 +16,12 @@ export default class GraphConfigView extends Component<ViewProps> {
 
         <p>
           Bundle Graph Renderer: &nbsp;
-          <AsyncArraySelector value={bundleGraphRenderer} onInput={handleSetBundleRenderer} load={bundles.names} />
+          <ValueSelector values={bundles.names} value={bundleGraphRenderer} onInput={handleSetBundleRenderer} />
         </p>
 
         <p>
           Model Graph Renderer: &nbsp;
-          <AsyncArraySelector onInput={handleSetModelRenderer} value={modelGraphRenderer} load={models.names} />
+          <ValueSelector values={models.names} onInput={handleSetModelRenderer} value={modelGraphRenderer} />
         </p>
       </Fragment>
     )

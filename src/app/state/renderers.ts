@@ -1,81 +1,79 @@
 import { BundleEdge, BundleNode } from '../../lib/graph/builders/bundle'
 import { ModelEdge, ModelNode } from '../../lib/graph/builders/model'
+import Once, { Lazy } from "../../lib/utils/once"
 import { GraphRendererClass } from '../views/graph/renderers'
 
 class RendererCollection<R extends GraphRendererClass<NodeLabel, EdgeLabel, S>, NodeLabel, EdgeLabel, S> {
-  constructor (public readonly defaultRenderer: string, ...all: Array<() => Promise<R>>) {
-    this.all = all
+  constructor (public readonly defaultRenderer: string, ...loaders: Array<[string, () => Promise<R>]>) {
+    this.loaders = new Map(loaders)
+    if (!this.loaders.has(this.defaultRenderer)) throw new Error('defaultRenderer not contained in loaders')
+
+    // setup lazy values
+    for (const key of this.loaders.keys() ) {
+      this.values.set(key, new Lazy<R>())
+    }
   }
 
-  private map: Map<string, R> | null = null
-  private waiters: Array<() => void> = []
-  private all: Array<() => Promise<R>> | null = null
-  private async buildMap (): Promise<Map<string, R>> {
-    return await new Promise((resolve, reject) => {
-      // map already exists
-      if (this.map !== null) {
-        resolve(this.map)
-        return
-      }
-
-      // we are in waiting mode
-      if (this.all === null) {
-        this.waiters.push(() => {
-          if (this.map == null) {
-            console.error('programming error: map is not null after waiter')
-            return
-          }
-          resolve(this.map)
-        })
-        return
-      }
-
-      // nothing is done yet => start the loading process
-      Promise.all(this.all.map(async e => await e()))
-        .then((elements) => {
-          const map = new Map<string, R>()
-          elements.forEach(e => map.set(e.rendererName, e))
-          this.map = map
-
-          // call the waiters, and remove them all
-          this.waiters.forEach(callback => callback())
-          this.waiters = []
-
-          resolve(map)
-        })
-        .catch(e => reject(e))
-      this.all = null
-    })
-  }
+  private values = new Map<string, Lazy<R>>()
+  private loaders = new Map<string, () => Promise<R>>()
 
   public async get (name: string): Promise<R> {
-    const elements = await this.buildMap()
-
-    const element = elements.get(name)
-    if (typeof element === 'undefined') {
-      return await Promise.reject(new Error('no such entry'))
+    const lazy = this.values.get(name)
+    if (typeof lazy === 'undefined') {
+      throw new Error('unknown renderer')
     }
 
-    return await Promise.resolve(element)
+    const renderer = await lazy.Get(async (): Promise<R> => {
+      const loader = this.loaders.get(name)
+      if (typeof loader === 'undefined') {
+        throw new Error('implementation error: loaders missing loader')
+      }
+
+      return await loader()
+    })
+
+    if (renderer.rendererName !== name) {
+      throw new Error('renderer returned incorrect name: expected ' + name + ', but got ' + renderer.rendererName)
+    }
+
+    return renderer
   }
 
-  public names = async (): Promise<string[]> => {
-    return await this.buildMap().then(m => Array.from(m.keys()))
+  get names(): string[] {
+    return Array.from(this.loaders.keys())
   }
 }
 
 export type ModelRenderer = GraphRendererClass<ModelNode, ModelEdge, any>
 export const models = new RendererCollection<ModelRenderer, ModelNode, ModelEdge, any>(
   'vis-network',
-  async () => await import('../views/graph/renderers/vis-network').then(m => m.VisNetworkModelRenderer),
-  async () => await import('../views/graph/renderers/sigma').then(m => m.SigmaModelRenderer),
-  async () => await import('../views/graph/renderers/cytoscape').then(m => m.CytoModelRenderer)
+  [
+   'vis-network',
+   async () => await import('../views/graph/renderers/vis-network').then(m => m.VisNetworkModelRenderer),
+  ],
+  [
+    'Sigma.js',
+    async () => await import('../views/graph/renderers/sigma').then(m => m.SigmaModelRenderer),
+  ],
+  [
+    'Cytoscape',
+    async () => await import('../views/graph/renderers/cytoscape').then(m => m.CytoModelRenderer)
+  ]
 )
 
 export type BundleRenderer = GraphRendererClass<BundleNode, BundleEdge, any>
 export const bundles = new RendererCollection<BundleRenderer, BundleNode, BundleEdge, any>(
   'vis-network',
-  async () => await import('../views/graph/renderers/vis-network').then(m => m.VisNetworkBundleRenderer),
-  async () => await import('../views/graph/renderers/sigma').then(m => m.SigmaBundleRenderer),
-  async () => await import('../views/graph/renderers/cytoscape').then(m => m.CytoBundleRenderer)
+  [
+    'vis-network',
+    async () => await import('../views/graph/renderers/vis-network').then(m => m.VisNetworkBundleRenderer),
+   ],
+   [
+     'Sigma.js',
+     async () => await import('../views/graph/renderers/sigma').then(m => m.SigmaBundleRenderer),
+   ],
+   [
+     'Cytoscape',
+     async () => await import('../views/graph/renderers/cytoscape').then(m => m.CytoBundleRenderer),
+    ]
 )
