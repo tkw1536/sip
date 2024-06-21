@@ -15,6 +15,7 @@ abstract class SigmaRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRenderer<
 
   static readonly rendererName = 'Sigma.js'
   static readonly supportedLayouts = ['auto', 'force2atlas', 'circular', 'circlepack']
+  static readonly initializeClass = async (): Promise<void> => {}
 
   protected settings (): Partial<Settings> {
     return {
@@ -69,6 +70,7 @@ abstract class SigmaRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRenderer<
 
 @assertGraphRendererClass<BundleNode, BundleEdge>()
 export class SigmaBundleRenderer extends SigmaRenderer<BundleNode, BundleEdge> {
+  
   protected addNode (graph: Graph, id: number, node: BundleNode): undefined {
     if (node.type === 'bundle') {
       graph.addNode(id, { label: 'Bundle\n' + node.bundle.path().name, color: 'blue', size: 20 })

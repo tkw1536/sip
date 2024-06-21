@@ -26,6 +26,7 @@ abstract class CytoscapeRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRende
 
   static readonly rendererName = 'Cytoscape'
   static readonly supportedLayouts = ['auto', 'grid', 'circle', 'concentric', 'avsdf', 'dagre', 'breadthfirst', 'fcose', 'cola', 'elk']
+  static readonly initializeClass = async (): Promise<void> => {}
 
   protected layoutOptions (definitelyAcyclic: boolean): Options['layout'] {
     let { layout } = this.props

@@ -26,6 +26,8 @@ export function assertGraphRendererClass<NodeLabel, EdgeLabel> () {
 export interface GraphRendererClass<NodeLabel, EdgeLabel, S> extends ComponentClass<S, any> {
   new (props: GraphRendererProps<NodeLabel, EdgeLabel>, context?: any): GraphRenderer<NodeLabel, EdgeLabel>
 
+  readonly initializeClass: () => Promise<void>
+
   readonly rendererName: string
   readonly supportedLayouts: string[]
   readonly supportedExportFormats: string[]

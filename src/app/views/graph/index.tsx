@@ -8,10 +8,19 @@ import GraphBuilder from '../../../lib/graph/builders'
 import * as styles from './index.module.css'
 import { classes } from '../../../lib/utils/classes'
 
-interface State<NodeLabel, EdgeLabel> { open: boolean, graph?: Graph<NodeLabel, EdgeLabel>, graphError?: string, renderer?: GraphRendererClass<NodeLabel, EdgeLabel, any>, rendererError?: string }
+interface State<NodeLabel, EdgeLabel> {
+  open: boolean,
+  
+  graph?: Graph<NodeLabel, EdgeLabel>,
+  graphError?: string,
+  
+  renderer?: GraphRendererClass<NodeLabel, EdgeLabel, any>
+  rendererLoading?: boolean,  
+  rendererError?: string,
+}
 
 export default abstract class GraphView<R extends GraphRendererClass<NodeLabel, EdgeLabel, S>, NodeLabel, EdgeLabel, S> extends Component<ViewProps, State<NodeLabel, EdgeLabel>> {
-  state: State<NodeLabel, EdgeLabel> = { open: false }
+  state: State<NodeLabel, EdgeLabel> = { open: false, rendererLoading: true }
 
   protected abstract newRenderer (previousProps: typeof this.props): boolean
   protected abstract makeRenderer (): Promise<R>
@@ -85,16 +94,21 @@ export default abstract class GraphView<R extends GraphRendererClass<NodeLabel, 
   private readonly loadRenderer = (): void => {
     const rendererID = ++this.lastRenderer
 
-    this.makeRenderer().then(renderer => {
-      this.setState(({ renderer: oldRenderer }) => {
-        if (!this.mounted) return null
-        if (this.lastRenderer !== rendererID) return null
-        if (oldRenderer === renderer) return null // same renderer loaded, no need to re-render
-        return { renderer, rendererError: undefined }
+    this.makeRenderer()
+      .then(async (renderer) => {
+        await renderer.initializeClass()
+        return renderer
+      })  
+      .then(renderer => {
+        this.setState(({ renderer: oldRenderer }) => {
+          if (!this.mounted) return null
+          if (this.lastRenderer !== rendererID) return null
+          if (oldRenderer === renderer) return null // same renderer loaded, no need to re-render
+          return { renderer, rendererLoading: false, rendererError: undefined }
+        })
+      }).catch((e) => {
+        this.setState({ renderer: undefined, rendererLoading: false, rendererError: e.toString() })
       })
-    }).catch((e) => {
-      this.setState({ renderer: undefined, rendererError: e.toString() })
-    })
   }
 
   componentDidUpdate (previousProps: Readonly<ViewProps>): void {
@@ -108,6 +122,7 @@ export default abstract class GraphView<R extends GraphRendererClass<NodeLabel, 
 
     // renderer has changed => load the new one
     if (this.newRenderer(previousProps)) {
+      this.setState({ renderer: undefined, rendererLoading: true, rendererError: undefined })
       this.loadRenderer()
     }
   }
@@ -141,7 +156,7 @@ export default abstract class GraphView<R extends GraphRendererClass<NodeLabel, 
   }
 
   private renderMain (): ComponentChild {
-    const { graph, graphError, renderer, rendererError } = this.state
+    const { graph, graphError, renderer, rendererLoading, rendererError } = this.state
 
     if (typeof graphError === 'string' || typeof rendererError === 'string') {
       return (
@@ -150,6 +165,12 @@ export default abstract class GraphView<R extends GraphRendererClass<NodeLabel, 
           {typeof rendererError === 'string' && <p><b>Error loading renderer: </b>{rendererError}</p>}
         </Fragment>
       )
+    }
+
+    if (rendererLoading) {
+      return <Fragment>
+        <p> &nbsp; Loading ... &nbsp; </p>
+      </Fragment>
     }
 
     if ((graph == null) || (renderer == null)) {
