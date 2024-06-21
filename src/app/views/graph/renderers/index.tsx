@@ -17,6 +17,11 @@ export abstract class GraphRenderer<NodeLabel, EdgeLabel> extends Component<Grap
   abstract toBlob (format: string): Promise<Blob>
 }
 
+/** asserts that a specific class is a graph renderer class */
+export function assertGraphRendererClass<NodeLabel, EdgeLabel> () {
+  return (constructor: GraphRendererClass<NodeLabel, EdgeLabel, GraphRendererProps<NodeLabel, EdgeLabel>>) => {}
+}
+
 /** An implemented GraphRenderer class */
 export interface GraphRendererClass<NodeLabel, EdgeLabel, S> extends ComponentClass<S, any> {
   new (props: GraphRendererProps<NodeLabel, EdgeLabel>, context?: any): GraphRenderer<NodeLabel, EdgeLabel>

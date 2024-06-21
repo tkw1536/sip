@@ -6,7 +6,7 @@ import elk from 'cytoscape-elk'
 import fcose from 'cytoscape-fcose'
 import avsdf from 'cytoscape-avsdf'
 import svg from 'cytoscape-svg'
-import { LibraryBasedRenderer, Size } from '.'
+import { assertGraphRendererClass, LibraryBasedRenderer, Size } from '.'
 import { BundleEdge, BundleNode } from '../../../../lib/graph/builders/bundle'
 import { ModelEdge, ModelNode } from '../../../../lib/graph/builders/model'
 cytoscape.use(cola)
@@ -141,6 +141,7 @@ abstract class CytoscapeRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRende
   }
 }
 
+@assertGraphRendererClass<BundleNode, BundleEdge>()
 export class CytoBundleRenderer extends CytoscapeRenderer<BundleNode, BundleEdge> {
   protected addNode (elements: Elements, id: number, node: BundleNode): undefined {
     const idStr = id.toString()
@@ -177,7 +178,7 @@ export class CytoBundleRenderer extends CytoscapeRenderer<BundleNode, BundleEdge
     throw new Error('never reached')
   }
 }
-
+@assertGraphRendererClass<ModelNode, ModelEdge>()
 export class CytoModelRenderer extends CytoscapeRenderer<ModelNode, ModelEdge> {
   protected addNode (elements: Elements, id: number, node: ModelNode): undefined {
     const idStr = id.toString()

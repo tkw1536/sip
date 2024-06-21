@@ -1,5 +1,5 @@
 import { ComponentChild, Ref, h } from 'preact'
-import { LibraryBasedRenderer, Size } from '.'
+import { assertGraphRendererClass, LibraryBasedRenderer, Size } from '.'
 import Sigma from 'sigma'
 import Graph from 'graphology'
 import { Settings } from 'sigma/dist/declarations/src/settings'
@@ -67,6 +67,7 @@ abstract class SigmaRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRenderer<
   }
 }
 
+@assertGraphRendererClass<BundleNode, BundleEdge>()
 export class SigmaBundleRenderer extends SigmaRenderer<BundleNode, BundleEdge> {
   protected addNode (graph: Graph, id: number, node: BundleNode): undefined {
     if (node.type === 'bundle') {
@@ -93,6 +94,7 @@ export class SigmaBundleRenderer extends SigmaRenderer<BundleNode, BundleEdge> {
   }
 }
 
+@assertGraphRendererClass<ModelNode, ModelEdge>()
 export class SigmaModelRenderer extends SigmaRenderer<ModelNode, ModelEdge> {
   protected addNode (graph: Graph, id: number, node: ModelNode): undefined {
     const { ns } = this.props

@@ -1,5 +1,5 @@
 import { ComponentChild, Ref, h } from 'preact'
-import { LibraryBasedRenderer, Size } from '.'
+import { assertGraphRendererClass, LibraryBasedRenderer, Size } from '.'
 import { Data, Network, Options } from 'vis-network'
 import { DataSet } from 'vis-data'
 import { ModelEdge, ModelNode } from '../../../../lib/graph/builders/model'
@@ -79,6 +79,7 @@ abstract class VisNetworkRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRend
   }
 }
 
+@assertGraphRendererClass<BundleNode, BundleEdge>()
 export class VisNetworkBundleRenderer extends VisNetworkRenderer<BundleNode, BundleEdge> {
   protected addNode (dataset: Dataset, id: number, node: BundleNode): undefined {
     if (node.type === 'bundle') {
@@ -105,6 +106,7 @@ export class VisNetworkBundleRenderer extends VisNetworkRenderer<BundleNode, Bun
   }
 }
 
+@assertGraphRendererClass<ModelNode, ModelEdge>()
 export class VisNetworkModelRenderer extends VisNetworkRenderer<ModelNode, ModelEdge> {
   protected addNode (dataset: Dataset, id: number, node: ModelNode): undefined {
     const { ns } = this.props
