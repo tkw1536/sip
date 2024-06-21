@@ -29,7 +29,10 @@ class RendererCollection<R extends GraphRendererClass<NodeLabel, EdgeLabel, S>, 
         throw new Error('implementation error: loaders missing loader')
       }
 
-      return await loader()
+      // load and initialize the class
+      const clz = await loader()
+      await clz.initializeClass()
+      return clz
     })
 
     if (renderer.rendererName !== name) {

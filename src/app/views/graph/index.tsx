@@ -93,10 +93,6 @@ export default abstract class GraphView<R extends GraphRendererClass<NodeLabel, 
     const ticket = this.rendererOperation.ticket()
 
     this.makeRenderer()
-      .then(async (renderer) => {
-        await renderer.initializeClass()
-        return renderer
-      })  
       .then(renderer => {
         this.setState(({ renderer: oldRenderer }) => {
           if (!ticket()) return null
