@@ -45,5 +45,8 @@
     "ci": "yarn tsc && yarn lint && yarn spellcheck",
     "lint": "ts-standard --fix .",
     "spellcheck": "cspell lint . --config cspell.json --quiet"
+  },
+  "alias": {
+    "preact/jsx-dev-runtime": "preact/jsx-runtime"
   }
 }
