@@ -1,4 +1,4 @@
-import { Component, Fragment, ComponentChild } from 'preact'
+import { Component, ComponentChild } from 'preact'
 import DropArea from '../lib/components/drop-area'
 import * as styles from './loader.module.css'
 
@@ -10,11 +10,11 @@ export default class Loader extends Component<{ error?: string, onLoad: (file: F
   private readonly dragContent = (active: boolean, valid: boolean): ComponentChild => {
     switch (true) {
       case active && valid:
-        return <Fragment><b>Release</b> to load <em>Pathbuilder</em></Fragment>
+        return <><b>Release</b> to load <em>Pathbuilder</em></>
       case active && !valid:
-        return <Fragment>Invalid <em>Pathbuilder</em>: Must be a <b>xml</b> file</Fragment>
+        return <>Invalid <em>Pathbuilder</em>: Must be a <b>xml</b> file</>
       default:
-        return <Fragment><b>Select</b> or <b>Drop</b> a <em>Pathbuilder</em> here</Fragment>
+        return <><b>Select</b> or <b>Drop</b> a <em>Pathbuilder</em> here</>
     }
   }
 
@@ -22,7 +22,7 @@ export default class Loader extends Component<{ error?: string, onLoad: (file: F
     const { error, onLoad: handleChange } = this.props
 
     return (
-      <Fragment>
+      <>
         <p>
           This tool provides an interface for inspecting <code>Pathbuilders</code> created by the <a href='https://wiss-ki.eu' target='_blank' rel='noopener noreferrer'>WissKI</a> software.
           Click below to load a pathbuilder.
@@ -32,7 +32,7 @@ export default class Loader extends Component<{ error?: string, onLoad: (file: F
         </p>
         {typeof error === 'string' ? <p><b>Error loading: </b><code>{error}</code></p> : null}
         <DropArea class={styles.dropZone} activeValidClass={styles.valid} activeInvalidClass={styles.invalid} onDropFile={handleChange} types={['text/xml']}>{this.dragContent}</DropArea>
-      </Fragment>
+      </>
     )
   }
 }

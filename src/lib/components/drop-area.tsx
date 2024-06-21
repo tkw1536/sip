@@ -1,4 +1,4 @@
-import { ComponentChild, Component, Fragment, createRef } from 'preact'
+import { ComponentChild, Component, createRef } from 'preact'
 import { classes } from '../utils/classes'
 
 interface DropAreaProps {
@@ -100,7 +100,7 @@ export default class DropArea extends Component<DropAreaProps> {
     const childNodes = typeof children === 'function' ? children(dragActive, dragValid) : children
 
     return (
-      <Fragment>
+      <>
         <input
           type='file'
           style={{ display: 'none' }}
@@ -115,7 +115,7 @@ export default class DropArea extends Component<DropAreaProps> {
           onClick={this.handleClick}
         >{childNodes}
         </div>
-      </Fragment>
+      </>
     )
   }
 }

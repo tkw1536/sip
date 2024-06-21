@@ -46,7 +46,7 @@ export default class ModelGraphView extends GraphView<ModelRenderer, ModelNode, 
     const exportFormats = renderer?.supportedExportFormats
 
     return (
-      <Fragment>
+      <>
         <fieldset>
           <legend>Renderer</legend>
 
@@ -113,7 +113,7 @@ export default class ModelGraphView extends GraphView<ModelRenderer, ModelNode, 
                 </Fragment>)}
             </p>
           </fieldset>}
-      </Fragment>
+      </>
     )
   }
 }

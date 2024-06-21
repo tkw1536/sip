@@ -1,4 +1,4 @@
-import { Component, Fragment, ComponentChild } from 'preact'
+import { Component, ComponentChild } from 'preact'
 import type { ViewProps } from '../viewer'
 import { NamespaceMap } from '../../lib/namespace'
 import { Bundle, Field } from '../../lib/pathtree'
@@ -29,7 +29,7 @@ export default class ListView extends Component<ViewProps> {
   render (): ComponentChild {
     const { tree } = this.props
     return (
-      <Fragment>
+      <>
         <p>
           This page displays the pathbuilder  as a hierarchical structure.
           It is similar to the WissKI Interface, except read-only.
@@ -67,7 +67,7 @@ export default class ListView extends Component<ViewProps> {
             {tree.mainBundles.map(b => <BundleRows {...this.props} visible bundle={b} level={0} key={b.path().id} />)}
           </tbody>
         </table>
-      </Fragment>
+      </>
     )
   }
 }
@@ -104,7 +104,7 @@ class BundleRows extends Component<ViewProps & { bundle: Bundle, level: number, 
     const path = bundle.path()
     const expanded = !collapsed.includes(path.id)
     return (
-      <Fragment>
+      <>
         <tr class={!visible ? styles.hidden : ''}>
           <td>
             <input type='checkbox' checked={selection.includes(path.id)} onClick={this.handleKeydown} onInput={this.handleChange} />
@@ -140,7 +140,7 @@ class BundleRows extends Component<ViewProps & { bundle: Bundle, level: number, 
 
         {Array.from(bundle.childFields.entries()).map(([id, field]) => <FieldRow {...props} visible={visible && expanded} level={level + 1} field={field} key={id} />)}
         {bundle.childBundles.map(bundle => <BundleRows {...props} visible={visible && expanded} level={level + 1} bundle={bundle} key={bundle.path().id} />)}
-      </Fragment>
+      </>
     )
   }
 }
@@ -194,6 +194,6 @@ type Role = 'datatype' | 'disambiguation' | 'object' | 'predicate'
 class PathElement extends Component<{ uri: string, role: Role, ns: NamespaceMap }> {
   render (): ComponentChild {
     const { uri, ns, role } = this.props
-    return <Fragment><span class={classes(styles.path, styles[`path_${role}`])}>{ns.apply(uri)}</span></Fragment>
+    return <><span class={classes(styles.path, styles[`path_${role}`])}>{ns.apply(uri)}</span></>
   }
 }

@@ -1,4 +1,4 @@
-import { Component, Fragment, ComponentChild } from 'preact'
+import { Component, ComponentChild } from 'preact'
 import type { ViewProps } from '../viewer'
 import * as styles from './map.module.css'
 import { WithID } from '../../lib/components/wrapper'
@@ -9,7 +9,7 @@ export default class MapView extends Component<ViewProps> {
     const mp = ns.toMap()
 
     return (
-      <Fragment>
+      <>
         <p>
           The Namespace Map is used to shorten URIs for display within the inspector.
           The underlying pathbuilder always contains the full URIs, and namespaces are not saved across reloads.
@@ -37,7 +37,7 @@ export default class MapView extends Component<ViewProps> {
             <ResetNSRow {...this.props} />
           </tbody>
         </table>
-      </Fragment>
+      </>
     )
   }
 }

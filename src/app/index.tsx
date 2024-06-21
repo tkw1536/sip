@@ -1,4 +1,4 @@
-import { Component, Fragment, ComponentChild } from 'preact'
+import { Component, ComponentChild } from 'preact'
 import { Pathbuilder } from '../lib/pathbuilder'
 import { Viewer } from './viewer'
 import Loader from './loader'
@@ -15,14 +15,14 @@ class Wrapper extends Component {
   render (): ComponentChild {
     const { children } = this.props
     return (
-      <Fragment>
+      <>
         <main class={classes(styles.withLinkColor, styles.main)}>
           {children}
         </main>
         <footer class={classes(styles.withLinkColor, styles.footer)}>
           &copy; Tom Wiesing 2024. All rights reserved.
         </footer>
-      </Fragment>
+      </>
     )
   }
 }

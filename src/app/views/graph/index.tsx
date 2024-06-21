@@ -153,18 +153,18 @@ export default abstract class GraphView<R extends GraphRendererClass<NodeLabel, 
 
     if (typeof graphError === 'string' || typeof rendererError === 'string') {
       return (
-        <Fragment>
+        <>
           {typeof graphError === 'string' && <p><b>Error loading graph: </b>{graphError}</p>}
           {typeof rendererError === 'string' && <p><b>Error loading renderer: </b>{rendererError}</p>}
-        </Fragment>
+        </>
       )
     }
 
     if (rendererLoading ?? false) {
       return (
-        <Fragment>
+        <>
           <p> &nbsp; Loading ... &nbsp; </p>
-        </Fragment>
+        </>
       )
     }
 

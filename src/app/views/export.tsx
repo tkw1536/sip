@@ -1,4 +1,4 @@
-import { Component, Fragment, ComponentChild } from 'preact'
+import { Component, ComponentChild } from 'preact'
 import type { ViewProps } from '../viewer'
 import download from '../../lib/utils/download'
 
@@ -15,14 +15,14 @@ export default class ExportView extends Component<ViewProps> {
   render (): ComponentChild {
     const { filename } = this.props
     return (
-      <Fragment>
+      <>
         <p>
           Use the button below to save the pathbuilder as an xml file.
           This usually corresponds to exactly the file that was originally loaded.
         </p>
 
         <button onClick={this.handleExport}>Save {typeof filename === 'string' && filename !== '' ? filename : 'pathbuilder.xml'}</button>
-      </Fragment>
+      </>
     )
   }
 }
