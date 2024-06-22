@@ -6,7 +6,7 @@ import elk from 'cytoscape-elk'
 import fcose from 'cytoscape-fcose'
 import avsdf from 'cytoscape-avsdf'
 import svg from 'cytoscape-svg'
-import { assertGraphRendererClass, LibraryBasedRenderer, Size } from '.'
+import { assertGraphRendererClass, defaultLayout, LibraryBasedRenderer, Size } from '.'
 import { BundleEdge, BundleNode } from '../../../../lib/graph/builders/bundle'
 import { ModelEdge, ModelNode } from '../../../../lib/graph/builders/model'
 cytoscape.use(cola)
@@ -25,7 +25,7 @@ abstract class CytoscapeRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRende
   protected abstract addEdge (elements: Elements, from: number, to: number, edge: EdgeLabel): undefined
 
   static readonly rendererName = 'Cytoscape'
-  static readonly supportedLayouts = ['auto', 'grid', 'circle', 'concentric', 'avsdf', 'dagre', 'breadthfirst', 'fcose', 'cola', 'elk']
+  static readonly supportedLayouts = [defaultLayout, 'grid', 'circle', 'concentric', 'avsdf', 'dagre', 'breadthfirst', 'fcose', 'cola', 'elk']
   static readonly initializeClass = async (): Promise<void> => {}
 
   protected layoutOptions (definitelyAcyclic: boolean): Options['layout'] {
@@ -35,7 +35,7 @@ abstract class CytoscapeRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRende
     }
 
     const maxSimulationTime = 365 * 24 * 60 * 60 * 1000 // 1 year
-    switch (this.props.layout) {
+    switch (layout) {
       case 'grid':
         return { name: 'grid' }
       case 'circle':

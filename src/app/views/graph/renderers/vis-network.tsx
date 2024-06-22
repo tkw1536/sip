@@ -1,5 +1,5 @@
 import { ComponentChild, Ref } from 'preact'
-import { assertGraphRendererClass, LibraryBasedRenderer, Size } from '.'
+import { assertGraphRendererClass, defaultLayout, LibraryBasedRenderer, Size } from '.'
 import { Data, Network, Options } from 'vis-network'
 import { DataSet } from 'vis-data'
 import { ModelEdge, ModelNode } from '../../../../lib/graph/builders/model'
@@ -11,11 +11,11 @@ abstract class VisNetworkRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRend
   protected abstract addEdge (dataset: Dataset, from: number, to: number, edge: EdgeLabel): undefined
 
   static readonly rendererName = 'vis-network'
-  static readonly supportedLayouts = ['auto', 'hierarchical', 'force2atlas']
+  static readonly supportedLayouts = [defaultLayout, 'hierarchical', 'force2atlas']
   static readonly initializeClass = async (): Promise<void> => {}
 
   protected options (definitelyAcyclic: boolean): Options {
-    const hierarchical = this.props.layout === 'auto' ? definitelyAcyclic : this.props.layout === 'hierarchical'
+    const hierarchical = this.props.layout === defaultLayout ? definitelyAcyclic : this.props.layout === 'hierarchical'
 
     return hierarchical
       ? {

@@ -1,5 +1,5 @@
 import { ComponentChild, Ref } from 'preact'
-import { assertGraphRendererClass, LibraryBasedRenderer, Size } from '.'
+import { assertGraphRendererClass, defaultLayout, LibraryBasedRenderer, Size } from '.'
 import Sigma from 'sigma'
 import Graph from 'graphology'
 import { Settings } from 'sigma/dist/declarations/src/settings'
@@ -14,7 +14,7 @@ abstract class SigmaRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRenderer<
   protected abstract addEdge (graph: Graph, from: number, to: number, edge: EdgeLabel): undefined
 
   static readonly rendererName = 'Sigma.js'
-  static readonly supportedLayouts = ['auto', 'force2atlas', 'circular', 'circlepack']
+  static readonly supportedLayouts = [defaultLayout, 'force2atlas', 'circular', 'circlepack']
   static readonly initializeClass = async (): Promise<void> => {}
 
   protected settings (): Partial<Settings> {
@@ -27,8 +27,8 @@ abstract class SigmaRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRenderer<
   }
 
   protected endSetup (graph: Graph, container: HTMLElement, size: Size): Sigma {
-    switch (this.props.layout) {
-      case 'auto': /* fallthrough */
+    const { layout } = this.props
+    switch (layout === defaultLayout ? 'force2atlas' : layout) {
       case 'force2atlas':
         circular.assign(graph, { scale: 100 })
         forceAtlas2.assign(graph, {
