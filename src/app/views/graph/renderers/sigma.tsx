@@ -1,4 +1,3 @@
-import { ComponentChild, Ref } from 'preact'
 import { assertGraphRendererClass, ContextFlags, defaultLayout, LibraryBasedRenderer, MountFlags, Size } from '.'
 import Sigma from 'sigma'
 import Graph from 'graphology'
@@ -64,10 +63,6 @@ abstract class SigmaRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRenderer<
   static readonly supportedExportFormats = []
   protected async objectToBlob (sigma: Sigma, graph: Graph, flags: MountFlags, format: string): Promise<Blob> {
     return await Promise.reject(new Error('never reached'))
-  }
-
-  protected renderDiv ({ width, height }: Size, ref: Ref<HTMLDivElement>): ComponentChild {
-    return <div ref={ref} style={{ width, height }} />
   }
 }
 

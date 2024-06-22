@@ -1,4 +1,4 @@
-import { Component, ComponentChild, ComponentClass, Ref, createRef } from 'preact'
+import { Component, ComponentChild, ComponentClass, createRef } from 'preact'
 import Graph from '../../../../lib/graph'
 import { NamespaceMap } from '../../../../lib/namespace'
 import * as styles from './index.module.css'
@@ -242,10 +242,6 @@ export abstract class LibraryBasedRenderer<NodeLabel, EdgeLabel, Mount, Context>
   private readonly container = createRef<HTMLDivElement>()
   render (): ComponentChild {
     const { width, height } = this.props
-    return this.renderDiv({ width, height }, this.container)
-  }
-
-  protected renderDiv ({ width, height }: Size, ref: Ref<HTMLDivElement>): ComponentChild {
-    return <div ref={ref} style={{ width, height }} />
+    return <div style={{ width, height }} ref={this.container} />
   }
 }

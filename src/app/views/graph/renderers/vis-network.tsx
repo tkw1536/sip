@@ -1,4 +1,3 @@
-import { ComponentChild, Ref } from 'preact'
 import { assertGraphRendererClass, ContextFlags, defaultLayout, LibraryBasedRenderer, MountFlags, Size } from '.'
 import { Data, Network, Options } from 'vis-network'
 import { DataSet } from 'vis-data'
@@ -60,6 +59,8 @@ abstract class VisNetworkRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRend
   }
 
   protected mount (dataset: Dataset, { container, layout, definitelyAcyclic }: MountFlags): Network {
+    container.classList.add(styles.container)
+
     const options = this.options(layout, definitelyAcyclic)
     options.autoResize = false
     return new Network(container, dataset.toData(), options)
@@ -70,17 +71,14 @@ abstract class VisNetworkRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRend
     network.redraw()
   }
 
-  protected unmount (network: Network, dataset: Dataset): void {
+  protected unmount (network: Network, dataset: Dataset, { container }: MountFlags): void {
+    container.classList.remove(styles.container)
     network.destroy()
   }
 
   static readonly supportedExportFormats = ['png']
   protected async objectToBlob (network: Network, dataset: Dataset, flags: MountFlags, format: string): Promise<Blob> {
     return await dataset.drawNetworkClone(network, 1000, 1000, 'image/png', 1)
-  }
-
-  protected renderDiv ({ width, height }: Size, ref: Ref<HTMLDivElement>): ComponentChild {
-    return <div ref={ref} style={{ width, height }} class={styles.container} />
   }
 }
 
