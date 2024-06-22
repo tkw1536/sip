@@ -21,8 +21,8 @@ type Cytoscape = Core
 type Options = Omit<CytoscapeOptions, 'container' | 'elements'>
 
 abstract class CytoscapeRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRenderer<NodeLabel, EdgeLabel, Cytoscape, Elements> {
-  protected abstract addNode (elements: Elements, id: number, node: NodeLabel): undefined
-  protected abstract addEdge (elements: Elements, from: number, to: number, edge: EdgeLabel): undefined
+  protected abstract addNode (elements: Elements, id: string, node: NodeLabel): undefined
+  protected abstract addEdge (elements: Elements, id: string, from: string, to: string, edge: EdgeLabel): undefined
 
   static readonly rendererName = 'Cytoscape'
   static readonly supportedLayouts = [defaultLayout, 'grid', 'circle', 'concentric', 'avsdf', 'dagre', 'breadthfirst', 'fcose', 'cola', 'elk']
@@ -113,11 +113,15 @@ abstract class CytoscapeRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRende
     }
   }
 
-  protected beginSetup (container: HTMLElement, size: Size): Elements {
+  protected newContext (): Elements {
     return []
   }
 
-  protected endSetup (elements: Elements, container: HTMLElement, size: Size, definitelyAcyclic: boolean): Cytoscape {
+  protected finalizeContext (ctx: Elements): undefined {
+    return undefined
+  }
+
+  protected mount (elements: Elements, container: HTMLElement, size: Size, definitelyAcyclic: boolean): Cytoscape {
     const options = this.options(definitelyAcyclic)
     return cytoscape({
       container,
@@ -126,12 +130,12 @@ abstract class CytoscapeRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRende
     })
   }
 
-  protected resizeObject (c: Cytoscape, elements: Elements, { width, height }: Size): undefined {
+  protected resizeMount (c: Cytoscape, elements: Elements, { width, height }: Size): undefined {
     c.resize()
     // automatically resized ?
   }
 
-  protected destroyObject (c: Cytoscape, elements: Elements): void {
+  protected unmount (c: Cytoscape, elements: Elements): void {
     c.destroy()
   }
 
@@ -144,35 +148,30 @@ abstract class CytoscapeRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRende
 
 @assertGraphRendererClass<BundleNode, BundleEdge>()
 export class CytoBundleRenderer extends CytoscapeRenderer<BundleNode, BundleEdge> {
-  protected addNode (elements: Elements, id: number, node: BundleNode): undefined {
-    const idStr = id.toString()
+  protected addNode (elements: Elements, id: string, node: BundleNode): undefined {
     if (node.type === 'bundle') {
       const label = 'Bundle\n' + node.bundle.path().name
-      const data = { id: idStr, label, color: 'blue' }
+      const data = { id, label, color: 'blue' }
       elements.push({ data })
       return
     }
     if (node.type === 'field') {
       const label = node.field.path().name
-      const data = { id: idStr, label, color: 'orange' }
+      const data = { id, label, color: 'orange' }
       elements.push({ data })
       return
     }
     throw new Error('never reached')
   }
 
-  protected addEdge (elements: Elements, from: number, to: number, edge: BundleEdge): undefined {
-    const fromStr = from.toString()
-    const toStr = to.toString()
-    const idStr = fromStr + '-' + toStr
-
+  protected addEdge (elements: Elements, id: string, from: string, to: string, edge: BundleEdge): undefined {
     if (edge.type === 'child_bundle') {
-      const data = { id: idStr, source: fromStr, target: toStr, color: 'black' }
+      const data = { id, source: from, target: to, color: 'black' }
       elements.push({ data })
       return
     }
     if (edge.type === 'field') {
-      const data = { id: idStr, source: fromStr, target: toStr, color: 'black' }
+      const data = { id, source: from, target: to, color: 'black' }
       elements.push({ data })
       return
     }
@@ -181,16 +180,15 @@ export class CytoBundleRenderer extends CytoscapeRenderer<BundleNode, BundleEdge
 }
 @assertGraphRendererClass<ModelNode, ModelEdge>()
 export class CytoModelRenderer extends CytoscapeRenderer<ModelNode, ModelEdge> {
-  protected addNode (elements: Elements, id: number, node: ModelNode): undefined {
-    const idStr = id.toString()
+  protected addNode (elements: Elements, id: string, node: ModelNode): undefined {
     const { ns } = this.props
     if (node.type === 'field') {
-      const data = { id: idStr, label: node.field.path().name, color: 'orange' }
+      const data = { id, label: node.field.path().name, color: 'orange' }
       elements.push({ data })
       return
     }
     if (node.type === 'class' && node.bundles.size === 0) {
-      const data = { id: idStr, label: ns.apply(node.clz), color: 'blue' }
+      const data = { id, label: ns.apply(node.clz), color: 'blue' }
       elements.push({ data })
       return
     }
@@ -198,25 +196,21 @@ export class CytoModelRenderer extends CytoscapeRenderer<ModelNode, ModelEdge> {
       const names = Array.from(node.bundles).map((bundle) => 'Bundle ' + bundle.path().name).join('\n\n')
       const label = ns.apply(node.clz) + '\n\n' + names
 
-      const data = { id: idStr, label, color: 'blue' }
+      const data = { id, label, color: 'blue' }
       elements.push({ data })
     }
   }
 
-  protected addEdge (elements: Elements, from: number, to: number, edge: ModelEdge): undefined {
+  protected addEdge (elements: Elements, id: string, from: string, to: string, edge: ModelEdge): undefined {
     const { ns } = this.props
 
-    const fromStr = from.toString()
-    const toStr = to.toString()
-    const idStr = fromStr + '-' + toStr
-
     if (edge.type === 'data') {
-      const data = { id: idStr, source: fromStr, target: toStr, label: ns.apply(edge.field.path().datatypeProperty), color: 'black' }
+      const data = { id, source: from, target: to, label: ns.apply(edge.field.path().datatypeProperty), color: 'black' }
       elements.push({ data })
       return
     }
     if (edge.type === 'property') {
-      const data = { id: idStr, source: fromStr, target: toStr, label: ns.apply(edge.property), color: 'black' }
+      const data = { id, source: from, target: to, label: ns.apply(edge.property), color: 'black' }
       elements.push({ data })
       return
     }

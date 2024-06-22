@@ -2,6 +2,7 @@ import { Component, ComponentChild, ComponentClass, Ref, createRef } from 'preac
 import Graph from '../../../../lib/graph'
 import { NamespaceMap } from '../../../../lib/namespace'
 import * as styles from './index.module.css'
+import { UUIDPool } from '../../../../lib/utils/uuid'
 
 export type GraphRendererProps<NodeLabel, EdgeLabel> = RendererProps<NodeLabel, EdgeLabel> & Size & { layout: string }
 
@@ -110,18 +111,20 @@ export class Renderer<NodeLabel, EdgeLabel, S> extends Component<RenderProps<Nod
 
 export interface Size { width: number, height: number }
 
-export abstract class LibraryBasedRenderer<NodeLabel, EdgeLabel, RendererObject, RendererSetup> extends GraphRenderer<NodeLabel, EdgeLabel> {
-  private instance: { object: RendererObject, setup: RendererSetup } | null = null
+export abstract class LibraryBasedRenderer<NodeLabel, EdgeLabel, Mount, Context> extends GraphRenderer<NodeLabel, EdgeLabel> {
+  private instance: { mount: Mount, setup: Context } | null = null
 
-  protected abstract beginSetup (container: HTMLElement, size: Size, definitelyAcyclic: boolean): RendererSetup
-  protected abstract addNode (setup: RendererSetup, id: number, node: NodeLabel): RendererSetup | undefined
-  protected abstract addEdge (setup: RendererSetup, from: number, to: number, edge: EdgeLabel): RendererSetup | undefined
-  protected abstract endSetup (setup: RendererSetup, container: HTMLElement, size: Size, definitelyAcyclic: boolean): RendererObject
+  protected abstract newContext (): Context
+  protected abstract addNode (ctx: Context, id: string, node: NodeLabel): Context | undefined
+  protected abstract addEdge (ctx: Context, id: string, from: string, to: string, edge: EdgeLabel): Context | undefined
+  protected abstract finalizeContext (ctx: Context): Context | undefined
 
-  protected abstract resizeObject (object: RendererObject, setup: RendererSetup, size: Size): RendererObject | undefined
-  protected abstract destroyObject (object: RendererObject, setup: RendererSetup): void
+  protected abstract mount (ctx: Context, container: HTMLElement, size: Size, definitelyAcyclic: boolean): Mount
 
-  protected abstract objectToBlob (object: RendererObject, setup: RendererSetup, format: string): Promise<Blob>
+  protected abstract resizeMount (object: Mount, setup: Context, size: Size): Mount | undefined
+  protected abstract unmount (object: Mount, setup: Context): void
+
+  protected abstract objectToBlob (object: Mount, setup: Context, format: string): Promise<Blob>
 
   private createRenderer (): void {
     const current = this.container.current
@@ -130,27 +133,36 @@ export abstract class LibraryBasedRenderer<NodeLabel, EdgeLabel, RendererObject,
     }
 
     const { graph, width, height } = this.props
+    const ids = new UUIDPool()
 
     try {
-      // begin setup
-      let setup = this.beginSetup(current, { width, height }, graph.definitelyAcyclic)
+      // create a new context
+      let ctx = this.newContext()
 
       // add all nodes and edges
       graph.getNodes().forEach(([id, node]) => {
-        const newSetup = this.addNode(setup, id, node)
-        if (typeof newSetup === 'undefined') return
-        setup = newSetup
+        const nextContext = this.addNode(ctx, ids.for(id), node)
+        if (typeof nextContext === 'undefined') return
+        ctx = nextContext
       })
-      graph.getEdges().forEach(([from, to, edge]) => {
-        const newSetup = this.addEdge(setup, from, to, edge)
-        if (typeof newSetup === 'undefined') return
-        setup = newSetup
+      graph.getEdges().forEach(([id, from, to, edge]) => {
+        const nextContext = this.addEdge(ctx, ids.for(id), ids.for(from), ids.for(to), edge)
+        if (typeof nextContext === 'undefined') return
+        ctx = nextContext
       })
-      const object = this.endSetup(setup, current, { width, height }, graph.definitelyAcyclic)
+
+      // finalize the context
+      const nextContext = this.finalizeContext(ctx)
+      if (typeof nextContext !== 'undefined') {
+        ctx = nextContext
+      }
+
+      // mount it to the page
+      const mount = this.mount(ctx, current, { width, height }, graph.definitelyAcyclic)
 
       this.instance = {
-        object,
-        setup
+        mount,
+        setup: ctx
       }
     } catch (e) {
       console.error('failed to render graph')
@@ -163,7 +175,7 @@ export abstract class LibraryBasedRenderer<NodeLabel, EdgeLabel, RendererObject,
 
   private destroyRenderer (): void {
     if (this.instance === null) return
-    this.destroyObject(this.instance.object, this.instance.setup)
+    this.unmount(this.instance.mount, this.instance.setup)
     this.instance = null
   }
 
@@ -171,15 +183,15 @@ export abstract class LibraryBasedRenderer<NodeLabel, EdgeLabel, RendererObject,
     if (this.instance == null) return
     const { width, height } = this.props
 
-    const next = this.resizeObject(this.instance.object, this.instance.setup, { width, height })
+    const next = this.resizeMount(this.instance.mount, this.instance.setup, { width, height })
     if (typeof next === 'undefined') return
-    this.instance.object = next
+    this.instance.mount = next
   }
 
   async toBlob (format: string): Promise<Blob> {
     if (this.instance == null) return await Promise.reject(new Error('renderer object not setup'))
 
-    return await this.objectToBlob(this.instance.object, this.instance.setup, format)
+    return await this.objectToBlob(this.instance.mount, this.instance.setup, format)
   }
 
   componentDidMount (): void {

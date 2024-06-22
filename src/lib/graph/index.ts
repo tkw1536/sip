@@ -3,7 +3,7 @@ export default class Graph<NodeLabel, EdgeLabel> {
   constructor (public definitelyAcyclic: boolean) {}
 
   private readonly nodes = new Map<number, NodeLabel>()
-  private readonly edges = new Map<number, Map<number, EdgeLabel>>()
+  private readonly edges = new Map<number, Map<number, { id: number, label: EdgeLabel }>>()
   private readonly ids = new IDMap<string>()
 
   /** addNode adds a new Node with the given label. If it already exists, it is overwritten. */
@@ -102,12 +102,12 @@ export default class Graph<NodeLabel, EdgeLabel> {
     // get or initialize this.edges[fromId]
     let fromMap = this.edges.get(fromId)
     if (fromMap == null) {
-      fromMap = new Map<number, EdgeLabel>()
+      fromMap = new Map<number, { id: number, label: EdgeLabel }>()
       this.edges.set(fromId, fromMap)
     }
 
     // get or initialize this.edges[fromId][toId];
-    fromMap.set(toId, label)
+    fromMap.set(toId, { id: this.ids.next(), label })
 
     // and done!
     return true
@@ -137,18 +137,18 @@ export default class Graph<NodeLabel, EdgeLabel> {
     const fromMap = this.edges.get(fromId)
     if (fromMap == null) return null
 
-    const label = fromMap.get(toId)
+    const label = fromMap.get(toId)?.label
     if (typeof label === 'undefined') return null
     return label
   }
 
   /** getEdges gets the set of all edges */
-  getEdges (): Array<[number, number, EdgeLabel]> {
-    const edges: Array<[number, number, EdgeLabel]> = []
+  getEdges (): Array<[number, number, number, EdgeLabel]> {
+    const edges: Array<[number, number, number, EdgeLabel]> = []
 
     this.edges.forEach((fromMap, from) => {
-      fromMap.forEach((label, to) => {
-        edges.push([from, to, label])
+      fromMap.forEach(({ id, label }, to) => {
+        edges.push([id, from, to, label])
       })
     })
 
