@@ -6,7 +6,7 @@ import elk from 'cytoscape-elk'
 import fcose from 'cytoscape-fcose'
 import avsdf from 'cytoscape-avsdf'
 import svg from 'cytoscape-svg'
-import { assertGraphRendererClass, defaultLayout, LibraryBasedRenderer, Size } from '.'
+import { assertGraphRendererClass, ContextFlags, defaultLayout, LibraryBasedRenderer, MountFlags, Size } from '.'
 import { BundleEdge, BundleNode } from '../../../../lib/graph/builders/bundle'
 import { ModelEdge, ModelNode } from '../../../../lib/graph/builders/model'
 cytoscape.use(cola)
@@ -21,21 +21,16 @@ type Cytoscape = Core
 type Options = Omit<CytoscapeOptions, 'container' | 'elements'>
 
 abstract class CytoscapeRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRenderer<NodeLabel, EdgeLabel, Cytoscape, Elements> {
-  protected abstract addNode (elements: Elements, id: string, node: NodeLabel): undefined
-  protected abstract addEdge (elements: Elements, id: string, from: string, to: string, edge: EdgeLabel): undefined
+  protected abstract addNode (elements: Elements, flags: ContextFlags, id: string, node: NodeLabel): undefined
+  protected abstract addEdge (elements: Elements, flags: ContextFlags, id: string, from: string, to: string, edge: EdgeLabel): undefined
 
   static readonly rendererName = 'Cytoscape'
   static readonly supportedLayouts = [defaultLayout, 'grid', 'circle', 'concentric', 'avsdf', 'dagre', 'breadthfirst', 'fcose', 'cola', 'elk']
   static readonly initializeClass = async (): Promise<void> => {}
 
-  protected layoutOptions (definitelyAcyclic: boolean): Options['layout'] {
-    let { layout } = this.props
-    if (layout === 'auto') {
-      layout = definitelyAcyclic ? 'elk' : 'cola'
-    }
-
+  protected layoutOptions (layout: string, definitelyAcyclic: boolean): Options['layout'] {
     const maxSimulationTime = 365 * 24 * 60 * 60 * 1000 // 1 year
-    switch (layout) {
+    switch (layout === defaultLayout ? (definitelyAcyclic ? 'elk' : 'cola') : layout) {
       case 'grid':
         return { name: 'grid' }
       case 'circle':
@@ -58,7 +53,7 @@ abstract class CytoscapeRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRende
     }
   }
 
-  protected options (definitelyAcyclic: boolean): Options {
+  protected options (layout: string, definitelyAcyclic: boolean): Options {
     return {
       style: [
         {
@@ -109,7 +104,7 @@ abstract class CytoscapeRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRende
           }
         }
       ],
-      layout: this.layoutOptions(definitelyAcyclic)
+      layout: this.layoutOptions(layout, definitelyAcyclic)
     }
   }
 
@@ -121,8 +116,8 @@ abstract class CytoscapeRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRende
     return undefined
   }
 
-  protected mount (elements: Elements, container: HTMLElement, size: Size, definitelyAcyclic: boolean): Cytoscape {
-    const options = this.options(definitelyAcyclic)
+  protected mount (elements: Elements, { container, layout, definitelyAcyclic }: MountFlags): Cytoscape {
+    const options = this.options(layout, definitelyAcyclic)
     return cytoscape({
       container,
       elements,
@@ -130,9 +125,9 @@ abstract class CytoscapeRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRende
     })
   }
 
-  protected resizeMount (c: Cytoscape, elements: Elements, { width, height }: Size): undefined {
-    c.resize()
+  protected resizeMount (c: Cytoscape, elements: Elements, flags: MountFlags, { width, height }: Size): undefined {
     // automatically resized ?
+    c.resize()
   }
 
   protected unmount (c: Cytoscape, elements: Elements): void {
@@ -140,7 +135,7 @@ abstract class CytoscapeRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRende
   }
 
   static readonly supportedExportFormats = ['svg']
-  protected async objectToBlob (cy: Cytoscape, elements: Elements, format: string): Promise<Blob> {
+  protected async objectToBlob (cy: Cytoscape, elements: Elements, flags: MountFlags, format: string): Promise<Blob> {
     const svg = (cy as any).svg() as string
     return await Promise.resolve(new Blob([svg], { type: 'image/svg' }))
   }
@@ -148,7 +143,7 @@ abstract class CytoscapeRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRende
 
 @assertGraphRendererClass<BundleNode, BundleEdge>()
 export class CytoBundleRenderer extends CytoscapeRenderer<BundleNode, BundleEdge> {
-  protected addNode (elements: Elements, id: string, node: BundleNode): undefined {
+  protected addNode (elements: Elements, flags: ContextFlags, id: string, node: BundleNode): undefined {
     if (node.type === 'bundle') {
       const label = 'Bundle\n' + node.bundle.path().name
       const data = { id, label, color: 'blue' }
@@ -164,7 +159,7 @@ export class CytoBundleRenderer extends CytoscapeRenderer<BundleNode, BundleEdge
     throw new Error('never reached')
   }
 
-  protected addEdge (elements: Elements, id: string, from: string, to: string, edge: BundleEdge): undefined {
+  protected addEdge (elements: Elements, flags: ContextFlags, id: string, from: string, to: string, edge: BundleEdge): undefined {
     if (edge.type === 'child_bundle') {
       const data = { id, source: from, target: to, color: 'black' }
       elements.push({ data })
@@ -180,8 +175,7 @@ export class CytoBundleRenderer extends CytoscapeRenderer<BundleNode, BundleEdge
 }
 @assertGraphRendererClass<ModelNode, ModelEdge>()
 export class CytoModelRenderer extends CytoscapeRenderer<ModelNode, ModelEdge> {
-  protected addNode (elements: Elements, id: string, node: ModelNode): undefined {
-    const { ns } = this.props
+  protected addNode (elements: Elements, { ns }: ContextFlags, id: string, node: ModelNode): undefined {
     if (node.type === 'field') {
       const data = { id, label: node.field.path().name, color: 'orange' }
       elements.push({ data })
@@ -201,9 +195,7 @@ export class CytoModelRenderer extends CytoscapeRenderer<ModelNode, ModelEdge> {
     }
   }
 
-  protected addEdge (elements: Elements, id: string, from: string, to: string, edge: ModelEdge): undefined {
-    const { ns } = this.props
-
+  protected addEdge (elements: Elements, { ns }: ContextFlags, id: string, from: string, to: string, edge: ModelEdge): undefined {
     if (edge.type === 'data') {
       const data = { id, source: from, target: to, label: ns.apply(edge.field.path().datatypeProperty), color: 'black' }
       elements.push({ data })

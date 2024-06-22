@@ -1,5 +1,5 @@
 import { ComponentChild, Ref } from 'preact'
-import { assertGraphRendererClass, defaultLayout, LibraryBasedRenderer, Size } from '.'
+import { assertGraphRendererClass, ContextFlags, defaultLayout, LibraryBasedRenderer, MountFlags, Size } from '.'
 import Sigma from 'sigma'
 import Graph from 'graphology'
 import { Settings } from 'sigma/dist/declarations/src/settings'
@@ -10,8 +10,8 @@ import circlepack from 'graphology-layout/circlepack'
 import { ModelEdge, ModelNode } from '../../../../lib/graph/builders/model'
 
 abstract class SigmaRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRenderer<NodeLabel, EdgeLabel, Sigma, Graph> {
-  protected abstract addNode (graph: Graph, id: string, node: NodeLabel): undefined
-  protected abstract addEdge (graph: Graph, id: string, from: string, to: string, edge: EdgeLabel): undefined
+  protected abstract addNode (graph: Graph, flags: ContextFlags, id: string, node: NodeLabel): undefined
+  protected abstract addEdge (graph: Graph, flags: ContextFlags, id: string, from: string, to: string, edge: EdgeLabel): undefined
 
   static readonly rendererName = 'Sigma.js'
   static readonly supportedLayouts = [defaultLayout, 'force2atlas', 'circular', 'circlepack']
@@ -30,8 +30,7 @@ abstract class SigmaRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRenderer<
     return undefined
   }
 
-  protected mount (graph: Graph, container: HTMLElement, size: Size): Sigma {
-    const { layout } = this.props
+  protected mount (graph: Graph, { container, layout }: MountFlags): Sigma {
     switch (layout === defaultLayout ? 'force2atlas' : layout) {
       case 'force2atlas':
         circular.assign(graph, { scale: 100 })
@@ -53,7 +52,7 @@ abstract class SigmaRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRenderer<
     return new Sigma(graph, container, settings)
   }
 
-  protected resizeMount (sigma: Sigma, graph: Graph, { width, height }: Size): undefined {
+  protected resizeMount (sigma: Sigma, graph: Graph, flags: MountFlags, { width, height }: Size): undefined {
     sigma.resize()
     // automatically resized ?
   }
@@ -63,7 +62,7 @@ abstract class SigmaRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRenderer<
   }
 
   static readonly supportedExportFormats = []
-  protected async objectToBlob (sigma: Sigma, graph: Graph, format: string): Promise<Blob> {
+  protected async objectToBlob (sigma: Sigma, graph: Graph, flags: MountFlags, format: string): Promise<Blob> {
     return await Promise.reject(new Error('never reached'))
   }
 
@@ -74,7 +73,7 @@ abstract class SigmaRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRenderer<
 
 @assertGraphRendererClass<BundleNode, BundleEdge>()
 export class SigmaBundleRenderer extends SigmaRenderer<BundleNode, BundleEdge> {
-  protected addNode (graph: Graph, id: string, node: BundleNode): undefined {
+  protected addNode (graph: Graph, flags: ContextFlags, id: string, node: BundleNode): undefined {
     if (node.type === 'bundle') {
       graph.addNode(id, { label: 'Bundle\n' + node.bundle.path().name, color: 'blue', size: 20 })
       return
@@ -86,7 +85,7 @@ export class SigmaBundleRenderer extends SigmaRenderer<BundleNode, BundleEdge> {
     throw new Error('never reached')
   }
 
-  protected addEdge (graph: Graph, id: string, from: string, to: string, edge: BundleEdge): undefined {
+  protected addEdge (graph: Graph, flags: ContextFlags, id: string, from: string, to: string, edge: BundleEdge): undefined {
     if (edge.type === 'child_bundle') {
       graph.addDirectedEdge(from, to, { color: 'black', type: 'arrow', arrow: 'target', size: 5 })
       return
@@ -101,8 +100,7 @@ export class SigmaBundleRenderer extends SigmaRenderer<BundleNode, BundleEdge> {
 
 @assertGraphRendererClass<ModelNode, ModelEdge>()
 export class SigmaModelRenderer extends SigmaRenderer<ModelNode, ModelEdge> {
-  protected addNode (graph: Graph, id: string, node: ModelNode): undefined {
-    const { ns } = this.props
+  protected addNode (graph: Graph, { ns }: ContextFlags, id: string, node: ModelNode): undefined {
     if (node.type === 'field') {
       graph.addNode(id, {
         label: node.field.path().name,
@@ -134,7 +132,7 @@ export class SigmaModelRenderer extends SigmaRenderer<ModelNode, ModelEdge> {
     }
   }
 
-  protected addEdge (graph: Graph, id: string, from: string, to: string, edge: ModelEdge): undefined {
+  protected addEdge (graph: Graph, { ns }: ContextFlags, id: string, from: string, to: string, edge: ModelEdge): undefined {
     if (edge.type === 'data') {
       graph.addDirectedEdge(from, to, { color: 'black', type: 'arrow', arrow: 'target', size: 5 })
       return

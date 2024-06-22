@@ -1,5 +1,5 @@
 import { ComponentChild, Ref } from 'preact'
-import { assertGraphRendererClass, defaultLayout, LibraryBasedRenderer, Size } from '.'
+import { assertGraphRendererClass, ContextFlags, defaultLayout, LibraryBasedRenderer, MountFlags, Size } from '.'
 import { Data, Network, Options } from 'vis-network'
 import { DataSet } from 'vis-data'
 import { ModelEdge, ModelNode } from '../../../../lib/graph/builders/model'
@@ -7,15 +7,15 @@ import { BundleEdge, BundleNode } from '../../../../lib/graph/builders/bundle'
 import * as styles from './vis-network.module.css'
 
 abstract class VisNetworkRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRenderer<NodeLabel, EdgeLabel, Network, Dataset> {
-  protected abstract addNode (dataset: Dataset, id: string, node: NodeLabel): undefined
-  protected abstract addEdge (dataset: Dataset, id: string, from: string, to: string, edge: EdgeLabel): undefined
+  protected abstract addNode (dataset: Dataset, flags: ContextFlags, id: string, node: NodeLabel): undefined
+  protected abstract addEdge (dataset: Dataset, flags: ContextFlags, id: string, from: string, to: string, edge: EdgeLabel): undefined
 
   static readonly rendererName = 'vis-network'
   static readonly supportedLayouts = [defaultLayout, 'hierarchical', 'force2atlas']
   static readonly initializeClass = async (): Promise<void> => {}
 
-  protected options (definitelyAcyclic: boolean): Options {
-    const hierarchical = this.props.layout === defaultLayout ? definitelyAcyclic : this.props.layout === 'hierarchical'
+  protected options (layout: string, definitelyAcyclic: boolean): Options {
+    const hierarchical = layout === defaultLayout ? definitelyAcyclic : layout === 'hierarchical'
 
     return hierarchical
       ? {
@@ -59,13 +59,13 @@ abstract class VisNetworkRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRend
     return undefined
   }
 
-  protected mount (dataset: Dataset, container: HTMLElement, size: Size, definitelyAcyclic: boolean): Network {
-    const options = this.options(definitelyAcyclic)
+  protected mount (dataset: Dataset, { container, layout, definitelyAcyclic }: MountFlags): Network {
+    const options = this.options(layout, definitelyAcyclic)
     options.autoResize = false
     return new Network(container, dataset.toData(), options)
   }
 
-  protected resizeMount (network: Network, dataset: Dataset, { width, height }: Size): undefined {
+  protected resizeMount (network: Network, dataset: Dataset, flags: MountFlags, { width, height }: Size): undefined {
     network.setSize(`${width}px`, `${height}px`)
     network.redraw()
   }
@@ -75,7 +75,7 @@ abstract class VisNetworkRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRend
   }
 
   static readonly supportedExportFormats = ['png']
-  protected async objectToBlob (network: Network, dataset: Dataset, format: string): Promise<Blob> {
+  protected async objectToBlob (network: Network, dataset: Dataset, flags: MountFlags, format: string): Promise<Blob> {
     return await dataset.drawNetworkClone(network, 1000, 1000, 'image/png', 1)
   }
 
@@ -86,7 +86,7 @@ abstract class VisNetworkRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRend
 
 @assertGraphRendererClass<BundleNode, BundleEdge>()
 export class VisNetworkBundleRenderer extends VisNetworkRenderer<BundleNode, BundleEdge> {
-  protected addNode (dataset: Dataset, id: string, node: BundleNode): undefined {
+  protected addNode (dataset: Dataset, flags: ContextFlags, id: string, node: BundleNode): undefined {
     if (node.type === 'bundle') {
       dataset.addNode({ id, label: 'Bundle\n' + node.bundle.path().name, level: node.level })
       return
@@ -98,7 +98,7 @@ export class VisNetworkBundleRenderer extends VisNetworkRenderer<BundleNode, Bun
     throw new Error('never reached')
   }
 
-  protected addEdge (dataset: Dataset, id: string, from: string, to: string, edge: BundleEdge): undefined {
+  protected addEdge (dataset: Dataset, flags: ContextFlags, id: string, from: string, to: string, edge: BundleEdge): undefined {
     if (edge.type === 'child_bundle') {
       dataset.addEdge({ from, to, arrows: 'to' })
       return
@@ -113,8 +113,7 @@ export class VisNetworkBundleRenderer extends VisNetworkRenderer<BundleNode, Bun
 
 @assertGraphRendererClass<ModelNode, ModelEdge>()
 export class VisNetworkModelRenderer extends VisNetworkRenderer<ModelNode, ModelEdge> {
-  protected addNode (dataset: Dataset, id: string, node: ModelNode): undefined {
-    const { ns } = this.props
+  protected addNode (dataset: Dataset, { ns }: ContextFlags, id: string, node: ModelNode): undefined {
     if (node.type === 'field') {
       dataset.addNode({
         id,
@@ -145,8 +144,7 @@ export class VisNetworkModelRenderer extends VisNetworkRenderer<ModelNode, Model
     throw new Error('never reached')
   }
 
-  protected addEdge (dataset: Dataset, id: string, from: string, to: string, edge: ModelEdge): undefined {
-    const { ns } = this.props
+  protected addEdge (dataset: Dataset, { ns }: ContextFlags, id: string, from: string, to: string, edge: ModelEdge): undefined {
     if (edge.type === 'data') {
       dataset.addEdge({
         from,
