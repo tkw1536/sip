@@ -3,10 +3,10 @@ import { Fragment, RenderableProps, ComponentChild, Component } from 'preact'
 import ModelGraphBuilder, { ModelEdge, ModelNode } from '../../../lib/graph/builders/model'
 import GraphView from '.'
 import Deduplication, { explanations, names, values } from '../../state/deduplication'
-import { models } from '../../state/drivers'
+import { models } from '../../../lib/drivers/collection'
 import GraphBuilder from '../../../lib/graph/builders'
 import { ViewProps } from '../../viewer'
-import { Driver } from './drivers'
+import Driver from '../../../lib/drivers/impl'
 
 export default class ModelGraphView extends GraphView<ModelNode, ModelEdge> {
   protected readonly layoutKey = 'modelGraphLayout'

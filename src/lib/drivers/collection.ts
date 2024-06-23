@@ -1,7 +1,7 @@
-import { BundleEdge, BundleNode } from '../../lib/graph/builders/bundle'
-import { ModelEdge, ModelNode } from '../../lib/graph/builders/model'
-import { Lazy } from '../../lib/utils/once'
-import { Driver } from '../views/graph/drivers'
+import { BundleEdge, BundleNode } from '../graph/builders/bundle'
+import { ModelEdge, ModelNode } from '../graph/builders/model'
+import { Lazy } from '../utils/once'
+import Driver from './impl'
 
 class DriverCollection<NodeLabel, EdgeLabel> {
   constructor (public readonly defaultDriver: string, ...loaders: Array<[string, () => Promise<Driver<NodeLabel, EdgeLabel>>]>) {
@@ -48,15 +48,15 @@ export const models = new DriverCollection<ModelNode, ModelEdge>(
   'vis-network',
   [
     'vis-network',
-    async () => await import('../views/graph/drivers/vis-network').then(m => m.VisNetworkModelDriver.instance)
+    async () => await import('./impl/vis-network').then(m => m.VisNetworkModelDriver.instance)
   ],
   [
     'Sigma.js',
-    async () => await import('../views/graph/drivers/sigma').then(m => m.SigmaModelDriver.instance)
+    async () => await import('./impl/sigma').then(m => m.SigmaModelDriver.instance)
   ],
   [
     'Cytoscape',
-    async () => await import('../views/graph/drivers/cytoscape').then(m => m.CytoModelDriver.instance)
+    async () => await import('./impl/cytoscape').then(m => m.CytoModelDriver.instance)
   ]
 )
 
@@ -64,14 +64,14 @@ export const bundles = new DriverCollection<BundleNode, BundleEdge>(
   'vis-network',
   [
     'vis-network',
-    async () => await import('../views/graph/drivers/vis-network').then(m => m.VisNetworkBundleDriver.instance)
+    async () => await import('./impl/vis-network').then(m => m.VisNetworkBundleDriver.instance)
   ],
   [
     'Sigma.js',
-    async () => await import('../views/graph/drivers/sigma').then(m => m.SigmaBundleDriver.instance)
+    async () => await import('./impl/sigma').then(m => m.SigmaBundleDriver.instance)
   ],
   [
     'Cytoscape',
-    async () => await import('../views/graph/drivers/cytoscape').then(m => m.CytoBundleDriver.instance)
+    async () => await import('./impl/cytoscape').then(m => m.CytoBundleDriver.instance)
   ]
 )

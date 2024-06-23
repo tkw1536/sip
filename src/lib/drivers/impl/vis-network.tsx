@@ -1,8 +1,8 @@
 import { ContextFlags, defaultLayout, DriverImpl, MountFlags, Size } from '.'
 import { Data, Network, Options } from 'vis-network'
 import { DataSet } from 'vis-data'
-import { ModelEdge, ModelNode } from '../../../../lib/graph/builders/model'
-import { BundleEdge, BundleNode } from '../../../../lib/graph/builders/bundle'
+import { ModelEdge, ModelNode } from '../../graph/builders/model'
+import { BundleEdge, BundleNode } from '../../graph/builders/bundle'
 import * as styles from './vis-network.module.css'
 
 abstract class VisNetworkDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLabel, EdgeLabel, Dataset, Network> {

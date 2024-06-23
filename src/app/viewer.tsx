@@ -12,8 +12,8 @@ import Selection from '../lib/selection'
 import ModelGraphView from './views/graph/model'
 import GraphConfigView from './views/config'
 import Deduplication, { defaultValue as deduplicationDefault } from './state/deduplication'
-import { bundles, models } from './state/drivers'
-import { defaultLayout } from './views/graph/drivers'
+import { bundles, models } from '../lib/drivers/collection'
+import { defaultLayout } from '../lib/drivers/impl'
 import Tabs, { Label, Tab } from '../lib/components/tabs'
 
 export type ViewProps = {} & ViewerProps & ViewerState & ViewerReducers

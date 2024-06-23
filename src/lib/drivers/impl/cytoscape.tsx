@@ -7,8 +7,8 @@ import fcose from 'cytoscape-fcose'
 import avsdf from 'cytoscape-avsdf'
 import svg from 'cytoscape-svg'
 import { ContextFlags, defaultLayout, DriverImpl, MountFlags, Size } from '.'
-import { BundleEdge, BundleNode } from '../../../../lib/graph/builders/bundle'
-import { ModelEdge, ModelNode } from '../../../../lib/graph/builders/model'
+import { BundleEdge, BundleNode } from '../../graph/builders/bundle'
+import { ModelEdge, ModelNode } from '../../graph/builders/model'
 cytoscape.use(cola)
 cytoscape.use(dagre)
 cytoscape.use(elk)

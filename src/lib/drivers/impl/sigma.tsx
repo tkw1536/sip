@@ -2,11 +2,11 @@ import { ContextFlags, defaultLayout, DriverImpl, MountFlags, Size } from '.'
 import Sigma from 'sigma'
 import Graph from 'graphology'
 import { Settings } from 'sigma/dist/declarations/src/settings'
-import { BundleEdge, BundleNode } from '../../../../lib/graph/builders/bundle'
+import { BundleEdge, BundleNode } from '../../graph/builders/bundle'
 import forceAtlas2 from 'graphology-layout-forceatlas2'
 import circular from 'graphology-layout/circular'
 import circlepack from 'graphology-layout/circlepack'
-import { ModelEdge, ModelNode } from '../../../../lib/graph/builders/model'
+import { ModelEdge, ModelNode } from '../../graph/builders/model'
 
 abstract class SigmaDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLabel, EdgeLabel, Graph, Sigma> {
   protected abstract addNodeImpl (graph: Graph, flags: ContextFlags, id: string, node: NodeLabel): Promise<undefined>

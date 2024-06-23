@@ -1,7 +1,8 @@
 import { Component, createRef, ComponentChild, Fragment } from 'preact'
 import type { ViewProps } from '../../viewer'
 import download from '../../../lib/utils/download'
-import Renderer, { Driver } from './drivers'
+import Driver from '../../../lib/drivers/impl'
+import Kernel from '../../../lib/drivers'
 import Graph from '../../../lib/graph'
 import GraphBuilder from '../../../lib/graph/builders'
 
@@ -56,7 +57,7 @@ export default abstract class GraphView<NodeLabel, EdgeLabel> extends Component<
     this.setState(({ open }) => ({ open: !open }))
   }
 
-  private readonly rendererRef = createRef<Renderer<NodeLabel, EdgeLabel>>()
+  private readonly rendererRef = createRef<Kernel<NodeLabel, EdgeLabel>>()
 
   componentDidMount (): void {
     this.buildGraphModel()
@@ -168,6 +169,6 @@ export default abstract class GraphView<NodeLabel, EdgeLabel> extends Component<
     }
 
     const { ns } = this.props
-    return <Renderer layout={this.layoutProp()} ref={this.rendererRef} driver={renderer} graph={graph} ns={ns} />
+    return <Kernel layout={this.layoutProp()} ref={this.rendererRef} driver={renderer} graph={graph} ns={ns} />
   }
 }

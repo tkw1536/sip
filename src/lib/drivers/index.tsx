@@ -1,9 +1,10 @@
 import { Component, ComponentChild, createRef } from 'preact'
-import Graph from '../../../../lib/graph'
-import { NamespaceMap } from '../../../../lib/namespace'
+import Graph from '../graph'
+import { NamespaceMap } from '../namespace'
 import * as styles from './index.module.css'
-import { UUIDPool } from '../../../../lib/utils/uuid'
-import { Operation } from '../../../../lib/utils/operation'
+import { UUIDPool } from '../utils/uuid'
+import { Operation } from '../utils/operation'
+import Driver from './impl'
 
 export const defaultLayout = 'auto'
 
@@ -23,73 +24,6 @@ export type MountFlags = Readonly<{
 type _context = unknown
 type _mount = unknown
 
-/** driver implements a driver for a single library */
-export interface Driver<NodeLabel, EdgeLabel> {
-  readonly driverName: string
-  newContext: (flags: ContextFlags) => Promise<_context>
-  addNode: (ctx: _context, flags: ContextFlags, id: string, node: NodeLabel) => Promise<_context | null | undefined>
-  addEdge: (ctx: _context, flags: ContextFlags, id: string, from: string, to: string, edge: EdgeLabel) => Promise<_context | null | undefined>
-  finalizeContext: (ctx: _context, flags: ContextFlags) => Promise<_context | null | undefined>
-
-  readonly supportedLayouts: string[]
-  mount: (ctx: _context, flags: MountFlags) => _mount
-
-  resizeMount: (mount: _mount, ctx: _context, flags: MountFlags, size: Size) => _mount | null | undefined
-  unmount: (mount: _mount, ctx: _context, flags: MountFlags) => void
-
-  readonly supportedExportFormats: string[]
-  objectToBlob: (mount: _mount, ctx: _context, flags: MountFlags, format: string) => Promise<Blob>
-}
-
-export abstract class DriverImpl<NodeLabel, EdgeLabel, Context, Mount> implements Driver<NodeLabel, EdgeLabel> {
-  protected constructor () { }
-
-  abstract readonly driverName: string
-  async newContext (flags: ContextFlags): Promise<_context> {
-    return await this.newContextImpl(flags)
-  }
-  protected abstract newContextImpl (flags: ContextFlags): Promise<Context>
-
-  async addNode (ctx: _context, flags: ContextFlags, id: string, node: NodeLabel): Promise<_context | null | undefined> {
-    return await this.addNodeImpl(ctx as Context, flags, id, node)
-  }
-  protected abstract addNodeImpl (ctx: Context, flags: ContextFlags, id: string, node: NodeLabel): Promise<Context | null | undefined>
-
-  async addEdge (ctx: _context, flags: ContextFlags, id: string, from: string, to: string, edge: EdgeLabel): Promise<_context | null | undefined> {
-    return await this.addEdgeImpl(ctx as Context, flags, id, from, to, edge)
-  }
-  protected abstract addEdgeImpl (ctx: Context, flags: ContextFlags, id: string, from: string, to: string, edge: EdgeLabel): Promise<Context | null | undefined>
-
-  async finalizeContext (ctx: _context, flags: ContextFlags): Promise<_context | null | undefined> {
-    return await this.finalizeContextImpl(ctx as Context, flags)
-  }
-  protected abstract finalizeContextImpl (ctx: Context, flags: ContextFlags): Promise<Context | null | undefined>
-
-  abstract readonly supportedLayouts: string[]
-
-  mount (ctx: _context, flags: MountFlags): _mount {
-    return this.mountImpl(ctx as Context, flags)
-  }
-  protected abstract mountImpl (ctx: Context, flags: MountFlags): Mount
-
-  resizeMount (mount: _mount, ctx: _context, flags: MountFlags, size: Size): _mount | null | undefined {
-    return this.resizeMountImpl(mount as Mount, ctx as Context, flags, size)
-  }
-  protected abstract resizeMountImpl (mount: Mount, ctx: Context, flags: MountFlags, size: Size): Mount | null | undefined
-
-  unmount (mount: _mount, ctx: _context, flags: MountFlags): void {
-    return this.unmountImpl(mount as Mount, ctx as Context, flags)
-  }
-  protected abstract unmountImpl (mount: Mount, ctx: Context, flags: MountFlags): void
-
-  abstract readonly supportedExportFormats: string[]
-
-  async objectToBlob (mount: _mount, ctx: _context, flags: MountFlags, format: string): Promise<Blob> {
-    return await this.objectToBlobImpl(mount as Mount, ctx as Context, flags, format)
-  }
-  protected abstract objectToBlobImpl (mount: Mount, ctx: Context, flags: MountFlags, format: string): Promise<Blob>
-}
-
 interface KernelProps<NodeLabel, EdgeLabel> {
   graph: Graph<NodeLabel, EdgeLabel>
   layout: string
@@ -99,7 +33,9 @@ interface KernelProps<NodeLabel, EdgeLabel> {
 
 interface KernelState { size?: Size, driverError?: string, driverLoading: boolean }
 
-/** Kernel displays a driver on the page */
+/**
+ * Displays a driver on the page
+ */
 export default class Kernel<NodeLabel, EdgeLabel> extends Component<KernelProps<NodeLabel, EdgeLabel>, KernelState> {
   private static readonly errorAborted = new Error('aborted')
 
@@ -206,7 +142,7 @@ export default class Kernel<NodeLabel, EdgeLabel> extends Component<KernelProps<
       throw new Error('unsupported blob returned')
     }
 
-    return await driver.objectToBlob(this.instance.mount, this.instance.ctx, this.instance.flags, format)
+    return await driver.exportToBlob(this.instance.mount, this.instance.ctx, this.instance.flags, format)
   }
 
   private readonly mount = new Operation()

@@ -1,6 +1,6 @@
 import { Component, ComponentChild } from 'preact'
 import type { ViewProps } from '../viewer'
-import { bundles, models } from '../state/drivers'
+import { bundles, models } from '../../lib/drivers/collection'
 import ValueSelector from '../../lib/components/selector'
 
 export default class GraphConfigView extends Component<ViewProps> {
