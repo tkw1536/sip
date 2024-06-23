@@ -1,29 +1,14 @@
-import { Fragment, RenderableProps, ComponentChild, Component } from 'preact'
-
+import { Fragment, ComponentChild, Component, ComponentChildren } from 'preact'
 import ModelGraphBuilder, { ModelEdge, ModelNode } from '../../../lib/graph/builders/model'
-import GraphView from '.'
 import Deduplication, { explanations, names, values } from '../../state/deduplication'
 import { models } from '../../../lib/drivers/collection'
 import GraphBuilder from '../../../lib/graph/builders'
 import { ViewProps } from '../../viewer'
 import Driver from '../../../lib/drivers/impl'
+import GraphDisplay from '.'
 
-export default class ModelGraphView extends GraphView<ModelNode, ModelEdge> {
-  protected readonly layoutKey = 'modelGraphLayout'
-
-  protected newDriver (previousProps: typeof this.props): boolean {
-    return this.props.modelGraphRenderer !== previousProps.modelGraphRenderer
-  }
-
-  protected async makeRenderer (): Promise<Driver<ModelNode, ModelEdge>> {
-    return await models.get(this.props.modelGraphRenderer)
-  }
-
-  protected newGraphBuilder (previousProps: RenderableProps<ViewProps, any>): boolean {
-    return previousProps.modelGraphRenderer !== this.props.modelGraphRenderer
-  }
-
-  protected async makeGraphBuilder (): Promise<GraphBuilder<ModelNode, ModelEdge>> {
+export default class ModelGraphView extends Component<ViewProps> {
+  private readonly builder = async (): Promise<GraphBuilder<ModelNode, ModelEdge>> => {
     const { tree, selection, deduplication } = this.props
     return await Promise.resolve(new ModelGraphBuilder(tree, {
       include: (uri: string) => selection.includes(uri),
@@ -39,12 +24,27 @@ export default class ModelGraphView extends GraphView<ModelNode, ModelEdge> {
     this.props.setModelLayout((evt.target as HTMLInputElement).value)
   }
 
-  protected renderPanel (): ComponentChild {
-    const { deduplication, id, setModelRenderer: handleChangeModelRenderer } = this.props
+  render (): ComponentChildren {
+    const { modelGraphLayout, modelGraphRenderer, pathbuilderVersion, selectionVersion, optionVersion, ns } = this.props
 
-    const { renderer } = this.state
-    const modelGraphName = renderer?.driverName
-    const exportFormats = renderer?.supportedExportFormats
+    return (
+      <GraphDisplay
+        loader={models}
+        driver={modelGraphRenderer}
+        builderKey={`${pathbuilderVersion}-${selectionVersion}-${optionVersion}`}
+        builder={this.builder}
+        ns={ns}
+        layout={modelGraphLayout}
+        panel={this.renderPanel}
+      />
+    )
+  }
+
+  private readonly renderPanel = (driver: Driver<ModelNode, ModelEdge> | null): ComponentChildren => {
+    const { deduplication, id, setModelRenderer: handleChangeModelRenderer, modelGraphLayout: layout } = this.props
+
+    const modelGraphName = driver?.driverName
+    const exportFormats = driver?.supportedExportFormats
 
     return (
       <>
@@ -65,10 +65,10 @@ export default class ModelGraphView extends GraphView<ModelNode, ModelEdge> {
             &nbsp;
 
             Layout: &nbsp;
-            {(renderer != null) &&
-              <select value={this.layoutProp()} onInput={this.handleChangeLayout}>
+            {(driver != null) &&
+              <select value={layout} onInput={this.handleChangeLayout}>
                 {
-                  renderer.supportedLayouts.map(name => <option key={name}>{name}</option>)
+                  driver.supportedLayouts.map(name => <option key={name}>{name}</option>)
                 }
               </select>}
           </p>
@@ -109,7 +109,7 @@ export default class ModelGraphView extends GraphView<ModelNode, ModelEdge> {
             <p>
               {exportFormats.map(format =>
                 <Fragment key={format}>
-                  <button onClick={this.doExport.bind(this, format)}>{format}</button>
+                  <button onClick={() => { /* this.doExport.bind(this, format)} */ }}>{format}</button>
                   &nbsp;
                 </Fragment>)}
             </p>

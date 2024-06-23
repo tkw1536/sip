@@ -1,50 +1,68 @@
-import { Component, createRef, ComponentChild, Fragment } from 'preact'
-import type { ViewProps } from '../../viewer'
+import { Component, createRef, ComponentChild, Fragment, ComponentChildren } from 'preact'
 import download from '../../../lib/utils/download'
-import Driver from '../../../lib/drivers/impl'
-import Kernel from '../../../lib/drivers'
+import Kernel, { DriverLoader } from '../../../lib/drivers'
 import Graph from '../../../lib/graph'
 import GraphBuilder from '../../../lib/graph/builders'
 
 import * as styles from './index.module.css'
 import { classes } from '../../../lib/utils/classes'
 import { Operation } from '../../../lib/utils/operation'
+import Driver from '../../../lib/drivers/impl'
+import { NamespaceMap } from '../../../lib/namespace'
 
-interface State<NodeLabel, EdgeLabel> {
+interface GraphProps<NodeLabel, EdgeLabel> {
+  loader: DriverLoader<NodeLabel, EdgeLabel>
+  driver: string
+
+  builderKey: string
+  builder: () => Promise<GraphBuilder<NodeLabel, EdgeLabel>>
+
+  ns: NamespaceMap
+  layout: string
+
+  panel?: ComponentChildren | ((driver: Driver<NodeLabel, EdgeLabel> | null) => ComponentChildren)
+}
+
+interface GraphState<NodeLabel, EdgeLabel> {
   open: boolean
 
   graph?: Graph<NodeLabel, EdgeLabel>
   graphError?: string
 
-  renderer?: Driver<NodeLabel, EdgeLabel>
-  rendererLoading?: boolean
-  rendererError?: string
+  driver: Driver<NodeLabel, EdgeLabel> | null
 }
 
-export default abstract class GraphView<NodeLabel, EdgeLabel> extends Component<ViewProps, State<NodeLabel, EdgeLabel>> {
-  state: State<NodeLabel, EdgeLabel> = { open: false, rendererLoading: true }
+export default class GraphDisplay<NodeLabel, EdgeLabel> extends Component<GraphProps<NodeLabel, EdgeLabel>, GraphState<NodeLabel, EdgeLabel>> {
+  state: GraphState<NodeLabel, EdgeLabel> = { open: false, driver: null }
 
-  protected abstract newDriver (previousProps: typeof this.props): boolean
-  protected abstract makeRenderer (): Promise<Driver<NodeLabel, EdgeLabel>>
-  protected abstract newGraphBuilder (previousProps: typeof this.props): boolean
-  protected abstract makeGraphBuilder (): Promise<GraphBuilder<NodeLabel, EdgeLabel>>
+  protected makeRenderer (): { name: string, loader: DriverLoader<NodeLabel, EdgeLabel> } {
+    return { name: this.props.driver, loader: this.props.loader }
+  }
 
-  protected abstract renderPanel (): ComponentChild
+  protected newGraphBuilder (previousProps: typeof this.props): boolean {
+    return this.props.builderKey !== previousProps.builderKey
+  }
 
-  // key used to determine the layout
-  protected abstract layoutKey: keyof ViewProps
-  protected layoutProp (): string {
-    return this.props[this.layoutKey] as string
+  protected async makeGraphBuilder (): Promise<GraphBuilder<NodeLabel, EdgeLabel>> {
+    return await this.props.builder()
+  }
+
+  protected renderPanel (): ComponentChildren {
+    const { panel } = this.props
+    const { driver } = this.state
+    if (typeof panel === 'function') {
+      return panel(driver)
+    }
+    return panel
   }
 
   protected doExport = (format: string, evt?: Event): void => {
     if (evt != null) evt.preventDefault()
 
-    const { renderer } = this.state
-    const { current } = this.rendererRef
-    if (current === null || typeof renderer === 'undefined') return
+    const { current: kernel } = this.kernelRef
+    if (kernel === null) return
 
-    current.exportBlob(format)
+    kernel.exportBlob(format)
       .then(download)
       .catch((e: unknown) => {
         console.error('failed to download: ', e)
@@ -57,11 +75,10 @@ export default abstract class GraphView<NodeLabel, EdgeLabel> extends Component<
     this.setState(({ open }) => ({ open: !open }))
   }
 
-  private readonly rendererRef = createRef<Kernel<NodeLabel, EdgeLabel>>()
+  private readonly kernelRef = createRef<Kernel<NodeLabel, EdgeLabel>>()
 
   componentDidMount (): void {
     this.buildGraphModel()
-    this.loadRenderer()
   }
 
   componentWillUnmount (): void {
@@ -85,47 +102,21 @@ export default abstract class GraphView<NodeLabel, EdgeLabel> extends Component<
   }
 
   private readonly rendererOperation = new Operation()
-  private readonly loadRenderer = (): void => {
-    const ticket = this.rendererOperation.ticket()
-
-    this.makeRenderer()
-      .then(renderer => {
-        this.setState(({ renderer: oldRenderer }) => {
-          if (!ticket()) return null
-          if (oldRenderer === renderer) return null // same renderer loaded, no need to re-render
-          return { renderer, rendererLoading: false, rendererError: undefined }
-        })
-      }).catch((e) => {
-        this.setState({ renderer: undefined, rendererLoading: false, rendererError: e.toString() })
-      })
-  }
-
-  componentDidUpdate (previousProps: Readonly<ViewProps>): void {
+  componentDidUpdate (previousProps: typeof this.props): void {
     // builder has changed => return a new changer
     if (
-      this.newGraphBuilder(previousProps) ||
-      (GraphView.graphKey(previousProps) !== GraphView.graphKey(this.props))
+      this.newGraphBuilder(previousProps)
     ) {
       this.buildGraphModel()
     }
-
-    // renderer has changed => load the new one
-    if (this.newDriver(previousProps)) {
-      this.setState({ renderer: undefined, rendererLoading: true, rendererError: undefined })
-      this.loadRenderer()
-    }
-  }
-
-  private static graphKey ({ pathbuilderVersion, namespaceVersion, selectionVersion, optionVersion }: ViewProps): string {
-    return `${pathbuilderVersion}-${namespaceVersion}-${selectionVersion}-${optionVersion}`
   }
 
   render (): ComponentChild {
-    const panel = this.renderPanel()
     const main = this.renderMain()
+    const panel = this.renderPanel()
 
-    // if we don't have a child, directly use the renderer
-    if (panel === null) {
+    // if we have no children, don't render a panel
+    if (typeof panel === 'undefined' || panel === null || typeof panel === 'boolean' || (Array.isArray(panel) && panel.length === 0)) {
       return main
     }
 
@@ -144,31 +135,36 @@ export default abstract class GraphView<NodeLabel, EdgeLabel> extends Component<
     )
   }
 
-  private renderMain (): ComponentChild {
-    const { graph, graphError, renderer, rendererLoading, rendererError } = this.state
+  private readonly driverRef = (driver: Driver<NodeLabel, EdgeLabel> | null): void => {
+    this.setState({ driver })
+  }
 
-    if (typeof graphError === 'string' || typeof rendererError === 'string') {
+  private renderMain (): ComponentChild {
+    const { graph, graphError } = this.state
+
+    if (typeof graphError === 'string') {
       return (
         <>
           {typeof graphError === 'string' && <p><b>Error loading graph: </b>{graphError}</p>}
-          {typeof rendererError === 'string' && <p><b>Error loading renderer: </b>{rendererError}</p>}
         </>
       )
     }
 
-    if (rendererLoading ?? false) {
-      return (
-        <>
-          <p> &nbsp; Loading ... &nbsp; </p>
-        </>
-      )
-    }
-
-    if ((graph == null) || (renderer == null)) {
+    if ((graph == null)) {
       return null
     }
 
-    const { ns } = this.props
-    return <Kernel layout={this.layoutProp()} ref={this.rendererRef} driver={renderer} graph={graph} ns={ns} />
+    const { name, loader } = this.makeRenderer()
+
+    const { ns, layout } = this.props
+    return (
+      <Kernel
+        ref={this.kernelRef}
+        graph={graph} ns={ns}
+        loader={loader} driver={name}
+        layout={layout}
+        driverRef={this.driverRef}
+      />
+    )
   }
 }
