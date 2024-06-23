@@ -13,7 +13,7 @@ import ModelGraphView from './views/graph/model'
 import GraphConfigView from './views/config'
 import Deduplication, { defaultValue as deduplicationDefault } from './state/deduplication'
 import { bundles, models } from './state/drivers'
-import { defaultLayout } from './views/graph/renderers'
+import { defaultLayout } from './views/graph/drivers'
 import Tabs, { Label, Tab } from '../lib/components/tabs'
 
 export type ViewProps = {} & ViewerProps & ViewerState & ViewerReducers

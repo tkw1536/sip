@@ -1,7 +1,7 @@
 import { Component, createRef, ComponentChild, Fragment } from 'preact'
 import type { ViewProps } from '../../viewer'
 import download from '../../../lib/utils/download'
-import Renderer, { Driver } from './renderers'
+import Renderer, { Driver } from './drivers'
 import Graph from '../../../lib/graph'
 import GraphBuilder from '../../../lib/graph/builders'
 

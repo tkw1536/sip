@@ -3,7 +3,7 @@ import GraphView from '.'
 import GraphBuilder from '../../../lib/graph/builders'
 import BundleGraphBuilder, { BundleEdge, BundleNode } from '../../../lib/graph/builders/bundle'
 import { bundles } from '../../state/drivers'
-import { Driver } from './renderers'
+import { Driver } from './drivers'
 
 export default class BundleGraphView extends GraphView<BundleNode, BundleEdge> {
   protected readonly layoutKey = 'bundleGraphLayout'

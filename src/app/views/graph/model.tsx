@@ -6,7 +6,7 @@ import Deduplication, { explanations, names, values } from '../../state/deduplic
 import { models } from '../../state/drivers'
 import GraphBuilder from '../../../lib/graph/builders'
 import { ViewProps } from '../../viewer'
-import { Driver } from './renderers'
+import { Driver } from './drivers'
 
 export default class ModelGraphView extends GraphView<ModelNode, ModelEdge> {
   protected readonly layoutKey = 'modelGraphLayout'
