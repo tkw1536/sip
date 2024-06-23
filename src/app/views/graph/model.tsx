@@ -1,4 +1,4 @@
-import { Fragment, ComponentChild, Component, ComponentChildren } from 'preact'
+import { Fragment, ComponentChild, Component, ComponentChildren, createRef } from 'preact'
 import ModelGraphBuilder, { ModelEdge, ModelNode } from '../../../lib/graph/builders/model'
 import Deduplication, { explanations, names, values } from '../../state/deduplication'
 import { models } from '../../../lib/drivers/collection'
@@ -24,11 +24,23 @@ export default class ModelGraphView extends Component<ViewProps> {
     this.props.setModelLayout((evt.target as HTMLInputElement).value)
   }
 
+  private readonly displayRef = createRef<GraphDisplay<ModelNode, ModelEdge>>()
+  private readonly handleExport = (format: string, event: Event): void => {
+    const { current: display } = this.displayRef
+    if (display === null) {
+      console.warn('handleExport called without mounted display')
+      event.preventDefault()
+      return
+    }
+    display.export(format, event)
+  }
+
   render (): ComponentChildren {
     const { modelGraphLayout, modelGraphRenderer, pathbuilderVersion, selectionVersion, optionVersion, ns } = this.props
 
     return (
       <GraphDisplay
+        ref={this.displayRef}
         loader={models}
         driver={modelGraphRenderer}
         builderKey={`${pathbuilderVersion}-${selectionVersion}-${optionVersion}`}
@@ -109,7 +121,7 @@ export default class ModelGraphView extends Component<ViewProps> {
             <p>
               {exportFormats.map(format =>
                 <Fragment key={format}>
-                  <button onClick={() => { /* this.doExport.bind(this, format)} */ }}>{format}</button>
+                  <button onClick={this.handleExport.bind(this, format)}>{format}</button>
                   &nbsp;
                 </Fragment>)}
             </p>

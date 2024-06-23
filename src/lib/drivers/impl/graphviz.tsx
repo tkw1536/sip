@@ -1,6 +1,6 @@
-import { ContextFlags, defaultLayout, DriverImpl, MountFlags, Size } from '.'
+import { ContextFlags, defaultLayout, DriverImpl, formatGraphViz, formatJSON, formatSVG, MountFlags, Size } from '.'
 import { BundleEdge, BundleNode } from '../../graph/builders/bundle'
-import { instance, RenderOptions, Viz } from '@viz-js/viz'
+import { instance, RenderOptions, Viz, engines } from '@viz-js/viz'
 import { ModelEdge, ModelNode } from '../../graph/builders/model'
 import svgPanZoom from 'svg-pan-zoom'
 
@@ -26,7 +26,11 @@ abstract class GraphvizDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLabel
   protected abstract addEdgeAsString (flags: ContextFlags, id: string, from: string, to: string, edge: EdgeLabel): string
 
   readonly driverName = 'GraphViz'
-  readonly supportedLayouts = [defaultLayout]
+  readonly supportedLayouts = [defaultLayout, ...engines]
+  protected options ({ layout, definitelyAcyclic }: MountFlags): RenderOptions {
+    const engine = layout === defaultLayout ? (definitelyAcyclic ? 'dot' : 'fdp') : layout
+    return { engine }
+  }
 
   protected async newContextImpl (): Promise<Context> {
     return {
@@ -63,24 +67,20 @@ abstract class GraphvizDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLabel
     container.removeChild(svg)
   }
 
-  protected options (flags: MountFlags): RenderOptions {
-    return {}
-  }
-
   readonly supportedExportFormats = ['svg', 'dot', 'json']
   protected async objectToBlobImpl ({ svg, zoom }: Mount, { source, viz }: Context, flags: MountFlags, format: string): Promise<Blob> {
     switch (format) {
       case 'svg':
       {
         const output = viz.renderString(source, this.options(flags))
-        return new Blob([output], { type: 'image/svg+xml' })
+        return new Blob([output], { type: formatSVG })
       }
       case 'dot':
-        return new Blob([source], { type: 'text/vnd.graphviz' })
+        return new Blob([source], { type: formatGraphViz })
       case 'json':
       {
         const output = viz.renderJSON(source, this.options(flags))
-        return new Blob([JSON.stringify(output)], { type: 'application/json' })
+        return new Blob([JSON.stringify(output)], { type: formatJSON })
       }
     }
     throw new Error('never reached')

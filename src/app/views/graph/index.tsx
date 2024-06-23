@@ -56,7 +56,7 @@ export default class GraphDisplay<NodeLabel, EdgeLabel> extends Component<GraphP
     return panel
   }
 
-  protected doExport = (format: string, evt?: Event): void => {
+  readonly export = (format: string, evt?: Event): void => {
     if (evt != null) evt.preventDefault()
 
     const { current: kernel } = this.kernelRef
