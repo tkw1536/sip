@@ -45,10 +45,14 @@ class DriverCollection<NodeLabel, EdgeLabel> {
 }
 
 export const models = new DriverCollection<ModelNode, ModelEdge>(
-  'vis-network',
+  'GraphViz',
   [
     'GraphViz',
-    async () => await import('./impl/graphviz').then(m => m.GraphVizModelDriver.instance)
+    async () => await import('./impl/graphviz').then(m => new m.GraphVizModelDriver(false))
+  ],
+  [
+    'GraphViz-compact',
+    async () => await import('./impl/graphviz').then(m => new m.GraphVizModelDriver(true))
   ],
   [
     'vis-network',

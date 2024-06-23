@@ -14,6 +14,10 @@ interface Mount {
   zoom: SvgPanZoom.Instance
 }
 
+const supported = (...layouts: string[]): string[] => {
+  return layouts.filter(l => engines.includes(l))
+}
+
 abstract class GraphvizDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLabel, EdgeLabel, Context, Mount> {
   protected async addNodeImpl (context: Context, flags: ContextFlags, id: string, node: NodeLabel): Promise<undefined> {
     context.source += '\n' + this.addNodeAsString(flags, id, node)
@@ -25,10 +29,10 @@ abstract class GraphvizDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLabel
   }
   protected abstract addEdgeAsString (flags: ContextFlags, id: string, from: string, to: string, edge: EdgeLabel): string
 
-  readonly driverName = 'GraphViz'
-  readonly supportedLayouts = [defaultLayout, ...engines]
-  protected options ({ layout, definitelyAcyclic }: MountFlags): RenderOptions {
-    const engine = layout === defaultLayout ? (definitelyAcyclic ? 'dot' : 'fdp') : layout
+  readonly driverName: string = 'GraphViz'
+  readonly supportedLayouts = [defaultLayout, ...supported('dot', 'fdp', 'circo', 'neat')]
+  protected options ({ layout }: MountFlags): RenderOptions {
+    const engine = layout === defaultLayout ? 'dot' : layout
     return { engine }
   }
 
@@ -51,14 +55,13 @@ abstract class GraphvizDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLabel
     flags.container.appendChild(svg)
 
     // add zoom controls
-    const zoom = svgPanZoom(svg)
+    const zoom = svgPanZoom(svg, { maxZoom: 1000, minZoom: 1 / 1000, controlIconsEnabled: true, dblClickZoomEnabled: false })
     return { svg, zoom }
   }
 
   protected resizeMountImpl ({ svg, zoom }: Mount, ctx: Context, flags: MountFlags, { width, height }: Size): undefined {
     svg.style.height = `${height}px`
     svg.style.width = `${width}px`
-    // zoom.resize()
     return undefined
   }
 
@@ -135,42 +138,82 @@ export class GraphVizBundleDriver extends GraphvizDriver<BundleNode, BundleEdge>
 }
 
 export class GraphVizModelDriver extends GraphvizDriver<ModelNode, ModelEdge> {
-  private static _instance: GraphVizModelDriver | null = null
-  static get instance (): GraphVizModelDriver {
-    if (this._instance === null) {
-      this._instance = new GraphVizModelDriver()
-    }
-    return this._instance
+  readonly driverName: string
+  constructor (public readonly compact: boolean) {
+    super()
+    this.driverName = compact ? 'GraphViz-compact' : 'GraphViz'
   }
 
   protected addNodeAsString (flags: ContextFlags, id: string, node: ModelNode): string {
     if (node.type === 'field') {
       return this.makeFieldNodes(flags, id, node)
     }
-    const label = modelNodeLabel(node, flags.ns)
     if (node.type === 'class' && node.bundles.size === 0) {
       return makeNode(
         id,
         {
-          label
+          label: flags.ns.apply(node.clz)
         },
         {}
       )
     }
     if (node.type === 'class' && node.bundles.size > 0) {
-      return makeNode(
-        id,
-        {
-          label
-        },
-        {}
-      )
+      return this.makeBundleNodes(flags, id, node)
     }
     throw new Error('never reached')
   }
 
-  private makeFieldNodes ({ ns }: ContextFlags, id: string, { fields }: ModelNode & { type: 'field' }): string {
-    let output = `subgraph ${quote('cluster-' + id)}{\n`
+  private makeBundleNodes ({ ns }: ContextFlags, id: string, node: ModelNode & { type: 'class' }): string {
+    if (this.compact) {
+      return makeNode(
+        id,
+        { label: modelNodeLabel(node, ns) },
+        {}
+      )
+    }
+
+    const { clz, bundles } = node
+    let output = 'subgraph { cluster=true;\n'
+
+    output += makeNode(
+      id,
+      { label: ns.apply(clz) },
+      { shape: 'box' }
+    ) + '\n'
+
+    Array.from(bundles).forEach((bundle, idx) => {
+      const bundleID = `${id}-${idx}`
+      const node = makeNode(
+        bundleID,
+        {
+          label: 'Bundle ' + bundle.path().name
+        },
+        {
+          shape: 'box',
+          style: 'filled',
+          fillcolor: 'blue'
+        }
+      )
+      output += node + '\n'
+      output += makeEdge(bundleID, id, {}, {}) + '\n'
+    })
+
+    output += '}'
+    return output
+  }
+
+  private makeFieldNodes ({ ns }: ContextFlags, id: string, node: ModelNode & { type: 'field' }): string {
+    if (this.compact) {
+      return makeNode(
+        id,
+        { label: modelNodeLabel(node, ns) },
+        {
+          style: 'filled',
+          fillcolor: 'orange'
+        }
+      )
+    }
+    let output = 'subgraph { cluster=true;\n'
 
     output += makeNode(
       id,
@@ -178,7 +221,7 @@ export class GraphVizModelDriver extends GraphvizDriver<ModelNode, ModelEdge> {
       { shape: 'box' }
     ) + '\n'
 
-    Array.from(fields).forEach((field, idx) => {
+    Array.from(node.fields).forEach((field, idx) => {
       const fieldID = `${id}-${idx}`
       const node = makeNode(
         fieldID,
@@ -211,4 +254,4 @@ export class GraphVizModelDriver extends GraphvizDriver<ModelNode, ModelEdge> {
   }
 }
 
-// spellchecker:words fillcolor lhead
+// spellchecker:words fillcolor circo
