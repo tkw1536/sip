@@ -92,11 +92,11 @@ export class VisNetworkBundleDriver extends VisNetworkDriver<BundleNode, BundleE
 
   protected async addNodeImpl (dataset: Dataset, flags: ContextFlags, id: string, node: BundleNode): Promise<undefined> {
     if (node.type === 'bundle') {
-      dataset.addNode({ id, label: 'Bundle\n' + node.bundle.path().name, level: node.level })
+      dataset.addNode({ id, label: 'Bundle\n' + node.bundle.path.name, level: node.level })
       return
     }
     if (node.type === 'field') {
-      dataset.addNode({ id, label: node.field.path().name, color: 'orange', level: node.level })
+      dataset.addNode({ id, label: node.field.path.name, color: 'orange', level: node.level })
       return
     }
     throw new Error('never reached')

@@ -29,13 +29,13 @@ export type ModelNode = {
 /** modelNodeLabel returns a simple label for a model node */
 export function modelNodeLabel (node: ModelNode, ns: NamespaceMap): string {
   if (node.type === 'field') {
-    return Array.from(node.fields).map(field => field.path().name).join('\n\n')
+    return Array.from(node.fields).map(field => field.path.name).join('\n\n')
   }
   if (node.type === 'class' && node.bundles.size === 0) {
     return ns.apply(node.clz)
   }
   if (node.type === 'class' && node.bundles.size > 0) {
-    const names = Array.from(node.bundles).map((bundle) => 'Bundle ' + bundle.path().name).join('\n\n')
+    const names = Array.from(node.bundles).map((bundle) => 'Bundle ' + bundle.path.name).join('\n\n')
     return ns.apply(node.clz) + '\n\n' + names
   }
   throw new Error('never reached')
@@ -86,10 +86,10 @@ abstract class SpecificBuilder {
   public abstract build (): void
 
   /** checks if the given uri is included in the graph */
-  protected includes (withPath?: { path: () => Path }): boolean {
+  protected includes (withPath?: { path: Path }): boolean {
     if (this.options.include == null) return true
 
-    return this.options.include(withPath?.path()?.id ?? '')
+    return this.options.include(withPath?.path?.id ?? '')
   }
 
   protected id (context: string, typ: 'class' | 'data', id: string): string {
@@ -129,7 +129,7 @@ class NoneBuilder extends SpecificBuilder {
   }
 
   private addBundleNode (bundle: Bundle, level: number): number | null {
-    const path = bundle.path().pathArray
+    const path = bundle.path.pathArray
 
     let index = path.length - 1
     if (index % 2 !== 0) {
@@ -148,16 +148,16 @@ class NoneBuilder extends SpecificBuilder {
 
   private addField (parentNode: number | null, node: Field): void {
     // get the actual path to add
-    const path = node.path()
+    const path = node.path
 
     // find the path to include for this element
     let ownPath = path.pathArray
 
     // remove the parent path (if we've already added it)
-    const parent = node.parent()
+    const parent = node.parent
     const displayParent = this.includes(parent)
     if (displayParent && typeof parentNode === 'number') {
-      const length = parent.path()?.pathArray?.length
+      const length = parent.path?.pathArray?.length
       if (typeof length === 'number' && length >= 0 && length % 2 === 0) {
         ownPath = ownPath.slice(length)
       }
@@ -215,7 +215,7 @@ class BundleBuilder extends SpecificBuilder {
   private readonly contexts = new Set<string>()
   private collectContexts (bundle: Bundle): void {
     bundle.childFields.forEach(field => {
-      const disambiguation = field.path().getDisambiguation()
+      const disambiguation = field.path.getDisambiguation()
       if (disambiguation === null) return
       this.contexts.add(disambiguation)
     })
@@ -224,7 +224,7 @@ class BundleBuilder extends SpecificBuilder {
     bundle.childBundles.forEach(bundle => this.collectContexts(bundle))
 
     // add the last subject of the path
-    const path = bundle.path().pathArray
+    const path = bundle.path.pathArray
     let index = path.length - 1
     if (index % 2 === 1) {
       index--
@@ -259,7 +259,7 @@ class BundleBuilder extends SpecificBuilder {
 
   /** add a bundle node for the current model */
   private addBundleNode (bundle: Bundle, level: number): string {
-    const path = bundle.path().pathArray
+    const path = bundle.path.pathArray
 
     let index = path.length - 1
     if (index % 2 !== 0) {
@@ -290,17 +290,17 @@ class BundleBuilder extends SpecificBuilder {
 
   private addField (node: Field): void {
     // get the actual path to add
-    const path = node.path()
+    const path = node.path
 
     // find the path to include for this element
     let ownPath = path.pathArray
 
     // remove the parent path (if we've already added it)
-    const parent = node.parent()
+    const parent = node.parent
     const displayParent = this.includes(parent)
 
     if (displayParent) {
-      const length = parent.path()?.pathArray?.length
+      const length = parent.path?.pathArray?.length
       if (typeof length === 'number' && length >= 0 && length % 2 === 0) {
         ownPath = ownPath.slice(length)
       }
@@ -400,7 +400,7 @@ class FullBuilder extends SpecificBuilder {
   }
 
   private addBundleNode (bundle: Bundle, level: number): void {
-    const path = bundle.path().pathArray
+    const path = bundle.path.pathArray
 
     let index = path.length - 1
     if (index % 2 !== 0) {
@@ -429,16 +429,16 @@ class FullBuilder extends SpecificBuilder {
 
   private addField (node: Field): void {
     // get the actual path to add
-    const path = node.path()
+    const path = node.path
 
     // find the path to include for this element
     let ownPath = path.pathArray
 
     // remove the parent path (if we've already added it)
-    const parent = node.parent()
+    const parent = node.parent
     const displayParent = this.includes(parent)
     if (displayParent) {
-      const length = parent.path()?.pathArray?.length
+      const length = parent.path?.pathArray?.length
       if (typeof length === 'number' && length >= 0 && length % 2 === 0) {
         ownPath = ownPath.slice(length)
       }

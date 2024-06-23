@@ -29,10 +29,10 @@ export default class BundleGraphBuilder extends GraphBuilder<BundleNode, BundleE
   }
 
   private addBundle (bundle: Bundle, level: number): boolean {
-    const id = bundle.path().id
+    const id = bundle.path.id
 
     // add the node for this bundle
-    const includeSelf = this.selection.includes(bundle.path().id)
+    const includeSelf = this.selection.includes(bundle.path.id)
     if (includeSelf) {
       this.graph.addNode({ type: 'bundle', level: 2 * level, bundle }, id)
     }
@@ -42,13 +42,13 @@ export default class BundleGraphBuilder extends GraphBuilder<BundleNode, BundleE
       const includeChild = this.addBundle(cb, level + 1)
       if (!includeChild || !includeSelf) return
 
-      this.graph.addEdge(id, cb.path().id, { type: 'child_bundle' })
+      this.graph.addEdge(id, cb.path.id, { type: 'child_bundle' })
     })
 
     // add all the child fields
     bundle.childFields.forEach(cf => {
-      const fieldId = cf.path().id
-      const includeField = this.selection.includes(cf.path().id)
+      const fieldId = cf.path.id
+      const includeField = this.selection.includes(cf.path.id)
       if (!includeField) return
 
       this.graph.addNode({ type: 'field', level: 2 * level + 1, field: cf }, fieldId)

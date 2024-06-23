@@ -124,11 +124,11 @@ export class GraphVizBundleDriver extends GraphvizDriver<BundleNode, BundleEdge>
 
   protected addNodeAsString ({ cm }: ContextFlags, id: string, node: BundleNode): string {
     if (node.type === 'bundle') {
-      const path = node.bundle.path()
+      const path = node.bundle.path
       return makeNode(id, { label: 'Bundle\n' + path.name, fillcolor: cm.get(path.id) }, { style: 'filled' })
     }
     if (node.type === 'field') {
-      const path = node.field.path()
+      const path = node.field.path
       return makeNode(id, { label: path.name, fillcolor: cm.get(path.id) }, { style: 'filled' })
     }
     throw new Error('never reached')
@@ -188,7 +188,7 @@ export class GraphVizModelDriver extends GraphvizDriver<ModelNode, ModelEdge> {
       const node = makeNode(
         bundleID,
         {
-          label: 'Bundle ' + bundle.path().name
+          label: 'Bundle ' + bundle.path.name
         },
         {
           shape: 'box',
@@ -228,7 +228,7 @@ export class GraphVizModelDriver extends GraphvizDriver<ModelNode, ModelEdge> {
       const node = makeNode(
         fieldID,
         {
-          label: field.path().name
+          label: field.path.name
         },
         {
           style: 'filled',
@@ -236,7 +236,7 @@ export class GraphVizModelDriver extends GraphvizDriver<ModelNode, ModelEdge> {
         }
       )
       output += node + '\n'
-      output += makeEdge(id, fieldID, { label: field.path().informativeFieldType }, {}) + '\n'
+      output += makeEdge(id, fieldID, { label: field.path.informativeFieldType }, {}) + '\n'
     })
 
     output += '}'

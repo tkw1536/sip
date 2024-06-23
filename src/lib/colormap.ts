@@ -11,7 +11,7 @@ export default class ColorMap {
   static generate (node: NodeLike, colors: { bundle: string, field: string }): ColorMap {
     const cm = new Map<string, string>()
     for (const relative of node.walk()) {
-      const id = relative.path()?.id
+      const id = relative.path?.id
       if (typeof id !== 'string') {
         continue
       }

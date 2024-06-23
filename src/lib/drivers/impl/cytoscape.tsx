@@ -151,13 +151,13 @@ export class CytoBundleDriver extends CytoscapeDriver<BundleNode, BundleEdge> {
 
   protected async addNodeImpl (elements: Elements, flags: ContextFlags, id: string, node: BundleNode): Promise<undefined> {
     if (node.type === 'bundle') {
-      const label = 'Bundle\n' + node.bundle.path().name
+      const label = 'Bundle\n' + node.bundle.path.name
       const data = { id, label, color: 'blue' }
       elements.push({ data })
       return
     }
     if (node.type === 'field') {
-      const label = node.field.path().name
+      const label = node.field.path.name
       const data = { id, label, color: 'orange' }
       elements.push({ data })
       return

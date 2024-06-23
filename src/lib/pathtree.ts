@@ -1,15 +1,15 @@
 import { Path, Pathbuilder } from './pathbuilder'
 
 export abstract class NodeLike {
-  abstract path (): Path | null
-  abstract children (): NodeLike[]
-  abstract parent (): NodeLike | null
+  abstract get path (): Path | null
+  abstract get children (): NodeLike[]
+  abstract get parent (): NodeLike | null
 
   /** recursively walks over the tree of this NodeLike */
   * walk (): IterableIterator<NodeLike> {
     yield this
 
-    for (const child of this.children()) {
+    for (const child of this.children) {
       for (const relative of child.walk()) {
         yield relative
       }
@@ -17,29 +17,23 @@ export abstract class NodeLike {
   }
 
   /** allChildren returns a set containing the ids of all recursive children of this node */
-  allChildren (): string[] {
-    const children: string[] = []
-    this.collectChildren(children)
-    return children
-  }
-
-  private collectChildren (children: string[]): void {
-    const myID = this.path()?.id
-    if (typeof myID === 'string') {
-      children.push(myID)
+  * allChildren (): IterableIterator<string> {
+    for (const child of this.walk()) {
+      const id = child.path?.id
+      if (typeof id === 'string') {
+        yield id
+      }
     }
-
-    this.children().forEach(c => c.collectChildren(children))
   }
 
   /** find finds the first node with the given id, including itself */
   find (id: string): NodeLike | null {
-    const myID = this.path()?.id
+    const myID = this.path?.id
     if (myID === id) {
       return this
     }
 
-    const children = this.children()
+    const children = this.children
     for (let i = 0; i < children.length; i++) {
       const found = children[i].find(id)
       if (found !== null) {
@@ -57,15 +51,15 @@ export class PathTree extends NodeLike {
     super()
   }
 
-  path (): null {
+  get path (): null {
     return null
   }
 
-  parent (): null {
+  get parent (): null {
     return null
   }
 
-  children (): Bundle[] {
+  get children (): Bundle[] {
     return [...this.mainBundles]
   }
 
@@ -122,7 +116,7 @@ export class Bundle extends NodeLike {
     super()
   }
 
-  parent (): Bundle | null {
+  get parent (): Bundle | null {
     return this._parent
   }
 
@@ -131,11 +125,11 @@ export class Bundle extends NodeLike {
     this._parent = parent
   }
 
-  path (): Path {
+  get path (): Path {
     return this._path
   }
 
-  children (): Array<Bundle | Field> {
+  get children (): Array<Bundle | Field> {
     return [...this.childBundles, ...this.childFields.values()]
   }
 }
@@ -145,15 +139,15 @@ export class Field extends NodeLike {
     super()
   }
 
-  parent (): Bundle {
+  get parent (): Bundle {
     return this._parent
   }
 
-  path (): Path {
+  get path (): Path {
     return this._path
   }
 
-  children (): Array<Bundle | Field> {
+  get children (): Array<Bundle | Field> {
     return []
   }
 }

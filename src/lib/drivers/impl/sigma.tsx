@@ -76,11 +76,11 @@ export class SigmaBundleDriver extends SigmaDriver<BundleNode, BundleEdge> {
 
   protected async addNodeImpl (graph: Graph, flags: ContextFlags, id: string, node: BundleNode): Promise<undefined> {
     if (node.type === 'bundle') {
-      graph.addNode(id, { label: 'Bundle\n' + node.bundle.path().name, color: 'blue', size: 20 })
+      graph.addNode(id, { label: 'Bundle\n' + node.bundle.path.name, color: 'blue', size: 20 })
       return
     }
     if (node.type === 'field') {
-      graph.addNode(id, { label: node.field.path().name, color: 'orange', size: 10 })
+      graph.addNode(id, { label: node.field.path.name, color: 'orange', size: 10 })
       return
     }
     throw new Error('never reached')

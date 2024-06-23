@@ -76,7 +76,7 @@ export default class ListView extends Component<ViewProps> {
                 <button onClick={this.handleExpandAll}>Expand All</button>
               </td>
             </tr>
-            {tree.mainBundles.map(b => <BundleRows {...this.props} visible bundle={b} level={0} key={b.path().id} />)}
+            {tree.mainBundles.map(b => <BundleRows {...this.props} visible bundle={b} level={0} key={b.path.id} />)}
           </tbody>
         </table>
       </>
@@ -90,7 +90,7 @@ class BundleRows extends Component<ViewProps & { bundle: Bundle, level: number, 
   private readonly handleClick = (evt: Event): void => {
     evt.preventDefault()
 
-    this.props.toggleCollapsed(this.props.bundle.path().id)
+    this.props.toggleCollapsed(this.props.bundle.path.id)
   }
 
   private shiftHeld = false
@@ -103,7 +103,7 @@ class BundleRows extends Component<ViewProps & { bundle: Bundle, level: number, 
 
     const { bundle, updateSelection } = this.props
 
-    const keys = this.shiftHeld ? bundle.allChildren() : [bundle.path().id]
+    const keys = this.shiftHeld ? Array.from(bundle.allChildren()) : [bundle.path.id]
     const value = evt.currentTarget.checked
 
     updateSelection(keys.map(k => [k, value]))
@@ -111,14 +111,14 @@ class BundleRows extends Component<ViewProps & { bundle: Bundle, level: number, 
 
   private readonly handleColorChange = (evt: Event & { currentTarget: HTMLInputElement }): void => {
     const { bundle, setColor } = this.props
-    setColor(bundle.path().id, evt.currentTarget.value)
+    setColor(bundle.path.id, evt.currentTarget.value)
   }
 
   render (): ComponentChild {
     const { bundle, level, visible, ...props } = this.props
     const { ns, cm, selection, collapsed } = props
 
-    const path = bundle.path()
+    const path = bundle.path
     const expanded = !collapsed.includes(path.id)
     return (
       <>
@@ -157,7 +157,7 @@ class BundleRows extends Component<ViewProps & { bundle: Bundle, level: number, 
         </tr>
 
         {Array.from(bundle.childFields.entries()).map(([id, field]) => <FieldRow {...props} visible={visible && expanded} level={level + 1} field={field} key={id} />)}
-        {bundle.childBundles.map(bundle => <BundleRows {...props} visible={visible && expanded} level={level + 1} bundle={bundle} key={bundle.path().id} />)}
+        {bundle.childBundles.map(bundle => <BundleRows {...props} visible={visible && expanded} level={level + 1} bundle={bundle} key={bundle.path.id} />)}
       </>
     )
   }
@@ -165,17 +165,17 @@ class BundleRows extends Component<ViewProps & { bundle: Bundle, level: number, 
 
 class FieldRow extends Component<ViewProps & { field: Field, level: number, visible: boolean }> {
   private readonly handleSelectionChange = (evt: Event & { currentTarget: HTMLInputElement }): void => {
-    this.props.updateSelection([[this.props.field.path().id, evt.currentTarget.checked]])
+    this.props.updateSelection([[this.props.field.path.id, evt.currentTarget.checked]])
   }
 
   private readonly handleColorChange = (evt: Event & { currentTarget: HTMLInputElement }): void => {
     const { field, setColor } = this.props
-    setColor(field.path().id, evt.currentTarget.value)
+    setColor(field.path.id, evt.currentTarget.value)
   }
 
   render (): ComponentChild {
     const { ns, cm, field, level, visible, selection } = this.props
-    const path = field.path()
+    const path = field.path
     return (
       <tr class={!visible ? styles.hidden : ''}>
         <td>
