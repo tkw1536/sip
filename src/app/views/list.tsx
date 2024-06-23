@@ -179,7 +179,7 @@ class FieldRow extends Component<ViewProps & { field: Field, level: number, visi
           {path.datatypeProperty !== '' && <PathElement role='datatype' ns={ns} uri={path.datatypeProperty} />}
         </td>
         <td>
-          {path.getInformativeFieldType()}
+          {path.informativeFieldType}
         </td>
         <td>
           {path.cardinality > 0 ? path.cardinality : 'unlimited'}

@@ -69,7 +69,7 @@ export class Path {
     )
   }
 
-  public getInformativeFieldType (): string {
+  get informativeFieldType (): string {
     if (this.fieldTypeInformative !== '') {
       return this.fieldTypeInformative
     }

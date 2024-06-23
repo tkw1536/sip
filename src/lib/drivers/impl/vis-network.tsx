@@ -1,7 +1,7 @@
 import { ContextFlags, defaultLayout, DriverImpl, formatPNG, MountFlags, Size } from '.'
 import { Data, Network, Options } from 'vis-network'
 import { DataSet } from 'vis-data'
-import { ModelEdge, ModelNode } from '../../graph/builders/model'
+import { ModelEdge, ModelNode, modelNodeLabel } from '../../graph/builders/model'
 import { BundleEdge, BundleNode } from '../../graph/builders/bundle'
 import * as styles from './vis-network.module.css'
 
@@ -125,10 +125,11 @@ export class VisNetworkModelDriver extends VisNetworkDriver<ModelNode, ModelEdge
   }
 
   protected async addNodeImpl (dataset: Dataset, { ns }: ContextFlags, id: string, node: ModelNode): Promise<undefined> {
+    const label = modelNodeLabel(node, ns)
     if (node.type === 'field') {
       dataset.addNode({
         id,
-        label: node.field.path().name,
+        label,
 
         shape: 'box',
         color: 'orange'
@@ -138,14 +139,11 @@ export class VisNetworkModelDriver extends VisNetworkDriver<ModelNode, ModelEdge
     if (node.type === 'class' && node.bundles.size === 0) {
       dataset.addNode({
         id,
-        label: ns.apply(node.clz)
+        label
       })
       return
     }
     if (node.type === 'class' && node.bundles.size > 0) {
-      const names = Array.from(node.bundles).map((bundle) => 'Bundle ' + bundle.path().name).join('\n\n')
-      const label = ns.apply(node.clz) + '\n\n' + names
-
       dataset.addNode({
         id,
         label
@@ -162,7 +160,7 @@ export class VisNetworkModelDriver extends VisNetworkDriver<ModelNode, ModelEdge
         to,
         arrows: 'to',
 
-        label: ns.apply(edge.field.path().datatypeProperty)
+        label: ns.apply(edge.property)
       })
       return
     }

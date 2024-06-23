@@ -1,7 +1,7 @@
 import { ContextFlags, defaultLayout, DriverImpl, formatGraphViz, formatSVG, MountFlags, Size } from '.'
 import { BundleEdge, BundleNode } from '../../graph/builders/bundle'
 import { instance, RenderOptions, Viz, engines } from '@viz-js/viz'
-import { ModelEdge, ModelNode } from '../../graph/builders/model'
+import { ModelEdge, ModelNode, modelNodeLabel } from '../../graph/builders/model'
 import svgPanZoom from 'svg-pan-zoom'
 
 interface Context {
@@ -35,7 +35,7 @@ abstract class GraphvizDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLabel
   protected async newContextImpl (): Promise<Context> {
     return {
       viz: await instance(),
-      source: 'digraph {'
+      source: 'digraph { compound=true;'
     }
   }
 
@@ -97,7 +97,7 @@ function makeBody (quoted: Record<string, string>, raw: Record<string, string>):
   const quoteAttrs = Object.entries(quoted).map(([attr, value]) => `${attr}=${quote(value)}`)
   const rawAttrs = Object.entries(raw).map(([attr, value]) => `${attr}=${value}`)
   const attrs = [...quoteAttrs, ...rawAttrs]
-  return (attrs.length > 0) ? ` [${attrs.join(',')}]` : ''
+  return (attrs.length > 0) ? ` [${attrs.join(' ')}]` : ''
 }
 
 function quote (value: string): string {
@@ -143,34 +143,21 @@ export class GraphVizModelDriver extends GraphvizDriver<ModelNode, ModelEdge> {
     return this._instance
   }
 
-  protected addNodeAsString ({ ns }: ContextFlags, id: string, node: ModelNode): string {
+  protected addNodeAsString (flags: ContextFlags, id: string, node: ModelNode): string {
     if (node.type === 'field') {
-      return makeNode(
-        id,
-        {
-          label: node.field.path().name
-        },
-        {
-          shape: 'box',
-
-          style: 'filled',
-          fillcolor: 'orange'
-        }
-      )
+      return this.makeFieldNodes(flags, id, node)
     }
+    const label = modelNodeLabel(node, flags.ns)
     if (node.type === 'class' && node.bundles.size === 0) {
       return makeNode(
         id,
         {
-          label: ns.apply(node.clz)
+          label
         },
         {}
       )
     }
     if (node.type === 'class' && node.bundles.size > 0) {
-      const names = Array.from(node.bundles).map((bundle) => 'Bundle ' + bundle.path().name).join('\n\n')
-      const label = ns.apply(node.clz) + '\n\n' + names
-
       return makeNode(
         id,
         {
@@ -182,27 +169,46 @@ export class GraphVizModelDriver extends GraphvizDriver<ModelNode, ModelEdge> {
     throw new Error('never reached')
   }
 
+  private makeFieldNodes ({ ns }: ContextFlags, id: string, { fields }: ModelNode & { type: 'field' }): string {
+    let output = `subgraph ${quote('cluster-' + id)}{\n`
+
+    output += makeNode(
+      id,
+      { label: 'Literal' },
+      { shape: 'box' }
+    ) + '\n'
+
+    Array.from(fields).forEach((field, idx) => {
+      const fieldID = `${id}-${idx}`
+      const node = makeNode(
+        fieldID,
+        {
+          label: field.path().name
+        },
+        {
+          style: 'filled',
+          fillcolor: 'orange'
+        }
+      )
+      output += node + '\n'
+      output += makeEdge(id, fieldID, { label: field.path().informativeFieldType }, {}) + '\n'
+    })
+
+    output += '}'
+
+    return output
+  }
+
   protected addEdgeAsString ({ ns }: ContextFlags, id: string, from: string, to: string, edge: ModelEdge): string {
-    if (edge.type === 'data') {
-      return makeEdge(
-        from, to,
-        {
-          label: ns.apply(edge.field.path().datatypeProperty)
-        },
-        {}
-      )
+    const properties: Record<string, string> = {
+      label: ns.apply(edge.property)
     }
-    if (edge.type === 'property') {
-      return makeEdge(
-        from, to,
-        {
-          label: ns.apply(edge.property)
-        },
-        {}
-      )
-    }
-    throw new Error('never reached')
+    return makeEdge(
+      from, to,
+      properties,
+      {}
+    )
   }
 }
 
-// spellchecker:words fillcolor
+// spellchecker:words fillcolor lhead

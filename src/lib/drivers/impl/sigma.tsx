@@ -6,7 +6,7 @@ import { BundleEdge, BundleNode } from '../../graph/builders/bundle'
 import forceAtlas2 from 'graphology-layout-forceatlas2'
 import circular from 'graphology-layout/circular'
 import circlepack from 'graphology-layout/circlepack'
-import { ModelEdge, ModelNode } from '../../graph/builders/model'
+import { ModelEdge, ModelNode, modelNodeLabel } from '../../graph/builders/model'
 
 abstract class SigmaDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLabel, EdgeLabel, Graph, Sigma> {
   protected abstract addNodeImpl (graph: Graph, flags: ContextFlags, id: string, node: NodeLabel): Promise<undefined>
@@ -109,9 +109,10 @@ export class SigmaModelDriver extends SigmaDriver<ModelNode, ModelEdge> {
   }
 
   protected async addNodeImpl (graph: Graph, { ns }: ContextFlags, id: string, node: ModelNode): Promise<undefined> {
+    const label = modelNodeLabel(node, ns)
     if (node.type === 'field') {
       graph.addNode(id, {
-        label: node.field.path().name,
+        label,
 
         color: 'orange',
         size: 10
@@ -120,7 +121,7 @@ export class SigmaModelDriver extends SigmaDriver<ModelNode, ModelEdge> {
     }
     if (node.type === 'class' && node.bundles.size === 0) {
       graph.addNode(id, {
-        label: ns.apply(node.clz),
+        label,
 
         color: 'blue',
         size: 10
@@ -128,9 +129,6 @@ export class SigmaModelDriver extends SigmaDriver<ModelNode, ModelEdge> {
       return
     }
     if (node.type === 'class' && node.bundles.size > 0) {
-      const names = Array.from(node.bundles).map((bundle) => 'Bundle ' + bundle.path().name).join('\n\n')
-      const label = ns.apply(node.clz) + '\n\n' + names
-
       graph.addNode(id, {
         label,
 

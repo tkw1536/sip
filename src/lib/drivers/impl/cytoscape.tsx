@@ -8,7 +8,7 @@ import avsdf from 'cytoscape-avsdf'
 import svg from 'cytoscape-svg'
 import { ContextFlags, defaultLayout, DriverImpl, formatSVG, MountFlags, Size } from '.'
 import { BundleEdge, BundleNode } from '../../graph/builders/bundle'
-import { ModelEdge, ModelNode } from '../../graph/builders/model'
+import { ModelEdge, ModelNode, modelNodeLabel } from '../../graph/builders/model'
 cytoscape.use(cola)
 cytoscape.use(dagre)
 cytoscape.use(elk)
@@ -190,20 +190,18 @@ export class CytoModelDriver extends CytoscapeDriver<ModelNode, ModelEdge> {
   }
 
   protected async addNodeImpl (elements: Elements, { ns }: ContextFlags, id: string, node: ModelNode): Promise<undefined> {
+    const label = modelNodeLabel(node, ns)
     if (node.type === 'field') {
-      const data = { id, label: node.field.path().name, color: 'orange' }
+      const data = { id, label, color: 'orange' }
       elements.push({ data })
       return
     }
     if (node.type === 'class' && node.bundles.size === 0) {
-      const data = { id, label: ns.apply(node.clz), color: 'blue' }
+      const data = { id, label, color: 'blue' }
       elements.push({ data })
       return
     }
     if (node.type === 'class' && node.bundles.size > 0) {
-      const names = Array.from(node.bundles).map((bundle) => 'Bundle ' + bundle.path().name).join('\n\n')
-      const label = ns.apply(node.clz) + '\n\n' + names
-
       const data = { id, label, color: 'blue' }
       elements.push({ data })
     }
@@ -211,7 +209,7 @@ export class CytoModelDriver extends CytoscapeDriver<ModelNode, ModelEdge> {
 
   protected async addEdgeImpl (elements: Elements, { ns }: ContextFlags, id: string, from: string, to: string, edge: ModelEdge): Promise<undefined> {
     if (edge.type === 'data') {
-      const data = { id, source: from, target: to, label: ns.apply(edge.field.path().datatypeProperty), color: 'black' }
+      const data = { id, source: from, target: to, label: ns.apply(edge.property), color: 'black' }
       elements.push({ data })
       return
     }
