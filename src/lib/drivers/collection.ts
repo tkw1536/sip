@@ -47,6 +47,10 @@ class DriverCollection<NodeLabel, EdgeLabel> {
 export const models = new DriverCollection<ModelNode, ModelEdge>(
   'vis-network',
   [
+    'GraphViz',
+    async () => await import('./impl/graphviz').then(m => m.GraphVizModelDriver.instance)
+  ],
+  [
     'vis-network',
     async () => await import('./impl/vis-network').then(m => m.VisNetworkModelDriver.instance)
   ],
@@ -61,7 +65,11 @@ export const models = new DriverCollection<ModelNode, ModelEdge>(
 )
 
 export const bundles = new DriverCollection<BundleNode, BundleEdge>(
-  'vis-network',
+  'GraphViz',
+  [
+    'GraphViz',
+    async () => await import('./impl/graphviz').then(m => m.GraphVizBundleDriver.instance)
+  ],
   [
     'vis-network',
     async () => await import('./impl/vis-network').then(m => m.VisNetworkBundleDriver.instance)
