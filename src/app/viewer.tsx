@@ -15,6 +15,7 @@ import Deduplication, { defaultValue as deduplicationDefault } from './state/ded
 import { bundles, models } from '../lib/drivers/collection'
 import { defaultLayout } from '../lib/drivers/impl'
 import Tabs, { Label, Tab } from '../lib/components/tabs'
+import ColorMap from '../lib/colormap'
 
 export type ViewProps = {} & ViewerProps & ViewerState & ViewerReducers
 interface ViewerProps {
@@ -28,6 +29,9 @@ interface ViewerState {
 
   namespaceVersion: number // this number is updated every time the namespaceMap is updated
   ns: NamespaceMap // the current namespace map
+
+  colorVersion: number
+  cm: ColorMap
 
   selectionVersion: number
   selection: Selection // the selection
@@ -60,6 +64,9 @@ interface ViewerReducers {
   collapseAll: () => void
   expandAll: () => void
 
+  setColor: (id: string, color: string) => void
+  resetColorMap: () => void
+
   setDeduplication: (dup: Deduplication) => void
 
   setBundleRenderer: (renderer: string) => void
@@ -87,11 +94,13 @@ export class Viewer extends Component<ViewerProps & { onClose: () => void }, Vie
     const collapsed = Selection.none()
 
     const deduplication = previous?.deduplication ?? deduplicationDefault
+    const cm = ColorMap.generate(tree, { bundle: '#f6b73c', field: '#add8e6' })
 
     const selectionVersion = (previous?.selectionVersion ?? -1) + 1
     const namespaceVersion = (previous?.namespaceVersion ?? -1) + 1
     const pathbuilderVersion = (previous?.pathbuilderVersion ?? -1) + 1
     const optionVersion = (previous?.optionVersion ?? -1) + 1
+    const colorVersion = (previous?.colorVersion ?? -1) + 1
 
     const bundleGraphRenderer = previous?.bundleGraphRenderer ?? bundles.defaultDriver
     const bundleGraphLayout = previous?.bundleGraphLayout ?? defaultLayout
@@ -109,6 +118,9 @@ export class Viewer extends Component<ViewerProps & { onClose: () => void }, Vie
       selection,
 
       collapsed,
+
+      colorVersion,
+      cm,
 
       optionVersion,
       deduplication,
@@ -234,6 +246,17 @@ export class Viewer extends Component<ViewerProps & { onClose: () => void }, Vie
     this.setState({ activeTabIndex: newTab })
   }
 
+  private readonly setColor = (id: string, color: string): void => {
+    this.setState(({ colorVersion, cm }) => ({ cm: cm.set(id, color), colorVersion: colorVersion + 1 }))
+  }
+
+  private readonly resetColorMap = (): void => {
+    this.setState(state => {
+      const { cm, colorVersion } = this.initState(this.props.pathbuilder, state)
+      return { cm, colorVersion }
+    })
+  }
+
   render (): ComponentChild {
     const { onClose, ...props } = this.props
     const callbacks: ViewerReducers = {
@@ -252,7 +275,9 @@ export class Viewer extends Component<ViewerProps & { onClose: () => void }, Vie
       setBundleLayout: this.setBundleLayout,
       setModelRenderer: this.setModelRenderer,
       setModelLayout: this.setModelLayout,
-      setActiveTab: this.setActiveTab
+      setActiveTab: this.setActiveTab,
+      setColor: this.setColor,
+      resetColorMap: this.resetColorMap
     }
     const view = { ...props, ...this.state, ...callbacks }
 

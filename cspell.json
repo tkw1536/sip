@@ -15,7 +15,9 @@
         "cytoscape",
         "cyto",
         "Wiesing",
-        "graphviz"
+        "graphviz",
+        "colormap",
+        "endregion"
     ],
     "ignorePaths": ["package.json", "node_modules/**", "dist/**", ".parcel-cache/**"],
     // flagWords - list of words to be always considered incorrect

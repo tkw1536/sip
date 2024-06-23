@@ -9,6 +9,7 @@ import { classes } from '../../../lib/utils/classes'
 import { Operation } from '../../../lib/utils/operation'
 import Driver from '../../../lib/drivers/impl'
 import { NamespaceMap } from '../../../lib/namespace'
+import ColorMap from '../../../lib/colormap'
 
 interface GraphProps<NodeLabel, EdgeLabel> {
   loader: DriverLoader<NodeLabel, EdgeLabel>
@@ -18,6 +19,7 @@ interface GraphProps<NodeLabel, EdgeLabel> {
   builder: () => Promise<GraphBuilder<NodeLabel, EdgeLabel>>
 
   ns: NamespaceMap
+  cm: ColorMap
   layout: string
 
   panel?: ComponentChildren | ((driver: Driver<NodeLabel, EdgeLabel> | null) => ComponentChildren)
@@ -156,11 +158,11 @@ export default class GraphDisplay<NodeLabel, EdgeLabel> extends Component<GraphP
 
     const { name, loader } = this.makeRenderer()
 
-    const { ns, layout } = this.props
+    const { ns, cm, layout } = this.props
     return (
       <Kernel
         ref={this.kernelRef}
-        graph={graph} ns={ns}
+        graph={graph} ns={ns} cm={cm}
         loader={loader} driver={name}
         layout={layout}
         driverRef={this.driverRef}

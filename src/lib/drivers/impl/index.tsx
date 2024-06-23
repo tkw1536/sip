@@ -1,3 +1,4 @@
+import ColorMap from '../../colormap'
 import { NamespaceMap } from '../../namespace'
 
 export const defaultLayout = 'auto'
@@ -10,6 +11,7 @@ export interface Size { width: number, height: number }
 
 export type ContextFlags = Readonly<{
   ns: NamespaceMap
+  cm: ColorMap
   definitelyAcyclic: boolean
 }>
 

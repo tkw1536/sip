@@ -122,12 +122,14 @@ export class GraphVizBundleDriver extends GraphvizDriver<BundleNode, BundleEdge>
     return this._instance
   }
 
-  protected addNodeAsString (flags: ContextFlags, id: string, node: BundleNode): string {
+  protected addNodeAsString ({ cm }: ContextFlags, id: string, node: BundleNode): string {
     if (node.type === 'bundle') {
-      return makeNode(id, { label: 'Bundle\n' + node.bundle.path().name }, {})
+      const path = node.bundle.path()
+      return makeNode(id, { label: 'Bundle\n' + path.name, fillcolor: cm.get(path.id) }, { style: 'filled' })
     }
     if (node.type === 'field') {
-      return makeNode(id, { label: node.field.path().name }, { style: 'filled', fillcolor: 'orange' })
+      const path = node.field.path()
+      return makeNode(id, { label: path.name, fillcolor: cm.get(path.id) }, { style: 'filled' })
     }
     throw new Error('never reached')
   }

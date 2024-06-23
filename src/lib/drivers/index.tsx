@@ -5,6 +5,7 @@ import * as styles from './index.module.css'
 import { UUIDPool } from '../utils/uuid'
 import { Operation } from '../utils/operation'
 import Driver from './impl'
+import ColorMap from '../colormap'
 
 export const defaultLayout = 'auto'
 
@@ -12,6 +13,7 @@ export interface Size { width: number, height: number }
 
 export type ContextFlags = Readonly<{
   ns: NamespaceMap
+  cm: ColorMap
   definitelyAcyclic: boolean
 }>
 
@@ -28,6 +30,7 @@ interface KernelProps<NodeLabel, EdgeLabel> {
   graph: Graph<NodeLabel, EdgeLabel>
   layout: string
   ns: NamespaceMap
+  cm: ColorMap
 
   loader: DriverLoader<NodeLabel, EdgeLabel>
   driver: string
@@ -61,6 +64,7 @@ export default class Kernel<NodeLabel, EdgeLabel> extends Component<KernelProps<
 
     const ctxFlags: ContextFlags = Object.freeze({
       ns: this.props.ns,
+      cm: this.props.cm,
       definitelyAcyclic: this.props.graph.definitelyAcyclic
     })
 

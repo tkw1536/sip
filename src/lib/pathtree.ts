@@ -5,6 +5,17 @@ export abstract class NodeLike {
   abstract children (): NodeLike[]
   abstract parent (): NodeLike | null
 
+  /** recursively walks over the tree of this NodeLike */
+  * walk (): IterableIterator<NodeLike> {
+    yield this
+
+    for (const child of this.children()) {
+      for (const relative of child.walk()) {
+        yield relative
+      }
+    }
+  }
+
   /** allChildren returns a set containing the ids of all recursive children of this node */
   allChildren (): string[] {
     const children: string[] = []

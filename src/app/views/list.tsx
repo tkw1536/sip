@@ -26,6 +26,11 @@ export default class ListView extends Component<ViewProps> {
     this.props.collapseAll()
   }
 
+  private readonly handleResetColor = (evt: Event): void => {
+    evt.preventDefault()
+    this.props.resetColorMap()
+  }
+
   render (): ComponentChild {
     const { tree } = this.props
     return (
@@ -35,8 +40,12 @@ export default class ListView extends Component<ViewProps> {
           It is similar to the WissKI Interface, except read-only.
         </p>
         <p>
-          The checkboxes here are used to include the bundle in the graph displays.
+          The checkboxes here are used to include the paths in the graph displays.
           Use the shift key to update the all child values recursively.
+        </p>
+        <p>
+          The color boxes are used to change the color of the fields in the graph displays.
+          If a single node includes multiple colors, any of the colors may be used.
         </p>
 
         <table class={styles.table}>
@@ -56,6 +65,9 @@ export default class ListView extends Component<ViewProps> {
                 Select: &nbsp;
                 <button onClick={this.handleSelectAll}>All</button> &nbsp;
                 <button onClick={this.handleSelectNone}>None</button>
+                &nbsp;
+                Color: &nbsp;
+                <button onClick={this.handleResetColor}>Reset</button> &nbsp;
               </td>
             </tr>
             <tr>
@@ -86,7 +98,7 @@ class BundleRows extends Component<ViewProps & { bundle: Bundle, level: number, 
     this.shiftHeld = evt.shiftKey
   }
 
-  private readonly handleChange = (evt: Event & { currentTarget: HTMLInputElement }): void => {
+  private readonly handleSelectionChange = (evt: Event & { currentTarget: HTMLInputElement }): void => {
     evt.preventDefault()
 
     const { bundle, updateSelection } = this.props
@@ -97,9 +109,14 @@ class BundleRows extends Component<ViewProps & { bundle: Bundle, level: number, 
     updateSelection(keys.map(k => [k, value]))
   }
 
+  private readonly handleColorChange = (evt: Event & { currentTarget: HTMLInputElement }): void => {
+    const { bundle, setColor } = this.props
+    setColor(bundle.path().id, evt.currentTarget.value)
+  }
+
   render (): ComponentChild {
     const { bundle, level, visible, ...props } = this.props
-    const { ns, selection, collapsed } = props
+    const { ns, cm, selection, collapsed } = props
 
     const path = bundle.path()
     const expanded = !collapsed.includes(path.id)
@@ -107,7 +124,8 @@ class BundleRows extends Component<ViewProps & { bundle: Bundle, level: number, 
       <>
         <tr class={!visible ? styles.hidden : ''}>
           <td>
-            <input type='checkbox' checked={selection.includes(path.id)} onClick={this.handleKeydown} onInput={this.handleChange} />
+            <input type='checkbox' checked={selection.includes(path.id)} onClick={this.handleKeydown} onInput={this.handleSelectionChange} />
+            <input type='color' value={cm.get(path.id)} onInput={this.handleColorChange} />
           </td>
           <td style={{ paddingLeft: INDENT_PER_LEVEL * level }}>
             <button onClick={this.handleClick} aria-role='toggle' disabled={bundle.childBundles.length === 0 && bundle.childFields.size === 0}>
@@ -146,17 +164,23 @@ class BundleRows extends Component<ViewProps & { bundle: Bundle, level: number, 
 }
 
 class FieldRow extends Component<ViewProps & { field: Field, level: number, visible: boolean }> {
-  private readonly handleChange = (evt: Event & { currentTarget: HTMLInputElement }): void => {
+  private readonly handleSelectionChange = (evt: Event & { currentTarget: HTMLInputElement }): void => {
     this.props.updateSelection([[this.props.field.path().id, evt.currentTarget.checked]])
   }
 
+  private readonly handleColorChange = (evt: Event & { currentTarget: HTMLInputElement }): void => {
+    const { field, setColor } = this.props
+    setColor(field.path().id, evt.currentTarget.value)
+  }
+
   render (): ComponentChild {
-    const { ns, field, level, visible, selection } = this.props
+    const { ns, cm, field, level, visible, selection } = this.props
     const path = field.path()
     return (
       <tr class={!visible ? styles.hidden : ''}>
         <td>
-          <input type='checkbox' checked={selection.includes(path.id)} onInput={this.handleChange} />
+          <input type='checkbox' checked={selection.includes(path.id)} onInput={this.handleSelectionChange} />
+          <input type='color' value={cm.get(path.id)} onInput={this.handleColorChange} />
         </td>
         <td style={{ paddingLeft: INDENT_PER_LEVEL * level }}>
           {path.name}

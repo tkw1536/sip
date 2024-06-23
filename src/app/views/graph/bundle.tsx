@@ -12,15 +12,15 @@ export default class BundleGraphView extends Component<ViewProps> {
   }
 
   render (): ComponentChildren {
-    const { bundleGraphLayout, bundleGraphRenderer, pathbuilderVersion, selectionVersion, ns } = this.props
+    const { bundleGraphLayout, bundleGraphRenderer, pathbuilderVersion, selectionVersion, colorVersion, ns, cm } = this.props
 
     return (
       <GraphDisplay
         loader={bundles}
         driver={bundleGraphRenderer}
-        builderKey={`${pathbuilderVersion}-${selectionVersion}`}
+        builderKey={`${pathbuilderVersion}-${selectionVersion}-${colorVersion}`}
         builder={this.builder}
-        ns={ns}
+        ns={ns} cm={cm}
         layout={bundleGraphLayout}
       />
     )

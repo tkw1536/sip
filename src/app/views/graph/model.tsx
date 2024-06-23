@@ -36,16 +36,16 @@ export default class ModelGraphView extends Component<ViewProps> {
   }
 
   render (): ComponentChildren {
-    const { modelGraphLayout, modelGraphRenderer, pathbuilderVersion, selectionVersion, optionVersion, ns } = this.props
+    const { modelGraphLayout, modelGraphRenderer, pathbuilderVersion, selectionVersion, optionVersion, colorVersion, ns, cm } = this.props
 
     return (
       <GraphDisplay
         ref={this.displayRef}
         loader={models}
         driver={modelGraphRenderer}
-        builderKey={`${pathbuilderVersion}-${selectionVersion}-${optionVersion}`}
+        builderKey={`${pathbuilderVersion}-${selectionVersion}-${optionVersion}-${colorVersion}`}
         builder={this.builder}
-        ns={ns}
+        ns={ns} cm={cm}
         layout={modelGraphLayout}
         panel={this.renderPanel}
       />
