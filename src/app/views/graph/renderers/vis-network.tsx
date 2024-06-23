@@ -6,12 +6,11 @@ import { BundleEdge, BundleNode } from '../../../../lib/graph/builders/bundle'
 import * as styles from './vis-network.module.css'
 
 abstract class VisNetworkDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLabel, EdgeLabel, Dataset, Network> {
-  protected abstract addNodeImpl (dataset: Dataset, flags: ContextFlags, id: string, node: NodeLabel): undefined
-  protected abstract addEdgeImpl (dataset: Dataset, flags: ContextFlags, id: string, from: string, to: string, edge: EdgeLabel): undefined
+  protected abstract addNodeImpl (dataset: Dataset, flags: ContextFlags, id: string, node: NodeLabel): Promise<undefined>
+  protected abstract addEdgeImpl (dataset: Dataset, flags: ContextFlags, id: string, from: string, to: string, edge: EdgeLabel): Promise<undefined>
 
-  readonly rendererName = 'vis-network'
+  readonly driverName = 'vis-network'
   readonly supportedLayouts = [defaultLayout, 'hierarchical', 'force2atlas']
-  readonly initializeClass = async (): Promise<void> => {}
 
   protected options (layout: string, definitelyAcyclic: boolean): Options {
     const hierarchical = layout === defaultLayout ? definitelyAcyclic : layout === 'hierarchical'
@@ -50,11 +49,11 @@ abstract class VisNetworkDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLab
         }
   }
 
-  protected newContextImpl (): Dataset {
+  protected async newContextImpl (): Promise<Dataset> {
     return new Dataset()
   }
 
-  protected finalizeContextImpl (ctx: Dataset): undefined {
+  protected async finalizeContextImpl (ctx: Dataset): Promise<undefined> {
     return undefined
   }
 
@@ -91,7 +90,7 @@ export class VisNetworkBundleDriver extends VisNetworkDriver<BundleNode, BundleE
     return this._instance
   }
 
-  protected addNodeImpl (dataset: Dataset, flags: ContextFlags, id: string, node: BundleNode): undefined {
+  protected async addNodeImpl (dataset: Dataset, flags: ContextFlags, id: string, node: BundleNode): Promise<undefined> {
     if (node.type === 'bundle') {
       dataset.addNode({ id, label: 'Bundle\n' + node.bundle.path().name, level: node.level })
       return
@@ -103,7 +102,7 @@ export class VisNetworkBundleDriver extends VisNetworkDriver<BundleNode, BundleE
     throw new Error('never reached')
   }
 
-  protected addEdgeImpl (dataset: Dataset, flags: ContextFlags, id: string, from: string, to: string, edge: BundleEdge): undefined {
+  protected async addEdgeImpl (dataset: Dataset, flags: ContextFlags, id: string, from: string, to: string, edge: BundleEdge): Promise<undefined> {
     if (edge.type === 'child_bundle') {
       dataset.addEdge({ from, to, arrows: 'to' })
       return
@@ -125,7 +124,7 @@ export class VisNetworkModelDriver extends VisNetworkDriver<ModelNode, ModelEdge
     return this._instance
   }
 
-  protected addNodeImpl (dataset: Dataset, { ns }: ContextFlags, id: string, node: ModelNode): undefined {
+  protected async addNodeImpl (dataset: Dataset, { ns }: ContextFlags, id: string, node: ModelNode): Promise<undefined> {
     if (node.type === 'field') {
       dataset.addNode({
         id,
@@ -156,7 +155,7 @@ export class VisNetworkModelDriver extends VisNetworkDriver<ModelNode, ModelEdge
     throw new Error('never reached')
   }
 
-  protected addEdgeImpl (dataset: Dataset, { ns }: ContextFlags, id: string, from: string, to: string, edge: ModelEdge): undefined {
+  protected async addEdgeImpl (dataset: Dataset, { ns }: ContextFlags, id: string, from: string, to: string, edge: ModelEdge): Promise<undefined> {
     if (edge.type === 'data') {
       dataset.addEdge({
         from,

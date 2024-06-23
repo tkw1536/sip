@@ -1,7 +1,7 @@
 import { Component, createRef, ComponentChild, Fragment } from 'preact'
 import type { ViewProps } from '../../viewer'
 import download from '../../../lib/utils/download'
-import { Driver, Renderer } from './renderers'
+import Renderer, { Driver } from './renderers'
 import Graph from '../../../lib/graph'
 import GraphBuilder from '../../../lib/graph/builders'
 
@@ -23,7 +23,7 @@ interface State<NodeLabel, EdgeLabel> {
 export default abstract class GraphView<NodeLabel, EdgeLabel> extends Component<ViewProps, State<NodeLabel, EdgeLabel>> {
   state: State<NodeLabel, EdgeLabel> = { open: false, rendererLoading: true }
 
-  protected abstract newRenderer (previousProps: typeof this.props): boolean
+  protected abstract newDriver (previousProps: typeof this.props): boolean
   protected abstract makeRenderer (): Promise<Driver<NodeLabel, EdgeLabel>>
   protected abstract newGraphBuilder (previousProps: typeof this.props): boolean
   protected abstract makeGraphBuilder (): Promise<GraphBuilder<NodeLabel, EdgeLabel>>
@@ -109,7 +109,7 @@ export default abstract class GraphView<NodeLabel, EdgeLabel> extends Component<
     }
 
     // renderer has changed => load the new one
-    if (this.newRenderer(previousProps)) {
+    if (this.newDriver(previousProps)) {
       this.setState({ renderer: undefined, rendererLoading: true, rendererError: undefined })
       this.loadRenderer()
     }

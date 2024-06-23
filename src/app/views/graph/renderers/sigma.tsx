@@ -9,23 +9,22 @@ import circlepack from 'graphology-layout/circlepack'
 import { ModelEdge, ModelNode } from '../../../../lib/graph/builders/model'
 
 abstract class SigmaDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLabel, EdgeLabel, Graph, Sigma> {
-  protected abstract addNodeImpl (graph: Graph, flags: ContextFlags, id: string, node: NodeLabel): undefined
-  protected abstract addEdgeImpl (graph: Graph, flags: ContextFlags, id: string, from: string, to: string, edge: EdgeLabel): undefined
+  protected abstract addNodeImpl (graph: Graph, flags: ContextFlags, id: string, node: NodeLabel): Promise<undefined>
+  protected abstract addEdgeImpl (graph: Graph, flags: ContextFlags, id: string, from: string, to: string, edge: EdgeLabel): Promise<undefined>
 
-  readonly rendererName = 'Sigma.js'
+  readonly driverName = 'Sigma.js'
   readonly supportedLayouts = [defaultLayout, 'force2atlas', 'circular', 'circlepack']
-  readonly initializeClass = async (): Promise<void> => {}
 
   protected settings (): Partial<Settings> {
     return {
     }
   }
 
-  protected newContextImpl (): Graph {
+  protected async newContextImpl (): Promise<Graph> {
     return new Graph()
   }
 
-  protected finalizeContextImpl (ctx: Graph): undefined {
+  protected async finalizeContextImpl (ctx: Graph): Promise<undefined> {
     return undefined
   }
 
@@ -75,7 +74,7 @@ export class SigmaBundleDriver extends SigmaDriver<BundleNode, BundleEdge> {
     return this._instance
   }
 
-  protected addNodeImpl (graph: Graph, flags: ContextFlags, id: string, node: BundleNode): undefined {
+  protected async addNodeImpl (graph: Graph, flags: ContextFlags, id: string, node: BundleNode): Promise<undefined> {
     if (node.type === 'bundle') {
       graph.addNode(id, { label: 'Bundle\n' + node.bundle.path().name, color: 'blue', size: 20 })
       return
@@ -87,7 +86,7 @@ export class SigmaBundleDriver extends SigmaDriver<BundleNode, BundleEdge> {
     throw new Error('never reached')
   }
 
-  protected addEdgeImpl (graph: Graph, flags: ContextFlags, id: string, from: string, to: string, edge: BundleEdge): undefined {
+  protected async addEdgeImpl (graph: Graph, flags: ContextFlags, id: string, from: string, to: string, edge: BundleEdge): Promise<undefined> {
     if (edge.type === 'child_bundle') {
       graph.addDirectedEdge(from, to, { color: 'black', type: 'arrow', arrow: 'target', size: 5 })
       return
@@ -109,7 +108,7 @@ export class SigmaModelDriver extends SigmaDriver<ModelNode, ModelEdge> {
     return this._instance
   }
 
-  protected addNodeImpl (graph: Graph, { ns }: ContextFlags, id: string, node: ModelNode): undefined {
+  protected async addNodeImpl (graph: Graph, { ns }: ContextFlags, id: string, node: ModelNode): Promise<undefined> {
     if (node.type === 'field') {
       graph.addNode(id, {
         label: node.field.path().name,
@@ -138,10 +137,12 @@ export class SigmaModelDriver extends SigmaDriver<ModelNode, ModelEdge> {
         color: 'blue',
         size: 10
       })
+      return
     }
+    throw new Error('never reached')
   }
 
-  protected addEdgeImpl (graph: Graph, { ns }: ContextFlags, id: string, from: string, to: string, edge: ModelEdge): undefined {
+  protected async addEdgeImpl (graph: Graph, { ns }: ContextFlags, id: string, from: string, to: string, edge: ModelEdge): Promise<undefined> {
     if (edge.type === 'data') {
       graph.addDirectedEdge(from, to, { color: 'black', type: 'arrow', arrow: 'target', size: 5 })
       return

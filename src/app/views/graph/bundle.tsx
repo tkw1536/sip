@@ -8,7 +8,7 @@ import { Driver } from './renderers'
 export default class BundleGraphView extends GraphView<BundleNode, BundleEdge> {
   protected readonly layoutKey = 'bundleGraphLayout'
 
-  protected newRenderer (previousProps: typeof this.props): boolean {
+  protected newDriver (previousProps: typeof this.props): boolean {
     return this.props.bundleGraphRenderer !== previousProps.bundleGraphRenderer
   }
 

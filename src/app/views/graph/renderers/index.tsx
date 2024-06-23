@@ -3,83 +3,9 @@ import Graph from '../../../../lib/graph'
 import { NamespaceMap } from '../../../../lib/namespace'
 import * as styles from './index.module.css'
 import { UUIDPool } from '../../../../lib/utils/uuid'
+import { Operation } from '../../../../lib/utils/operation'
 
-interface RendererProps<NodeLabel, EdgeLabel> {
-  layout: string
-  graph: Graph<NodeLabel, EdgeLabel>
-  ns: NamespaceMap
-  driver: Driver<NodeLabel, EdgeLabel>
-}
 export const defaultLayout = 'auto'
-
-interface RenderState { size?: [number, number] }
-/**
- * Renderer instantiates a renderer onto the page
- */
-export class Renderer<NodeLabel, EdgeLabel> extends Component<RendererProps<NodeLabel, EdgeLabel>, RenderState> {
-  state: RenderState = {}
-
-  async exportBlob (format: string): Promise<Blob> {
-    const { current: kernel } = this.kernelRef
-    if (kernel == null) {
-      return await Promise.reject(new Error('no visible kernel'))
-    }
-
-    return await kernel.toBlob(format)
-  }
-
-  private readonly wrapperRef = createRef<HTMLDivElement>()
-  private readonly kernelRef = createRef<Kernel<NodeLabel, EdgeLabel>>()
-
-  private observer: ResizeObserver | null = null
-
-  private readonly onResize = ([entry]: ResizeObserverEntry[]): void => {
-    const [width, height] = Renderer.getVisibleSize(entry.target)
-
-    this.setState(({ size }) => {
-      // if the previous size is identical, don't resize
-      if ((size != null) && size[0] === width && size[1] === height) {
-        return null
-      }
-      return { size: [width, height] }
-    })
-  }
-
-  /* returns the size of the part of target that is visible in the view port */
-  private static readonly getVisibleSize = (target: Element): [number, number] => {
-    const { top, bottom, left, right } = target.getBoundingClientRect()
-
-    return [
-      Math.max(Math.min(right, window.innerWidth) - Math.max(left, 0), 0),
-      Math.max(Math.min(bottom, window.innerHeight) - Math.max(top, 0), 0)
-    ]
-  }
-
-  componentDidMount (): void {
-    const { current } = this.wrapperRef
-    if (this.observer == null && current !== null) {
-      this.observer = new ResizeObserver(this.onResize)
-      this.observer.observe(current)
-    }
-  }
-
-  componentWillUnmount (): void {
-    if (this.observer != null) {
-      this.observer.disconnect()
-      this.observer = null
-    }
-  }
-
-  render (): ComponentChild {
-    const { driver, ...props } = this.props
-    const { size } = this.state
-    return (
-      <div ref={this.wrapperRef} class={styles.wrapper}>
-        {(size != null) && <Kernel ref={this.kernelRef} {...props} driver={driver} size={{ width: size[0], height: size[1] }} />}
-      </div>
-    )
-  }
-}
 
 export interface Size { width: number, height: number }
 
@@ -99,13 +25,11 @@ type _mount = unknown
 
 /** driver implements a driver for a single library */
 export interface Driver<NodeLabel, EdgeLabel> {
-  initializeClass: () => Promise<void>
-
-  readonly rendererName: string
-  newContext: (flags: ContextFlags) => _context
-  addNode: (ctx: _context, flags: ContextFlags, id: string, node: NodeLabel) => _context | null | undefined
-  addEdge: (ctx: _context, flags: ContextFlags, id: string, from: string, to: string, edge: EdgeLabel) => _context | null | undefined
-  finalizeContext: (ctx: _context, flags: ContextFlags) => _context | null | undefined
+  readonly driverName: string
+  newContext: (flags: ContextFlags) => Promise<_context>
+  addNode: (ctx: _context, flags: ContextFlags, id: string, node: NodeLabel) => Promise<_context | null | undefined>
+  addEdge: (ctx: _context, flags: ContextFlags, id: string, from: string, to: string, edge: EdgeLabel) => Promise<_context | null | undefined>
+  finalizeContext: (ctx: _context, flags: ContextFlags) => Promise<_context | null | undefined>
 
   readonly supportedLayouts: string[]
   mount: (ctx: _context, flags: MountFlags) => _mount
@@ -118,29 +42,28 @@ export interface Driver<NodeLabel, EdgeLabel> {
 }
 
 export abstract class DriverImpl<NodeLabel, EdgeLabel, Context, Mount> implements Driver<NodeLabel, EdgeLabel> {
-  protected constructor () {}
-  abstract initializeClass (): Promise<void>
+  protected constructor () { }
 
-  abstract readonly rendererName: string
-  newContext (flags: ContextFlags): _context {
-    return this.newContextImpl(flags)
+  abstract readonly driverName: string
+  async newContext (flags: ContextFlags): Promise<_context> {
+    return await this.newContextImpl(flags)
   }
-  protected abstract newContextImpl (flags: ContextFlags): Context
+  protected abstract newContextImpl (flags: ContextFlags): Promise<Context>
 
-  addNode (ctx: _context, flags: ContextFlags, id: string, node: NodeLabel): _context | null | undefined {
-    return this.addNodeImpl(ctx as Context, flags, id, node)
+  async addNode (ctx: _context, flags: ContextFlags, id: string, node: NodeLabel): Promise<_context | null | undefined> {
+    return await this.addNodeImpl(ctx as Context, flags, id, node)
   }
-  protected abstract addNodeImpl (ctx: Context, flags: ContextFlags, id: string, node: NodeLabel): Context | null | undefined
+  protected abstract addNodeImpl (ctx: Context, flags: ContextFlags, id: string, node: NodeLabel): Promise<Context | null | undefined>
 
-  addEdge (ctx: _context, flags: ContextFlags, id: string, from: string, to: string, edge: EdgeLabel): _context | null | undefined {
-    return this.addEdgeImpl(ctx as Context, flags, id, from, to, edge)
+  async addEdge (ctx: _context, flags: ContextFlags, id: string, from: string, to: string, edge: EdgeLabel): Promise<_context | null | undefined> {
+    return await this.addEdgeImpl(ctx as Context, flags, id, from, to, edge)
   }
-  protected abstract addEdgeImpl (ctx: Context, flags: ContextFlags, id: string, from: string, to: string, edge: EdgeLabel): Context | null | undefined
+  protected abstract addEdgeImpl (ctx: Context, flags: ContextFlags, id: string, from: string, to: string, edge: EdgeLabel): Promise<Context | null | undefined>
 
-  finalizeContext (ctx: _context, flags: ContextFlags): _context | null | undefined {
-    return this.finalizeContextImpl(ctx as Context, flags)
+  async finalizeContext (ctx: _context, flags: ContextFlags): Promise<_context | null | undefined> {
+    return await this.finalizeContextImpl(ctx as Context, flags)
   }
-  protected abstract finalizeContextImpl (ctx: Context, flags: ContextFlags): Context | null | undefined
+  protected abstract finalizeContextImpl (ctx: Context, flags: ContextFlags): Promise<Context | null | undefined>
 
   abstract readonly supportedLayouts: string[]
 
@@ -167,20 +90,30 @@ export abstract class DriverImpl<NodeLabel, EdgeLabel, Context, Mount> implement
   protected abstract objectToBlobImpl (mount: Mount, ctx: Context, flags: MountFlags, format: string): Promise<Blob>
 }
 
-type KernelProps<NodeLabel, EdgeLabel> = RendererProps<NodeLabel, EdgeLabel> & { size: Size, driver: Driver<NodeLabel, EdgeLabel>, layout: string }
+interface KernelProps<NodeLabel, EdgeLabel> {
+  graph: Graph<NodeLabel, EdgeLabel>
+  layout: string
+  ns: NamespaceMap
+  driver: Driver<NodeLabel, EdgeLabel>
+}
 
-/** Kernel uses a driver to display a renderer */
-class Kernel<NodeLabel, EdgeLabel> extends Component<KernelProps<NodeLabel, EdgeLabel>> {
+interface KernelState { size?: Size, driverError?: string, driverLoading: boolean }
+
+/** Kernel displays a driver on the page */
+export default class Kernel<NodeLabel, EdgeLabel> extends Component<KernelProps<NodeLabel, EdgeLabel>, KernelState> {
+  private static readonly errorAborted = new Error('aborted')
+
+  state: KernelState = { driverLoading: false }
   private instance: { mount: _mount, ctx: _context, flags: MountFlags, driver: Driver<NodeLabel, EdgeLabel> } | null = null
 
-  private createRenderer (): void {
+  private mountDriver (): void {
     const { current: container } = this.container
-    if ((this.instance != null) || (container == null)) {
+    const { size } = this.state
+    if ((this.instance !== null) || (container === null) || (typeof size === 'undefined')) {
       return
     }
 
-    const { graph, size, layout, driver } = this.props
-    const ids = new UUIDPool()
+    const { graph, layout, driver } = this.props
 
     const ctxFlags: ContextFlags = Object.freeze({
       ns: this.props.ns,
@@ -195,59 +128,77 @@ class Kernel<NodeLabel, EdgeLabel> extends Component<KernelProps<NodeLabel, Edge
     })
 
     // check that we have a valid layout
-    if (!driver.supportedLayouts.includes(layout)) {
+    if (!driver.supportedLayouts.includes(flags.layout)) {
       console.error('cannot mount: unsupported driver layout received')
       return
     }
 
-    try {
-      // create a new context
-      let ctx = driver.newContext(ctxFlags)
+    // create a ticket, and make the context
+    const setState = this.mount.ticketStateSetter(this)
 
-      // add all nodes and edges
-      graph.getNodes().forEach(([id, node]) => {
-        ctx = driver.addNode(ctx, ctxFlags, ids.for(id), node) ?? ctx
-      })
-      graph.getEdges().forEach(([id, from, to, edge]) => {
-        ctx = driver.addEdge(ctx, ctxFlags, ids.for(id), ids.for(from), ids.for(to), edge) ?? ctx
-      })
+    this.setState({ driverLoading: true, driverError: undefined }, () => {
+      this.createContext(setState.ticket, graph, driver, ctxFlags)
+        .then(async (ctx: _context) => {
+          // we've finished loading the page, not make everything sync
+          await setState({ driverError: undefined, driverLoading: false })
+          if (!setState.ticket()) throw Kernel.errorAborted
 
-      // finalize the context
-      ctx = driver.finalizeContext(ctx, ctxFlags) ?? ctx
+          const mount: _mount = driver.mount(ctx, flags)
+          this.instance = { mount, ctx, flags, driver }
+          this.resizeMount()
+        })
+        .catch((err: unknown) => {
+          if (err === Kernel.errorAborted || !setState.ticket()) return
 
-      // mount it to the page
-      const mount = driver.mount(ctx, flags)
-
-      this.instance = { mount, ctx, flags, driver }
-    } catch (e) {
-      console.error('failed to render graph')
-      console.error(e)
-      return
-    }
-
-    this.updateRendererSize()
+          console.error('error while mounting driver: ', err)
+          this.setState({ driverError: Object.prototype.toString.call(err), driverLoading: false })
+        })
+    })
   }
 
-  private destroyRenderer (): void {
+  private async createContext (ticket: () => boolean, graph: Graph<NodeLabel, EdgeLabel>, driver: Driver<NodeLabel, EdgeLabel>, ctxFlags: ContextFlags): Promise<_context> {
+    const ids = new UUIDPool()
+
+    // create a new context
+    let ctx = await driver.newContext(ctxFlags)
+    if (!ticket()) throw Kernel.errorAborted
+
+    // add all nodes and edges
+    for (const [id, node] of graph.getNodes()) {
+      ctx = (await driver.addNode(ctx, ctxFlags, ids.for(id), node)) ?? ctx
+      if (!ticket()) throw Kernel.errorAborted
+    }
+    for (const [id, from, to, edge] of graph.getEdges()) {
+      ctx = (await driver.addEdge(ctx, ctxFlags, ids.for(id), ids.for(from), ids.for(to), edge)) ?? ctx
+      if (!ticket()) throw Kernel.errorAborted
+    }
+
+    // finalize the context
+    ctx = (await driver.finalizeContext(ctx, ctxFlags)) ?? ctx
+    if (!ticket()) throw Kernel.errorAborted
+
+    return ctx
+  }
+
+  private unmountDriver (): void {
     if (this.instance === null) return
     this.instance.driver.unmount(this.instance.mount, this.instance.ctx, this.instance.flags)
     this.instance = null
   }
 
-  private updateRendererSize (): void {
-    if (this.instance == null) return
-    const { size } = this.props
+  private resizeMount (): void {
+    const { size } = this.state
+    if (this.instance == null || typeof size === 'undefined') return
 
     // call the resize function and store the new size
     const next = this.instance.driver.resizeMount(this.instance.mount, this.instance.ctx, this.instance.flags, size)
     this.instance.flags = Object.freeze({ ...this.instance.flags, size })
 
     // update the mounted instance (if applicable)
-    if (typeof next === 'undefined') return
-    this.instance.mount = next
+    this.instance.mount = next ?? this.instance.mount
   }
 
-  async toBlob (format: string): Promise<Blob> {
+  async exportBlob (format: string): Promise<Blob> {
     if (this.instance == null) throw new Error('instance not setup')
 
     const { driver } = this.instance
@@ -258,30 +209,125 @@ class Kernel<NodeLabel, EdgeLabel> extends Component<KernelProps<NodeLabel, Edge
     return await driver.objectToBlob(this.instance.mount, this.instance.ctx, this.instance.flags, format)
   }
 
+  private readonly mount = new Operation()
   componentDidMount (): void {
-    this.createRenderer()
+    this.createObserver()
   }
 
-  componentDidUpdate (previousProps: typeof this.props): void {
-    const { size: { width, height }, graph, driver, layout } = this.props
+  componentDidUpdate (previousProps: typeof this.props, previousState: typeof this.state): void {
+    const { size } = this.state
+    const { current: container } = this.container
+    if (typeof size === 'undefined' || container === null) return
 
     // if any of the critical properties changed => create a new driver
-    if (previousProps.driver !== driver || previousProps.graph !== graph || previousProps.layout !== layout) {
-      this.destroyRenderer()
-      this.createRenderer()
+    if (this.shouldRemount(previousProps, previousState)) {
+      this.unmountDriver()
+      this.mountDriver()
       return
     }
 
-    if (previousProps.size.width === width && previousProps.size.height !== height) {
-      return // size didn't change => no need to do anything
+    // if the size changed, we should update the size
+    if (this.shouldResizeMount(previousProps, previousState)) {
+      this.resizeMount()
+      return // eslint-disable-line no-useless-return
     }
-
-    this.updateRendererSize()
   }
 
+  private shouldRemount (previousProps: typeof this.props, previousState: typeof this.state): boolean {
+    return (
+      // we didn't have a size before, but we do now
+      (typeof previousState.size === 'undefined' && typeof this.state.size !== 'undefined') ||
+
+      // the driver changed
+      (previousProps.driver !== this.props.driver) ||
+
+      // the graph changed
+      (previousProps.graph !== this.props.graph) ||
+
+      // the layout changed
+      (previousProps.layout !== this.props.layout)
+    )
+  }
+
+  private shouldResizeMount (previousProps: typeof this.props, previousState: typeof this.state): boolean {
+    const { size: prevSize } = previousState
+    const { size } = this.state
+
+    return (
+      // either of the sizes are not defined
+      (typeof prevSize === 'undefined' || typeof size === 'undefined') ||
+
+      // either of the dimensions have changed
+      (prevSize.width !== size.width) ||
+      (prevSize.height !== size.height)
+    )
+  }
+
+  componentWillUnmount (): void {
+    this.mount.cancel()
+    this.destroyObserver()
+    this.unmountDriver()
+  }
+
+  // #region "observer"
+  private observer: ResizeObserver | null = null
+
+  /** creates a resize observer unless it already exists */
+  private createObserver (): void {
+    // check that we don't already have an observer
+    const { current: wrapper } = this.wrapper
+    if (wrapper === null || this.observer !== null) return
+
+    this.observer = new ResizeObserver(this.handleObserverResize)
+    this.observer.observe(wrapper)
+  }
+
+  /** destroys a resize observer if it exists */
+  private destroyObserver (): void {
+    if (this.observer === null) return
+    this.observer.disconnect()
+    this.observer = null
+  }
+
+  /** handles updating the state to the newly observed size */
+  private readonly handleObserverResize = ([entry]: ResizeObserverEntry[]): void => {
+    if (this.mount.canceled) return // no longer mounted => no need to do anything
+
+    const [width, height] = Kernel.getVisibleSize(entry.target)
+
+    this.setState(({ size }) => {
+      if (typeof size !== 'undefined' && size.width === width && size.height === height) return null
+
+      return { size: { width, height } }
+    })
+  }
+
+  /* returns the size of the part of target that is visible in the view port */
+  private static readonly getVisibleSize = (target: Element): [number, number] => {
+    const { top, bottom, left, right } = target.getBoundingClientRect()
+
+    return [
+      Math.max(Math.min(right, window.innerWidth) - Math.max(left, 0), 0),
+      Math.max(Math.min(bottom, window.innerHeight) - Math.max(top, 0), 0)
+    ]
+  }
+
+  // #endregion
+
+  private readonly wrapper = createRef<HTMLDivElement>()
   private readonly container = createRef<HTMLDivElement>()
   render (): ComponentChild {
-    const { size: { width, height } } = this.props
-    return <div style={{ width, height }} ref={this.container} />
+    const { size, driverLoading, driverError } = this.state
+
+    return (
+      <div ref={this.wrapper} class={styles.wrapper}>
+        {(typeof size !== 'undefined') && (
+          <div style={{ width: size.width, height: size.height }} ref={this.container}>
+            {driverLoading && <p>Driver loading</p>}
+            {typeof driverError === 'string' && <p><b>Error loading driver: </b>{driverError}</p>}
+          </div>
+        )}
+      </div>
+    )
   }
 }

@@ -1,6 +1,6 @@
 import { BundleEdge, BundleNode } from '../../lib/graph/builders/bundle'
 import { ModelEdge, ModelNode } from '../../lib/graph/builders/model'
-import Once, { Lazy } from '../../lib/utils/once'
+import { Lazy } from '../../lib/utils/once'
 import { Driver } from '../views/graph/renderers'
 
 class DriverCollection<NodeLabel, EdgeLabel> {
@@ -15,7 +15,6 @@ class DriverCollection<NodeLabel, EdgeLabel> {
   }
 
   private readonly values = new Map<string, Lazy<Driver<NodeLabel, EdgeLabel>>>()
-  private readonly initializer = new Map<any, Once>()
   private readonly loaders = new Map<string, () => Promise<Driver<NodeLabel, EdgeLabel>>>()
 
   public async get (name: string): Promise<Driver<NodeLabel, EdgeLabel>> {
@@ -30,25 +29,11 @@ class DriverCollection<NodeLabel, EdgeLabel> {
         throw new Error('implementation error: loaders missing loader')
       }
 
-      // do the loading
-      const driver = await loader()
-
-      // get a once for the initialization of the class
-      let once = this.initializer.get(driver.constructor)
-      if (typeof once === 'undefined') {
-        once = new Once()
-        this.initializer.set(driver.constructor, once)
-      }
-
-      // initialize the class once
-      await once.Do(driver.initializeClass.bind(driver))
-
-      // and return the driver
-      return driver
+      return await loader()
     })
 
-    if (renderer.rendererName !== name) {
-      throw new Error('driver returned incorrect name: expected ' + name + ', but got ' + renderer.rendererName)
+    if (renderer.driverName !== name) {
+      throw new Error('driver returned incorrect name: expected ' + name + ', but got ' + renderer.driverName)
     }
 
     return renderer

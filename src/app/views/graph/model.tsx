@@ -11,7 +11,7 @@ import { Driver } from './renderers'
 export default class ModelGraphView extends GraphView<ModelNode, ModelEdge> {
   protected readonly layoutKey = 'modelGraphLayout'
 
-  protected newRenderer (previousProps: typeof this.props): boolean {
+  protected newDriver (previousProps: typeof this.props): boolean {
     return this.props.modelGraphRenderer !== previousProps.modelGraphRenderer
   }
 
@@ -43,7 +43,7 @@ export default class ModelGraphView extends GraphView<ModelNode, ModelEdge> {
     const { deduplication, id, setModelRenderer: handleChangeModelRenderer } = this.props
 
     const { renderer } = this.state
-    const modelGraphName = renderer?.rendererName
+    const modelGraphName = renderer?.driverName
     const exportFormats = renderer?.supportedExportFormats
 
     return (

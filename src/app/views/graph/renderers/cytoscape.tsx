@@ -21,12 +21,11 @@ type Cytoscape = Core
 type Options = Omit<CytoscapeOptions, 'container' | 'elements'>
 
 abstract class CytoscapeDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLabel, EdgeLabel, Elements, Cytoscape > {
-  protected abstract addNodeImpl (elements: Elements, flags: ContextFlags, id: string, node: NodeLabel): undefined
-  protected abstract addEdgeImpl (elements: Elements, flags: ContextFlags, id: string, from: string, to: string, edge: EdgeLabel): undefined
+  protected abstract addNodeImpl (elements: Elements, flags: ContextFlags, id: string, node: NodeLabel): Promise<undefined>
+  protected abstract addEdgeImpl (elements: Elements, flags: ContextFlags, id: string, from: string, to: string, edge: EdgeLabel): Promise<undefined>
 
-  readonly rendererName = 'Cytoscape'
+  readonly driverName = 'Cytoscape'
   readonly supportedLayouts = [defaultLayout, 'grid', 'circle', 'concentric', 'avsdf', 'dagre', 'breadthfirst', 'fcose', 'cola', 'elk']
-  readonly initializeClass = async (): Promise<void> => {}
 
   protected layoutOptions (layout: string, definitelyAcyclic: boolean): Options['layout'] {
     const maxSimulationTime = 365 * 24 * 60 * 60 * 1000 // 1 year
@@ -108,11 +107,11 @@ abstract class CytoscapeDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLabe
     }
   }
 
-  protected newContextImpl (): Elements {
+  protected async newContextImpl (): Promise<Elements> {
     return []
   }
 
-  protected finalizeContextImpl (elements: Elements): undefined {
+  protected async finalizeContextImpl (elements: Elements): Promise<undefined> {
     return undefined
   }
 
@@ -150,7 +149,7 @@ export class CytoBundleDriver extends CytoscapeDriver<BundleNode, BundleEdge> {
     return this._instance
   }
 
-  protected addNodeImpl (elements: Elements, flags: ContextFlags, id: string, node: BundleNode): undefined {
+  protected async addNodeImpl (elements: Elements, flags: ContextFlags, id: string, node: BundleNode): Promise<undefined> {
     if (node.type === 'bundle') {
       const label = 'Bundle\n' + node.bundle.path().name
       const data = { id, label, color: 'blue' }
@@ -166,7 +165,7 @@ export class CytoBundleDriver extends CytoscapeDriver<BundleNode, BundleEdge> {
     throw new Error('never reached')
   }
 
-  protected addEdgeImpl (elements: Elements, flags: ContextFlags, id: string, from: string, to: string, edge: BundleEdge): undefined {
+  protected async addEdgeImpl (elements: Elements, flags: ContextFlags, id: string, from: string, to: string, edge: BundleEdge): Promise<undefined> {
     if (edge.type === 'child_bundle') {
       const data = { id, source: from, target: to, color: 'black' }
       elements.push({ data })
@@ -190,7 +189,7 @@ export class CytoModelDriver extends CytoscapeDriver<ModelNode, ModelEdge> {
     return this._instance
   }
 
-  protected addNodeImpl (elements: Elements, { ns }: ContextFlags, id: string, node: ModelNode): undefined {
+  protected async addNodeImpl (elements: Elements, { ns }: ContextFlags, id: string, node: ModelNode): Promise<undefined> {
     if (node.type === 'field') {
       const data = { id, label: node.field.path().name, color: 'orange' }
       elements.push({ data })
@@ -210,7 +209,7 @@ export class CytoModelDriver extends CytoscapeDriver<ModelNode, ModelEdge> {
     }
   }
 
-  protected addEdgeImpl (elements: Elements, { ns }: ContextFlags, id: string, from: string, to: string, edge: ModelEdge): undefined {
+  protected async addEdgeImpl (elements: Elements, { ns }: ContextFlags, id: string, from: string, to: string, edge: ModelEdge): Promise<undefined> {
     if (edge.type === 'data') {
       const data = { id, source: from, target: to, label: ns.apply(edge.field.path().datatypeProperty), color: 'black' }
       elements.push({ data })
