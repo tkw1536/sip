@@ -1,4 +1,4 @@
-import { ContextFlags, defaultLayout, DriverImpl, formatGraphViz, formatJSON, formatSVG, MountFlags, Size } from '.'
+import { ContextFlags, defaultLayout, DriverImpl, formatGraphViz, formatSVG, MountFlags, Size } from '.'
 import { BundleEdge, BundleNode } from '../../graph/builders/bundle'
 import { instance, RenderOptions, Viz, engines } from '@viz-js/viz'
 import { ModelEdge, ModelNode } from '../../graph/builders/model'
@@ -67,7 +67,7 @@ abstract class GraphvizDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLabel
     container.removeChild(svg)
   }
 
-  readonly supportedExportFormats = ['svg', 'dot', 'json']
+  readonly supportedExportFormats = ['svg', 'gv']
   protected async objectToBlobImpl ({ svg, zoom }: Mount, { source, viz }: Context, flags: MountFlags, format: string): Promise<Blob> {
     switch (format) {
       case 'svg':
@@ -75,15 +75,10 @@ abstract class GraphvizDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLabel
         const svg = viz.renderSVGElement(source, this.options(flags))
         return new Blob([outerHTML(svg)], { type: formatSVG })
       }
-      case 'dot':
+      case 'gv':
       {
         const output = viz.renderString(source, this.options(flags))
         return new Blob([output], { type: formatGraphViz })
-      }
-      case 'json':
-      {
-        const output = viz.renderJSON(source, this.options(flags))
-        return new Blob([JSON.stringify(output)], { type: formatJSON })
       }
     }
     throw new Error('never reached')
@@ -109,10 +104,10 @@ function quote (value: string): string {
   return '"' + value.replaceAll('"', '\\"') + '"'
 }
 
-function outerHTML(element: Element): string {
+function outerHTML (element: Element): string {
   const fakeParent = document.createElement('div')
   fakeParent.appendChild(element)
-  return fakeParent.innerHTML 
+  return fakeParent.innerHTML
 }
 
 export class GraphVizBundleDriver extends GraphvizDriver<BundleNode, BundleEdge> {

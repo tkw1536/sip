@@ -63,7 +63,7 @@ export default class GraphDisplay<NodeLabel, EdgeLabel> extends Component<GraphP
     if (kernel === null) return
 
     kernel.exportBlob(format)
-      .then(download)
+      .then(async (blob): Promise<void> => await download(blob, undefined, format))
       .catch((e: unknown) => {
         console.error('failed to download: ', e)
         alert('Download has failed: ' + JSON.stringify(e))
