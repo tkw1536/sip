@@ -1,17 +1,17 @@
-import { assertGraphRendererClass, ContextFlags, defaultLayout, LibraryBasedRenderer, MountFlags, Size } from '.'
+import { ContextFlags, defaultLayout, DriverImpl, MountFlags, Size } from '.'
 import { Data, Network, Options } from 'vis-network'
 import { DataSet } from 'vis-data'
 import { ModelEdge, ModelNode } from '../../../../lib/graph/builders/model'
 import { BundleEdge, BundleNode } from '../../../../lib/graph/builders/bundle'
 import * as styles from './vis-network.module.css'
 
-abstract class VisNetworkRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRenderer<NodeLabel, EdgeLabel, Network, Dataset> {
-  protected abstract addNode (dataset: Dataset, flags: ContextFlags, id: string, node: NodeLabel): undefined
-  protected abstract addEdge (dataset: Dataset, flags: ContextFlags, id: string, from: string, to: string, edge: EdgeLabel): undefined
+abstract class VisNetworkDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLabel, EdgeLabel, Dataset, Network> {
+  protected abstract addNodeImpl (dataset: Dataset, flags: ContextFlags, id: string, node: NodeLabel): undefined
+  protected abstract addEdgeImpl (dataset: Dataset, flags: ContextFlags, id: string, from: string, to: string, edge: EdgeLabel): undefined
 
-  static readonly rendererName = 'vis-network'
-  static readonly supportedLayouts = [defaultLayout, 'hierarchical', 'force2atlas']
-  static readonly initializeClass = async (): Promise<void> => {}
+  readonly rendererName = 'vis-network'
+  readonly supportedLayouts = [defaultLayout, 'hierarchical', 'force2atlas']
+  readonly initializeClass = async (): Promise<void> => {}
 
   protected options (layout: string, definitelyAcyclic: boolean): Options {
     const hierarchical = layout === defaultLayout ? definitelyAcyclic : layout === 'hierarchical'
@@ -50,15 +50,15 @@ abstract class VisNetworkRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRend
         }
   }
 
-  protected newContext (): Dataset {
+  protected newContextImpl (): Dataset {
     return new Dataset()
   }
 
-  protected finalizeContext (ctx: Dataset): undefined {
+  protected finalizeContextImpl (ctx: Dataset): undefined {
     return undefined
   }
 
-  protected mount (dataset: Dataset, { container, layout, definitelyAcyclic }: MountFlags): Network {
+  protected mountImpl (dataset: Dataset, { container, layout, definitelyAcyclic }: MountFlags): Network {
     container.classList.add(styles.container)
 
     const options = this.options(layout, definitelyAcyclic)
@@ -66,25 +66,32 @@ abstract class VisNetworkRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRend
     return new Network(container, dataset.toData(), options)
   }
 
-  protected resizeMount (network: Network, dataset: Dataset, flags: MountFlags, { width, height }: Size): undefined {
+  protected resizeMountImpl (network: Network, dataset: Dataset, flags: MountFlags, { width, height }: Size): undefined {
     network.setSize(`${width}px`, `${height}px`)
     network.redraw()
   }
 
-  protected unmount (network: Network, dataset: Dataset, { container }: MountFlags): void {
+  protected unmountImpl (network: Network, dataset: Dataset, { container }: MountFlags): void {
     container.classList.remove(styles.container)
     network.destroy()
   }
 
-  static readonly supportedExportFormats = ['png']
-  protected async objectToBlob (network: Network, dataset: Dataset, flags: MountFlags, format: string): Promise<Blob> {
+  readonly supportedExportFormats = ['png']
+  protected async objectToBlobImpl (network: Network, dataset: Dataset, flags: MountFlags, format: string): Promise<Blob> {
     return await dataset.drawNetworkClone(network, 1000, 1000, 'image/png', 1)
   }
 }
 
-@assertGraphRendererClass<BundleNode, BundleEdge>()
-export class VisNetworkBundleRenderer extends VisNetworkRenderer<BundleNode, BundleEdge> {
-  protected addNode (dataset: Dataset, flags: ContextFlags, id: string, node: BundleNode): undefined {
+export class VisNetworkBundleDriver extends VisNetworkDriver<BundleNode, BundleEdge> {
+  private static _instance: VisNetworkBundleDriver | null = null
+  static get instance (): VisNetworkBundleDriver {
+    if (this._instance === null) {
+      this._instance = new VisNetworkBundleDriver()
+    }
+    return this._instance
+  }
+
+  protected addNodeImpl (dataset: Dataset, flags: ContextFlags, id: string, node: BundleNode): undefined {
     if (node.type === 'bundle') {
       dataset.addNode({ id, label: 'Bundle\n' + node.bundle.path().name, level: node.level })
       return
@@ -96,7 +103,7 @@ export class VisNetworkBundleRenderer extends VisNetworkRenderer<BundleNode, Bun
     throw new Error('never reached')
   }
 
-  protected addEdge (dataset: Dataset, flags: ContextFlags, id: string, from: string, to: string, edge: BundleEdge): undefined {
+  protected addEdgeImpl (dataset: Dataset, flags: ContextFlags, id: string, from: string, to: string, edge: BundleEdge): undefined {
     if (edge.type === 'child_bundle') {
       dataset.addEdge({ from, to, arrows: 'to' })
       return
@@ -109,9 +116,16 @@ export class VisNetworkBundleRenderer extends VisNetworkRenderer<BundleNode, Bun
   }
 }
 
-@assertGraphRendererClass<ModelNode, ModelEdge>()
-export class VisNetworkModelRenderer extends VisNetworkRenderer<ModelNode, ModelEdge> {
-  protected addNode (dataset: Dataset, { ns }: ContextFlags, id: string, node: ModelNode): undefined {
+export class VisNetworkModelDriver extends VisNetworkDriver<ModelNode, ModelEdge> {
+  private static _instance: VisNetworkModelDriver | null = null
+  static get instance (): VisNetworkModelDriver {
+    if (this._instance === null) {
+      this._instance = new VisNetworkModelDriver()
+    }
+    return this._instance
+  }
+
+  protected addNodeImpl (dataset: Dataset, { ns }: ContextFlags, id: string, node: ModelNode): undefined {
     if (node.type === 'field') {
       dataset.addNode({
         id,
@@ -142,7 +156,7 @@ export class VisNetworkModelRenderer extends VisNetworkRenderer<ModelNode, Model
     throw new Error('never reached')
   }
 
-  protected addEdge (dataset: Dataset, { ns }: ContextFlags, id: string, from: string, to: string, edge: ModelEdge): undefined {
+  protected addEdgeImpl (dataset: Dataset, { ns }: ContextFlags, id: string, from: string, to: string, edge: ModelEdge): undefined {
     if (edge.type === 'data') {
       dataset.addEdge({
         from,

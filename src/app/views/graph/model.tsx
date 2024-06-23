@@ -3,18 +3,19 @@ import { Fragment, RenderableProps, ComponentChild, Component } from 'preact'
 import ModelGraphBuilder, { ModelEdge, ModelNode } from '../../../lib/graph/builders/model'
 import GraphView from '.'
 import Deduplication, { explanations, names, values } from '../../state/deduplication'
-import { ModelRenderer, models } from '../../state/renderers'
+import { models } from '../../state/drivers'
 import GraphBuilder from '../../../lib/graph/builders'
 import { ViewProps } from '../../viewer'
+import { Driver } from './renderers'
 
-export default class ModelGraphView extends GraphView<ModelRenderer, ModelNode, ModelEdge, any> {
+export default class ModelGraphView extends GraphView<ModelNode, ModelEdge> {
   protected readonly layoutKey = 'modelGraphLayout'
 
   protected newRenderer (previousProps: typeof this.props): boolean {
     return this.props.modelGraphRenderer !== previousProps.modelGraphRenderer
   }
 
-  protected async makeRenderer (): Promise<ModelRenderer> {
+  protected async makeRenderer (): Promise<Driver<ModelNode, ModelEdge>> {
     return await models.get(this.props.modelGraphRenderer)
   }
 

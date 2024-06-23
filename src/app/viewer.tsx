@@ -12,7 +12,7 @@ import Selection from '../lib/selection'
 import ModelGraphView from './views/graph/model'
 import GraphConfigView from './views/config'
 import Deduplication, { defaultValue as deduplicationDefault } from './state/deduplication'
-import { bundles, models } from './state/renderers'
+import { bundles, models } from './state/drivers'
 import { defaultLayout } from './views/graph/renderers'
 import Tabs, { Label, Tab } from '../lib/components/tabs'
 
@@ -93,9 +93,9 @@ export class Viewer extends Component<ViewerProps & { onClose: () => void }, Vie
     const pathbuilderVersion = (previous?.pathbuilderVersion ?? -1) + 1
     const optionVersion = (previous?.optionVersion ?? -1) + 1
 
-    const bundleGraphRenderer = previous?.bundleGraphRenderer ?? bundles.defaultRenderer
+    const bundleGraphRenderer = previous?.bundleGraphRenderer ?? bundles.defaultDriver
     const bundleGraphLayout = previous?.bundleGraphLayout ?? defaultLayout
-    const modelGraphRenderer = previous?.modelGraphRenderer ?? models.defaultRenderer
+    const modelGraphRenderer = previous?.modelGraphRenderer ?? models.defaultDriver
     const modelGraphLayout = previous?.modelGraphLayout ?? defaultLayout
 
     const activeTabIndex = previous?.activeTabIndex ?? 0

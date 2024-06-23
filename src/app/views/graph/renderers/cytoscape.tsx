@@ -6,7 +6,7 @@ import elk from 'cytoscape-elk'
 import fcose from 'cytoscape-fcose'
 import avsdf from 'cytoscape-avsdf'
 import svg from 'cytoscape-svg'
-import { assertGraphRendererClass, ContextFlags, defaultLayout, LibraryBasedRenderer, MountFlags, Size } from '.'
+import { ContextFlags, defaultLayout, DriverImpl, MountFlags, Size } from '.'
 import { BundleEdge, BundleNode } from '../../../../lib/graph/builders/bundle'
 import { ModelEdge, ModelNode } from '../../../../lib/graph/builders/model'
 cytoscape.use(cola)
@@ -20,13 +20,13 @@ type Elements = ElementDefinition[]
 type Cytoscape = Core
 type Options = Omit<CytoscapeOptions, 'container' | 'elements'>
 
-abstract class CytoscapeRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRenderer<NodeLabel, EdgeLabel, Cytoscape, Elements> {
-  protected abstract addNode (elements: Elements, flags: ContextFlags, id: string, node: NodeLabel): undefined
-  protected abstract addEdge (elements: Elements, flags: ContextFlags, id: string, from: string, to: string, edge: EdgeLabel): undefined
+abstract class CytoscapeDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLabel, EdgeLabel, Elements, Cytoscape > {
+  protected abstract addNodeImpl (elements: Elements, flags: ContextFlags, id: string, node: NodeLabel): undefined
+  protected abstract addEdgeImpl (elements: Elements, flags: ContextFlags, id: string, from: string, to: string, edge: EdgeLabel): undefined
 
-  static readonly rendererName = 'Cytoscape'
-  static readonly supportedLayouts = [defaultLayout, 'grid', 'circle', 'concentric', 'avsdf', 'dagre', 'breadthfirst', 'fcose', 'cola', 'elk']
-  static readonly initializeClass = async (): Promise<void> => {}
+  readonly rendererName = 'Cytoscape'
+  readonly supportedLayouts = [defaultLayout, 'grid', 'circle', 'concentric', 'avsdf', 'dagre', 'breadthfirst', 'fcose', 'cola', 'elk']
+  readonly initializeClass = async (): Promise<void> => {}
 
   protected layoutOptions (layout: string, definitelyAcyclic: boolean): Options['layout'] {
     const maxSimulationTime = 365 * 24 * 60 * 60 * 1000 // 1 year
@@ -108,15 +108,15 @@ abstract class CytoscapeRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRende
     }
   }
 
-  protected newContext (): Elements {
+  protected newContextImpl (): Elements {
     return []
   }
 
-  protected finalizeContext (ctx: Elements): undefined {
+  protected finalizeContextImpl (elements: Elements): undefined {
     return undefined
   }
 
-  protected mount (elements: Elements, { container, layout, definitelyAcyclic }: MountFlags): Cytoscape {
+  protected mountImpl (elements: Elements, { container, layout, definitelyAcyclic }: MountFlags): Cytoscape {
     const options = this.options(layout, definitelyAcyclic)
     return cytoscape({
       container,
@@ -125,25 +125,32 @@ abstract class CytoscapeRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRende
     })
   }
 
-  protected resizeMount (c: Cytoscape, elements: Elements, flags: MountFlags, { width, height }: Size): undefined {
+  protected resizeMountImpl (c: Cytoscape, elements: Elements, flags: MountFlags, { width, height }: Size): undefined {
     // automatically resized ?
     c.resize()
   }
 
-  protected unmount (c: Cytoscape, elements: Elements): void {
+  protected unmountImpl (c: Cytoscape, elements: unknown): void {
     c.destroy()
   }
 
-  static readonly supportedExportFormats = ['svg']
-  protected async objectToBlob (cy: Cytoscape, elements: Elements, flags: MountFlags, format: string): Promise<Blob> {
-    const svg = (cy as any).svg() as string
-    return await Promise.resolve(new Blob([svg], { type: 'image/svg' }))
+  readonly supportedExportFormats = ['svg']
+  protected async objectToBlobImpl (c: Cytoscape, elements: Elements, flags: MountFlags, format: string): Promise<Blob> {
+    const svg = (c as any).svg() as string
+    return await Promise.resolve(new Blob([svg], { type: 'image/svg' })) // TODO: fix the content type here
   }
 }
 
-@assertGraphRendererClass<BundleNode, BundleEdge>()
-export class CytoBundleRenderer extends CytoscapeRenderer<BundleNode, BundleEdge> {
-  protected addNode (elements: Elements, flags: ContextFlags, id: string, node: BundleNode): undefined {
+export class CytoBundleDriver extends CytoscapeDriver<BundleNode, BundleEdge> {
+  private static _instance: CytoBundleDriver | null = null
+  static get instance (): CytoBundleDriver {
+    if (this._instance === null) {
+      this._instance = new CytoBundleDriver()
+    }
+    return this._instance
+  }
+
+  protected addNodeImpl (elements: Elements, flags: ContextFlags, id: string, node: BundleNode): undefined {
     if (node.type === 'bundle') {
       const label = 'Bundle\n' + node.bundle.path().name
       const data = { id, label, color: 'blue' }
@@ -159,7 +166,7 @@ export class CytoBundleRenderer extends CytoscapeRenderer<BundleNode, BundleEdge
     throw new Error('never reached')
   }
 
-  protected addEdge (elements: Elements, flags: ContextFlags, id: string, from: string, to: string, edge: BundleEdge): undefined {
+  protected addEdgeImpl (elements: Elements, flags: ContextFlags, id: string, from: string, to: string, edge: BundleEdge): undefined {
     if (edge.type === 'child_bundle') {
       const data = { id, source: from, target: to, color: 'black' }
       elements.push({ data })
@@ -173,9 +180,17 @@ export class CytoBundleRenderer extends CytoscapeRenderer<BundleNode, BundleEdge
     throw new Error('never reached')
   }
 }
-@assertGraphRendererClass<ModelNode, ModelEdge>()
-export class CytoModelRenderer extends CytoscapeRenderer<ModelNode, ModelEdge> {
-  protected addNode (elements: Elements, { ns }: ContextFlags, id: string, node: ModelNode): undefined {
+
+export class CytoModelDriver extends CytoscapeDriver<ModelNode, ModelEdge> {
+  private static _instance: CytoModelDriver | null = null
+  static get instance (): CytoModelDriver {
+    if (this._instance === null) {
+      this._instance = new this()
+    }
+    return this._instance
+  }
+
+  protected addNodeImpl (elements: Elements, { ns }: ContextFlags, id: string, node: ModelNode): undefined {
     if (node.type === 'field') {
       const data = { id, label: node.field.path().name, color: 'orange' }
       elements.push({ data })
@@ -195,7 +210,7 @@ export class CytoModelRenderer extends CytoscapeRenderer<ModelNode, ModelEdge> {
     }
   }
 
-  protected addEdge (elements: Elements, { ns }: ContextFlags, id: string, from: string, to: string, edge: ModelEdge): undefined {
+  protected addEdgeImpl (elements: Elements, { ns }: ContextFlags, id: string, from: string, to: string, edge: ModelEdge): undefined {
     if (edge.type === 'data') {
       const data = { id, source: from, target: to, label: ns.apply(edge.field.path().datatypeProperty), color: 'black' }
       elements.push({ data })

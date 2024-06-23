@@ -1,4 +1,4 @@
-import { assertGraphRendererClass, ContextFlags, defaultLayout, LibraryBasedRenderer, MountFlags, Size } from '.'
+import { ContextFlags, defaultLayout, DriverImpl, MountFlags, Size } from '.'
 import Sigma from 'sigma'
 import Graph from 'graphology'
 import { Settings } from 'sigma/dist/declarations/src/settings'
@@ -8,28 +8,28 @@ import circular from 'graphology-layout/circular'
 import circlepack from 'graphology-layout/circlepack'
 import { ModelEdge, ModelNode } from '../../../../lib/graph/builders/model'
 
-abstract class SigmaRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRenderer<NodeLabel, EdgeLabel, Sigma, Graph> {
-  protected abstract addNode (graph: Graph, flags: ContextFlags, id: string, node: NodeLabel): undefined
-  protected abstract addEdge (graph: Graph, flags: ContextFlags, id: string, from: string, to: string, edge: EdgeLabel): undefined
+abstract class SigmaDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLabel, EdgeLabel, Graph, Sigma> {
+  protected abstract addNodeImpl (graph: Graph, flags: ContextFlags, id: string, node: NodeLabel): undefined
+  protected abstract addEdgeImpl (graph: Graph, flags: ContextFlags, id: string, from: string, to: string, edge: EdgeLabel): undefined
 
-  static readonly rendererName = 'Sigma.js'
-  static readonly supportedLayouts = [defaultLayout, 'force2atlas', 'circular', 'circlepack']
-  static readonly initializeClass = async (): Promise<void> => {}
+  readonly rendererName = 'Sigma.js'
+  readonly supportedLayouts = [defaultLayout, 'force2atlas', 'circular', 'circlepack']
+  readonly initializeClass = async (): Promise<void> => {}
 
   protected settings (): Partial<Settings> {
     return {
     }
   }
 
-  protected newContext (): Graph {
+  protected newContextImpl (): Graph {
     return new Graph()
   }
 
-  protected finalizeContext (ctx: Graph): undefined {
+  protected finalizeContextImpl (ctx: Graph): undefined {
     return undefined
   }
 
-  protected mount (graph: Graph, { container, layout }: MountFlags): Sigma {
+  protected mountImpl (graph: Graph, { container, layout }: MountFlags): Sigma {
     switch (layout === defaultLayout ? 'force2atlas' : layout) {
       case 'force2atlas':
         circular.assign(graph, { scale: 100 })
@@ -51,24 +51,31 @@ abstract class SigmaRenderer<NodeLabel, EdgeLabel> extends LibraryBasedRenderer<
     return new Sigma(graph, container, settings)
   }
 
-  protected resizeMount (sigma: Sigma, graph: Graph, flags: MountFlags, { width, height }: Size): undefined {
+  protected resizeMountImpl (sigma: Sigma, graph: Graph, flags: MountFlags, { width, height }: Size): undefined {
     sigma.resize()
     // automatically resized ?
   }
 
-  protected unmount (sigma: Sigma, graph: Graph): void {
+  protected unmountImpl (sigma: Sigma, graph: Graph): void {
     sigma.kill()
   }
 
-  static readonly supportedExportFormats = []
-  protected async objectToBlob (sigma: Sigma, graph: Graph, flags: MountFlags, format: string): Promise<Blob> {
+  readonly supportedExportFormats = []
+  protected async objectToBlobImpl (sigma: Sigma, graph: Graph, flags: MountFlags, format: string): Promise<Blob> {
     return await Promise.reject(new Error('never reached'))
   }
 }
 
-@assertGraphRendererClass<BundleNode, BundleEdge>()
-export class SigmaBundleRenderer extends SigmaRenderer<BundleNode, BundleEdge> {
-  protected addNode (graph: Graph, flags: ContextFlags, id: string, node: BundleNode): undefined {
+export class SigmaBundleDriver extends SigmaDriver<BundleNode, BundleEdge> {
+  private static _instance: SigmaBundleDriver | null = null
+  static get instance (): SigmaBundleDriver {
+    if (this._instance === null) {
+      this._instance = new SigmaBundleDriver()
+    }
+    return this._instance
+  }
+
+  protected addNodeImpl (graph: Graph, flags: ContextFlags, id: string, node: BundleNode): undefined {
     if (node.type === 'bundle') {
       graph.addNode(id, { label: 'Bundle\n' + node.bundle.path().name, color: 'blue', size: 20 })
       return
@@ -80,7 +87,7 @@ export class SigmaBundleRenderer extends SigmaRenderer<BundleNode, BundleEdge> {
     throw new Error('never reached')
   }
 
-  protected addEdge (graph: Graph, flags: ContextFlags, id: string, from: string, to: string, edge: BundleEdge): undefined {
+  protected addEdgeImpl (graph: Graph, flags: ContextFlags, id: string, from: string, to: string, edge: BundleEdge): undefined {
     if (edge.type === 'child_bundle') {
       graph.addDirectedEdge(from, to, { color: 'black', type: 'arrow', arrow: 'target', size: 5 })
       return
@@ -93,9 +100,16 @@ export class SigmaBundleRenderer extends SigmaRenderer<BundleNode, BundleEdge> {
   }
 }
 
-@assertGraphRendererClass<ModelNode, ModelEdge>()
-export class SigmaModelRenderer extends SigmaRenderer<ModelNode, ModelEdge> {
-  protected addNode (graph: Graph, { ns }: ContextFlags, id: string, node: ModelNode): undefined {
+export class SigmaModelDriver extends SigmaDriver<ModelNode, ModelEdge> {
+  private static _instance: SigmaModelDriver | null = null
+  static get instance (): SigmaModelDriver {
+    if (this._instance === null) {
+      this._instance = new SigmaModelDriver()
+    }
+    return this._instance
+  }
+
+  protected addNodeImpl (graph: Graph, { ns }: ContextFlags, id: string, node: ModelNode): undefined {
     if (node.type === 'field') {
       graph.addNode(id, {
         label: node.field.path().name,
@@ -127,7 +141,7 @@ export class SigmaModelRenderer extends SigmaRenderer<ModelNode, ModelEdge> {
     }
   }
 
-  protected addEdge (graph: Graph, { ns }: ContextFlags, id: string, from: string, to: string, edge: ModelEdge): undefined {
+  protected addEdgeImpl (graph: Graph, { ns }: ContextFlags, id: string, from: string, to: string, edge: ModelEdge): undefined {
     if (edge.type === 'data') {
       graph.addDirectedEdge(from, to, { color: 'black', type: 'arrow', arrow: 'target', size: 5 })
       return

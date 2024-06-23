@@ -1,7 +1,7 @@
 import { Component, createRef, ComponentChild, Fragment } from 'preact'
 import type { ViewProps } from '../../viewer'
 import download from '../../../lib/utils/download'
-import { GraphRendererClass, Renderer, defaultLayout } from './renderers'
+import { Driver, Renderer } from './renderers'
 import Graph from '../../../lib/graph'
 import GraphBuilder from '../../../lib/graph/builders'
 
@@ -15,16 +15,16 @@ interface State<NodeLabel, EdgeLabel> {
   graph?: Graph<NodeLabel, EdgeLabel>
   graphError?: string
 
-  renderer?: GraphRendererClass<NodeLabel, EdgeLabel, any>
+  renderer?: Driver<NodeLabel, EdgeLabel>
   rendererLoading?: boolean
   rendererError?: string
 }
 
-export default abstract class GraphView<R extends GraphRendererClass<NodeLabel, EdgeLabel, S>, NodeLabel, EdgeLabel, S> extends Component<ViewProps, State<NodeLabel, EdgeLabel>> {
+export default abstract class GraphView<NodeLabel, EdgeLabel> extends Component<ViewProps, State<NodeLabel, EdgeLabel>> {
   state: State<NodeLabel, EdgeLabel> = { open: false, rendererLoading: true }
 
   protected abstract newRenderer (previousProps: typeof this.props): boolean
-  protected abstract makeRenderer (): Promise<R>
+  protected abstract makeRenderer (): Promise<Driver<NodeLabel, EdgeLabel>>
   protected abstract newGraphBuilder (previousProps: typeof this.props): boolean
   protected abstract makeGraphBuilder (): Promise<GraphBuilder<NodeLabel, EdgeLabel>>
 
@@ -43,14 +43,9 @@ export default abstract class GraphView<R extends GraphRendererClass<NodeLabel, 
     const { current } = this.rendererRef
     if (current === null || typeof renderer === 'undefined') return
 
-    if (!renderer.supportedExportFormats.includes(format)) {
-      console.warn('renderer does not support format (out-of-order execution?)')
-      return
-    }
-
     current.exportBlob(format)
       .then(download)
-      .catch(e => {
+      .catch((e: unknown) => {
         console.error('failed to download: ', e)
         alert('Download has failed: ' + JSON.stringify(e))
       })
@@ -61,7 +56,7 @@ export default abstract class GraphView<R extends GraphRendererClass<NodeLabel, 
     this.setState(({ open }) => ({ open: !open }))
   }
 
-  private readonly rendererRef = createRef<Renderer<NodeLabel, EdgeLabel, S>>()
+  private readonly rendererRef = createRef<Renderer<NodeLabel, EdgeLabel>>()
 
   componentDidMount (): void {
     this.buildGraphModel()
@@ -172,16 +167,7 @@ export default abstract class GraphView<R extends GraphRendererClass<NodeLabel, 
       return null
     }
 
-    const { ns, id } = this.props
-    let layout = this.layoutProp()
-
-    // if we don't have a supported layout, use the default one (or the first one)
-    if (typeof layout !== 'string' || !renderer.supportedLayouts.includes(layout)) {
-      layout = renderer.supportedLayouts.includes(defaultLayout) ? defaultLayout : renderer.supportedLayouts[0]
-    }
-
-    return <Renderer layout={layout} key={layout} ref={this.rendererRef} renderer={renderer} graph={graph} ns={ns} id={id} />
+    const { ns } = this.props
+    return <Renderer layout={this.layoutProp()} ref={this.rendererRef} driver={renderer} graph={graph} ns={ns} />
   }
-
-  // render the panel
 }

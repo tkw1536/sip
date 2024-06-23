@@ -1,63 +1,35 @@
-import { Component, ComponentChild, ComponentClass, createRef } from 'preact'
+import { Component, ComponentChild, createRef } from 'preact'
 import Graph from '../../../../lib/graph'
 import { NamespaceMap } from '../../../../lib/namespace'
 import * as styles from './index.module.css'
 import { UUIDPool } from '../../../../lib/utils/uuid'
 
-export type GraphRendererProps<NodeLabel, EdgeLabel> = RendererProps<NodeLabel, EdgeLabel> & Size & { layout: string }
-
 interface RendererProps<NodeLabel, EdgeLabel> {
   layout: string
   graph: Graph<NodeLabel, EdgeLabel>
   ns: NamespaceMap
-  id: string // some globally unique id
+  driver: Driver<NodeLabel, EdgeLabel>
 }
 export const defaultLayout = 'auto'
-export abstract class GraphRenderer<NodeLabel, EdgeLabel> extends Component<GraphRendererProps<NodeLabel, EdgeLabel>> {
-  /** toBlob renders a copy of the currently rendered graph into a blob */
-  abstract toBlob (format: string): Promise<Blob>
-}
 
-/** asserts that a specific class is a graph renderer class */
-export function assertGraphRendererClass<NodeLabel, EdgeLabel> () {
-  return (constructor: GraphRendererClass<NodeLabel, EdgeLabel, GraphRendererProps<NodeLabel, EdgeLabel>>) => {}
-}
-
-/** An implemented GraphRenderer class */
-export interface GraphRendererClass<NodeLabel, EdgeLabel, S> extends ComponentClass<S, any> {
-  new (props: GraphRendererProps<NodeLabel, EdgeLabel>, context?: any): GraphRenderer<NodeLabel, EdgeLabel>
-
-  readonly initializeClass: () => Promise<void>
-
-  readonly rendererName: string
-  readonly supportedLayouts: string[]
-  readonly supportedExportFormats: string[]
-}
-
-type RenderProps<NodeLabel, EdgeLabel, S> = RendererProps<NodeLabel, EdgeLabel> & { renderer: GraphRendererClass<NodeLabel, EdgeLabel, S> }
 interface RenderState { size?: [number, number] }
 /**
  * Renderer instantiates a renderer onto the page
  */
-export class Renderer<NodeLabel, EdgeLabel, S> extends Component<RenderProps<NodeLabel, EdgeLabel, S>, RenderState> {
-  state: RenderState = { }
+export class Renderer<NodeLabel, EdgeLabel> extends Component<RendererProps<NodeLabel, EdgeLabel>, RenderState> {
+  state: RenderState = {}
 
   async exportBlob (format: string): Promise<Blob> {
-    const renderer = this.rendererRef.current
-    if (renderer == null) {
-      return await Promise.reject(new Error('no visible graph renderer'))
+    const { current: kernel } = this.kernelRef
+    if (kernel == null) {
+      return await Promise.reject(new Error('no visible kernel'))
     }
 
-    const rendererClass = renderer.constructor as GraphRendererClass<NodeLabel, EdgeLabel, S>
-    if (!rendererClass.supportedExportFormats.includes(format)) {
-      return await Promise.reject(new Error('format not supported'))
-    }
-
-    return await renderer.toBlob(format)
+    return await kernel.toBlob(format)
   }
 
   private readonly wrapperRef = createRef<HTMLDivElement>()
-  private readonly rendererRef = createRef<GraphRenderer<NodeLabel, EdgeLabel>>()
+  private readonly kernelRef = createRef<Kernel<NodeLabel, EdgeLabel>>()
 
   private observer: ResizeObserver | null = null
 
@@ -99,11 +71,11 @@ export class Renderer<NodeLabel, EdgeLabel, S> extends Component<RenderProps<Nod
   }
 
   render (): ComponentChild {
-    const { renderer: Renderer, ...props } = this.props
+    const { driver, ...props } = this.props
     const { size } = this.state
     return (
       <div ref={this.wrapperRef} class={styles.wrapper}>
-        {(size != null) && <Renderer ref={this.rendererRef} {...props} width={size[0]} height={size[1]} />}
+        {(size != null) && <Kernel ref={this.kernelRef} {...props} driver={driver} size={{ width: size[0], height: size[1] }} />}
       </div>
     )
   }
@@ -122,20 +94,84 @@ export type MountFlags = Readonly<{
   size: Size
 } & ContextFlags>
 
-export abstract class LibraryBasedRenderer<NodeLabel, EdgeLabel, Mount, Context> extends GraphRenderer<NodeLabel, EdgeLabel> {
-  private instance: { mount: Mount, ctx: Context, flags: MountFlags } | null = null
+type _context = unknown
+type _mount = unknown
 
-  protected abstract newContext (flags: ContextFlags): Context
-  protected abstract addNode (ctx: Context, flags: ContextFlags, id: string, node: NodeLabel): Context | undefined
-  protected abstract addEdge (ctx: Context, flags: ContextFlags, id: string, from: string, to: string, edge: EdgeLabel): Context | undefined
-  protected abstract finalizeContext (ctx: Context, flags: ContextFlags): Context | undefined
+/** driver implements a driver for a single library */
+export interface Driver<NodeLabel, EdgeLabel> {
+  initializeClass: () => Promise<void>
 
-  protected abstract mount (ctx: Context, flags: MountFlags): Mount
+  readonly rendererName: string
+  newContext: (flags: ContextFlags) => _context
+  addNode: (ctx: _context, flags: ContextFlags, id: string, node: NodeLabel) => _context | null | undefined
+  addEdge: (ctx: _context, flags: ContextFlags, id: string, from: string, to: string, edge: EdgeLabel) => _context | null | undefined
+  finalizeContext: (ctx: _context, flags: ContextFlags) => _context | null | undefined
 
-  protected abstract resizeMount (mount: Mount, ctx: Context, flags: MountFlags, size: Size): Mount | undefined
-  protected abstract unmount (object: Mount, ctx: Context, flags: MountFlags): void
+  readonly supportedLayouts: string[]
+  mount: (ctx: _context, flags: MountFlags) => _mount
 
-  protected abstract objectToBlob (object: Mount, setup: Context, flags: MountFlags, format: string): Promise<Blob>
+  resizeMount: (mount: _mount, ctx: _context, flags: MountFlags, size: Size) => _mount | null | undefined
+  unmount: (mount: _mount, ctx: _context, flags: MountFlags) => void
+
+  readonly supportedExportFormats: string[]
+  objectToBlob: (mount: _mount, ctx: _context, flags: MountFlags, format: string) => Promise<Blob>
+}
+
+export abstract class DriverImpl<NodeLabel, EdgeLabel, Context, Mount> implements Driver<NodeLabel, EdgeLabel> {
+  protected constructor () {}
+  abstract initializeClass (): Promise<void>
+
+  abstract readonly rendererName: string
+  newContext (flags: ContextFlags): _context {
+    return this.newContextImpl(flags)
+  }
+  protected abstract newContextImpl (flags: ContextFlags): Context
+
+  addNode (ctx: _context, flags: ContextFlags, id: string, node: NodeLabel): _context | null | undefined {
+    return this.addNodeImpl(ctx as Context, flags, id, node)
+  }
+  protected abstract addNodeImpl (ctx: Context, flags: ContextFlags, id: string, node: NodeLabel): Context | null | undefined
+
+  addEdge (ctx: _context, flags: ContextFlags, id: string, from: string, to: string, edge: EdgeLabel): _context | null | undefined {
+    return this.addEdgeImpl(ctx as Context, flags, id, from, to, edge)
+  }
+  protected abstract addEdgeImpl (ctx: Context, flags: ContextFlags, id: string, from: string, to: string, edge: EdgeLabel): Context | null | undefined
+
+  finalizeContext (ctx: _context, flags: ContextFlags): _context | null | undefined {
+    return this.finalizeContextImpl(ctx as Context, flags)
+  }
+  protected abstract finalizeContextImpl (ctx: Context, flags: ContextFlags): Context | null | undefined
+
+  abstract readonly supportedLayouts: string[]
+
+  mount (ctx: _context, flags: MountFlags): _mount {
+    return this.mountImpl(ctx as Context, flags)
+  }
+  protected abstract mountImpl (ctx: Context, flags: MountFlags): Mount
+
+  resizeMount (mount: _mount, ctx: _context, flags: MountFlags, size: Size): _mount | null | undefined {
+    return this.resizeMountImpl(mount as Mount, ctx as Context, flags, size)
+  }
+  protected abstract resizeMountImpl (mount: Mount, ctx: Context, flags: MountFlags, size: Size): Mount | null | undefined
+
+  unmount (mount: _mount, ctx: _context, flags: MountFlags): void {
+    return this.unmountImpl(mount as Mount, ctx as Context, flags)
+  }
+  protected abstract unmountImpl (mount: Mount, ctx: Context, flags: MountFlags): void
+
+  abstract readonly supportedExportFormats: string[]
+
+  async objectToBlob (mount: _mount, ctx: _context, flags: MountFlags, format: string): Promise<Blob> {
+    return await this.objectToBlobImpl(mount as Mount, ctx as Context, flags, format)
+  }
+  protected abstract objectToBlobImpl (mount: Mount, ctx: Context, flags: MountFlags, format: string): Promise<Blob>
+}
+
+type KernelProps<NodeLabel, EdgeLabel> = RendererProps<NodeLabel, EdgeLabel> & { size: Size, driver: Driver<NodeLabel, EdgeLabel>, layout: string }
+
+/** Kernel uses a driver to display a renderer */
+class Kernel<NodeLabel, EdgeLabel> extends Component<KernelProps<NodeLabel, EdgeLabel>> {
+  private instance: { mount: _mount, ctx: _context, flags: MountFlags, driver: Driver<NodeLabel, EdgeLabel> } | null = null
 
   private createRenderer (): void {
     const { current: container } = this.container
@@ -143,7 +179,7 @@ export abstract class LibraryBasedRenderer<NodeLabel, EdgeLabel, Mount, Context>
       return
     }
 
-    const { graph, width, height, layout } = this.props
+    const { graph, size, layout, driver } = this.props
     const ids = new UUIDPool()
 
     const ctxFlags: ContextFlags = Object.freeze({
@@ -154,36 +190,35 @@ export abstract class LibraryBasedRenderer<NodeLabel, EdgeLabel, Mount, Context>
     const flags: MountFlags = Object.freeze({
       container,
       layout,
-      size: { width, height },
+      size,
       ...ctxFlags
     })
 
+    // check that we have a valid layout
+    if (!driver.supportedLayouts.includes(layout)) {
+      console.error('cannot mount: unsupported driver layout received')
+      return
+    }
+
     try {
       // create a new context
-      let ctx = this.newContext(ctxFlags)
+      let ctx = driver.newContext(ctxFlags)
 
       // add all nodes and edges
       graph.getNodes().forEach(([id, node]) => {
-        const nextContext = this.addNode(ctx, ctxFlags, ids.for(id), node)
-        if (typeof nextContext === 'undefined') return
-        ctx = nextContext
+        ctx = driver.addNode(ctx, ctxFlags, ids.for(id), node) ?? ctx
       })
       graph.getEdges().forEach(([id, from, to, edge]) => {
-        const nextContext = this.addEdge(ctx, ctxFlags, ids.for(id), ids.for(from), ids.for(to), edge)
-        if (typeof nextContext === 'undefined') return
-        ctx = nextContext
+        ctx = driver.addEdge(ctx, ctxFlags, ids.for(id), ids.for(from), ids.for(to), edge) ?? ctx
       })
 
       // finalize the context
-      const nextContext = this.finalizeContext(ctx, ctxFlags)
-      if (typeof nextContext !== 'undefined') {
-        ctx = nextContext
-      }
+      ctx = driver.finalizeContext(ctx, ctxFlags) ?? ctx
 
       // mount it to the page
-      const mount = this.mount(ctx, flags)
+      const mount = driver.mount(ctx, flags)
 
-      this.instance = { mount, ctx, flags }
+      this.instance = { mount, ctx, flags, driver }
     } catch (e) {
       console.error('failed to render graph')
       console.error(e)
@@ -195,17 +230,17 @@ export abstract class LibraryBasedRenderer<NodeLabel, EdgeLabel, Mount, Context>
 
   private destroyRenderer (): void {
     if (this.instance === null) return
-    this.unmount(this.instance.mount, this.instance.ctx, this.instance.flags)
+    this.instance.driver.unmount(this.instance.mount, this.instance.ctx, this.instance.flags)
     this.instance = null
   }
 
   private updateRendererSize (): void {
     if (this.instance == null) return
-    const { width, height } = this.props
+    const { size } = this.props
 
     // call the resize function and store the new size
-    const next = this.resizeMount(this.instance.mount, this.instance.ctx, this.instance.flags, { width, height })
-    this.instance.flags = Object.freeze({ ...this.instance.flags, size: { width, height } })
+    const next = this.instance.driver.resizeMount(this.instance.mount, this.instance.ctx, this.instance.flags, size)
+    this.instance.flags = Object.freeze({ ...this.instance.flags, size })
 
     // update the mounted instance (if applicable)
     if (typeof next === 'undefined') return
@@ -213,26 +248,31 @@ export abstract class LibraryBasedRenderer<NodeLabel, EdgeLabel, Mount, Context>
   }
 
   async toBlob (format: string): Promise<Blob> {
-    if (this.instance == null) return await Promise.reject(new Error('renderer object not setup'))
+    if (this.instance == null) throw new Error('instance not setup')
 
-    return await this.objectToBlob(this.instance.mount, this.instance.ctx, this.instance.flags, format)
+    const { driver } = this.instance
+    if (!driver.supportedExportFormats.includes(format)) {
+      throw new Error('unsupported blob returned')
+    }
+
+    return await driver.objectToBlob(this.instance.mount, this.instance.ctx, this.instance.flags, format)
   }
 
   componentDidMount (): void {
     this.createRenderer()
   }
 
-  componentDidUpdate (previousProps: GraphRendererProps<NodeLabel, EdgeLabel>): void {
-    const { width, height, graph } = this.props
+  componentDidUpdate (previousProps: typeof this.props): void {
+    const { size: { width, height }, graph, driver, layout } = this.props
 
-    // if we got a new graph, re-create the network!
-    if (previousProps.graph !== graph) {
+    // if any of the critical properties changed => create a new driver
+    if (previousProps.driver !== driver || previousProps.graph !== graph || previousProps.layout !== layout) {
       this.destroyRenderer()
       this.createRenderer()
-      return // automatically resized properly
+      return
     }
 
-    if (previousProps.width === width && previousProps.height !== height) {
+    if (previousProps.size.width === width && previousProps.size.height !== height) {
       return // size didn't change => no need to do anything
     }
 
@@ -241,7 +281,7 @@ export abstract class LibraryBasedRenderer<NodeLabel, EdgeLabel, Mount, Context>
 
   private readonly container = createRef<HTMLDivElement>()
   render (): ComponentChild {
-    const { width, height } = this.props
+    const { size: { width, height } } = this.props
     return <div style={{ width, height }} ref={this.container} />
   }
 }
