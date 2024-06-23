@@ -72,11 +72,14 @@ abstract class GraphvizDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLabel
     switch (format) {
       case 'svg':
       {
-        const output = viz.renderString(source, this.options(flags))
-        return new Blob([output], { type: formatSVG })
+        const svg = viz.renderSVGElement(source, this.options(flags))
+        return new Blob([outerHTML(svg)], { type: formatSVG })
       }
       case 'dot':
-        return new Blob([source], { type: formatGraphViz })
+      {
+        const output = viz.renderString(source, this.options(flags))
+        return new Blob([output], { type: formatGraphViz })
+      }
       case 'json':
       {
         const output = viz.renderJSON(source, this.options(flags))
@@ -104,6 +107,12 @@ function makeBody (quoted: Record<string, string>, raw: Record<string, string>):
 
 function quote (value: string): string {
   return '"' + value.replaceAll('"', '\\"') + '"'
+}
+
+function outerHTML(element: Element): string {
+  const fakeParent = document.createElement('div')
+  fakeParent.appendChild(element)
+  return fakeParent.innerHTML 
 }
 
 export class GraphVizBundleDriver extends GraphvizDriver<BundleNode, BundleEdge> {
