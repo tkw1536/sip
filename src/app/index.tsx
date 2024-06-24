@@ -16,10 +16,10 @@ class Wrapper extends Component {
     const { children } = this.props
     return (
       <>
-        <main class={classes(styles.withLinkColor, styles.main)}>
+        <main class={classes(styles.main)}>
           {children}
         </main>
-        <footer class={classes(styles.withLinkColor, styles.footer)}>
+        <footer class={classes(styles.footer)}>
           &copy; Tom Wiesing 2024. All rights reserved.
         </footer>
       </>

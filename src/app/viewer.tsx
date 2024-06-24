@@ -17,6 +17,7 @@ import { defaultLayout } from '../lib/drivers/impl'
 import Tabs, { Label, Tab } from '../lib/components/tabs'
 import ColorMap from '../lib/colormap'
 import { applyColorPreset, ColorPreset } from './state/preset'
+import DocsView from './docs'
 
 export type ViewProps = {} & ViewerProps & ViewerState & ViewerReducers
 interface ViewerProps {
@@ -311,6 +312,9 @@ export class Viewer extends Component<ViewerProps & { onClose: () => void }, Vie
           <p>
             <button onClick={onClose}>Close</button>
           </p>
+        </Tab>
+        <Tab title='Docs'>
+          <DocsView />
         </Tab>
       </Tabs>
     )

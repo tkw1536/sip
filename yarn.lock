@@ -1015,6 +1015,13 @@
     "@parcel/workers" "2.12.0"
     nullthrows "^1.1.1"
 
+"@parcel/transformer-inline-string@2.12.0":
+  version "2.12.0"
+  resolved "https://registry.yarnpkg.com/@parcel/transformer-inline-string/-/transformer-inline-string-2.12.0.tgz#92a1489d2e65934a53e66b48db8b3664403e7b51"
+  integrity sha512-FawH7Hgc7E8/Uc0t1UlFT2AdKdEQysu6OJp88NJixAqNhZT7G24OtKltM+VyayPxQZyLblPcp6TnYpY+Tz9VGA==
+  dependencies:
+    "@parcel/plugin" "2.12.0"
+
 "@parcel/transformer-js@2.12.0":
   version "2.12.0"
   resolved "https://registry.yarnpkg.com/@parcel/transformer-js/-/transformer-js-2.12.0.tgz#e6bf0c312f78603faf98ce546086898506e3811f"
@@ -3501,6 +3508,11 @@ loose-envify@^1.4.0:
   dependencies:
     js-tokens "^3.0.0 || ^4.0.0"
 
+marked@^4.0.10:
+  version "4.3.0"
+  resolved "https://registry.yarnpkg.com/marked/-/marked-4.3.0.tgz#796362821b019f734054582038b116481b456cf3"
+  integrity sha512-PRsaiG84bK+AMvxziE/lCFss8juXjNaWzVbN5tXAm4XjeaS9NAHhop+PjQxz2A9h8Q4M/xGmzP8vqNwy6JeK0A==
+
 mdn-data@2.0.14:
   version "2.0.14"
   resolved "https://registry.yarnpkg.com/mdn-data/-/mdn-data-2.0.14.tgz#7113fc4281917d63ce29b43446f701e68c25ba50"
@@ -3930,6 +3942,19 @@ posthtml@^0.16.4, posthtml@^0.16.5:
   dependencies:
     posthtml-parser "^0.11.0"
     posthtml-render "^3.0.0"
+
+preact-markdown@^2.1.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/preact-markdown/-/preact-markdown-2.1.0.tgz#c271cdd084b8854778f7d8e3640bbe9a7ea6ba4d"
+  integrity sha512-6c2hfarjLFkVDNa1hUKytXID6wl6yilZnGb2y83xKXnfk5SpXYAwhJc+JENgffAcNALWggqvX/ezlk8/8qJsuA==
+  dependencies:
+    marked "^4.0.10"
+    preact-markup "^2.1.1"
+
+preact-markup@^2.1.1:
+  version "2.1.1"
+  resolved "https://registry.yarnpkg.com/preact-markup/-/preact-markup-2.1.1.tgz#0451e7eed1dac732d7194c34a7f16ff45a2cfdd7"
+  integrity sha512-8JL2p36mzK8XkspOyhBxUSPjYwMxDM0L5BWBZWxsZMVW8WsGQrYQDgVuDKkRspt2hwrle+Cxr/053hpc9BJwfw==
 
 preact@^10.22.0:
   version "10.22.0"

@@ -5,7 +5,3 @@
     font-size: small;
     border-top: 1px solid black;    
 }
-
-.withLinkColor a, .withLinkColor a:visited {
-    color: blue;
-}

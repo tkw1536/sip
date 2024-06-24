@@ -1,4 +1,12 @@
-declare module '*.module.css'
+declare module '*.module.css' {
+  const classes: Record<string, string>
+  export = classes
+}
+
+declare module 'bundle-text:*' {
+  const content: string
+  export = content
+}
 
 declare module 'cytoscape-cola' {
   import * as cytoscape from 'cytoscape'
