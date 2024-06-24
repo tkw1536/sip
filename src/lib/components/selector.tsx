@@ -9,6 +9,7 @@ interface ValueSelectorProps {
 export default class ValueSelector extends Component<ValueSelectorProps> {
   private readonly handleChange = (evt: Event & { currentTarget: HTMLSelectElement }): void => {
     evt.preventDefault()
+    if (this.disabled) return
 
     // validate that we have a valid value
     const { value } = evt.currentTarget
@@ -19,13 +20,18 @@ export default class ValueSelector extends Component<ValueSelectorProps> {
     onInput(value)
   }
 
+  get disabled (): boolean {
+    const { value, values } = this.props
+    return typeof value === 'undefined' || typeof values === 'undefined'
+  }
+
   render (): ComponentChild {
     const { value, values } = this.props
-    if (typeof values === 'undefined' || typeof value !== 'string') {
+    if (typeof values === 'undefined') {
       return <select />
     }
     return (
-      <select value={this.props.value} onInput={this.handleChange}>
+      <select value={value} disabled={this.disabled} onInput={this.handleChange}>
         {
           values.map(value => <option key={value}>{value}</option>)
         }

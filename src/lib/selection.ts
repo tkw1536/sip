@@ -1,11 +1,11 @@
-export default class Selection {
-  private readonly set = new Set<string>()
-  private constructor (private readonly defaultValue: boolean, values: Iterable<string>) {
+export default class Selection<S extends string = string> {
+  private readonly set = new Set<S>()
+  private constructor (private readonly defaultValue: boolean, values: Iterable<S>) {
     this.set = new Set(values)
   }
 
   /** includes checks if the selection includes the given key */
-  includes (key: string): boolean {
+  includes (key: S): boolean {
     if (this.set.has(key)) {
       return !this.defaultValue
     }
@@ -13,7 +13,7 @@ export default class Selection {
   }
 
   /** with returns a new selection with the specified key set to the specified value */
-  with (pairs: Array<[string, boolean]>): Selection {
+  with (pairs: Array<[S, boolean]>): Selection {
     const set = new Set(this.set)
 
     pairs.forEach(([key, value]) => {
@@ -27,7 +27,7 @@ export default class Selection {
     return new Selection(this.defaultValue, set)
   }
 
-  toggle (value: string): Selection {
+  toggle (value: S): Selection {
     const set = new Set(this.set)
 
     if (set.has(value)) {

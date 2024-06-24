@@ -1,4 +1,4 @@
-import { Fragment, ComponentChild, Component, ComponentChildren, createRef } from 'preact'
+import { Fragment, Component, ComponentChildren, createRef } from 'preact'
 import ModelGraphBuilder, { ModelEdge, ModelNode } from '../../../lib/graph/builders/model'
 import Deduplication, { explanations, names, values } from '../../state/deduplication'
 import { models } from '../../../lib/drivers/collection'
@@ -6,6 +6,7 @@ import GraphBuilder from '../../../lib/graph/builders'
 import { ViewProps } from '../../viewer'
 import Driver from '../../../lib/drivers/impl'
 import GraphDisplay from '.'
+import ValueSelector from '../../../lib/components/selector'
 
 export default class ModelGraphView extends Component<ViewProps> {
   private readonly builder = async (): Promise<GraphBuilder<ModelNode, ModelEdge>> => {
@@ -127,33 +128,6 @@ export default class ModelGraphView extends Component<ViewProps> {
             </p>
           </fieldset>}
       </>
-    )
-  }
-}
-
-interface AsyncArraySelectorProps {
-  values: string[]
-  value?: string
-  onInput: (value: string) => void
-}
-
-class ValueSelector extends Component<AsyncArraySelectorProps> {
-  private readonly handleChange = (evt: Event & { currentTarget: HTMLSelectElement }): void => {
-    evt.preventDefault()
-    this.props.onInput(evt.currentTarget.value)
-  }
-
-  render (): ComponentChild {
-    const { value, values } = this.props
-    if ((values == null) || typeof value !== 'string') {
-      return <select />
-    }
-    return (
-      <select value={this.props.value} onInput={this.handleChange}>
-        {
-          values.map(value => <option key={value}>{value}</option>)
-        }
-      </select>
     )
   }
 }
