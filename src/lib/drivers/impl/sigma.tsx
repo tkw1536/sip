@@ -74,13 +74,13 @@ export class SigmaBundleDriver extends SigmaDriver<BundleNode, BundleEdge> {
     return this._instance
   }
 
-  protected async addNodeImpl (graph: Graph, flags: ContextFlags, id: string, node: BundleNode): Promise<undefined> {
+  protected async addNodeImpl (graph: Graph, { cm }: ContextFlags, id: string, node: BundleNode): Promise<undefined> {
     if (node.type === 'bundle') {
-      graph.addNode(id, { label: 'Bundle\n' + node.bundle.path.name, color: 'blue', size: 20 })
+      graph.addNode(id, { label: 'Bundle\n' + node.bundle.path.name, color: cm.get(node.bundle), size: 20 })
       return
     }
     if (node.type === 'field') {
-      graph.addNode(id, { label: node.field.path.name, color: 'orange', size: 10 })
+      graph.addNode(id, { label: node.field.path.name, color: cm.get(node.field), size: 10 })
       return
     }
     throw new Error('never reached')
@@ -108,13 +108,13 @@ export class SigmaModelDriver extends SigmaDriver<ModelNode, ModelEdge> {
     return this._instance
   }
 
-  protected async addNodeImpl (graph: Graph, { ns }: ContextFlags, id: string, node: ModelNode): Promise<undefined> {
+  protected async addNodeImpl (graph: Graph, { ns, cm }: ContextFlags, id: string, node: ModelNode): Promise<undefined> {
     const label = modelNodeLabel(node, ns)
     if (node.type === 'field') {
       graph.addNode(id, {
         label,
 
-        color: 'orange',
+        color: cm.get(...node.fields),
         size: 10
       })
       return
@@ -123,7 +123,6 @@ export class SigmaModelDriver extends SigmaDriver<ModelNode, ModelEdge> {
       graph.addNode(id, {
         label,
 
-        color: 'blue',
         size: 10
       })
       return
@@ -132,7 +131,7 @@ export class SigmaModelDriver extends SigmaDriver<ModelNode, ModelEdge> {
       graph.addNode(id, {
         label,
 
-        color: 'blue',
+        color: cm.get(...node.bundles),
         size: 10
       })
       return

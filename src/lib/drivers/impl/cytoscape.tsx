@@ -73,7 +73,8 @@ abstract class CytoscapeDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLabe
             'text-background-padding': '5px',
             'text-border-color': '#888',
             'text-border-width': 1,
-            'text-border-opacity': 1
+            'text-border-opacity': 1,
+            'background-color': 'data(color)'
           }
         },
         {
@@ -149,16 +150,16 @@ export class CytoBundleDriver extends CytoscapeDriver<BundleNode, BundleEdge> {
     return this._instance
   }
 
-  protected async addNodeImpl (elements: Elements, flags: ContextFlags, id: string, node: BundleNode): Promise<undefined> {
+  protected async addNodeImpl (elements: Elements, { cm }: ContextFlags, id: string, node: BundleNode): Promise<undefined> {
     if (node.type === 'bundle') {
       const label = 'Bundle\n' + node.bundle.path.name
-      const data = { id, label, color: 'blue' }
+      const data = { id, label, color: cm.get(node.bundle) }
       elements.push({ data })
       return
     }
     if (node.type === 'field') {
       const label = node.field.path.name
-      const data = { id, label, color: 'orange' }
+      const data = { id, label, color: cm.get(node.field) }
       elements.push({ data })
       return
     }
@@ -189,20 +190,20 @@ export class CytoModelDriver extends CytoscapeDriver<ModelNode, ModelEdge> {
     return this._instance
   }
 
-  protected async addNodeImpl (elements: Elements, { ns }: ContextFlags, id: string, node: ModelNode): Promise<undefined> {
+  protected async addNodeImpl (elements: Elements, { ns, cm }: ContextFlags, id: string, node: ModelNode): Promise<undefined> {
     const label = modelNodeLabel(node, ns)
     if (node.type === 'field') {
-      const data = { id, label, color: 'orange' }
+      const data = { id, label, color: cm.get(...node.fields) }
       elements.push({ data })
       return
     }
     if (node.type === 'class' && node.bundles.size === 0) {
-      const data = { id, label, color: 'blue' }
+      const data = { id, label, color: 'black' }
       elements.push({ data })
       return
     }
     if (node.type === 'class' && node.bundles.size > 0) {
-      const data = { id, label, color: 'blue' }
+      const data = { id, label, color: cm.get(...node.bundles) }
       elements.push({ data })
     }
   }

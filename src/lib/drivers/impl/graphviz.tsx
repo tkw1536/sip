@@ -125,11 +125,11 @@ export class GraphVizBundleDriver extends GraphvizDriver<BundleNode, BundleEdge>
   protected addNodeAsString ({ cm }: ContextFlags, id: string, node: BundleNode): string {
     if (node.type === 'bundle') {
       const path = node.bundle.path
-      return makeNode(id, { label: 'Bundle\n' + path.name, fillcolor: cm.get(path.id) }, { style: 'filled' })
+      return makeNode(id, { label: 'Bundle\n' + path.name, fillcolor: cm.get(node.bundle) }, { style: 'filled' })
     }
     if (node.type === 'field') {
       const path = node.field.path
-      return makeNode(id, { label: path.name, fillcolor: cm.get(path.id) }, { style: 'filled' })
+      return makeNode(id, { label: path.name, fillcolor: cm.get(node.field) }, { style: 'filled' })
     }
     throw new Error('never reached')
   }
@@ -154,9 +154,12 @@ export class GraphVizModelDriver extends GraphvizDriver<ModelNode, ModelEdge> {
       return makeNode(
         id,
         {
-          label: flags.ns.apply(node.clz)
+          label: flags.ns.apply(node.clz),
+          fillcolor: flags.cm.defaultColor
         },
-        {}
+        {
+          style: 'filled'
+        }
       )
     }
     if (node.type === 'class' && node.bundles.size > 0) {
@@ -165,12 +168,17 @@ export class GraphVizModelDriver extends GraphvizDriver<ModelNode, ModelEdge> {
     throw new Error('never reached')
   }
 
-  private makeBundleNodes ({ ns }: ContextFlags, id: string, node: ModelNode & { type: 'class' }): string {
+  private makeBundleNodes ({ ns, cm }: ContextFlags, id: string, node: ModelNode & { type: 'class' }): string {
     if (this.compact) {
       return makeNode(
         id,
-        { label: modelNodeLabel(node, ns) },
-        {}
+        {
+          label: modelNodeLabel(node, ns),
+          fillcolor: cm.get(...node.bundles)
+        },
+        {
+          style: 'filled'
+        }
       )
     }
 
@@ -179,8 +187,12 @@ export class GraphVizModelDriver extends GraphvizDriver<ModelNode, ModelEdge> {
 
     output += makeNode(
       id,
-      { label: ns.apply(clz) },
-      { shape: 'box' }
+      {
+        label: ns.apply(clz)
+      },
+      {
+        shape: 'box'
+      }
     ) + '\n'
 
     Array.from(bundles).forEach((bundle, idx) => {
@@ -188,12 +200,12 @@ export class GraphVizModelDriver extends GraphvizDriver<ModelNode, ModelEdge> {
       const node = makeNode(
         bundleID,
         {
-          label: 'Bundle ' + bundle.path.name
+          label: 'Bundle ' + bundle.path.name,
+          fillcolor: cm.get(bundle)
         },
         {
           shape: 'box',
-          style: 'filled',
-          fillcolor: 'blue'
+          style: 'filled'
         }
       )
       output += node + '\n'
@@ -204,14 +216,16 @@ export class GraphVizModelDriver extends GraphvizDriver<ModelNode, ModelEdge> {
     return output
   }
 
-  private makeFieldNodes ({ ns }: ContextFlags, id: string, node: ModelNode & { type: 'field' }): string {
+  private makeFieldNodes ({ ns, cm }: ContextFlags, id: string, node: ModelNode & { type: 'field' }): string {
     if (this.compact) {
       return makeNode(
         id,
-        { label: modelNodeLabel(node, ns) },
         {
-          style: 'filled',
-          fillcolor: 'orange'
+          label: modelNodeLabel(node, ns),
+          fillcolor: cm.get(...node.fields)
+        },
+        {
+          style: 'filled'
         }
       )
     }
@@ -228,11 +242,11 @@ export class GraphVizModelDriver extends GraphvizDriver<ModelNode, ModelEdge> {
       const node = makeNode(
         fieldID,
         {
-          label: field.path.name
+          label: field.path.name,
+          fillcolor: cm.get(field)
         },
         {
-          style: 'filled',
-          fillcolor: 'orange'
+          style: 'filled'
         }
       )
       output += node + '\n'

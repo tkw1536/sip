@@ -7,7 +7,7 @@ import BundleGraphView from './views/graph/bundle'
 import { Pathbuilder } from '../lib/pathbuilder'
 import { NamespaceMap } from '../lib/namespace'
 import MapView from './views/map'
-import { PathTree } from '../lib/pathtree'
+import { NodeLike, PathTree } from '../lib/pathtree'
 import Selection from '../lib/selection'
 import ModelGraphView from './views/graph/model'
 import GraphConfigView from './views/config'
@@ -16,6 +16,7 @@ import { bundles, models } from '../lib/drivers/collection'
 import { defaultLayout } from '../lib/drivers/impl'
 import Tabs, { Label, Tab } from '../lib/components/tabs'
 import ColorMap from '../lib/colormap'
+import { applyColorPreset, ColorPreset } from './state/preset'
 
 export type ViewProps = {} & ViewerProps & ViewerState & ViewerReducers
 interface ViewerProps {
@@ -64,8 +65,8 @@ interface ViewerReducers {
   collapseAll: () => void
   expandAll: () => void
 
-  setColor: (id: string, color: string) => void
-  resetColorMap: () => void
+  setColor: (node: NodeLike, color: string) => void
+  applyColorPreset: (preset: ColorPreset) => void
 
   setDeduplication: (dup: Deduplication) => void
 
@@ -94,7 +95,7 @@ export class Viewer extends Component<ViewerProps & { onClose: () => void }, Vie
     const collapsed = Selection.none()
 
     const deduplication = previous?.deduplication ?? deduplicationDefault
-    const cm = ColorMap.generate(tree, { bundle: '#f6b73c', field: '#add8e6' })
+    const cm = applyColorPreset(tree, ColorPreset.BlueAndOrange)
 
     const selectionVersion = (previous?.selectionVersion ?? -1) + 1
     const namespaceVersion = (previous?.namespaceVersion ?? -1) + 1
@@ -246,14 +247,13 @@ export class Viewer extends Component<ViewerProps & { onClose: () => void }, Vie
     this.setState({ activeTabIndex: newTab })
   }
 
-  private readonly setColor = (id: string, color: string): void => {
-    this.setState(({ colorVersion, cm }) => ({ cm: cm.set(id, color), colorVersion: colorVersion + 1 }))
+  private readonly setColor = (node: NodeLike, color: string): void => {
+    this.setState(({ colorVersion, cm }) => ({ cm: cm.set(node, color), colorVersion: colorVersion + 1 }))
   }
 
-  private readonly resetColorMap = (): void => {
-    this.setState(state => {
-      const { cm, colorVersion } = this.initState(this.props.pathbuilder, state)
-      return { cm, colorVersion }
+  private readonly applyColorPreset = (preset: ColorPreset): void => {
+    this.setState(({ colorVersion, tree }) => {
+      return { cm: applyColorPreset(tree, preset), colorVersion: colorVersion + 1 }
     })
   }
 
@@ -277,7 +277,7 @@ export class Viewer extends Component<ViewerProps & { onClose: () => void }, Vie
       setModelLayout: this.setModelLayout,
       setActiveTab: this.setActiveTab,
       setColor: this.setColor,
-      resetColorMap: this.resetColorMap
+      applyColorPreset: this.applyColorPreset
     }
     const view = { ...props, ...this.state, ...callbacks }
 

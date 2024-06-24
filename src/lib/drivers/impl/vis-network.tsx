@@ -90,13 +90,13 @@ export class VisNetworkBundleDriver extends VisNetworkDriver<BundleNode, BundleE
     return this._instance
   }
 
-  protected async addNodeImpl (dataset: Dataset, flags: ContextFlags, id: string, node: BundleNode): Promise<undefined> {
+  protected async addNodeImpl (dataset: Dataset, { cm }: ContextFlags, id: string, node: BundleNode): Promise<undefined> {
     if (node.type === 'bundle') {
-      dataset.addNode({ id, label: 'Bundle\n' + node.bundle.path.name, level: node.level })
+      dataset.addNode({ id, label: 'Bundle\n' + node.bundle.path.name, color: cm.get(node.bundle), level: node.level })
       return
     }
     if (node.type === 'field') {
-      dataset.addNode({ id, label: node.field.path.name, color: 'orange', level: node.level })
+      dataset.addNode({ id, label: node.field.path.name, color: cm.get(node.field), level: node.level })
       return
     }
     throw new Error('never reached')
@@ -124,7 +124,7 @@ export class VisNetworkModelDriver extends VisNetworkDriver<ModelNode, ModelEdge
     return this._instance
   }
 
-  protected async addNodeImpl (dataset: Dataset, { ns }: ContextFlags, id: string, node: ModelNode): Promise<undefined> {
+  protected async addNodeImpl (dataset: Dataset, { ns, cm }: ContextFlags, id: string, node: ModelNode): Promise<undefined> {
     const label = modelNodeLabel(node, ns)
     if (node.type === 'field') {
       dataset.addNode({
@@ -132,21 +132,26 @@ export class VisNetworkModelDriver extends VisNetworkDriver<ModelNode, ModelEdge
         label,
 
         shape: 'box',
-        color: 'orange'
+        color: cm.get(...node.fields)
       })
       return
     }
     if (node.type === 'class' && node.bundles.size === 0) {
       dataset.addNode({
         id,
-        label
+        label,
+        color: {
+          background: cm.defaultColor,
+          border: 'black'
+        }
       })
       return
     }
     if (node.type === 'class' && node.bundles.size > 0) {
       dataset.addNode({
         id,
-        label
+        label,
+        color: cm.get(...node.bundles)
       })
       return
     }
@@ -197,7 +202,7 @@ type VisEdge<T extends string | number> = {
 
 interface VisCommon {
   label?: string
-  color?: string
+  color?: string | { background: string, border: string }
   font?: string
 }
 

@@ -5,6 +5,82 @@ export abstract class NodeLike {
   abstract get children (): NodeLike[]
   abstract get parent (): NodeLike | null
 
+  private _depth: number = -1
+  get depth (): number {
+    return this._depth
+  }
+
+  private _index: number = -1
+  get index (): number {
+    return this._index
+  }
+
+  static compare (a: NodeLike, b: NodeLike): -1 | 1 | 0 {
+    if (a._depth < b._depth) {
+      return -1
+    }
+    if (a._depth > b._depth) {
+      return 1
+    }
+    if (a._index < b._index) {
+      return -1
+    }
+    if (a._index > b._index) {
+      return 1
+    }
+    return 0
+  }
+
+  static fromPathbuilder (pb: Pathbuilder): PathTree {
+    const bundles = new Map<string, Bundle>()
+
+    const getOrCreateBundle = (id: string): Bundle => {
+      const bundle = bundles.get(id)
+      if (typeof bundle === 'undefined') {
+        const bundle = new Bundle(Path.create(), null, [], new Map<string, Field>())
+        bundles.set(id, bundle)
+        return bundle
+      }
+      return bundle
+    }
+
+    const mainBundles: Bundle[] = []
+
+    pb.paths.filter(path => path.enabled).forEach((path, index) => {
+      const parent = path.groupId !== '' ? getOrCreateBundle(path.groupId) : null
+
+      // not a group => it is just a field
+      if (!path.isGroup) {
+        if (parent === null) {
+          console.warn('non-group path missing group_id', path)
+          return
+        }
+        parent.childFields.set(path.field, new Field(path, parent))
+        return
+      }
+
+      const group = getOrCreateBundle(path.id)
+      group.set(path, parent)
+      if (parent !== null) {
+        parent.childBundles.push(group)
+      } else {
+        mainBundles.push(group)
+      }
+    })
+
+    const tree = new PathTree(mainBundles)
+    tree._depth = -1
+
+    let index = 0
+    tree._index = index++
+
+    for (const relative of tree.walk()) {
+      relative._depth = (relative?.parent?._depth ?? 0) + 1
+      relative._index = index++
+    }
+    return tree
+  }
+
   /** recursively walks over the tree of this NodeLike */
   * walk (): IterableIterator<NodeLike> {
     yield this
@@ -62,47 +138,6 @@ export class PathTree extends NodeLike {
   get children (): Bundle[] {
     return [...this.mainBundles]
   }
-
-  static fromPathbuilder (pb: Pathbuilder): PathTree {
-    const bundles = new Map<string, Bundle>()
-
-    const getOrCreateBundle = (id: string): Bundle => {
-      const bundle = bundles.get(id)
-      if (typeof bundle === 'undefined') {
-        const bundle = new Bundle(Path.create(), null, [], new Map<string, Field>())
-        bundles.set(id, bundle)
-        return bundle
-      }
-      return bundle
-    }
-
-    const mainBundles: Bundle[] = []
-
-    pb.paths.filter(path => path.enabled).forEach(path => {
-      const parent = path.groupId !== '' ? getOrCreateBundle(path.groupId) : null
-
-      // not a group => it is just a field
-      if (!path.isGroup) {
-        if (parent === null) {
-          console.warn('non-group path missing group_id', path)
-          return
-        }
-
-        parent.childFields.set(path.field, new Field(path, parent))
-        return
-      }
-
-      const group = getOrCreateBundle(path.id)
-      group.set(path, parent)
-      if (parent !== null) {
-        parent.childBundles.push(group)
-      } else {
-        mainBundles.push(group)
-      }
-    })
-
-    return new PathTree(mainBundles)
-  }
 }
 
 export class Bundle extends NodeLike {
@@ -112,9 +147,7 @@ export class Bundle extends NodeLike {
 
     public childBundles: Bundle[],
     public childFields: Map<string, Field>
-  ) {
-    super()
-  }
+  ) { super() }
 
   get parent (): Bundle | null {
     return this._parent
@@ -135,9 +168,10 @@ export class Bundle extends NodeLike {
 }
 
 export class Field extends NodeLike {
-  constructor (private readonly _path: Path, private readonly _parent: Bundle) {
-    super()
-  }
+  constructor (
+    private readonly _path: Path,
+    private readonly _parent: Bundle
+  ) { super() }
 
   get parent (): Bundle {
     return this._parent

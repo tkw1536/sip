@@ -1,7 +1,7 @@
 import { Bundle, Field, NodeLike } from './pathtree'
 
 export default class ColorMap {
-  constructor (private readonly defaultColor: string, private readonly colors: Map<string, string>) {
+  constructor (public readonly defaultColor: string, private readonly colors: Map<string, string>) {
   }
 
   static empty (defaultColor: string): ColorMap {
@@ -24,18 +24,26 @@ export default class ColorMap {
         cm.set(id, colors.field)
       }
     }
-    return new ColorMap('#ffffff', cm)
+    return new ColorMap(ColorMap.globalDefault, cm)
   }
 
-  public get (id: string): string {
-    return this.colors.get(id) ?? this.defaultColor
+  public static readonly globalDefault: string = '#ffffff'
+
+  /** gets the color of the node with the lowest depth and valid id */
+  public get (...nodes: NodeLike[]): string {
+    const node = nodes.sort(NodeLike.compare).find(node => typeof node.path?.id === 'string')
+    return this.colors.get(node?.path?.id ?? '') ?? this.defaultColor
   }
 
-  public set (id: string, color: string): ColorMap {
-    const value = this.get(id)
+  public set (node: NodeLike, color: string): ColorMap {
+    const value = this.get(node)
     if (value === color) {
       return this
     }
+
+    const id = node.path?.id
+    if (typeof id === 'undefined') return this
+
     const copy = new Map(this.colors)
     if (color !== this.defaultColor) {
       copy.set(id, color)

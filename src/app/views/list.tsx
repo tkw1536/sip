@@ -1,9 +1,10 @@
-import { Component, ComponentChild } from 'preact'
+import { Component, ComponentChild, Fragment } from 'preact'
 import type { ViewProps } from '../viewer'
 import { NamespaceMap } from '../../lib/namespace'
 import { Bundle, Field } from '../../lib/pathtree'
 import * as styles from './list.module.css'
 import { classes } from '../../lib/utils/classes'
+import { ColorPreset, colorPresets } from '../state/preset'
 
 export default class ListView extends Component<ViewProps> {
   private readonly handleSelectAll = (evt: Event): void => {
@@ -26,9 +27,9 @@ export default class ListView extends Component<ViewProps> {
     this.props.collapseAll()
   }
 
-  private readonly handleResetColor = (evt: Event): void => {
+  private readonly handleColorPreset = (preset: ColorPreset, evt: Event): void => {
     evt.preventDefault()
-    this.props.resetColorMap()
+    this.props.applyColorPreset(preset)
   }
 
   render (): ComponentChild {
@@ -45,7 +46,8 @@ export default class ListView extends Component<ViewProps> {
         </p>
         <p>
           The color boxes are used to change the color of the fields in the graph displays.
-          If a single node includes multiple colors, any of the colors may be used.
+          If a single node includes multiple colors, the color of the most important item will be used.
+          Parent-paths are more important than sub-paths; if two paths are of the same priority the one higher in the list of paths is used.
         </p>
 
         <table class={styles.table}>
@@ -66,8 +68,11 @@ export default class ListView extends Component<ViewProps> {
                 <button onClick={this.handleSelectAll}>All</button> &nbsp;
                 <button onClick={this.handleSelectNone}>None</button>
                 &nbsp;
-                Color: &nbsp;
-                <button onClick={this.handleResetColor}>Reset</button> &nbsp;
+                Color Presets: &nbsp;
+                {
+                  colorPresets.map(preset => <Fragment key={preset}><button onClick={this.handleColorPreset.bind(this, preset)}>{preset}</button>&nbsp;</Fragment>)
+                }
+                &nbsp;
               </td>
             </tr>
             <tr>
@@ -111,7 +116,7 @@ class BundleRows extends Component<ViewProps & { bundle: Bundle, level: number, 
 
   private readonly handleColorChange = (evt: Event & { currentTarget: HTMLInputElement }): void => {
     const { bundle, setColor } = this.props
-    setColor(bundle.path.id, evt.currentTarget.value)
+    setColor(bundle, evt.currentTarget.value)
   }
 
   render (): ComponentChild {
@@ -125,7 +130,7 @@ class BundleRows extends Component<ViewProps & { bundle: Bundle, level: number, 
         <tr class={!visible ? styles.hidden : ''}>
           <td>
             <input type='checkbox' checked={selection.includes(path.id)} onClick={this.handleKeydown} onInput={this.handleSelectionChange} />
-            <input type='color' value={cm.get(path.id)} onInput={this.handleColorChange} />
+            <input type='color' value={cm.get(bundle)} onInput={this.handleColorChange} />
           </td>
           <td style={{ paddingLeft: INDENT_PER_LEVEL * level }}>
             <button onClick={this.handleClick} aria-role='toggle' disabled={bundle.childBundles.length === 0 && bundle.childFields.size === 0}>
@@ -170,7 +175,7 @@ class FieldRow extends Component<ViewProps & { field: Field, level: number, visi
 
   private readonly handleColorChange = (evt: Event & { currentTarget: HTMLInputElement }): void => {
     const { field, setColor } = this.props
-    setColor(field.path.id, evt.currentTarget.value)
+    setColor(field, evt.currentTarget.value)
   }
 
   render (): ComponentChild {
@@ -180,7 +185,7 @@ class FieldRow extends Component<ViewProps & { field: Field, level: number, visi
       <tr class={!visible ? styles.hidden : ''}>
         <td>
           <input type='checkbox' checked={selection.includes(path.id)} onInput={this.handleSelectionChange} />
-          <input type='color' value={cm.get(path.id)} onInput={this.handleColorChange} />
+          <input type='color' value={cm.get(field)} onInput={this.handleColorChange} />
         </td>
         <td style={{ paddingLeft: INDENT_PER_LEVEL * level }}>
           {path.name}
