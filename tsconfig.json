@@ -10,13 +10,18 @@
     "jsxImportSource": "preact",
     "lib": [
       "es2022",
-      "DOM"
+      "DOM",
     ],
     "strict": true,
     "allowSyntheticDefaultImports": true,
     "experimentalDecorators": true,
+
+    // HACK HACK HACK
+    // This is needed because the 'preact-markdown' module is broken.
+    "skipLibCheck": true
   },
+  
   "include": [
-    "./src/**/*"
+    "./src/**/*",
   ],
 }
