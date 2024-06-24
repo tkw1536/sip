@@ -1,12 +1,14 @@
 import { Component, ComponentChild } from 'preact'
 import DropArea from '../lib/components/drop-area'
 import * as styles from './loader.module.css'
+import { ReducerProps } from './state'
+import { loadFile } from './state/reducers/init'
 
 /**
  * Loader is responsible for providing an interface to load a pathbuilder.
  * The file should be passed to the callback.
  */
-export default class Loader extends Component<{ error?: string, onLoad: (file: File) => void }> {
+export default class Loader extends Component<ReducerProps> {
   private readonly dragContent = (active: boolean, valid: boolean): ComponentChild => {
     switch (true) {
       case active && valid:
@@ -18,8 +20,12 @@ export default class Loader extends Component<{ error?: string, onLoad: (file: F
     }
   }
 
+  private readonly handleFile = (file: File): void => {
+    this.props.apply(loadFile(file))
+  }
+
   render (): ComponentChild {
-    const { error, onLoad: handleChange } = this.props
+    const { loaded: error } = this.props.state
 
     return (
       <>
@@ -30,8 +36,8 @@ export default class Loader extends Component<{ error?: string, onLoad: (file: F
         <p>
           All processing happens on-device, meaning the server host can not access any data contained within your pathbuilder.
         </p>
-        {typeof error === 'string' ? <p><b>Error loading: </b><code>{error}</code></p> : null}
-        <DropArea class={styles.dropZone} activeValidClass={styles.valid} activeInvalidClass={styles.invalid} onDropFile={handleChange} types={['text/xml']}>{this.dragContent}</DropArea>
+        <DropArea class={styles.dropZone} activeValidClass={styles.valid} activeInvalidClass={styles.invalid} onDropFile={this.handleFile} types={['text/xml']}>{this.dragContent}</DropArea>
+        {typeof error === 'string' ? <p><b>Unable to load pathbuilder: </b><pre><code>{error}</code></pre></p> : null}
       </>
     )
   }

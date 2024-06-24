@@ -1,7 +1,7 @@
 import { Component, ComponentChildren, VNode } from 'preact'
 import Markdown from 'preact-markdown'
 
-import styles from './docs.module.css'
+import * as styles from './docs.module.css'
 import { classes } from '../lib/utils/classes'
 
 export default class DocsView extends Component<{}, { content?: VNode }> {

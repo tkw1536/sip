@@ -1,11 +1,21 @@
 import { Component, ComponentChild } from 'preact'
-import type { ViewProps } from '../viewer'
 import { bundles, models } from '../../lib/drivers/collection'
 import ValueSelector from '../../lib/components/selector'
+import { ReducerProps } from '../state'
+import { setBundleRenderer } from '../state/reducers/inspector/bundle'
+import { setModelRenderer } from '../state/reducers/inspector/model'
 
-export default class GraphConfigView extends Component<ViewProps> {
+export default class GraphConfigView extends Component<ReducerProps> {
+  private readonly handleBundleRender = (renderer: string): void => {
+    this.props.apply(setBundleRenderer(renderer))
+  }
+
+  private readonly handleModelRenderer = (renderer: string): void => {
+    this.props.apply(setModelRenderer(renderer))
+  }
+
   render (): ComponentChild {
-    const { bundleGraphRenderer, modelGraphRenderer, setBundleRenderer: handleSetBundleRenderer, setModelRenderer: handleSetModelRenderer } = this.props
+    const { bundleGraphRenderer, modelGraphRenderer } = this.props.state
 
     return (
       <>
@@ -16,12 +26,12 @@ export default class GraphConfigView extends Component<ViewProps> {
 
         <p>
           Bundle Graph Renderer: &nbsp;
-          <ValueSelector values={bundles.names} value={bundleGraphRenderer} onInput={handleSetBundleRenderer} />
+          <ValueSelector values={bundles.names} value={bundleGraphRenderer} onInput={this.handleBundleRender} />
         </p>
 
         <p>
           Model Graph Renderer: &nbsp;
-          <ValueSelector values={models.names} onInput={handleSetModelRenderer} value={modelGraphRenderer} />
+          <ValueSelector values={models.names} value={modelGraphRenderer} onInput={this.handleModelRenderer} />
         </p>
       </>
     )

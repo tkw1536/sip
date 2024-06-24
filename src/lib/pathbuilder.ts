@@ -69,6 +69,16 @@ export class Path {
     )
   }
 
+  /** returns the uris in this path followed by the datatype property (if any) */
+  * uris (): IterableIterator<string> {
+    for (const uri of this.pathArray) {
+      yield uri
+    }
+    if (this.datatypeProperty !== '') {
+      yield this.datatypeProperty
+    }
+  }
+
   get informativeFieldType (): string {
     if (this.fieldTypeInformative !== '') {
       return this.fieldTypeInformative

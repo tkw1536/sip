@@ -3,16 +3,16 @@ import GraphDisplay from '.'
 import GraphBuilder from '../../../lib/graph/builders'
 import BundleGraphBuilder, { BundleEdge, BundleNode } from '../../../lib/graph/builders/bundle'
 import { bundles } from '../../../lib/drivers/collection'
-import { ViewProps } from '../../viewer'
+import { ReducerProps } from '../../state'
 
-export default class BundleGraphView extends Component<ViewProps> {
+export default class BundleGraphView extends Component<ReducerProps> {
   private readonly builder = async (): Promise<GraphBuilder<BundleNode, BundleEdge>> => {
-    const { tree, selection } = this.props
+    const { tree, selection } = this.props.state
     return await Promise.resolve(new BundleGraphBuilder(tree, selection))
   }
 
   render (): ComponentChildren {
-    const { bundleGraphLayout, bundleGraphRenderer, pathbuilderVersion, selectionVersion, colorVersion, ns, cm } = this.props
+    const { bundleGraphLayout, bundleGraphRenderer, pathbuilderVersion, selectionVersion, colorVersion, ns, cm } = this.props.state
 
     return (
       <GraphDisplay

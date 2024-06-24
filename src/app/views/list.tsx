@@ -1,39 +1,42 @@
 import { Component, ComponentChild, Fragment } from 'preact'
-import type { ViewProps } from '../viewer'
 import { NamespaceMap } from '../../lib/namespace'
 import { Bundle, Field } from '../../lib/pathtree'
 import * as styles from './list.module.css'
 import { classes } from '../../lib/utils/classes'
-import { ColorPreset, colorPresets } from '../state/preset'
+import { ColorPreset, colorPresets } from '../state/state/preset'
+import { ReducerProps } from '../state'
+import { selectAll, selectNone, updateSelection } from '../state/reducers/inspector/selection'
+import { collapseAll, expandAll, toggleCollapsed } from '../state/reducers/inspector/collapse'
+import { applyColorPreset, setColor } from '../state/reducers/inspector/color'
 
-export default class ListView extends Component<ViewProps> {
+export default class ListView extends Component<ReducerProps> {
   private readonly handleSelectAll = (evt: Event): void => {
     evt.preventDefault()
-    this.props.selectAll()
+    this.props.apply(selectAll())
   }
 
   private readonly handleSelectNone = (evt: Event): void => {
     evt.preventDefault()
-    this.props.selectNone()
+    this.props.apply(selectNone())
   }
 
   private readonly handleExpandAll = (evt: Event): void => {
     evt.preventDefault()
-    this.props.expandAll()
+    this.props.apply(expandAll())
   }
 
   private readonly handleCollapseAll = (evt: Event): void => {
     evt.preventDefault()
-    this.props.collapseAll()
+    this.props.apply(collapseAll())
   }
 
   private readonly handleColorPreset = (preset: ColorPreset, evt: Event): void => {
     evt.preventDefault()
-    this.props.applyColorPreset(preset)
+    this.props.apply(applyColorPreset(preset))
   }
 
   render (): ComponentChild {
-    const { tree } = this.props
+    const { tree } = this.props.state
     return (
       <>
         <p>
@@ -91,11 +94,11 @@ export default class ListView extends Component<ViewProps> {
 
 const INDENT_PER_LEVEL = 50
 
-class BundleRows extends Component<ViewProps & { bundle: Bundle, level: number, visible: boolean }> {
+class BundleRows extends Component<ReducerProps & { bundle: Bundle, level: number, visible: boolean }> {
   private readonly handleClick = (evt: Event): void => {
     evt.preventDefault()
 
-    this.props.toggleCollapsed(this.props.bundle.path.id)
+    this.props.apply(toggleCollapsed(this.props.bundle.path.id))
   }
 
   private shiftHeld = false
@@ -106,22 +109,23 @@ class BundleRows extends Component<ViewProps & { bundle: Bundle, level: number, 
   private readonly handleSelectionChange = (evt: Event & { currentTarget: HTMLInputElement }): void => {
     evt.preventDefault()
 
-    const { bundle, updateSelection } = this.props
+    const { bundle } = this.props
 
     const keys = this.shiftHeld ? Array.from(bundle.allChildren()) : [bundle.path.id]
     const value = evt.currentTarget.checked
 
-    updateSelection(keys.map(k => [k, value]))
+    this.props.apply(updateSelection(keys.map(k => [k, value])))
   }
 
   private readonly handleColorChange = (evt: Event & { currentTarget: HTMLInputElement }): void => {
-    const { bundle, setColor } = this.props
-    setColor(bundle, evt.currentTarget.value)
+    const { bundle } = this.props
+    this.props.apply(setColor(bundle, evt.currentTarget.value))
   }
 
   render (): ComponentChild {
-    const { bundle, level, visible, ...props } = this.props
-    const { ns, cm, selection, collapsed } = props
+    const { bundle, level, visible, state, apply } = this.props
+    const { ns, cm, selection, collapsed } = state
+    const props: ReducerProps = { state, apply }
 
     const path = bundle.path
     const expanded = !collapsed.includes(path.id)
@@ -168,18 +172,18 @@ class BundleRows extends Component<ViewProps & { bundle: Bundle, level: number, 
   }
 }
 
-class FieldRow extends Component<ViewProps & { field: Field, level: number, visible: boolean }> {
+class FieldRow extends Component<ReducerProps & { field: Field, level: number, visible: boolean }> {
   private readonly handleSelectionChange = (evt: Event & { currentTarget: HTMLInputElement }): void => {
-    this.props.updateSelection([[this.props.field.path.id, evt.currentTarget.checked]])
+    this.props.apply(updateSelection([[this.props.field.path.id, evt.currentTarget.checked]]))
   }
 
   private readonly handleColorChange = (evt: Event & { currentTarget: HTMLInputElement }): void => {
-    const { field, setColor } = this.props
-    setColor(field, evt.currentTarget.value)
+    const { field } = this.props
+    this.props.apply(setColor(field, evt.currentTarget.value))
   }
 
   render (): ComponentChild {
-    const { ns, cm, field, level, visible, selection } = this.props
+    const { state: { ns, cm, selection }, field, level, visible } = this.props
     const path = field.path
     return (
       <tr class={!visible ? styles.hidden : ''}>

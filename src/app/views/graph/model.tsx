@@ -1,16 +1,18 @@
 import { Fragment, Component, ComponentChildren, createRef } from 'preact'
 import ModelGraphBuilder, { ModelEdge, ModelNode } from '../../../lib/graph/builders/model'
-import Deduplication, { explanations, names, values } from '../../state/deduplication'
+import Deduplication, { explanations, names, values } from '../../state/state/deduplication'
 import { models } from '../../../lib/drivers/collection'
 import GraphBuilder from '../../../lib/graph/builders'
-import { ViewProps } from '../../viewer'
 import Driver from '../../../lib/drivers/impl'
 import GraphDisplay from '.'
 import ValueSelector from '../../../lib/components/selector'
+import { ReducerProps } from '../../state'
+import { setDeduplication, setModelLayout, setModelRenderer } from '../../state/reducers/inspector/model'
+import { WithID } from '../../../lib/components/wrapper'
 
-export default class ModelGraphView extends Component<ViewProps> {
+export default WithID<ReducerProps>(class ModelGraphView extends Component<ReducerProps & { id: string }> {
   private readonly builder = async (): Promise<GraphBuilder<ModelNode, ModelEdge>> => {
-    const { tree, selection, deduplication } = this.props
+    const { tree, selection, deduplication } = this.props.state
     return await Promise.resolve(new ModelGraphBuilder(tree, {
       include: (uri: string) => selection.includes(uri),
       deduplication
@@ -18,11 +20,15 @@ export default class ModelGraphView extends Component<ViewProps> {
   }
 
   private readonly handleChangeMode = (evt: Event): void => {
-    this.props.setDeduplication((evt.target as HTMLInputElement).value as Deduplication)
+    this.props.apply(setDeduplication((evt.target as HTMLInputElement).value as Deduplication))
   }
 
-  private readonly handleChangeLayout = (evt: Event): void => {
-    this.props.setModelLayout((evt.target as HTMLInputElement).value)
+  private readonly handleChangeModelLayout = (evt: Event): void => {
+    this.props.apply(setModelLayout((evt.target as HTMLInputElement).value))
+  }
+
+  private readonly handleChangeModelRenderer = (value: string): void => {
+    this.props.apply(setModelRenderer(value))
   }
 
   private readonly displayRef = createRef<GraphDisplay<ModelNode, ModelEdge>>()
@@ -37,7 +43,7 @@ export default class ModelGraphView extends Component<ViewProps> {
   }
 
   render (): ComponentChildren {
-    const { modelGraphLayout, modelGraphRenderer, pathbuilderVersion, selectionVersion, optionVersion, colorVersion, ns, cm } = this.props
+    const { modelGraphLayout, modelGraphRenderer, pathbuilderVersion, selectionVersion, optionVersion, colorVersion, ns, cm } = this.props.state
 
     return (
       <GraphDisplay
@@ -54,7 +60,7 @@ export default class ModelGraphView extends Component<ViewProps> {
   }
 
   private readonly renderPanel = (driver: Driver<ModelNode, ModelEdge> | null): ComponentChildren => {
-    const { deduplication, id, setModelRenderer: handleChangeModelRenderer, modelGraphLayout: layout } = this.props
+    const { state: { deduplication, modelGraphLayout: layout }, id } = this.props
 
     const modelGraphName = driver?.driverName
     const exportFormats = driver?.supportedExportFormats
@@ -74,12 +80,12 @@ export default class ModelGraphView extends Component<ViewProps> {
 
           <p>
             Renderer: &nbsp;
-            <ValueSelector values={models.names} value={modelGraphName} onInput={handleChangeModelRenderer} />
+            <ValueSelector values={models.names} value={modelGraphName} onInput={this.handleChangeModelRenderer} />
             &nbsp;
 
             Layout: &nbsp;
             {(driver != null) &&
-              <select value={layout} onInput={this.handleChangeLayout}>
+              <select value={layout} onInput={this.handleChangeModelLayout}>
                 {
                   driver.supportedLayouts.map(name => <option key={name}>{name}</option>)
                 }
@@ -130,6 +136,6 @@ export default class ModelGraphView extends Component<ViewProps> {
       </>
     )
   }
-}
+})
 
 // spellchecker:words dedup Renderable

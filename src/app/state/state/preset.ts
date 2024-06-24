@@ -1,5 +1,5 @@
-import ColorMap from '../../lib/colormap'
-import { Bundle, Field, NodeLike } from '../../lib/pathtree'
+import ColorMap from '../../../lib/colormap'
+import { Bundle, Field, NodeLike } from '../../../lib/pathtree'
 import Color from 'color'
 
 export enum ColorPreset {
@@ -50,6 +50,5 @@ function colorPerBundlePreset (root: NodeLike): ColorMap {
     }
   }
 
-  console.log(map)
   return new ColorMap(ColorMap.globalDefault, map)
 }

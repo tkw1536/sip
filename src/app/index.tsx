@@ -1,15 +1,12 @@
 import { Component, ComponentChild } from 'preact'
-import { Pathbuilder } from '../lib/pathbuilder'
 import { Viewer } from './viewer'
 import Loader from './loader'
 import * as styles from './index.module.css'
 import { WithID } from '../lib/components/wrapper'
 import { classes } from '../lib/utils/classes'
-
-interface State {
-  pathbuilder: Pathbuilder | string | false
-  filename: string
-}
+import { resetInterface } from './state/reducers/init'
+import { Reducer, ReducerProps, State } from './state'
+import { Operation } from '../lib/utils/operation'
 
 class Wrapper extends Component {
   render (): ComponentChild {
@@ -28,56 +25,49 @@ class Wrapper extends Component {
 }
 
 export const App = WithID<{}>(class App extends Component<{ id: string }, State> {
-  state: State = {
-    pathbuilder: false,
-    filename: ''
-  }
+  state: State = resetInterface()
 
-  private readonly handleClose = (): void => {
-    this.setState({ pathbuilder: false, filename: '' })
-  }
+  private readonly reduction = new Operation()
 
-  private readonly handleLoad = (file: File): void => {
-    // read the source file
-    file.text()
-      .then(source => {
-        // read the source file
-        let data: Pathbuilder | string
-        let filename: string = ''
-        try {
-          data = Pathbuilder.parse(source)
-          filename = file.name
-        } catch (e: any) {
-          data = e.toString()
-        }
+  private readonly applyReducer = (reducer: Reducer): void => {
+    const ticket = this.reduction.ticket()
 
-        // only set the state if we're still mounted
-        if (!this.mounted) return
-        this.setState({ pathbuilder: data, filename })
-      })
-      .catch(err => {
-        console.error('handleLoad: unknown error', err)
-      })
-  }
+    this.setState(state => {
+      if (!ticket()) return null
 
-  private mounted = false
-  componentDidMount (): void {
-    this.mounted = true
+      // if we got an actual value, apply it now!
+      const reduced = reducer(state)
+      if (!(reduced instanceof Promise)) {
+        return reduced
+      }
+
+      reduced
+        .then(res => {
+          // ensure that we have some valid state to apply
+          if (!ticket() || res === null) return
+
+          // apply the state
+          this.setState(() => ticket() ? res : null)
+        })
+        .catch(err => {
+          console.error('Error applying reducer')
+          console.error(err)
+        })
+
+      return null // nothing to do for now (only when the promise resolves)
+    })
   }
 
   componentWillUnmount (): void {
-    this.mounted = false
+    this.reduction.cancel()
   }
 
   render (): ComponentChild {
-    const { id } = this.props
-    const { pathbuilder, filename } = this.state
-    if (pathbuilder === false) {
-      return <Wrapper><Loader onLoad={this.handleLoad} /></Wrapper>
-    }
-    if (typeof pathbuilder === 'string') {
-      return <Wrapper><Loader onLoad={this.handleLoad} error={pathbuilder} /></Wrapper>
-    }
-    return <Wrapper><Viewer id={id} pathbuilder={pathbuilder} filename={filename} onClose={this.handleClose} /></Wrapper>
+    const props: ReducerProps = { state: this.state, apply: this.applyReducer }
+    return (
+      <Wrapper>
+        {this.state.loaded === true ? <Viewer {...props} /> : <Loader {...props} />}
+      </Wrapper>
+    )
   }
 })

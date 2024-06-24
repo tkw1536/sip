@@ -1,19 +1,19 @@
 import { Component, ComponentChild } from 'preact'
-import type { ViewProps } from '../viewer'
 import download from '../../lib/utils/download'
+import { ReducerProps } from '../state'
 
-export default class ExportView extends Component<ViewProps> {
+export default class ExportView extends Component<ReducerProps> {
   private readonly handleExport = (evt: MouseEvent): void => {
     evt.preventDefault()
 
-    const { filename } = this.props
-    const file = new Blob([this.props.pathbuilder.toXML()], { type: 'application/xml' })
+    const { filename, pathbuilder } = this.props.state
+    const file = new Blob([pathbuilder.toXML()], { type: 'application/xml' })
     download(file, filename !== '' ? filename : 'pathbuilder.xml')
       .catch(() => console.error('never reached'))
   }
 
   render (): ComponentChild {
-    const { filename } = this.props
+    const { filename } = this.props.state
     return (
       <>
         <p>

@@ -1,5 +1,5 @@
 import GraphBuilder from '.'
-import Deduplication from '../../../app/state/deduplication'
+import Deduplication from '../../../app/state/state/deduplication'
 import Graph from '..'
 import { Path } from '../../pathbuilder'
 import { Bundle, Field, PathTree } from '../../pathtree'

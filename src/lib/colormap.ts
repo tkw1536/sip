@@ -4,8 +4,9 @@ export default class ColorMap {
   constructor (public readonly defaultColor: string, private readonly colors: Map<string, string>) {
   }
 
-  static empty (defaultColor: string): ColorMap {
-    return new ColorMap(defaultColor, new Map())
+  public static readonly globalDefault: string = '#ffffff'
+  static empty (defaultColor?: string): ColorMap {
+    return new ColorMap(defaultColor ?? ColorMap.globalDefault, new Map())
   }
 
   static generate (node: NodeLike, colors: { bundle: string, field: string }): ColorMap {
@@ -26,8 +27,6 @@ export default class ColorMap {
     }
     return new ColorMap(ColorMap.globalDefault, cm)
   }
-
-  public static readonly globalDefault: string = '#ffffff'
 
   /** gets the color of the node with the lowest depth and valid id */
   public get (...nodes: NodeLike[]): string {

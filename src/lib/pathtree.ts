@@ -92,6 +92,30 @@ export abstract class NodeLike {
     }
   }
 
+  /** paths returns the paths of this NodeLike */
+  * paths (): IterableIterator<Path> {
+    for (const child of this.walk()) {
+      const { path } = child
+      if (path === null) {
+        continue
+      }
+      yield path
+    }
+  }
+
+  /** returns the set of all known URIs */
+  get uris (): Set<string> {
+    const uris = new Set<string>()
+
+    for (const path of this.paths()) {
+      for (const uri of path.uris()) {
+        uris.add(uri)
+      }
+    }
+
+    return uris
+  }
+
   /** allChildren returns a set containing the ids of all recursive children of this node */
   * allChildren (): IterableIterator<string> {
     for (const child of this.walk()) {

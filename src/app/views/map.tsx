@@ -1,11 +1,12 @@
 import { Component, ComponentChild } from 'preact'
-import type { ViewProps } from '../viewer'
 import * as styles from './map.module.css'
 import { WithID } from '../../lib/components/wrapper'
+import { ReducerProps } from '../state'
+import { addNS, deleteNS, resetNS, updateNS } from '../state/reducers/inspector/ns'
 
-export default class MapView extends Component<ViewProps> {
+export default class MapView extends Component<ReducerProps> {
   render (): ComponentChild {
-    const { namespaceVersion: newNSKey, ns } = this.props
+    const { namespaceVersion: newNSKey, ns } = this.props.state
     const mp = ns.toMap()
 
     return (
@@ -42,15 +43,14 @@ export default class MapView extends Component<ViewProps> {
   }
 }
 
-const AddMapRow = WithID<ViewProps>(class AddMapRow extends Component<ViewProps & { id: string }> {
+const AddMapRow = WithID<ReducerProps>(class AddMapRow extends Component<ReducerProps & { id: string }> {
   state = { short: '', long: '' }
 
   private readonly handleSubmit = (evt: SubmitEvent): void => {
     evt.preventDefault()
 
     const { short, long } = this.state
-    const { addNS } = this.props
-    addNS(long, short)
+    this.props.apply(addNS(long, short))
   }
 
   private readonly handleShortChange = (event: Event & { currentTarget: HTMLInputElement }): void => {
@@ -82,10 +82,10 @@ const AddMapRow = WithID<ViewProps>(class AddMapRow extends Component<ViewProps 
   }
 })
 
-class ResetNSRow extends Component<ViewProps> {
+class ResetNSRow extends Component<ReducerProps> {
   private readonly handleSubmit = (evt: SubmitEvent): void => {
     evt.preventDefault()
-    this.props.resetNS()
+    this.props.apply(resetNS())
   }
 
   render (): ComponentChild {
@@ -103,7 +103,7 @@ class ResetNSRow extends Component<ViewProps> {
   }
 }
 
-class MapViewRow extends Component<{ long: string, short: string, props: ViewProps }, { value?: string }> {
+class MapViewRow extends Component<{ long: string, short: string, props: ReducerProps }, { value?: string }> {
   state: { value?: string } = {}
 
   private readonly handleSubmit = (evt: Event): void => {
@@ -112,8 +112,8 @@ class MapViewRow extends Component<{ long: string, short: string, props: ViewPro
     const { value } = this.state
     if (typeof value !== 'string') return // do nothing
 
-    const { long, props: { updateNS } } = this.props
-    updateNS(long, value)
+    const { long } = this.props
+    this.props.props.apply(updateNS(long, value))
   }
 
   private readonly handleChange = (event: Event & { currentTarget: HTMLInputElement }): void => {
@@ -123,7 +123,7 @@ class MapViewRow extends Component<{ long: string, short: string, props: ViewPro
   private readonly handleDelete = (event: Event): void => {
     event.preventDefault()
 
-    this.props.props.deleteNS(this.props.long)
+    this.props.props.apply(deleteNS(this.props.long))
   }
 
   render (): ComponentChild {
