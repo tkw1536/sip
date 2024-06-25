@@ -14,6 +14,7 @@ import Tabs, { Label, Tab } from '../lib/components/tabs'
 import DocsView from './views/docs'
 import { setActiveTab } from './state/reducers/inspector/tab'
 import PathbuilderView from './views/pathbuilder'
+import AboutView from './views/about'
 
 class Wrapper extends Component {
   render (): ComponentChild {
@@ -115,6 +116,9 @@ class Inspector extends Component<ReducerProps> {
         </Tab>
         <Tab title='Docs'>
           <DocsView />
+        </Tab>
+        <Tab title='About'>
+          <AboutView />
         </Tab>
       </Tabs>
     )

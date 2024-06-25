@@ -1,4 +1,4 @@
-import { Component, ComponentChild, createRef, Ref } from 'preact'
+import { Component, ComponentChild, ComponentChildren, createRef, Ref } from 'preact'
 import Graph from '../graph'
 import { NamespaceMap } from '../namespace'
 import * as styles from './index.module.css'
@@ -282,7 +282,7 @@ export default class Kernel<NodeLabel, EdgeLabel> extends Component<KernelProps<
       <div ref={this.wrapper} class={styles.wrapper}>
         {(typeof size !== 'undefined') && (
           <div style={{ width: size.width, height: size.height }} ref={this.container}>
-            {driverLoading && <p>Driver loading</p>}
+            {driverLoading && <AvoidFlicker><p>Driver loading</p></AvoidFlicker>}
             {driverError instanceof Error && <ErrorDisplay error={driverError} />}
           </div>
         )}
@@ -302,5 +302,30 @@ function setRef<T> (ref: Ref<T> | undefined, value: T | null): void {
       return
     default:
       ref.current = value
+  }
+}
+
+class AvoidFlicker extends Component<{ delayMs?: number, children: ComponentChildren }> {
+  static readonly defaultDelayMs = 200
+  state = { visible: false }
+
+  private readonly avoidFlicker = new Operation()
+  componentDidMount (): void {
+    const ticket = this.avoidFlicker.ticket()
+    setTimeout(() => {
+      if (!ticket()) return
+      this.setState({ visible: true })
+    }, this.props.delayMs ?? AvoidFlicker.defaultDelayMs)
+  }
+
+  componentWillUnmount (): void {
+    this.avoidFlicker.cancel()
+  }
+
+  render (): ComponentChildren {
+    const { visible } = this.state
+    if (!visible) return false
+
+    return this.props.children
   }
 }
