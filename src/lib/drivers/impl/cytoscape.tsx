@@ -2,7 +2,6 @@ import type { ElementDefinition, Core, CytoscapeOptions } from 'cytoscape'
 import cytoscape from 'cytoscape'
 import cola from 'cytoscape-cola'
 import dagre from 'cytoscape-dagre'
-import elk from 'cytoscape-elk'
 import fcose from 'cytoscape-fcose'
 import avsdf from 'cytoscape-avsdf'
 
@@ -11,7 +10,6 @@ import { BundleEdge, BundleNode } from '../../graph/builders/bundle'
 import { ModelEdge, ModelNode, modelNodeLabel } from '../../graph/builders/model'
 cytoscape.use(cola)
 cytoscape.use(dagre)
-cytoscape.use(elk)
 cytoscape.use(fcose)
 cytoscape.use(avsdf)
 
@@ -24,11 +22,11 @@ abstract class CytoscapeDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLabe
   protected abstract addEdgeImpl (elements: Elements, flags: ContextFlags, id: string, from: string, to: string, edge: EdgeLabel): Promise<undefined>
 
   readonly driverName = 'Cytoscape'
-  readonly supportedLayouts = [defaultLayout, 'grid', 'circle', 'concentric', 'avsdf', 'dagre', 'breadthfirst', 'fcose', 'cola', 'elk']
+  readonly supportedLayouts = [defaultLayout, 'grid', 'circle', 'concentric', 'avsdf', 'dagre', 'breadthfirst', 'fcose', 'cola']
 
   protected layoutOptions (layout: string, definitelyAcyclic: boolean): Options['layout'] {
     const maxSimulationTime = 365 * 24 * 60 * 60 * 1000 // 1 year
-    switch (layout === defaultLayout ? (definitelyAcyclic ? 'elk' : 'cola') : layout) {
+    switch (layout === defaultLayout ? (definitelyAcyclic ? 'dagre' : 'cola') : layout) {
       case 'grid':
         return { name: 'grid' }
       case 'circle':

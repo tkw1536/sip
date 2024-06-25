@@ -26,7 +26,6 @@
     "cytoscape-avsdf": "^1.0.0",
     "cytoscape-cola": "^2.5.1",
     "cytoscape-dagre": "^2.5.0",
-    "cytoscape-elk": "^2.2.0",
     "cytoscape-fcose": "^2.2.0",
     "graphology": "^0.25.4",
     "graphology-layout": "^0.6.1",
