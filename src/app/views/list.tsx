@@ -41,7 +41,7 @@ export default class ListView extends Component<ReducerProps> {
   private readonly handleColorMapExport = (evt: Event): void => {
     const data = JSON.stringify(this.props.state.cm.toJSON(), null, 2)
     const blob = new Blob([data], { type: formatJSON })
-    void download(blob, 'colormap.json', 'json')
+    void download(blob, 'colors.json', 'json')
   }
 
   private readonly handleColorMapImport = (file: File): void => {
@@ -93,7 +93,7 @@ export default class ListView extends Component<ReducerProps> {
                 }
                 &nbsp;|&nbsp;
                 <button onClick={this.handleColorMapExport}>Export</button>
-                <DropArea onDropFile={this.handleColorMapImport} compact>Import</DropArea>
+                <DropArea types={[formatJSON]} onDropFile={this.handleColorMapImport} compact>Import</DropArea>
                 {typeof cmLoadError === 'string' && <small>&nbsp;{cmLoadError}</small>}
               </td>
             </tr>

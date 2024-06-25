@@ -9,6 +9,7 @@ export function newNamespaceMap (tree: PathTree): NamespaceMap {
 export function resetNamespaceMap (): Reducer {
   return ({ namespaceVersion, tree }: State): Partial<State> => ({
     ns: newNamespaceMap(tree),
+    nsLoadError: undefined,
     namespaceVersion: namespaceVersion + 1
   })
 }
@@ -16,6 +17,7 @@ export function resetNamespaceMap (): Reducer {
 export function deleteNamespace (long: string): Reducer {
   return ({ namespaceVersion, ns }: State): Partial<State> => ({
     ns: ns.remove(long),
+    nsLoadError: undefined,
     namespaceVersion: namespaceVersion + 1
   })
 }
@@ -31,7 +33,7 @@ export function updateNamespace (long: string, newShort: string): Reducer {
     // update and use a new map!
     mp.set(long, newShort)
 
-    return { ns: NamespaceMap.fromMap(mp), namespaceVersion: namespaceVersion + 1 }
+    return { ns: NamespaceMap.fromMap(mp), nsLoadError: undefined, namespaceVersion: namespaceVersion + 1 }
   }
 }
 
@@ -45,7 +47,25 @@ export function addNamespace (long: string, short: string): Reducer {
 
     return {
       ns: ns.add(long, short),
+      nsLoadError: undefined,
       namespaceVersion: namespaceVersion + 1
+    }
+  }
+}
+
+export function loadNamespaceMap (file: File): Reducer {
+  return async ({ namespaceVersion }: State): Promise<Partial<State>> => {
+    try {
+      const data = JSON.parse(await file.text())
+      const ns = NamespaceMap.fromJSON(data)
+      if (ns === null) throw new Error('not a valid namespace map')
+      return {
+        ns,
+        namespaceVersion: namespaceVersion + 1,
+        nsLoadError: undefined
+      }
+    } catch (e: unknown) {
+      return { nsLoadError: String(e) }
     }
   }
 }

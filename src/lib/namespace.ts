@@ -1,5 +1,12 @@
+interface NamespaceMapExport {
+  type: 'namespace-map'
+  namespaces: Array<[string, string]>
+}
+
 /** NamespaceMap is an immutable namespace map */
 export class NamespaceMap {
+  static readonly validKey = /^[a-zA-Z0-9_-]+$/
+
   private readonly parent: NamespaceMap | null
   private readonly short: string | null
   private readonly long: string | null
@@ -8,6 +15,31 @@ export class NamespaceMap {
     this.parent = parent
     this.short = short
     this.long = long
+  }
+
+  toJSON (): NamespaceMapExport {
+    const namespaces = Array.from(this.toMapInternal().entries()).map(([long, short]) => [short, long] as [string, string])
+    return {
+      type: 'namespace-map',
+      namespaces
+    }
+  }
+
+  private static isValidNamespaceMap (data: {}): data is NamespaceMapExport {
+    return (
+      (('type' in data) && data.type === 'namespace-map') &&
+      (('namespaces' in data) && Array.isArray(data.namespaces) && data.namespaces.findIndex(v => !(Array.isArray(v) && v.length === 2 && typeof v[0] === 'string' && typeof v[1] === 'string')) < 0)
+    )
+  }
+
+  static fromJSON (data: {}): NamespaceMap | null {
+    if (!this.isValidNamespaceMap(data)) {
+      return null
+    }
+
+    const elements = new Map<string, string>()
+    data.namespaces.map(([short, long]) => elements.set(long, short))
+    return NamespaceMap.fromMap(elements)
   }
 
   // map holds a map for quickly accessing specific elements.
@@ -59,7 +91,7 @@ export class NamespaceMap {
   /** add creates a new namespace map with long set to short */
   add (long: string, short: string): NamespaceMap {
     // skip invalid shorts
-    if (!/^[a-zA-Z0-9_-]+$/.test(short)) {
+    if (!NamespaceMap.validKey.test(short)) {
       return this
     }
 

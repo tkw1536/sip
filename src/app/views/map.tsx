@@ -2,7 +2,10 @@ import { Component, ComponentChild } from 'preact'
 import * as styles from './map.module.css'
 import { WithID } from '../../lib/components/wrapper'
 import { ReducerProps } from '../state'
-import { addNamespace, deleteNamespace, resetNamespaceMap, updateNamespace } from '../state/reducers/inspector/ns'
+import { addNamespace, deleteNamespace, loadNamespaceMap, resetNamespaceMap, updateNamespace } from '../state/reducers/inspector/ns'
+import { formatJSON } from '../../lib/drivers/impl'
+import download from '../../lib/utils/download'
+import DropArea from '../../lib/components/drop-area'
 
 export default class MapView extends Component<ReducerProps> {
   render (): ComponentChild {
@@ -18,6 +21,7 @@ export default class MapView extends Component<ReducerProps> {
           The initial version is generated automatically from all URIs found in the pathbuilder.
           You can manually adjust it here, by adding, removing or editing abbreviations.
         </p>
+        <p />
         <table>
           <thead>
             <tr>
@@ -35,7 +39,7 @@ export default class MapView extends Component<ReducerProps> {
               <MapViewRow props={this.props} long={long} short={short} key={short} />
             )}
             <AddMapRow key={newNSKey} {...this.props} />
-            <ResetNSRow {...this.props} />
+            <ControlsRow {...this.props} />
           </tbody>
         </table>
       </>
@@ -83,17 +87,31 @@ const AddMapRow = WithID<ReducerProps>(class AddMapRow extends Component<Reducer
   }
 })
 
-class ResetNSRow extends Component<ReducerProps> {
+class ControlsRow extends Component<ReducerProps> {
   private readonly handleSubmit = (evt: SubmitEvent): void => {
     evt.preventDefault()
     this.props.apply(resetNamespaceMap())
   }
 
+  private readonly handleNamespaceMapExport = (evt: Event): void => {
+    const data = JSON.stringify(this.props.state.ns.toJSON(), null, 2)
+    const blob = new Blob([data], { type: formatJSON })
+    void download(blob, 'namespaces.json', 'json')
+  }
+
+  private readonly handleNamespaceMapImport = (file: File): void => {
+    this.props.apply(loadNamespaceMap(file))
+  }
+
   render (): ComponentChild {
+    const { nsLoadError } = this.props.state
     return (
       <tr>
-        <td />
-        <td />
+        <td colspan={2}>
+          <button onClick={this.handleNamespaceMapExport}>Export</button>
+          <DropArea types={[formatJSON]} onDropFile={this.handleNamespaceMapImport} compact>Import</DropArea>
+          {typeof nsLoadError === 'string' && <small>&nbsp;{nsLoadError}</small>}
+        </td>
         <td>
           <form onSubmit={this.handleSubmit}>
             <button>Reset To Default</button>
