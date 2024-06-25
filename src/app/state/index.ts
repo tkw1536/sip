@@ -6,7 +6,7 @@ import Selection from '../../lib/selection'
 import Deduplication from './state/deduplication'
 
 export interface State {
-  loaded: boolean | string // boolean indicating if file has been loaded, string for error
+  loaded: boolean | { error: unknown } // boolean indicating if file has been loaded, string for error
   filename: string
 
   pathbuilderVersion: number

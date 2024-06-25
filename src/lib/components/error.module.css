@@ -1,0 +1,31 @@
+.display {
+    box-sizing: border-box;
+    
+    min-width: 80vw;
+    padding: .5em;
+
+    border: 1px solid red;
+    background-color: rgb(255, 96, 96);
+
+    font-family: monospace, monospace;
+}
+
+.header {
+    margin-bottom: 1em;
+}
+
+.title {
+    font-weight: bold;
+}
+.title::after {
+    content: ": ";
+}
+
+.line {
+    display: block;
+    white-space: pre;
+}
+
+.display details {
+    padding-top: 1em;
+}

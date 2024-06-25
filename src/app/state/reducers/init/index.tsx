@@ -4,7 +4,6 @@ import { NamespaceMap } from '../../../../lib/namespace'
 import { Pathbuilder } from '../../../../lib/pathbuilder'
 import { PathTree } from '../../../../lib/pathtree'
 import Selection from '../../../../lib/selection'
-import formatError from '../../../../lib/utils/error'
 import Deduplication from '../../state/deduplication'
 import newInspectorState from '../inspector'
 
@@ -48,9 +47,9 @@ export function loadFile (file: File): Reducer {
     try {
       const source = await file.text()
       return newInspectorState(Pathbuilder.parse(source), file.name)
-    } catch (e: unknown) {
+    } catch (error: unknown) {
       return {
-        loaded: await formatError(e)
+        loaded: { error }
       }
     }
   }

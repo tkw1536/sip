@@ -3,6 +3,7 @@ import DropArea from '../lib/components/drop-area'
 import * as styles from './loader.module.css'
 import { ReducerProps } from './state'
 import { loadFile } from './state/reducers/init'
+import ErrorDisplay from '../lib/components/error'
 
 /**
  * Loader is responsible for providing an interface to load a pathbuilder.
@@ -37,7 +38,12 @@ export default class Loader extends Component<ReducerProps> {
           All processing happens on-device, meaning the server host can not access any data contained within your pathbuilder.
         </p>
         <DropArea class={styles.dropZone} activeValidClass={styles.valid} activeInvalidClass={styles.invalid} onDropFile={this.handleFile} types={['text/xml']}>{this.dragContent}</DropArea>
-        {typeof error === 'string' ? <p><b>Unable to load pathbuilder: </b><pre><code>{error}</code></pre></p> : null}
+        {typeof error !== 'boolean' && error.error instanceof Error && (
+          <>
+            <p><b>Unable to load pathbuilder: </b></p>
+            <ErrorDisplay error={error.error} />
+          </>
+        )}
       </>
     )
   }
