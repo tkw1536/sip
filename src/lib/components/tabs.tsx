@@ -55,7 +55,7 @@ const TabInterface = WithID<TabInterfaceProps>(class TabInterface extends Compon
     event.preventDefault()
 
     const tab = this.findTab(id)
-    if (tab === null) return
+    if (tab === null || (tab.disabled ?? false)) return
     this.props.onChangeTab(id)
   }
 
