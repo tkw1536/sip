@@ -18,6 +18,7 @@ export interface State {
 
   colorVersion: number
   cm: ColorMap
+  cmLoadError?: string
 
   selectionVersion: number
   selection: NodeSelection // the selection

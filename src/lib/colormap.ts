@@ -1,12 +1,56 @@
+import Color from 'color'
 import { Bundle, Field, NodeLike } from './pathtree'
 
+interface ColorMapExport {
+  type: 'colormap'
+  defaultColor: string
+  colors: Record<string, string>
+}
+
 export default class ColorMap {
-  constructor (public readonly defaultColor: string, private readonly colors: Map<string, string>) {
+  public readonly defaultColor: string
+  constructor (defaultColor: string, private readonly colors: Map<string, string>) {
+    this.defaultColor = ColorMap.parseColor(defaultColor) ?? ColorMap.globalDefault
   }
 
   public static readonly globalDefault: string = '#ffffff'
   static empty (defaultColor?: string): ColorMap {
     return new ColorMap(defaultColor ?? ColorMap.globalDefault, new Map())
+  }
+
+  toJSON (): ColorMapExport {
+    return {
+      type: 'colormap',
+      defaultColor: this.defaultColor,
+      colors: Object.fromEntries(this.colors)
+    }
+  }
+
+  private static isValidColorMap (data: {}): data is ColorMapExport {
+    return (
+      (('type' in data) && data.type === 'colormap') &&
+      (('defaultColor' in data) && typeof data.defaultColor === 'string') &&
+      (('colors' in data) && data.colors instanceof Object && Object.entries(data.colors).findIndex(([k, v]) => typeof k !== 'string' || typeof v !== 'string') < 0)
+    )
+  }
+
+  /** parses a colormap from json */
+  static fromJSON (data: {}): ColorMap | null {
+    if (!this.isValidColorMap(data)) {
+      return null
+    }
+
+    const colors = new Map<string, string>()
+    Object.entries(data.colors).forEach(([k, v]) => {
+      if (typeof v !== 'string') return
+
+      const color = this.parseColor(v)
+      if (typeof color !== 'string') return
+
+      colors.set(k, color)
+    })
+
+    return new ColorMap(data.defaultColor, colors)
   }
 
   static generate (node: NodeLike, colors: { bundle: string, field: string }): ColorMap {
@@ -28,6 +72,14 @@ export default class ColorMap {
     return new ColorMap(ColorMap.globalDefault, cm)
   }
 
+  static parseColor (color: string): string | null {
+    try {
+      return new Color(color).hex()
+    } catch (e: any) {
+      return null
+    }
+  }
+
   /** gets the color of the node with the lowest depth and valid id */
   public get (...nodes: NodeLike[]): string {
     const node = nodes.sort(NodeLike.compare).find(node => typeof node.path?.id === 'string')
@@ -35,8 +87,10 @@ export default class ColorMap {
   }
 
   public set (node: NodeLike, color: string): ColorMap {
+    const nColor = ColorMap.parseColor(color) ?? ColorMap.globalDefault
+
     const value = this.get(node)
-    if (value === color) {
+    if (value === nColor) {
       return this
     }
 
@@ -44,8 +98,8 @@ export default class ColorMap {
     if (typeof id === 'undefined') return this
 
     const copy = new Map(this.colors)
-    if (color !== this.defaultColor) {
-      copy.set(id, color)
+    if (nColor !== this.defaultColor) {
+      copy.set(id, nColor)
     } else {
       copy.delete(id)
     }

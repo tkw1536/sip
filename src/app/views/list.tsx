@@ -7,7 +7,10 @@ import { ColorPreset, colorPresets } from '../state/state/preset'
 import { ReducerProps } from '../state'
 import { selectAll, selectNone, updateSelection } from '../state/reducers/inspector/selection'
 import { collapseAll, expandAll, collapseNode } from '../state/reducers/inspector/collapse'
-import { applyColorPreset, setColor } from '../state/reducers/inspector/color'
+import { applyColorPreset, loadColorMap, setColor } from '../state/reducers/inspector/color'
+import DropArea from '../../lib/components/drop-area'
+import { formatJSON } from '../../lib/drivers/impl'
+import download from '../../lib/utils/download'
 
 export default class ListView extends Component<ReducerProps> {
   private readonly handleSelectAll = (evt: Event): void => {
@@ -35,8 +38,18 @@ export default class ListView extends Component<ReducerProps> {
     this.props.apply(applyColorPreset(preset))
   }
 
+  private readonly handleColorMapExport = (evt: Event): void => {
+    const data = JSON.stringify(this.props.state.cm.toJSON(), null, 2)
+    const blob = new Blob([data], { type: formatJSON })
+    void download(blob, 'colormap.json', 'json')
+  }
+
+  private readonly handleColorMapImport = (file: File): void => {
+    this.props.apply(loadColorMap(file))
+  }
+
   render (): ComponentChild {
-    const { tree } = this.props.state
+    const { tree, cmLoadError } = this.props.state
     return (
       <>
         <p>
@@ -70,12 +83,18 @@ export default class ListView extends Component<ReducerProps> {
                 Select: &nbsp;
                 <button onClick={this.handleSelectAll}>All</button> &nbsp;
                 <button onClick={this.handleSelectNone}>None</button>
-                &nbsp;
-                Color Presets: &nbsp;
+              </td>
+            </tr>
+            <tr>
+              <td colSpan={6}>
+                Color Map: &nbsp;
                 {
                   colorPresets.map(preset => <Fragment key={preset}><button onClick={this.handleColorPreset.bind(this, preset)}>{preset}</button>&nbsp;</Fragment>)
                 }
-                &nbsp;
+                &nbsp;|&nbsp;
+                <button onClick={this.handleColorMapExport}>Export</button>
+                <DropArea onDropFile={this.handleColorMapImport} compact>Import</DropArea>
+                {typeof cmLoadError === 'string' && <small>&nbsp;{cmLoadError}</small>}
               </td>
             </tr>
             <tr>

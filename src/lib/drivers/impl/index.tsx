@@ -6,6 +6,7 @@ export const defaultLayout = 'auto'
 export const formatSVG = 'image/svg+xml'
 export const formatPNG = 'image/png'
 export const formatGraphViz = 'text/vnd.graphviz'
+export const formatJSON = 'application/json'
 
 export interface Size { width: number, height: number }
 

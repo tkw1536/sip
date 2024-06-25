@@ -1,8 +1,10 @@
-import { ComponentChild, Component, createRef } from 'preact'
+import { ComponentChild, Component, createRef, VNode } from 'preact'
 import { classes } from '../utils/classes'
 
 interface DropAreaProps {
   onDropFile: (...files: File[]) => void
+
+  compact?: boolean
 
   class?: string
   activeValidClass?: string
@@ -82,7 +84,7 @@ export default class DropArea extends Component<DropAreaProps> {
 
   render (): ComponentChild {
     const { dragActive, dragValid } = this.state
-    const { class: clz, activeInvalidClass, activeValidClass, passiveClass, children, multiple, types } = this.props
+    const { class: clz, activeInvalidClass, activeValidClass, passiveClass, children, multiple, types, compact } = this.props
 
     // determine classes to apply
     const dropClasses = [clz]
@@ -99,6 +101,28 @@ export default class DropArea extends Component<DropAreaProps> {
 
     const childNodes = typeof children === 'function' ? children(dragActive, dragValid) : children
 
+    let main: VNode
+    if (!(compact ?? false)) {
+      main = (
+        <div
+          class={classes(...dropClasses)}
+          onDrop={this.handleDropFile} onDragOver={this.handleDropOver} onDragLeave={this.handleDragLeave}
+          onClick={this.handleClick}
+        >
+          {childNodes}
+        </div>
+      )
+    } else {
+      main = (
+        <button
+          class={classes(clz)}
+          onClick={this.handleClick}
+        >
+          {childNodes}
+        </button>
+      )
+    }
+
     return (
       <>
         <input
@@ -109,12 +133,7 @@ export default class DropArea extends Component<DropAreaProps> {
           accept={types?.join(',')}
           onInput={this.handleUploadFile}
         />
-        <div
-          class={classes(...dropClasses)}
-          onDrop={this.handleDropFile} onDragOver={this.handleDropOver} onDragLeave={this.handleDragLeave}
-          onClick={this.handleClick}
-        >{childNodes}
-        </div>
+        {main}
       </>
     )
   }

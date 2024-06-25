@@ -1,6 +1,5 @@
 import ColorMap from '../../../lib/colormap'
 import { Bundle, Field, NodeLike } from '../../../lib/pathtree'
-import Color from 'color'
 
 export enum ColorPreset {
   BlueAndOrange = 'Blue And Orange',
@@ -28,7 +27,7 @@ function bluePreset (node: NodeLike): ColorMap {
 const GOLDEN_ANGLE = 137.508
 function colorOf (index: number): string {
   const h = (index > 0 ? index + 1 : 1) * GOLDEN_ANGLE
-  return new Color(`hsl(${h % 360},50%,75%)`).hex()
+  return ColorMap.parseColor(`hsl(${h % 360},50%,75%)`) ?? ColorMap.globalDefault
 }
 
 function colorPerBundlePreset (root: NodeLike): ColorMap {
