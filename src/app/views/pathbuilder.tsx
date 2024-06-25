@@ -5,8 +5,15 @@ import { ReducerProps } from '../state'
 import { loaderPathbuilder, resetInterface } from '../state/reducers/init'
 import ErrorDisplay from '../../lib/components/error'
 import { formatXML } from '../../lib/drivers/impl'
+import download from '../../lib/utils/download'
 
 export default class PathbuilderView extends Component<ReducerProps> {
+  render (): ComponentChildren {
+    return this.props.state.loaded === true ? <Info {...this.props} /> : <Loader {...this.props} />
+  }
+}
+
+class Loader extends Component<ReducerProps> {
   private readonly dragContent = (active: boolean, valid: boolean): ComponentChild => {
     switch (true) {
       case active && valid:
@@ -22,19 +29,7 @@ export default class PathbuilderView extends Component<ReducerProps> {
     this.props.apply(loaderPathbuilder(file))
   }
 
-  private readonly handleClosePathbuilder = (evt: Event): void => {
-    evt.preventDefault()
-    this.props.apply(resetInterface)
-  }
-
-  render (): ComponentChildren {
-    if (this.props.state.loaded === true) {
-      return this.renderInfo()
-    }
-    return this.renderLoader()
-  }
-
-  private renderLoader (): ComponentChild {
+  render (): ComponentChild {
     const { loaded: error } = this.props.state
 
     return (
@@ -56,16 +51,37 @@ export default class PathbuilderView extends Component<ReducerProps> {
       </>
     )
   }
+}
 
-  private renderInfo (): ComponentChildren {
+class Info extends Component<ReducerProps> {
+  private readonly handleClosePathbuilder = (evt: Event): void => {
+    evt.preventDefault()
+    this.props.apply(resetInterface)
+  }
+
+  private readonly handleExport = (evt: MouseEvent): void => {
+    evt.preventDefault()
+
+    const { pathbuilder } = this.props.state
+    const file = new Blob([pathbuilder.toXML()], { type: 'application/xml' })
+    download(file, this.filename)
+      .catch(() => console.error('never reached'))
+  }
+
+  get filename (): string {
+    const { filename } = this.props.state
+    return filename !== '' ? filename : 'pathbuilder.xml'
+  }
+
+  render (): ComponentChildren {
     return (
       <>
         <p>
-          To close this pathbuilder click the following button.
-          You can also just close this tab.
+          Pathbuilder <button onClick={this.handleExport}>{this.filename}</button> successfully loaded.
+          You can use the other tabs to inspect the pathbuilder.
         </p>
         <p>
-          <button onClick={this.handleClosePathbuilder}>Close</button>
+          You can also close <button onClick={this.handleClosePathbuilder}>Close</button> this pathbuilder.
         </p>
       </>
     )

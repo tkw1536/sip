@@ -6,6 +6,8 @@ import NodeSelection from '../../lib/selection'
 import Deduplication from './state/deduplication'
 
 export interface State {
+  activeTab: string // the active tab
+
   loaded: boolean | { error: unknown } // boolean indicating if file has been loaded, string for error
   filename: string
 
@@ -35,8 +37,6 @@ export interface State {
   modelGraphLayout: string
 
   collapsed: NodeSelection
-
-  activeTabIndex: number
 }
 
 /** A reducer updates state */

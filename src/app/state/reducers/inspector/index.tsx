@@ -9,7 +9,7 @@ import { newColor } from './color'
 import { newModelDeduplication, newModelDriver } from './model'
 import { newNamespaceMap } from './ns'
 import { newSelection } from './selection'
-import { newTabIndex } from './tab'
+import { newTabID } from './tab'
 
 export default function newInspectorState (pathbuilder: Pathbuilder, filename: string): State {
   const tree = PathTree.fromPathbuilder(pathbuilder)
@@ -43,6 +43,6 @@ export default function newInspectorState (pathbuilder: Pathbuilder, filename: s
 
     collapsed: newCollapsed(tree),
 
-    activeTabIndex: newTabIndex(tree)
+    activeTab: newTabID(tree)
   }
 }

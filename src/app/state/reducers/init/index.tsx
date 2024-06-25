@@ -10,7 +10,7 @@ import newInspectorState from '../inspector'
 export function resetInterface (): State {
   return {
     loaded: false,
-    activeTabIndex: 0,
+    activeTab: '',
 
     filename: '',
 

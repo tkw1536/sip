@@ -4,7 +4,6 @@ import { classes } from '../lib/utils/classes'
 import { resetInterface } from './state/reducers/init'
 import { Reducer, ReducerProps, State } from './state'
 import { Operation } from '../lib/utils/operation'
-import ExportView from './views/inspector/export'
 import HierarchyView from './views/inspector/hierarchy'
 import BundleGraphView from './views/inspector/graph/bundle'
 import MapView from './views/inspector/map'
@@ -81,8 +80,8 @@ export class App extends Component<{}, State> {
 }
 
 class Inspector extends Component<ReducerProps> {
-  private readonly handleActiveTab = (index: number): void => {
-    this.props.apply(setActiveTab(index))
+  private readonly handleChangeTab = (key: string): void => {
+    this.props.apply(setActiveTab(key))
   }
 
   render (): ComponentChild {
@@ -90,34 +89,31 @@ class Inspector extends Component<ReducerProps> {
     const props: ReducerProps = { apply, state }
     const loaded = state.loaded === true
     return (
-      <Tabs onChangeTab={this.handleActiveTab} activeIndex={state.activeTabIndex}>
+      <Tabs onChangeTab={this.handleChangeTab} active={state.activeTab}>
         <Label><b>Supreme Inspector for Pathbuilders</b></Label>
 
-        <Tab title='Pathbuilder'>
+        <Tab title='Pathbuilder' id=''>
           <PathbuilderView {...props} />
         </Tab>
-        <Tab title='Hierarchy' disabled={!loaded}>
+        <Tab title='Hierarchy' disabled={!loaded} id='hierarchy'>
           <HierarchyView {...props} />
         </Tab>
-        <Tab title='Bundle Graph' disabled={!loaded}>
+        <Tab title='Bundle Graph' disabled={!loaded} id='bundle'>
           <BundleGraphView {...props} />
         </Tab>
-        <Tab title='Model Graph' disabled={!loaded}>
+        <Tab title='Model Graph' disabled={!loaded} id='model'>
           <ModelGraphView {...props} />
         </Tab>
-        <Tab title='Namespace Map &#9881;&#65039;' disabled={!loaded}>
+        <Tab title='Namespace Map &#9881;&#65039;' disabled={!loaded} id='ns'>
           <MapView {...props} />
         </Tab>
-        <Tab title='Graph Backends &#9881;&#65039;' disabled={!loaded}>
+        <Tab title='Graph Backends &#9881;&#65039;' disabled={!loaded} id='config'>
           <GraphConfigView {...props} />
         </Tab>
-        <Tab title='Export' disabled={!loaded}>
-          <ExportView {...props} />
-        </Tab>
-        <Tab title='Docs'>
+        <Tab title='Docs' id='docs'>
           <DocsView />
         </Tab>
-        <Tab title='About'>
+        <Tab title='About' id='about'>
           <AboutView />
         </Tab>
       </Tabs>
