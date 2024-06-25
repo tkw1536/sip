@@ -1,11 +1,11 @@
 import { Component, ComponentChild } from 'preact'
 import * as styles from './map.module.css'
-import { WithID } from '../../lib/components/wrapper'
-import { ReducerProps } from '../state'
-import { addNamespace, deleteNamespace, loadNamespaceMap, resetNamespaceMap, updateNamespace } from '../state/reducers/inspector/ns'
-import { formatJSON } from '../../lib/drivers/impl'
-import download from '../../lib/utils/download'
-import DropArea from '../../lib/components/drop-area'
+import { WithID } from '../../../lib/components/wrapper'
+import { ReducerProps } from '../../state'
+import { addNamespace, deleteNamespace, loadNamespaceMap, resetNamespaceMap, updateNamespace } from '../../state/reducers/inspector/ns'
+import { formatJSON } from '../../../lib/drivers/impl'
+import download from '../../../lib/utils/download'
+import DropArea from '../../../lib/components/drop-area'
 
 export default class MapView extends Component<ReducerProps> {
   render (): ComponentChild {

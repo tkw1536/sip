@@ -10,6 +10,7 @@ import newInspectorState from '../inspector'
 export function resetInterface (): State {
   return {
     loaded: false,
+    activeTabIndex: 0,
 
     filename: '',
 
@@ -36,9 +37,7 @@ export function resetInterface (): State {
     modelGraphDriver: '',
     modelGraphLayout: '',
 
-    collapsed: NodeSelection.none(),
-
-    activeTabIndex: -1
+    collapsed: NodeSelection.none()
   }
 }
 

@@ -2,13 +2,13 @@ import { Component, ComponentChildren, VNode } from 'preact'
 import Markdown from 'preact-markdown'
 
 import * as styles from './docs.module.css'
-import { classes } from '../lib/utils/classes'
+import { classes } from '../../lib/utils/classes'
 
 export default class DocsView extends Component<{}, { content?: VNode }> {
   state: { content?: VNode } = { }
 
   private async markdown (): Promise<VNode> {
-    const content = await import('bundle-text:../../docs/bluenote.md') as unknown as string
+    const content = await import('bundle-text:../../../docs/bluenote.md') as unknown as string
     return Markdown(content)
   }
 

@@ -1,14 +1,14 @@
 import { Fragment, Component, ComponentChildren, createRef } from 'preact'
-import ModelGraphBuilder, { ModelEdge, ModelNode } from '../../../lib/graph/builders/model'
-import Deduplication, { explanations, names, values } from '../../state/state/deduplication'
-import { models } from '../../../lib/drivers/collection'
-import GraphBuilder from '../../../lib/graph/builders'
-import Driver from '../../../lib/drivers/impl'
+import ModelGraphBuilder, { ModelEdge, ModelNode } from '../../../../lib/graph/builders/model'
+import Deduplication, { explanations, names, values } from '../../../state/state/deduplication'
+import { models } from '../../../../lib/drivers/collection'
+import GraphBuilder from '../../../../lib/graph/builders'
+import Driver from '../../../../lib/drivers/impl'
 import GraphDisplay from '.'
-import ValueSelector from '../../../lib/components/selector'
-import { ReducerProps } from '../../state'
-import { setModelDeduplication, setModelLayout, setModelDriver } from '../../state/reducers/inspector/model'
-import { WithID } from '../../../lib/components/wrapper'
+import ValueSelector from '../../../../lib/components/selector'
+import { ReducerProps } from '../../../state'
+import { setModelDeduplication, setModelLayout, setModelDriver } from '../../../state/reducers/inspector/model'
+import { WithID } from '../../../../lib/components/wrapper'
 
 export default WithID<ReducerProps>(class ModelGraphView extends Component<ReducerProps & { id: string }> {
   private readonly builder = async (): Promise<GraphBuilder<ModelNode, ModelEdge>> => {

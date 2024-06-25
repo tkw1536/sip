@@ -1,15 +1,15 @@
 import { Component, createRef, ComponentChild, Fragment, ComponentChildren } from 'preact'
-import download from '../../../lib/utils/download'
-import Kernel, { DriverLoader } from '../../../lib/drivers'
-import Graph from '../../../lib/graph'
-import GraphBuilder from '../../../lib/graph/builders'
+import download from '../../../../lib/utils/download'
+import Kernel, { DriverLoader } from '../../../../lib/drivers'
+import Graph from '../../../../lib/graph'
+import GraphBuilder from '../../../../lib/graph/builders'
 
 import * as styles from './index.module.css'
-import { classes } from '../../../lib/utils/classes'
-import { Operation } from '../../../lib/utils/operation'
-import Driver from '../../../lib/drivers/impl'
-import { NamespaceMap } from '../../../lib/namespace'
-import ColorMap from '../../../lib/colormap'
+import { classes } from '../../../../lib/utils/classes'
+import { Operation } from '../../../../lib/utils/operation'
+import Driver from '../../../../lib/drivers/impl'
+import { NamespaceMap } from '../../../../lib/namespace'
+import ColorMap from '../../../../lib/colormap'
 
 interface GraphProps<NodeLabel, EdgeLabel> {
   loader: DriverLoader<NodeLabel, EdgeLabel>

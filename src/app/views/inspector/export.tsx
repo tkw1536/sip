@@ -1,6 +1,6 @@
 import { Component, ComponentChild } from 'preact'
-import download from '../../lib/utils/download'
-import { ReducerProps } from '../state'
+import download from '../../../lib/utils/download'
+import { ReducerProps } from '../../state'
 
 export default class ExportView extends Component<ReducerProps> {
   private readonly handleExport = (evt: MouseEvent): void => {

@@ -1,9 +1,9 @@
 import { Component, ComponentChild } from 'preact'
-import { bundles, models } from '../../lib/drivers/collection'
-import ValueSelector from '../../lib/components/selector'
-import { ReducerProps } from '../state'
-import { setBundleDriver } from '../state/reducers/inspector/bundle'
-import { setModelDriver } from '../state/reducers/inspector/model'
+import { bundles, models } from '../../../lib/drivers/collection'
+import ValueSelector from '../../../lib/components/selector'
+import { ReducerProps } from '../../state'
+import { setBundleDriver } from '../../state/reducers/inspector/bundle'
+import { setModelDriver } from '../../state/reducers/inspector/model'
 
 export default class GraphConfigView extends Component<ReducerProps> {
   private readonly handleBundleRender = (renderer: string): void => {

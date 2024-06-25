@@ -1,18 +1,18 @@
 import { Component, ComponentChild, Fragment } from 'preact'
-import { NamespaceMap } from '../../lib/namespace'
-import { Bundle, Field } from '../../lib/pathtree'
-import * as styles from './list.module.css'
-import { classes } from '../../lib/utils/classes'
-import { ColorPreset, colorPresets } from '../state/state/preset'
-import { ReducerProps } from '../state'
-import { selectAll, selectNone, updateSelection } from '../state/reducers/inspector/selection'
-import { collapseAll, expandAll, collapseNode } from '../state/reducers/inspector/collapse'
-import { applyColorPreset, loadColorMap, setColor } from '../state/reducers/inspector/color'
-import DropArea from '../../lib/components/drop-area'
-import { formatJSON } from '../../lib/drivers/impl'
-import download from '../../lib/utils/download'
+import { NamespaceMap } from '../../../lib/namespace'
+import { Bundle, Field } from '../../../lib/pathtree'
+import * as styles from './hierarchy.module.css'
+import { classes } from '../../../lib/utils/classes'
+import { ColorPreset, colorPresets } from '../../state/state/preset'
+import { ReducerProps } from '../../state'
+import { selectAll, selectNone, updateSelection } from '../../state/reducers/inspector/selection'
+import { collapseAll, expandAll, collapseNode } from '../../state/reducers/inspector/collapse'
+import { applyColorPreset, loadColorMap, setColor } from '../../state/reducers/inspector/color'
+import DropArea from '../../../lib/components/drop-area'
+import { formatJSON } from '../../../lib/drivers/impl'
+import download from '../../../lib/utils/download'
 
-export default class ListView extends Component<ReducerProps> {
+export default class HierarchyView extends Component<ReducerProps> {
   private readonly handleSelectAll = (evt: Event): void => {
     evt.preventDefault()
     this.props.apply(selectAll())
