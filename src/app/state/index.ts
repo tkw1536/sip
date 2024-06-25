@@ -44,5 +44,5 @@ export type Reducer = (state: State) => Partial<State> | Promise<Partial<State> 
 
 export interface ReducerProps {
   state: State
-  apply: (reducer: Reducer) => void
+  apply: (reducer: Reducer, callback?: () => void) => void
 }

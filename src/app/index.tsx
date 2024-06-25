@@ -36,9 +36,10 @@ export class App extends Component<{}, State> {
 
   private readonly reduction = new Operation()
 
-  private readonly applyReducer = (reducer: Reducer): void => {
+  private readonly applyReducer = (reducer: Reducer, callback?: () => void): void => {
     const ticket = this.reduction.ticket()
 
+    let reducerReturnedPromise = false
     this.setState(state => {
       if (!ticket()) return null
 
@@ -51,18 +52,21 @@ export class App extends Component<{}, State> {
       reduced
         .then(res => {
           // ensure that we have some valid state to apply
-          if (!ticket() || res === null) return
+          if (!ticket()) return
 
           // apply the state
-          this.setState(() => ticket() ? res : null)
+          this.setState(() => ticket() ? res : null, callback)
         })
         .catch(err => {
           console.error('Error applying reducer')
           console.error(err)
         })
 
+      reducerReturnedPromise = true
       return null // nothing to do for now (only when the promise resolves)
-    })
+    },
+    (typeof callback === 'function') ? () => { if (!reducerReturnedPromise) { callback() } } : undefined
+    )
   }
 
   componentWillUnmount (): void {
