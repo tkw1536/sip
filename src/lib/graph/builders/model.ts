@@ -1,8 +1,7 @@
 import GraphBuilder from '.'
 import Deduplication from '../../../app/state/state/deduplication'
 import Graph from '..'
-import { Path } from '../../pathbuilder'
-import { Bundle, Field, PathTree } from '../../pathtree'
+import { Bundle, Field, NodeLike, PathTree } from '../../pathtree'
 import ArrayTracker from '../../utils/array-tracker'
 import { NamespaceMap } from '../../namespace'
 
@@ -11,7 +10,7 @@ export type Options = SharedOptions & {
 }
 
 interface SharedOptions {
-  include?: (uri: string) => boolean
+  include?: (node: NodeLike) => boolean
 }
 
 export type ModelNode = {
@@ -86,10 +85,10 @@ abstract class SpecificBuilder {
   public abstract build (): void
 
   /** checks if the given uri is included in the graph */
-  protected includes (withPath?: { path: Path }): boolean {
+  protected includes (node: NodeLike): boolean {
     if (this.options.include == null) return true
 
-    return this.options.include(withPath?.path?.id ?? '')
+    return this.options.include(node)
   }
 
   protected id (context: string, typ: 'class' | 'data', id: string): string {

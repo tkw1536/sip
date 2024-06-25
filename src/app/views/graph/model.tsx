@@ -7,14 +7,14 @@ import Driver from '../../../lib/drivers/impl'
 import GraphDisplay from '.'
 import ValueSelector from '../../../lib/components/selector'
 import { ReducerProps } from '../../state'
-import { setModelDeduplication, setModelLayout, setBundleDriver } from '../../state/reducers/inspector/model'
+import { setModelDeduplication, setModelLayout, setModelDriver } from '../../state/reducers/inspector/model'
 import { WithID } from '../../../lib/components/wrapper'
 
 export default WithID<ReducerProps>(class ModelGraphView extends Component<ReducerProps & { id: string }> {
   private readonly builder = async (): Promise<GraphBuilder<ModelNode, ModelEdge>> => {
     const { tree, selection, modelDeduplication: deduplication } = this.props.state
     return await Promise.resolve(new ModelGraphBuilder(tree, {
-      include: (uri: string) => selection.includes(uri),
+      include: selection.includes.bind(selection),
       deduplication
     }))
   }
@@ -28,7 +28,7 @@ export default WithID<ReducerProps>(class ModelGraphView extends Component<Reduc
   }
 
   private readonly handleChangeModelRenderer = (value: string): void => {
-    this.props.apply(setBundleDriver(value))
+    this.props.apply(setModelDriver(value))
   }
 
   private readonly displayRef = createRef<GraphDisplay<ModelNode, ModelEdge>>()

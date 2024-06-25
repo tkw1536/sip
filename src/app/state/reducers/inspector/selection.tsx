@@ -1,21 +1,21 @@
 import { Reducer, State } from '../..'
-import { PathTree } from '../../../../lib/pathtree'
-import Selection from '../../../../lib/selection'
+import { NodeLike, PathTree } from '../../../../lib/pathtree'
+import NodeSelection from '../../../../lib/selection'
 
-export function newSelection (tree: PathTree): Selection {
-  return Selection.all()
+export function newSelection (tree: PathTree): NodeSelection {
+  return NodeSelection.all()
 }
 
 /** selects all items */
 export function selectAll (): Reducer {
   return ({ selectionVersion }: State): Partial<State> => ({
-    selection: Selection.all(),
+    selection: NodeSelection.all(),
     selectionVersion: selectionVersion + 1
   })
 }
 
 /** makes sure that the selected items are applied */
-export function updateSelection (pairs: Array<[string, boolean]>): Reducer {
+export function updateSelection (pairs: Array<[NodeLike, boolean]>): Reducer {
   return ({ selection, selectionVersion }: State): Partial<State> => ({
     selection: selection.with(pairs),
     selectionVersion: selectionVersion + 1
@@ -25,7 +25,7 @@ export function updateSelection (pairs: Array<[string, boolean]>): Reducer {
 /** selects none of the item */
 export function selectNone (): Reducer {
   return ({ selection, selectionVersion }: State): Partial<State> => ({
-    selection: Selection.none(),
+    selection: NodeSelection.none(),
     selectionVersion: selectionVersion + 1
   })
 }

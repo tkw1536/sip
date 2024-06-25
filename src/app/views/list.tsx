@@ -98,7 +98,7 @@ class BundleRows extends Component<ReducerProps & { bundle: Bundle, level: numbe
   private readonly handleClick = (evt: Event): void => {
     evt.preventDefault()
 
-    this.props.apply(collapseNode(this.props.bundle.path.id))
+    this.props.apply(collapseNode(this.props.bundle))
   }
 
   private shiftHeld = false
@@ -111,7 +111,7 @@ class BundleRows extends Component<ReducerProps & { bundle: Bundle, level: numbe
 
     const { bundle } = this.props
 
-    const keys = this.shiftHeld ? Array.from(bundle.allChildren()) : [bundle.path.id]
+    const keys = this.shiftHeld ? Array.from(bundle.walk()) : [bundle]
     const value = evt.currentTarget.checked
 
     this.props.apply(updateSelection(keys.map(k => [k, value])))
@@ -128,12 +128,12 @@ class BundleRows extends Component<ReducerProps & { bundle: Bundle, level: numbe
     const props: ReducerProps = { state, apply }
 
     const path = bundle.path
-    const expanded = !collapsed.includes(path.id)
+    const expanded = !collapsed.includes(bundle)
     return (
       <>
         <tr class={!visible ? styles.hidden : ''}>
           <td>
-            <input type='checkbox' checked={selection.includes(path.id)} onClick={this.handleKeydown} onInput={this.handleSelectionChange} />
+            <input type='checkbox' checked={selection.includes(bundle)} onClick={this.handleKeydown} onInput={this.handleSelectionChange} />
             <input type='color' value={cm.get(bundle)} onInput={this.handleColorChange} />
           </td>
           <td style={{ paddingLeft: INDENT_PER_LEVEL * level }}>
@@ -174,7 +174,7 @@ class BundleRows extends Component<ReducerProps & { bundle: Bundle, level: numbe
 
 class FieldRow extends Component<ReducerProps & { field: Field, level: number, visible: boolean }> {
   private readonly handleSelectionChange = (evt: Event & { currentTarget: HTMLInputElement }): void => {
-    this.props.apply(updateSelection([[this.props.field.path.id, evt.currentTarget.checked]]))
+    this.props.apply(updateSelection([[this.props.field, evt.currentTarget.checked]]))
   }
 
   private readonly handleColorChange = (evt: Event & { currentTarget: HTMLInputElement }): void => {
@@ -188,7 +188,7 @@ class FieldRow extends Component<ReducerProps & { field: Field, level: number, v
     return (
       <tr class={!visible ? styles.hidden : ''}>
         <td>
-          <input type='checkbox' checked={selection.includes(path.id)} onInput={this.handleSelectionChange} />
+          <input type='checkbox' checked={selection.includes(field)} onInput={this.handleSelectionChange} />
           <input type='color' value={cm.get(field)} onInput={this.handleColorChange} />
         </td>
         <td style={{ paddingLeft: INDENT_PER_LEVEL * level }}>

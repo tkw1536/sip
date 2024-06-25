@@ -1,49 +1,59 @@
-export default class Selection<S extends string = string> {
-  private readonly set = new Set<S>()
-  private constructor (private readonly defaultValue: boolean, values: Iterable<S>) {
+import { NodeLike } from './pathtree'
+
+export default class NodeSelection {
+  private readonly set = new Set<string>()
+  private constructor (private readonly defaultValue: boolean, values: Iterable<string>) {
     this.set = new Set(values)
   }
 
   /** includes checks if the selection includes the given key */
-  includes (key: S): boolean {
-    if (this.set.has(key)) {
+  includes (key: NodeLike): boolean {
+    const id = key.path?.id
+    if (typeof id !== 'string') return false
+    if (this.set.has(id)) {
       return !this.defaultValue
     }
     return this.defaultValue
   }
 
   /** with returns a new selection with the specified key set to the specified value */
-  with (pairs: Array<[S, boolean]>): Selection {
+  with (pairs: Array<[NodeLike, boolean]>): NodeSelection {
     const set = new Set(this.set)
 
     pairs.forEach(([key, value]) => {
+      const id = key.path?.id
+      if (typeof id !== 'string') return
+
       if (value === this.defaultValue) {
-        set.delete(key)
+        set.delete(id)
       } else {
-        set.add(key)
+        set.add(id)
       }
     })
 
-    return new Selection(this.defaultValue, set)
+    return new NodeSelection(this.defaultValue, set)
   }
 
-  toggle (value: S): Selection {
+  toggle (key: NodeLike): NodeSelection {
+    const id = key.path?.id
+    if (typeof id !== 'string') return this
+
     const set = new Set(this.set)
 
-    if (set.has(value)) {
-      set.delete(value)
+    if (set.has(id)) {
+      set.delete(id)
     } else {
-      set.add(value)
+      set.add(id)
     }
 
-    return new Selection(this.defaultValue, set)
+    return new NodeSelection(this.defaultValue, set)
   }
 
-  static none (): Selection {
-    return new Selection(false, [])
+  static none (): NodeSelection {
+    return new NodeSelection(false, [])
   }
 
-  static all (): Selection {
-    return new Selection(true, [])
+  static all (): NodeSelection {
+    return new NodeSelection(true, [])
   }
 }

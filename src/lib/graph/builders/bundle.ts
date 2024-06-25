@@ -1,6 +1,6 @@
 import GraphBuilder from '.'
 import { Bundle, Field, PathTree } from '../../pathtree'
-import Selection from '../../selection'
+import NodeSelection from '../../selection'
 
 export type BundleNode = {
   type: 'bundle'
@@ -19,7 +19,7 @@ export type BundleEdge = {
 }
 
 export default class BundleGraphBuilder extends GraphBuilder<BundleNode, BundleEdge> {
-  constructor (private readonly tree: PathTree, private readonly selection: Selection) {
+  constructor (private readonly tree: PathTree, private readonly selection: NodeSelection) {
     super()
   }
 
@@ -32,7 +32,7 @@ export default class BundleGraphBuilder extends GraphBuilder<BundleNode, BundleE
     const id = bundle.path.id
 
     // add the node for this bundle
-    const includeSelf = this.selection.includes(bundle.path.id)
+    const includeSelf = this.selection.includes(bundle)
     if (includeSelf) {
       this.graph.addNode({ type: 'bundle', level: 2 * level, bundle }, id)
     }
@@ -48,7 +48,7 @@ export default class BundleGraphBuilder extends GraphBuilder<BundleNode, BundleE
     // add all the child fields
     bundle.childFields.forEach(cf => {
       const fieldId = cf.path.id
-      const includeField = this.selection.includes(cf.path.id)
+      const includeField = this.selection.includes(cf)
       if (!includeField) return
 
       this.graph.addNode({ type: 'field', level: 2 * level + 1, field: cf }, fieldId)

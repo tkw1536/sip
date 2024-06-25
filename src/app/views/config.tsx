@@ -3,7 +3,7 @@ import { bundles, models } from '../../lib/drivers/collection'
 import ValueSelector from '../../lib/components/selector'
 import { ReducerProps } from '../state'
 import { setBundleDriver } from '../state/reducers/inspector/bundle'
-import { setBundleDriver } from '../state/reducers/inspector/model'
+import { setModelDriver } from '../state/reducers/inspector/model'
 
 export default class GraphConfigView extends Component<ReducerProps> {
   private readonly handleBundleRender = (renderer: string): void => {
@@ -11,7 +11,7 @@ export default class GraphConfigView extends Component<ReducerProps> {
   }
 
   private readonly handleModelRenderer = (renderer: string): void => {
-    this.props.apply(setBundleDriver(renderer))
+    this.props.apply(setModelDriver(renderer))
   }
 
   render (): ComponentChild {

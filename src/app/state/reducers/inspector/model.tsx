@@ -8,7 +8,7 @@ export function newModelDriver (tree: PathTree): string {
   return models.defaultDriver
 }
 
-export function setBundleDriver (name: string): Reducer {
+export function setModelDriver (name: string): Reducer {
   return ({ tree }: State): Partial<State> => ({
     modelGraphDriver: name,
     modelGraphLayout: defaultLayout

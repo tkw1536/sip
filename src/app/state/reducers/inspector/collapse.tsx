@@ -1,28 +1,28 @@
 import { Reducer, State } from '../..'
-import { PathTree } from '../../../../lib/pathtree'
-import Selection from '../../../../lib/selection'
+import { NodeLike, PathTree } from '../../../../lib/pathtree'
+import NodeSelection from '../../../../lib/selection'
 
-export function newCollapsed (tree: PathTree): Selection {
-  return Selection.none()
+export function newCollapsed (tree: PathTree): NodeSelection {
+  return NodeSelection.none()
 }
 
 /** collapses the specific id */
-export function collapseNode (id: string): Reducer {
+export function collapseNode (node: NodeLike): Reducer {
   return ({ collapsed }: State): Partial<State> => ({
-    collapsed: collapsed.toggle(id)
+    collapsed: collapsed.toggle(node)
   })
 }
 
 /** collapses all nodes */
 export function collapseAll (): Reducer {
   return (state: State): Partial<State> => ({
-    collapsed: Selection.all()
+    collapsed: NodeSelection.all()
   })
 }
 
 /** expands all nodes */
 export function expandAll (): Reducer {
   return (state: State): Partial<State> => ({
-    collapsed: Selection.none()
+    collapsed: NodeSelection.none()
   })
 }

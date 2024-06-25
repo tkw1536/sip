@@ -2,7 +2,7 @@ import ColorMap from '../../lib/colormap'
 import { NamespaceMap } from '../../lib/namespace'
 import { Pathbuilder } from '../../lib/pathbuilder'
 import { PathTree } from '../../lib/pathtree'
-import Selection from '../../lib/selection'
+import NodeSelection from '../../lib/selection'
 import Deduplication from './state/deduplication'
 
 export interface State {
@@ -20,7 +20,7 @@ export interface State {
   cm: ColorMap
 
   selectionVersion: number
-  selection: Selection // the selection
+  selection: NodeSelection // the selection
 
   optionVersion: number
   modelDeduplication: Deduplication
@@ -32,7 +32,7 @@ export interface State {
   modelGraphDriver: string
   modelGraphLayout: string
 
-  collapsed: Selection
+  collapsed: NodeSelection
 
   activeTabIndex: number
 }

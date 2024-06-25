@@ -3,7 +3,7 @@ import ColorMap from '../../../../lib/colormap'
 import { NamespaceMap } from '../../../../lib/namespace'
 import { Pathbuilder } from '../../../../lib/pathbuilder'
 import { PathTree } from '../../../../lib/pathtree'
-import Selection from '../../../../lib/selection'
+import NodeSelection from '../../../../lib/selection'
 import Deduplication from '../../state/deduplication'
 import newInspectorState from '../inspector'
 
@@ -24,7 +24,7 @@ export function resetInterface (): State {
     cm: ColorMap.empty(),
 
     selectionVersion: -1,
-    selection: Selection.none(),
+    selection: NodeSelection.none(),
 
     optionVersion: -1,
     modelDeduplication: Deduplication.None,
@@ -36,7 +36,7 @@ export function resetInterface (): State {
     modelGraphDriver: '',
     modelGraphLayout: '',
 
-    collapsed: Selection.none(),
+    collapsed: NodeSelection.none(),
 
     activeTabIndex: -1
   }
