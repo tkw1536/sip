@@ -6,6 +6,7 @@ import { UUIDPool } from '../utils/uuid'
 import { Operation } from '../utils/operation'
 import Driver from './impl'
 import ColorMap from '../colormap'
+import ErrorDisplay from '../components/error'
 
 export const defaultLayout = 'auto'
 
@@ -38,7 +39,7 @@ interface KernelProps<NodeLabel, EdgeLabel> {
   driverRef?: Ref<Driver<NodeLabel, EdgeLabel>>
 }
 
-interface KernelState { size?: Size, driverError?: string, driverLoading: boolean }
+interface KernelState { size?: Size, driverError?: Error, driverLoading: boolean }
 
 export interface DriverLoader<NodeLabel, EdgeLabel> {
   get: (name: string) => Promise<Driver<NodeLabel, EdgeLabel>>
@@ -102,7 +103,8 @@ export default class Kernel<NodeLabel, EdgeLabel> extends Component<KernelProps<
           if (err === Kernel.errorAborted || !setState.ticket()) return
 
           console.error('error while mounting driver: ', err)
-          this.setState({ driverError: Object.prototype.toString.call(err), driverLoading: false })
+          const driverError = (err instanceof Error) ? err : new Error(String(err))
+          this.setState({ driverError, driverLoading: false })
         })
     })
   }
@@ -281,7 +283,7 @@ export default class Kernel<NodeLabel, EdgeLabel> extends Component<KernelProps<
         {(typeof size !== 'undefined') && (
           <div style={{ width: size.width, height: size.height }} ref={this.container}>
             {driverLoading && <p>Driver loading</p>}
-            {typeof driverError === 'string' && <p><b>Error loading driver: </b>{driverError}</p>}
+            {driverError instanceof Error && <ErrorDisplay error={driverError} />}
           </div>
         )}
       </div>
