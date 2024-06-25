@@ -3,13 +3,13 @@ import { defaultLayout } from '../../../../lib/drivers'
 import { bundles } from '../../../../lib/drivers/collection'
 import { PathTree } from '../../../../lib/pathtree'
 
-export function newBundleRender (tree: PathTree): string {
+export function newBundleDriver (tree: PathTree): string {
   return bundles.defaultDriver
 }
 
-export function setBundleRenderer (name: string): Reducer {
+export function setBundleDriver (name: string): Reducer {
   return ({ tree }: State): Partial<State> => ({
-    bundleGraphRenderer: name,
+    bundleGraphDriver: name,
     bundleGraphLayout: defaultLayout
   })
 }

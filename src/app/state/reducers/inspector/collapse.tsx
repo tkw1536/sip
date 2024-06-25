@@ -7,7 +7,7 @@ export function newCollapsed (tree: PathTree): Selection {
 }
 
 /** collapses the specific id */
-export function toggleCollapsed (id: string): Reducer {
+export function collapseNode (id: string): Reducer {
   return ({ collapsed }: State): Partial<State> => ({
     collapsed: collapsed.toggle(id)
   })

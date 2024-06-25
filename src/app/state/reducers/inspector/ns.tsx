@@ -2,18 +2,18 @@ import { Reducer, State } from '../..'
 import { NamespaceMap } from '../../../../lib/namespace'
 import { PathTree } from '../../../../lib/pathtree'
 
-export function newNS (tree: PathTree): NamespaceMap {
+export function newNamespaceMap (tree: PathTree): NamespaceMap {
   return NamespaceMap.generate(tree.uris)
 }
 
-export function resetNS (): Reducer {
+export function resetNamespaceMap (): Reducer {
   return ({ namespaceVersion, tree }: State): Partial<State> => ({
-    ns: newNS(tree),
+    ns: newNamespaceMap(tree),
     namespaceVersion: namespaceVersion + 1
   })
 }
 
-export function deleteNS (long: string): Reducer {
+export function deleteNamespace (long: string): Reducer {
   return ({ namespaceVersion, ns }: State): Partial<State> => ({
     ns: ns.remove(long),
     namespaceVersion: namespaceVersion + 1
@@ -21,7 +21,7 @@ export function deleteNS (long: string): Reducer {
 }
 
 /** updates the given long uri to have the new short uri */
-export function updateNS (long: string, newShort: string): Reducer {
+export function updateNamespace (long: string, newShort: string): Reducer {
   return ({ namespaceVersion, ns }: State): Partial<State> | null => {
     const mp = ns.toMap()
     if (!mp.has(long)) {
@@ -36,7 +36,7 @@ export function updateNS (long: string, newShort: string): Reducer {
 }
 
 /** adds the new given long and short urls */
-export function addNS (long: string, short: string): Reducer {
+export function addNamespace (long: string, short: string): Reducer {
   return ({ namespaceVersion, ns }: State): Partial<State> | null => {
     // if we already have the short or the long don't do anything
     if (ns.hasShort(short) || ns.hasLong(long)) {

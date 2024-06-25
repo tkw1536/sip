@@ -12,7 +12,7 @@ export default class BundleGraphView extends Component<ReducerProps> {
   }
 
   render (): ComponentChildren {
-    const { bundleGraphLayout, bundleGraphRenderer, pathbuilderVersion, selectionVersion, colorVersion, ns, cm } = this.props.state
+    const { bundleGraphLayout, bundleGraphDriver: bundleGraphRenderer, pathbuilderVersion, selectionVersion, colorVersion, ns, cm } = this.props.state
 
     return (
       <GraphDisplay

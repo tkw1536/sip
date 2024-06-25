@@ -2,7 +2,7 @@ import { Component, ComponentChild } from 'preact'
 import * as styles from './map.module.css'
 import { WithID } from '../../lib/components/wrapper'
 import { ReducerProps } from '../state'
-import { addNS, deleteNS, resetNS, updateNS } from '../state/reducers/inspector/ns'
+import { addNamespace, deleteNamespace, resetNamespaceMap, updateNamespace } from '../state/reducers/inspector/ns'
 
 export default class MapView extends Component<ReducerProps> {
   render (): ComponentChild {
@@ -50,7 +50,7 @@ const AddMapRow = WithID<ReducerProps>(class AddMapRow extends Component<Reducer
     evt.preventDefault()
 
     const { short, long } = this.state
-    this.props.apply(addNS(long, short))
+    this.props.apply(addNamespace(long, short))
   }
 
   private readonly handleShortChange = (event: Event & { currentTarget: HTMLInputElement }): void => {
@@ -86,7 +86,7 @@ const AddMapRow = WithID<ReducerProps>(class AddMapRow extends Component<Reducer
 class ResetNSRow extends Component<ReducerProps> {
   private readonly handleSubmit = (evt: SubmitEvent): void => {
     evt.preventDefault()
-    this.props.apply(resetNS())
+    this.props.apply(resetNamespaceMap())
   }
 
   render (): ComponentChild {
@@ -114,7 +114,7 @@ class MapViewRow extends Component<{ long: string, short: string, props: Reducer
     if (typeof value !== 'string') return // do nothing
 
     const { long } = this.props
-    this.props.props.apply(updateNS(long, value))
+    this.props.props.apply(updateNamespace(long, value))
   }
 
   private readonly handleChange = (event: Event & { currentTarget: HTMLInputElement }): void => {
@@ -124,7 +124,7 @@ class MapViewRow extends Component<{ long: string, short: string, props: Reducer
   private readonly handleDelete = (event: Event): void => {
     event.preventDefault()
 
-    this.props.props.apply(deleteNS(this.props.long))
+    this.props.props.apply(deleteNamespace(this.props.long))
   }
 
   render (): ComponentChild {

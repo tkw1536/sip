@@ -23,13 +23,13 @@ export interface State {
   selection: Selection // the selection
 
   optionVersion: number
-  deduplication: Deduplication
+  modelDeduplication: Deduplication
 
   // renders for the graphs
-  bundleGraphRenderer: string
+  bundleGraphDriver: string
   bundleGraphLayout: string
 
-  modelGraphRenderer: string
+  modelGraphDriver: string
   modelGraphLayout: string
 
   collapsed: Selection

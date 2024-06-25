@@ -2,7 +2,7 @@ import { Component, ComponentChild } from 'preact'
 import DropArea from '../lib/components/drop-area'
 import * as styles from './loader.module.css'
 import { ReducerProps } from './state'
-import { loadFile } from './state/reducers/init'
+import { loaderPathbuilder } from './state/reducers/init'
 import ErrorDisplay from '../lib/components/error'
 
 /**
@@ -22,7 +22,7 @@ export default class Loader extends Component<ReducerProps> {
   }
 
   private readonly handleFile = (file: File): void => {
-    this.props.apply(loadFile(file))
+    this.props.apply(loaderPathbuilder(file))
   }
 
   render (): ComponentChild {

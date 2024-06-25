@@ -3,11 +3,11 @@ import { defaultLayout } from '../../../../lib/drivers'
 import { Pathbuilder } from '../../../../lib/pathbuilder'
 import { PathTree } from '../../../../lib/pathtree'
 import { ColorPreset } from '../../state/preset'
-import { newBundleRender } from './bundle'
+import { newBundleDriver } from './bundle'
 import { newCollapsed } from './collapse'
 import { newColor } from './color'
-import { newDeduplication, newModelRender } from './model'
-import { newNS } from './ns'
+import { newModelDeduplication, newModelDriver } from './model'
+import { newNamespaceMap } from './ns'
 import { newSelection } from './selection'
 import { newTabIndex } from './tab'
 
@@ -24,7 +24,7 @@ export default function newInspectorState (pathbuilder: Pathbuilder, filename: s
     tree,
 
     namespaceVersion: 0, // this number is updated every time the namespaceMap is updated
-    ns: newNS(tree),
+    ns: newNamespaceMap(tree),
 
     colorVersion: 0,
     cm: newColor(tree, ColorPreset.BlueAndOrange),
@@ -33,12 +33,12 @@ export default function newInspectorState (pathbuilder: Pathbuilder, filename: s
     selection: newSelection(tree),
 
     optionVersion: 0,
-    deduplication: newDeduplication(tree),
+    modelDeduplication: newModelDeduplication(tree),
 
-    bundleGraphRenderer: newBundleRender(tree),
+    bundleGraphDriver: newBundleDriver(tree),
     bundleGraphLayout: defaultLayout,
 
-    modelGraphRenderer: newModelRender(tree),
+    modelGraphDriver: newModelDriver(tree),
     modelGraphLayout: defaultLayout,
 
     collapsed: newCollapsed(tree),

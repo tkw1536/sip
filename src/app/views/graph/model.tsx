@@ -7,12 +7,12 @@ import Driver from '../../../lib/drivers/impl'
 import GraphDisplay from '.'
 import ValueSelector from '../../../lib/components/selector'
 import { ReducerProps } from '../../state'
-import { setDeduplication, setModelLayout, setModelRenderer } from '../../state/reducers/inspector/model'
+import { setModelDeduplication, setModelLayout, setBundleDriver } from '../../state/reducers/inspector/model'
 import { WithID } from '../../../lib/components/wrapper'
 
 export default WithID<ReducerProps>(class ModelGraphView extends Component<ReducerProps & { id: string }> {
   private readonly builder = async (): Promise<GraphBuilder<ModelNode, ModelEdge>> => {
-    const { tree, selection, deduplication } = this.props.state
+    const { tree, selection, modelDeduplication: deduplication } = this.props.state
     return await Promise.resolve(new ModelGraphBuilder(tree, {
       include: (uri: string) => selection.includes(uri),
       deduplication
@@ -20,7 +20,7 @@ export default WithID<ReducerProps>(class ModelGraphView extends Component<Reduc
   }
 
   private readonly handleChangeMode = (evt: Event): void => {
-    this.props.apply(setDeduplication((evt.target as HTMLInputElement).value as Deduplication))
+    this.props.apply(setModelDeduplication((evt.target as HTMLInputElement).value as Deduplication))
   }
 
   private readonly handleChangeModelLayout = (evt: Event): void => {
@@ -28,7 +28,7 @@ export default WithID<ReducerProps>(class ModelGraphView extends Component<Reduc
   }
 
   private readonly handleChangeModelRenderer = (value: string): void => {
-    this.props.apply(setModelRenderer(value))
+    this.props.apply(setBundleDriver(value))
   }
 
   private readonly displayRef = createRef<GraphDisplay<ModelNode, ModelEdge>>()
@@ -43,7 +43,7 @@ export default WithID<ReducerProps>(class ModelGraphView extends Component<Reduc
   }
 
   render (): ComponentChildren {
-    const { modelGraphLayout, modelGraphRenderer, pathbuilderVersion, selectionVersion, optionVersion, colorVersion, ns, cm } = this.props.state
+    const { modelGraphLayout, modelGraphDriver: modelGraphRenderer, pathbuilderVersion, selectionVersion, optionVersion, colorVersion, ns, cm } = this.props.state
 
     return (
       <GraphDisplay
@@ -60,7 +60,7 @@ export default WithID<ReducerProps>(class ModelGraphView extends Component<Reduc
   }
 
   private readonly renderPanel = (driver: Driver<ModelNode, ModelEdge> | null): ComponentChildren => {
-    const { state: { deduplication, modelGraphLayout: layout }, id } = this.props
+    const { state: { modelDeduplication: deduplication, modelGraphLayout: layout }, id } = this.props
 
     const modelGraphName = driver?.driverName
     const exportFormats = driver?.supportedExportFormats

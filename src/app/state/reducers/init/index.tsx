@@ -27,13 +27,13 @@ export function resetInterface (): State {
     selection: Selection.none(),
 
     optionVersion: -1,
-    deduplication: Deduplication.None,
+    modelDeduplication: Deduplication.None,
 
     // renders for the graphs
-    bundleGraphRenderer: '',
+    bundleGraphDriver: '',
     bundleGraphLayout: '',
 
-    modelGraphRenderer: '',
+    modelGraphDriver: '',
     modelGraphLayout: '',
 
     collapsed: Selection.none(),
@@ -42,7 +42,7 @@ export function resetInterface (): State {
   }
 }
 
-export function loadFile (file: File): Reducer {
+export function loaderPathbuilder (file: File): Reducer {
   return async (state: State): Promise<Partial<State> | null> => {
     try {
       const source = await file.text()

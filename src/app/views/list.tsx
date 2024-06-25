@@ -6,7 +6,7 @@ import { classes } from '../../lib/utils/classes'
 import { ColorPreset, colorPresets } from '../state/state/preset'
 import { ReducerProps } from '../state'
 import { selectAll, selectNone, updateSelection } from '../state/reducers/inspector/selection'
-import { collapseAll, expandAll, toggleCollapsed } from '../state/reducers/inspector/collapse'
+import { collapseAll, expandAll, collapseNode } from '../state/reducers/inspector/collapse'
 import { applyColorPreset, setColor } from '../state/reducers/inspector/color'
 
 export default class ListView extends Component<ReducerProps> {
@@ -98,7 +98,7 @@ class BundleRows extends Component<ReducerProps & { bundle: Bundle, level: numbe
   private readonly handleClick = (evt: Event): void => {
     evt.preventDefault()
 
-    this.props.apply(toggleCollapsed(this.props.bundle.path.id))
+    this.props.apply(collapseNode(this.props.bundle.path.id))
   }
 
   private shiftHeld = false
