@@ -5,8 +5,8 @@ import dagre from 'cytoscape-dagre'
 import elk from 'cytoscape-elk'
 import fcose from 'cytoscape-fcose'
 import avsdf from 'cytoscape-avsdf'
-import svg from 'cytoscape-svg'
-import { ContextFlags, defaultLayout, DriverImpl, formatSVG, MountFlags, Size } from '.'
+
+import { ContextFlags, defaultLayout, DriverImpl, MountFlags, Size } from '.'
 import { BundleEdge, BundleNode } from '../../graph/builders/bundle'
 import { ModelEdge, ModelNode, modelNodeLabel } from '../../graph/builders/model'
 cytoscape.use(cola)
@@ -14,7 +14,6 @@ cytoscape.use(dagre)
 cytoscape.use(elk)
 cytoscape.use(fcose)
 cytoscape.use(avsdf)
-cytoscape.use(svg)
 
 type Elements = ElementDefinition[]
 type Cytoscape = Core
@@ -134,10 +133,9 @@ abstract class CytoscapeDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLabe
     c.destroy()
   }
 
-  readonly supportedExportFormats = ['svg']
+  readonly supportedExportFormats = []
   protected async objectToBlobImpl (c: Cytoscape, elements: Elements, flags: MountFlags, format: string): Promise<Blob> {
-    const svg = (c as any).svg() as string
-    return await Promise.resolve(new Blob([svg], { type: formatSVG }))
+    throw new Error('never reached')
   }
 }
 

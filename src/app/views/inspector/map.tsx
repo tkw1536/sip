@@ -3,9 +3,9 @@ import * as styles from './map.module.css'
 import { WithID } from '../../../lib/components/wrapper'
 import { ReducerProps } from '../../state'
 import { addNamespace, deleteNamespace, loadNamespaceMap, resetNamespaceMap, updateNamespace } from '../../state/reducers/inspector/ns'
-import { formatJSON } from '../../../lib/drivers/impl'
 import download from '../../../lib/utils/download'
 import DropArea from '../../../lib/components/drop-area'
+import { Type } from '../../../lib/utils/media'
 
 export default class MapView extends Component<ReducerProps> {
   render (): ComponentChild {
@@ -95,7 +95,7 @@ class ControlsRow extends Component<ReducerProps> {
 
   private readonly handleNamespaceMapExport = (evt: Event): void => {
     const data = JSON.stringify(this.props.state.ns.toJSON(), null, 2)
-    const blob = new Blob([data], { type: formatJSON })
+    const blob = new Blob([data], { type: Type.JSON })
     void download(blob, 'namespaces.json', 'json')
   }
 
@@ -109,7 +109,7 @@ class ControlsRow extends Component<ReducerProps> {
       <tr>
         <td colspan={2}>
           <button onClick={this.handleNamespaceMapExport}>Export</button>
-          <DropArea types={[formatJSON]} onDropFile={this.handleNamespaceMapImport} compact>Import</DropArea>
+          <DropArea types={[Type.JSON]} onDropFile={this.handleNamespaceMapImport} compact>Import</DropArea>
           {typeof nsLoadError === 'string' && <small>&nbsp;{nsLoadError}</small>}
         </td>
         <td>

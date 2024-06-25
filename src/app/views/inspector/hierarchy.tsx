@@ -9,8 +9,8 @@ import { selectAll, selectNone, updateSelection } from '../../state/reducers/ins
 import { collapseAll, expandAll, collapseNode } from '../../state/reducers/inspector/collapse'
 import { applyColorPreset, loadColorMap, setColor } from '../../state/reducers/inspector/color'
 import DropArea from '../../../lib/components/drop-area'
-import { formatJSON } from '../../../lib/drivers/impl'
 import download from '../../../lib/utils/download'
+import { Type } from '../../../lib/utils/media'
 
 export default class HierarchyView extends Component<ReducerProps> {
   private readonly handleSelectAll = (evt: Event): void => {
@@ -40,7 +40,7 @@ export default class HierarchyView extends Component<ReducerProps> {
 
   private readonly handleColorMapExport = (evt: Event): void => {
     const data = JSON.stringify(this.props.state.cm.toJSON(), null, 2)
-    const blob = new Blob([data], { type: formatJSON })
+    const blob = new Blob([data], { type: Type.JSON })
     void download(blob, 'colors.json', 'json')
   }
 
@@ -93,7 +93,7 @@ export default class HierarchyView extends Component<ReducerProps> {
                 }
                 &nbsp;|&nbsp;
                 <button onClick={this.handleColorMapExport}>Export</button>
-                <DropArea types={[formatJSON]} onDropFile={this.handleColorMapImport} compact>Import</DropArea>
+                <DropArea types={[Type.JSON]} onDropFile={this.handleColorMapImport} compact>Import</DropArea>
                 {typeof cmLoadError === 'string' && <small>&nbsp;{cmLoadError}</small>}
               </td>
             </tr>

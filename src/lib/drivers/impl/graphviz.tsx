@@ -1,8 +1,9 @@
-import { ContextFlags, defaultLayout, DriverImpl, formatGraphViz, formatSVG, MountFlags, Size } from '.'
+import { ContextFlags, defaultLayout, DriverImpl, MountFlags, Size } from '.'
 import { BundleEdge, BundleNode } from '../../graph/builders/bundle'
 import { instance, RenderOptions, Viz, engines } from '@viz-js/viz'
 import { ModelEdge, ModelNode, modelNodeLabel } from '../../graph/builders/model'
 import svgPanZoom from 'svg-pan-zoom'
+import { Type } from '../../utils/media'
 
 interface Context {
   viz: Viz
@@ -76,12 +77,12 @@ abstract class GraphvizDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLabel
       case 'svg':
       {
         const svg = viz.renderSVGElement(source, this.options(flags))
-        return new Blob([outerHTML(svg)], { type: formatSVG })
+        return new Blob([outerHTML(svg)], { type: Type.SVG })
       }
       case 'gv':
       {
         const output = viz.renderString(source, this.options(flags))
-        return new Blob([output], { type: formatGraphViz })
+        return new Blob([output], { type: Type.GRAPHVIZ })
       }
     }
     throw new Error('never reached')

@@ -1,9 +1,10 @@
-import { ContextFlags, defaultLayout, DriverImpl, formatPNG, MountFlags, Size } from '.'
+import { ContextFlags, defaultLayout, DriverImpl, MountFlags, Size } from '.'
 import { Data, Network, Options } from 'vis-network'
 import { DataSet } from 'vis-data'
 import { ModelEdge, ModelNode, modelNodeLabel } from '../../graph/builders/model'
 import { BundleEdge, BundleNode } from '../../graph/builders/bundle'
 import * as styles from './vis-network.module.css'
+import { Type } from '../../utils/media'
 
 abstract class VisNetworkDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLabel, EdgeLabel, Dataset, Network> {
   protected abstract addNodeImpl (dataset: Dataset, flags: ContextFlags, id: string, node: NodeLabel): Promise<undefined>
@@ -77,7 +78,7 @@ abstract class VisNetworkDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLab
 
   readonly supportedExportFormats = ['png']
   protected async objectToBlobImpl (network: Network, dataset: Dataset, flags: MountFlags, format: string): Promise<Blob> {
-    return await dataset.drawNetworkClone(network, 1000, 1000, formatPNG, 1)
+    return await dataset.drawNetworkClone(network, 1000, 1000, Type.PNG, 1)
   }
 }
 
