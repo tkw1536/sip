@@ -1,5 +1,7 @@
 # A SIP of WissKI
 
+<!-- spellchecker:words SPARQL -->
+
 WissKI is a system that enables users to represent data about any kind of objects using a formal ontology in an an RDF/SPARQL database.
 WissKI does not fix the ontology.
 The exact data model can be specified using the so-called Pathbuilder.

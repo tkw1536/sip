@@ -64,6 +64,7 @@ const AddMapRow = WithID<ReducerProps>(class AddMapRow extends Component<Reducer
   render (): ComponentChild {
     const { id } = this.props
     const { short, long } = this.state
+
     return (
       <tr>
         <td>

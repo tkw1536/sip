@@ -1,4 +1,4 @@
-import { Component, ComponentChildren } from 'preact'
+import { Component, ComponentChildren, ErrorInfo } from 'preact'
 import { Operation } from '../utils/operation'
 import * as styles from './error.module.css'
 
@@ -11,7 +11,6 @@ interface State {
 }
 export default class ErrorDisplay extends Component<{ error: unknown }> {
   render (): ComponentChildren {
-    // todo: install this as a catcher
     const { error } = this.props
     return (
       <div className={styles.display}>
@@ -96,4 +95,35 @@ class ErrorDisplayError extends Component<{ error: Error }, State> {
       </>
     )
   }
+}
+
+export class ErrorBoundary extends Component<{ children: ComponentChildren }, { error?: unknown }> {
+  state: { error?: Error } = {}
+
+  componentDidCatch (error: any, info: ErrorInfo): void {
+    this.setState({ error: new ApplicationCrash(error, info) })
+  }
+
+  render (): ComponentChildren {
+    const { error } = this.state
+    if (error instanceof Error) {
+      return <ErrorDisplay error={error} />
+    }
+    return this.props.children
+  }
+}
+
+class ApplicationCrash extends Error {
+  constructor (error: any, { componentStack }: ErrorInfo) {
+    const err = error instanceof Error ? error : new Error(String(error), { cause: error })
+    const message = (typeof componentStack === 'string') ? 'An error occurred while rendering. \n' + componentStack : 'An unexpected error occurred. \n' + err.message
+
+    super(message, { cause: err })
+
+    this.stack = err.stack
+    this.name = 'Application Crash: ' + err.name
+  }
+
+  readonly name: string
+  readonly stack: string | undefined
 }
