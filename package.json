@@ -53,5 +53,14 @@
   },
   "alias": {
     "preact/jsx-dev-runtime": "preact/jsx-runtime"
+  },
+  "resolutions": {
+    "ts-standard/eslint-config-standard-with-typescript": "^37.0.0",
+    "ts-standard/eslint-config-standard-with-typescript/@typescript-eslint/eslint-plugin": "^5.52.0",
+    "ts-standard/eslint-config-standard-with-typescript/@typescript-eslint/eslint-plugin/@typescript-eslint/parser": "^5.0.0",
+    "ts-standard/eslint-config-standard-with-typescript/eslint-config-standard/eslint": "^8.0.1",
+    "ts-standard/eslint-config-standard-with-typescript/eslint-config-standard/eslint-plugin-import": "^2.25.2",
+    "ts-standard/eslint-config-standard-with-typescript/eslint-config-standard/eslint-plugin-n": "^15.0.0 || ^16.0.0",
+    "ts-standard/eslint-config-standard-with-typescript/eslint-config-standard/eslint-plugin-promise": "^6.0.0"
   }
 }
