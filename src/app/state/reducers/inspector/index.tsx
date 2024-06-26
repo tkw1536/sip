@@ -1,5 +1,5 @@
 import { type State } from '../..'
-import { defaultLayout } from '../../../../lib/drivers'
+import { defaultLayout } from '../../../../lib/drivers/impl'
 import { type Pathbuilder } from '../../../../lib/pathbuilder'
 import { PathTree } from '../../../../lib/pathtree'
 import { ColorPreset } from '../../state/preset'

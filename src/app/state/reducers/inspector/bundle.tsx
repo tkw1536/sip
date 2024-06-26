@@ -1,6 +1,6 @@
 import { type Reducer, type State } from '../..'
-import { defaultLayout } from '../../../../lib/drivers'
 import { bundles } from '../../../../lib/drivers/collection'
+import { defaultLayout } from '../../../../lib/drivers/impl'
 import { type PathTree } from '../../../../lib/pathtree'
 
 export function newBundleDriver (tree: PathTree): string {

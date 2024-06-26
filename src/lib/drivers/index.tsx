@@ -7,22 +7,7 @@ import { Operation } from '../utils/operation'
 import type Driver from './impl'
 import type ColorMap from '../colormap'
 import ErrorDisplay from '../components/error'
-
-export const defaultLayout = 'auto'
-
-export interface Size { width: number, height: number }
-
-export type ContextFlags = Readonly<{
-  ns: NamespaceMap
-  cm: ColorMap
-  definitelyAcyclic: boolean
-}>
-
-export type MountFlags = Readonly<{
-  container: HTMLElement
-  layout: string
-  size: Size
-} & ContextFlags>
+import { type ContextFlags, type MountFlags, type Size } from './impl'
 
 type _context = unknown
 type _mount = unknown
