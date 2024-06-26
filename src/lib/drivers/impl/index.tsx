@@ -9,12 +9,15 @@ export type ContextFlags = Readonly<{
   ns: NamespaceMap
   cm: ColorMap
   definitelyAcyclic: boolean
+ 
+  layout: string
+  initialSize: Size
 }>
 
 export type MountFlags = Readonly<{
   container: HTMLElement
   layout: string
-  size: Size
+  currentSize: Size
 } & ContextFlags>
 
 type _hot_context = unknown

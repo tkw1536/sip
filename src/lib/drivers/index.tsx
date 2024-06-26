@@ -51,13 +51,15 @@ export default class Kernel<NodeLabel, EdgeLabel> extends Component<KernelProps<
     const ctxFlags: ContextFlags = Object.freeze({
       ns: this.props.ns,
       cm: this.props.cm,
-      definitelyAcyclic: this.props.graph.definitelyAcyclic
+      definitelyAcyclic: this.props.graph.definitelyAcyclic,
+
+      layout,
+      initialSize: size
     })
 
     const flags: MountFlags = Object.freeze({
       container,
-      layout,
-      size,
+       currentSize: size,
       ...ctxFlags
     })
 

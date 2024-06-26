@@ -52,8 +52,8 @@ abstract class GraphvizDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLabel
   protected mountImpl (context: Context, flags: MountFlags): Mount {
     // create the svg element and add it to the container
     const svg = context.viz.renderSVGElement(context.source, this.options(flags))
-    svg.style.height = `${flags.size.height}px`
-    svg.style.width = `${flags.size.width}px`
+    svg.style.height = `${flags.currentSize.height}px`
+    svg.style.width = `${flags.currentSize.width}px`
     flags.container.appendChild(svg)
 
     // add zoom controls
