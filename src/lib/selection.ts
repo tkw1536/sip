@@ -1,5 +1,5 @@
 import { Path, Pathbuilder } from './pathbuilder'
-import { NodeLike } from './pathtree'
+import { type NodeLike } from './pathtree'
 
 type Key = NodeLike | Path | undefined
 

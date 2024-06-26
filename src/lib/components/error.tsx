@@ -1,4 +1,4 @@
-import { Component, ComponentChildren, ErrorInfo } from 'preact'
+import { Component, type ComponentChildren, type ErrorInfo } from 'preact'
 import { Operation } from '../utils/operation'
 import * as styles from './error.module.css'
 

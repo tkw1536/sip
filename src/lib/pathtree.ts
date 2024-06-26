@@ -1,4 +1,4 @@
-import { Path, Pathbuilder } from './pathbuilder'
+import { Path, type Pathbuilder } from './pathbuilder'
 
 export abstract class NodeLike {
   abstract get path (): Path | null
@@ -151,13 +151,8 @@ export class PathTree extends NodeLike {
     super()
   }
 
-  get path (): null {
-    return null
-  }
-
-  get parent (): null {
-    return null
-  }
+  readonly path = null
+  readonly parent = null
 
   get children (): Bundle[] {
     return [...this.mainBundles]

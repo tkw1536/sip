@@ -1,4 +1,4 @@
-import { Reducer, State } from '../..'
+import { type Reducer, type State } from '../..'
 import ColorMap from '../../../../lib/colormap'
 import { NamespaceMap } from '../../../../lib/namespace'
 import { Pathbuilder } from '../../../../lib/pathbuilder'

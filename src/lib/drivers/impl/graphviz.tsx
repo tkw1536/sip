@@ -1,7 +1,7 @@
-import { ContextFlags, defaultLayout, DriverImpl, MountFlags, Size } from '.'
-import { BundleEdge, BundleNode } from '../../graph/builders/bundle'
-import { instance, RenderOptions, Viz, engines } from '@viz-js/viz'
-import { ModelEdge, ModelNode, modelNodeLabel } from '../../graph/builders/model'
+import { type ContextFlags, defaultLayout, DriverImpl, type MountFlags, type Size } from '.'
+import { type BundleEdge, type BundleNode } from '../../graph/builders/bundle'
+import { instance, type RenderOptions, type Viz, engines } from '@viz-js/viz'
+import { type ModelEdge, type ModelNode, modelNodeLabel } from '../../graph/builders/model'
 import svgPanZoom from 'svg-pan-zoom'
 import { Type } from '../../utils/media'
 

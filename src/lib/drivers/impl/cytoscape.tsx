@@ -5,9 +5,9 @@ import dagre from 'cytoscape-dagre'
 import fcose from 'cytoscape-fcose'
 import avsdf from 'cytoscape-avsdf'
 
-import { ContextFlags, defaultLayout, DriverImpl, MountFlags, Size } from '.'
-import { BundleEdge, BundleNode } from '../../graph/builders/bundle'
-import { ModelEdge, ModelNode, modelNodeLabel } from '../../graph/builders/model'
+import { type ContextFlags, defaultLayout, DriverImpl, type MountFlags, type Size } from '.'
+import { type BundleEdge, type BundleNode } from '../../graph/builders/bundle'
+import { type ModelEdge, type ModelNode, modelNodeLabel } from '../../graph/builders/model'
 cytoscape.use(cola)
 cytoscape.use(dagre)
 cytoscape.use(fcose)

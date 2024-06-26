@@ -1,7 +1,7 @@
-import { Component, ComponentChild, ComponentChildren } from 'preact'
+import { Component, type ComponentChild, type ComponentChildren } from 'preact'
 import DropArea from '../../lib/components/drop-area'
 import * as styles from './pathbuilder.module.css'
-import { ReducerProps } from '../state'
+import { type ReducerProps } from '../state'
 import { loaderPathbuilder, resetInterface } from '../state/reducers/init'
 import ErrorDisplay from '../../lib/components/error'
 import download from '../../lib/utils/download'
@@ -65,7 +65,7 @@ class Info extends Component<ReducerProps> {
     const { pathbuilder } = this.props.state
     const file = new Blob([pathbuilder.toXML()], { type: 'application/xml' })
     download(file, this.filename)
-      .catch(() => console.error('never reached'))
+      .catch(() => { console.error('never reached') })
   }
 
   get filename (): string {

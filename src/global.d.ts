@@ -9,22 +9,22 @@ declare module 'bundle-text:*' {
 }
 
 declare module 'cytoscape-cola' {
-  import * as cytoscape from 'cytoscape'
+  import type * as cytoscape from 'cytoscape'
   const ext: cytoscape.Ext
   export default ext
 }
 declare module 'cytoscape-dagre' {
-  import * as cytoscape from 'cytoscape'
+  import type * as cytoscape from 'cytoscape'
   const ext: cytoscape.Ext
   export default ext
 }
 declare module 'cytoscape-fcose' {
-  import * as cytoscape from 'cytoscape'
+  import type * as cytoscape from 'cytoscape'
   const ext: cytoscape.Ext
   export default ext
 }
 declare module 'cytoscape-avsdf' {
-  import * as cytoscape from 'cytoscape'
+  import type * as cytoscape from 'cytoscape'
   const ext: cytoscape.Ext
   export default ext
 }

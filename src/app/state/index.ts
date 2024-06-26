@@ -1,9 +1,9 @@
-import ColorMap from '../../lib/colormap'
-import { NamespaceMap } from '../../lib/namespace'
-import { Pathbuilder } from '../../lib/pathbuilder'
-import { PathTree } from '../../lib/pathtree'
-import NodeSelection from '../../lib/selection'
-import Deduplication from './state/deduplication'
+import type ColorMap from '../../lib/colormap'
+import { type NamespaceMap } from '../../lib/namespace'
+import { type Pathbuilder } from '../../lib/pathbuilder'
+import { type PathTree } from '../../lib/pathtree'
+import type NodeSelection from '../../lib/selection'
+import type Deduplication from './state/deduplication'
 
 export interface State {
   activeTab: string // the active tab

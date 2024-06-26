@@ -1,5 +1,5 @@
-import ColorMap from '../../colormap'
-import { NamespaceMap } from '../../namespace'
+import type ColorMap from '../../colormap'
+import { type NamespaceMap } from '../../namespace'
 
 export const defaultLayout = 'auto'
 
@@ -76,7 +76,7 @@ export abstract class DriverImpl<NodeLabel, EdgeLabel, Context, Mount> implement
   protected abstract resizeMountImpl (mount: Mount, ctx: Context, flags: MountFlags, size: Size): Mount | null | undefined
 
   unmount (mount: _mount, ctx: _context, flags: MountFlags): void {
-    return this.unmountImpl(mount as Mount, ctx as Context, flags)
+    this.unmountImpl(mount as Mount, ctx as Context, flags)
   }
   protected abstract unmountImpl (mount: Mount, ctx: Context, flags: MountFlags): void
 

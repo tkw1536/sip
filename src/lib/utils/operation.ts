@@ -1,4 +1,4 @@
-import { Component } from 'preact'
+import { type Component } from 'preact'
 
 /** Used to coordinate a set of function calls */
 export class Operation {
@@ -21,9 +21,9 @@ export class Operation {
 
     return Object.assign(
       async (state: StateSetterArg<P, S, K>): Promise<void> => {
-        if (!ticket()) return await Promise.resolve()
+        if (!ticket()) return
 
-        return await new Promise(resolve => {
+        await new Promise<void>(resolve => {
           component.setState((prevState, props) => {
             if (!ticket()) return null
 

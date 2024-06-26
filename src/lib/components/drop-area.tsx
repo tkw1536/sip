@@ -1,4 +1,4 @@
-import { ComponentChild, Component, createRef, VNode } from 'preact'
+import { type ComponentChild, Component, createRef, type VNode } from 'preact'
 import { classes } from '../utils/classes'
 
 interface DropAreaProps {

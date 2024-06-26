@@ -1,4 +1,4 @@
-import { Component, ComponentChild } from 'preact'
+import { Component, type ComponentChild } from 'preact'
 
 interface ValueSelectorProps {
   values?: string[]

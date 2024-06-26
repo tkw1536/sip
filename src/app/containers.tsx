@@ -1,4 +1,4 @@
-import { Component, ComponentChildren } from 'preact'
+import { Component, type ComponentChildren } from 'preact'
 import * as styles from './containers.module.css'
 
 export class Narrow extends Component {

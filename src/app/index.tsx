@@ -1,8 +1,8 @@
-import { Component, ComponentChild } from 'preact'
+import { Component, type ComponentChild } from 'preact'
 import * as styles from './index.module.css'
 import { classes } from '../lib/utils/classes'
 import { resetInterface } from './state/reducers/init'
-import { Reducer, ReducerProps, State } from './state'
+import { type Reducer, type ReducerProps, type State } from './state'
 import { Operation } from '../lib/utils/operation'
 import HierarchyView from './views/inspector/hierarchy'
 import BundleGraphView from './views/inspector/graph/bundle'
@@ -32,7 +32,7 @@ class Wrapper extends Component {
   }
 }
 
-export class App extends Component<{}, State> {
+export class App extends Component<Record<never, never>, State> {
   state: State = resetInterface()
 
   private readonly reduction = new Operation()

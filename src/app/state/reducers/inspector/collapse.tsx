@@ -1,5 +1,5 @@
-import { Reducer, State } from '../..'
-import { NodeLike, PathTree } from '../../../../lib/pathtree'
+import { type Reducer, type State } from '../..'
+import { type NodeLike, type PathTree } from '../../../../lib/pathtree'
 import NodeSelection from '../../../../lib/selection'
 
 export function newCollapsed (tree: PathTree): NodeSelection {

@@ -1,4 +1,4 @@
-import { Component, ComponentChildren } from 'preact'
+import { Component, type ComponentChildren } from 'preact'
 import { generateDisclaimer } from '../../../macros/disclaimer' with {type: 'macro'}
 
 const disclaimer = generateDisclaimer()

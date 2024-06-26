@@ -1,5 +1,5 @@
 import ColorMap from '../../../lib/colormap'
-import { Bundle, Field, NodeLike } from '../../../lib/pathtree'
+import { Bundle, Field, type NodeLike } from '../../../lib/pathtree'
 
 export enum ColorPreset {
   BlueAndOrange = 'Blue And Orange',

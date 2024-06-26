@@ -1,9 +1,9 @@
 import GraphBuilder from '.'
 import Deduplication from '../../../app/state/state/deduplication'
-import Graph from '..'
-import { Bundle, Field, NodeLike, PathTree } from '../../pathtree'
+import type Graph from '..'
+import { type Bundle, type Field, type NodeLike, type PathTree } from '../../pathtree'
 import ArrayTracker from '../../utils/array-tracker'
-import { NamespaceMap } from '../../namespace'
+import { type NamespaceMap } from '../../namespace'
 
 export type Options = SharedOptions & {
   deduplication?: Deduplication
@@ -205,7 +205,7 @@ class NoneBuilder extends SpecificBuilder {
 class BundleBuilder extends SpecificBuilder {
   public build (): void {
     // collect all the known contexts
-    this.tree.mainBundles.forEach(bundle => this.collectContexts(bundle))
+    this.tree.mainBundles.forEach(bundle => { this.collectContexts(bundle) })
 
     // insert all the nodes
     this.tree.mainBundles.forEach(bundle => this.addBundle(bundle, 0))
@@ -220,7 +220,7 @@ class BundleBuilder extends SpecificBuilder {
     })
 
     // iterate over children
-    bundle.childBundles.forEach(bundle => this.collectContexts(bundle))
+    bundle.childBundles.forEach(bundle => { this.collectContexts(bundle) })
 
     // add the last subject of the path
     const path = bundle.path.pathArray

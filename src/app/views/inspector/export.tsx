@@ -1,6 +1,6 @@
-import { Component, ComponentChild } from 'preact'
+import { Component, type ComponentChild } from 'preact'
 import download from '../../../lib/utils/download'
-import { ReducerProps } from '../../state'
+import { type ReducerProps } from '../../state'
 
 export default class ExportView extends Component<ReducerProps> {
   private readonly handleExport = (evt: MouseEvent): void => {
@@ -9,7 +9,7 @@ export default class ExportView extends Component<ReducerProps> {
     const { filename, pathbuilder } = this.props.state
     const file = new Blob([pathbuilder.toXML()], { type: 'application/xml' })
     download(file, filename !== '' ? filename : 'pathbuilder.xml')
-      .catch(() => console.error('never reached'))
+      .catch(() => { console.error('never reached') })
   }
 
   render (): ComponentChild {

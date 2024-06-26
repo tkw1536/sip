@@ -1,7 +1,7 @@
-import { Reducer, State } from '../..'
+import { type Reducer, type State } from '../..'
 import ColorMap from '../../../../lib/colormap'
-import { NodeLike } from '../../../../lib/pathtree'
-import { applyColorPreset as newColor, ColorPreset } from '../../state/preset'
+import { type NodeLike } from '../../../../lib/pathtree'
+import { applyColorPreset as newColor, type ColorPreset } from '../../state/preset'
 
 export { applyColorPreset as newColor } from '../../state/preset'
 

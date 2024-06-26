@@ -1,5 +1,5 @@
-import { Reducer, State } from '../..'
-import { PathTree } from '../../../../lib/pathtree'
+import { type Reducer, type State } from '../..'
+import { type PathTree } from '../../../../lib/pathtree'
 
 export { applyColorPreset as newColor } from '../../state/preset'
 

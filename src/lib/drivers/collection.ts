@@ -1,7 +1,7 @@
-import { BundleEdge, BundleNode } from '../graph/builders/bundle'
-import { ModelEdge, ModelNode } from '../graph/builders/model'
+import { type BundleEdge, type BundleNode } from '../graph/builders/bundle'
+import { type ModelEdge, type ModelNode } from '../graph/builders/model'
 import { Lazy } from '../utils/once'
-import Driver from './impl'
+import type Driver from './impl'
 
 class DriverCollection<NodeLabel, EdgeLabel> {
   constructor (public readonly defaultDriver: string, ...loaders: Array<[string, () => Promise<Driver<NodeLabel, EdgeLabel>>]>) {

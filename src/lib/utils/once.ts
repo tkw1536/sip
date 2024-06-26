@@ -4,7 +4,7 @@ export default class Once {
   private done = false
   private waiters: Array<{ resolve: () => void, reject: (err: any) => void }> = []
   async Do (func: () => Promise<void>): Promise<void> {
-    return await new Promise((resolve, reject) => {
+    await new Promise<void>((resolve, reject) => {
       // everything is done already => don't do anything
       if (this.done) {
         resolve()
@@ -23,13 +23,13 @@ export default class Once {
       func()
         .then(() => {
           this.done = true
-          this.waiters.forEach(({ resolve }) => resolve())
+          this.waiters.forEach(({ resolve }) => { resolve() })
         }).catch((err: any) => {
           if (this.done) { throw err } // error occurred during handling => re-throw it
 
           // error occurred during original promise
           this.done = true
-          this.waiters.forEach(({ reject }) => reject(err))
+          this.waiters.forEach(({ reject }) => { reject(err) })
         }).finally(() => {
           this.waiters = [] // prevent memory leaks for the resolve/reject
         })

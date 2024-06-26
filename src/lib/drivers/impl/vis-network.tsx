@@ -1,8 +1,8 @@
-import { ContextFlags, defaultLayout, DriverImpl, MountFlags, Size } from '.'
-import { Data, Network, Options } from 'vis-network'
+import { type ContextFlags, defaultLayout, DriverImpl, type MountFlags, type Size } from '.'
+import { type Data, Network, type Options } from 'vis-network'
 import { DataSet } from 'vis-data'
-import { ModelEdge, ModelNode, modelNodeLabel } from '../../graph/builders/model'
-import { BundleEdge, BundleNode } from '../../graph/builders/bundle'
+import { type ModelEdge, type ModelNode, modelNodeLabel } from '../../graph/builders/model'
+import { type BundleEdge, type BundleNode } from '../../graph/builders/bundle'
 import * as styles from './vis-network.module.css'
 import { Type } from '../../utils/media'
 
@@ -286,7 +286,7 @@ class Dataset {
 
 async function draw (network: Network): Promise<CanvasRenderingContext2D> {
   return await new Promise((resolve) => {
-    network.once('afterDrawing', (ctx) => resolve(ctx))
+    network.once('afterDrawing', (ctx) => { resolve(ctx) })
     network.redraw()
   })
 }

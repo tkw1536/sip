@@ -11,7 +11,7 @@ export default async function download (blob: Blob, filename?: string, extension
   document.body.appendChild(a)
   a.click()
 
-  return await new Promise(resolve => {
+  await new Promise<void>(resolve => {
     queueMicrotask(() => {
       document.body.removeChild(a)
       window.URL.revokeObjectURL(url)

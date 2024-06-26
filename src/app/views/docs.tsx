@@ -1,10 +1,10 @@
-import { Component, ComponentChildren, VNode } from 'preact'
+import { Component, type ComponentChildren, type VNode } from 'preact'
 import Markdown from 'preact-markdown'
 
 import * as styles from './docs.module.css'
 import { classes } from '../../lib/utils/classes'
 
-export default class DocsView extends Component<{}, { content?: VNode }> {
+export default class DocsView extends Component<Record<never, never>, { content?: VNode }> {
   state: { content?: VNode } = { }
 
   private async markdown (): Promise<VNode> {

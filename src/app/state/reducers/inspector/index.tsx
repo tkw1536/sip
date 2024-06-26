@@ -1,6 +1,6 @@
-import { State } from '../..'
+import { type State } from '../..'
 import { defaultLayout } from '../../../../lib/drivers'
-import { Pathbuilder } from '../../../../lib/pathbuilder'
+import { type Pathbuilder } from '../../../../lib/pathbuilder'
 import { PathTree } from '../../../../lib/pathtree'
 import { ColorPreset } from '../../state/preset'
 import { newBundleDriver } from './bundle'
