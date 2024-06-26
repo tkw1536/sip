@@ -1,4 +1,4 @@
-import { Component, type ComponentChild, type ComponentChildren, createRef, type Ref } from 'preact'
+import { Component, type ComponentChild, createRef, type Ref } from 'preact'
 import type Graph from '../graph'
 import { type NamespaceMap } from '../namespace'
 import * as styles from './index.module.css'
@@ -8,6 +8,7 @@ import type Driver from './impl'
 import type ColorMap from '../colormap'
 import ErrorDisplay from '../components/error'
 import { type ContextFlags, type MountFlags, type Size } from './impl'
+import { AvoidFlicker } from '../components/avoid-flicker'
 
 type _context = unknown
 type _mount = unknown
@@ -270,7 +271,7 @@ export default class Kernel<NodeLabel, EdgeLabel> extends Component<KernelProps<
       <div ref={this.wrapper} class={styles.wrapper}>
         {(typeof size !== 'undefined') && (
           <div style={{ width: size.width, height: size.height }} ref={this.container}>
-            {driverLoading && <AvoidFlicker><p>Driver loading</p></AvoidFlicker>}
+            {driverLoading && <AvoidFlicker><p>Driver is taking some time to load. Maybe it's a big graph?</p></AvoidFlicker>}
             {driverError instanceof Error && <ErrorDisplay error={driverError} />}
           </div>
         )}
@@ -290,30 +291,5 @@ function setRef<T> (ref: Ref<T> | undefined, value: T | null): void {
       return
     default:
       ref.current = value
-  }
-}
-
-class AvoidFlicker extends Component<{ delayMs?: number, children: ComponentChildren }> {
-  static readonly defaultDelayMs = 200
-  state = { visible: false }
-
-  private readonly avoidFlicker = new Operation()
-  componentDidMount (): void {
-    const ticket = this.avoidFlicker.ticket()
-    setTimeout(() => {
-      if (!ticket()) return
-      this.setState({ visible: true })
-    }, this.props.delayMs ?? AvoidFlicker.defaultDelayMs)
-  }
-
-  componentWillUnmount (): void {
-    this.avoidFlicker.cancel()
-  }
-
-  render (): ComponentChildren {
-    const { visible } = this.state
-    if (!visible) return false
-
-    return this.props.children
   }
 }
