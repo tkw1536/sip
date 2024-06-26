@@ -1,4 +1,14 @@
+import { Path, Pathbuilder } from './pathbuilder'
 import { NodeLike } from './pathtree'
+
+type Key = NodeLike | Path | undefined
+
+/** toID turns a Key into an actual id */
+function toID (key: Key): string | null {
+  if (typeof key === 'undefined') return null
+  const path = (key instanceof Path) ? key : key.path
+  return path?.id ?? null
+}
 
 export default class NodeSelection {
   private readonly set = new Set<string>()
@@ -7,9 +17,10 @@ export default class NodeSelection {
   }
 
   /** includes checks if the selection includes the given key */
-  includes (key: NodeLike): boolean {
-    const id = key.path?.id
-    if (typeof id !== 'string') return false
+  includes (key: Key): boolean {
+    const id = toID(key)
+    if (id === null) return false
+
     if (this.set.has(id)) {
       return !this.defaultValue
     }
@@ -17,12 +28,12 @@ export default class NodeSelection {
   }
 
   /** with returns a new selection with the specified key set to the specified value */
-  with (pairs: Array<[NodeLike, boolean]>): NodeSelection {
+  with (pairs: Array<[Key, boolean]>): NodeSelection {
     const set = new Set(this.set)
 
     pairs.forEach(([key, value]) => {
-      const id = key.path?.id
-      if (typeof id !== 'string') return
+      const id = toID(key)
+      if (id === null) return
 
       if (value === this.defaultValue) {
         set.delete(id)
@@ -34,9 +45,9 @@ export default class NodeSelection {
     return new NodeSelection(this.defaultValue, set)
   }
 
-  toggle (key: NodeLike): NodeSelection {
-    const id = key.path?.id
-    if (typeof id !== 'string') return this
+  toggle (key: Key): NodeSelection {
+    const id = toID(key)
+    if (id === null) return this
 
     const set = new Set(this.set)
 
@@ -47,6 +58,11 @@ export default class NodeSelection {
     }
 
     return new NodeSelection(this.defaultValue, set)
+  }
+
+  /** returns a new pathbuilder consisting of the paths of the given node */
+  toPathbuilder (node: NodeLike): Pathbuilder {
+    return new Pathbuilder(Array.from(node.paths()).filter(p => this.includes(p)))
   }
 
   static none (): NodeSelection {
