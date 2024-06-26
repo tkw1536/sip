@@ -9,7 +9,7 @@ export type ContextFlags = Readonly<{
   ns: NamespaceMap
   cm: ColorMap
   definitelyAcyclic: boolean
- 
+
   layout: string
   initialSize: Size
 }>

@@ -59,7 +59,7 @@ export default class Kernel<NodeLabel, EdgeLabel> extends Component<KernelProps<
 
     const flags: MountFlags = Object.freeze({
       container,
-       currentSize: size,
+      currentSize: size,
       ...ctxFlags
     })
 
@@ -91,6 +91,7 @@ export default class Kernel<NodeLabel, EdgeLabel> extends Component<KernelProps<
 
           console.error('error while mounting driver: ', err)
           const driverError = (err instanceof Error) ? err : new Error(String(err))
+          container.innerHTML = '' // remove whatever elements were in there
           this.setState({ driverError, driverLoading: false })
         })
     })

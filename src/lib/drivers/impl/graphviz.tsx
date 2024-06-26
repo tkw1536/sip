@@ -1,13 +1,17 @@
 import { type ContextFlags, defaultLayout, DriverImpl, type MountFlags, type Size } from '.'
 import { type BundleEdge, type BundleNode } from '../../graph/builders/bundle'
-import { instance, type RenderOptions, type Viz, engines } from '@viz-js/viz'
+import { type RenderOptions } from '@viz-js/viz'
 import { type ModelEdge, type ModelNode, modelNodeLabel } from '../../graph/builders/model'
 import svgPanZoom from 'svg-pan-zoom'
+import { type GraphVizResponse, type GraphVizRequest } from './graphviz-worker'
 import { Type } from '../../utils/media'
 
-interface Context {
-  viz: Viz
+interface HotContext {
   source: string
+}
+interface Context extends HotContext {
+  canon: string
+  svg: string
 }
 
 interface Mount {
@@ -15,43 +19,73 @@ interface Mount {
   zoom: SvgPanZoom.Instance
 }
 
-const supported = (...layouts: string[]): string[] => {
-  return layouts.filter(l => engines.includes(l))
-}
-
-abstract class GraphvizDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLabel, EdgeLabel, Context, Mount> {
-  protected async addNodeImpl (context: Context, flags: ContextFlags, id: string, node: NodeLabel): Promise<undefined> {
+abstract class GraphvizDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLabel, EdgeLabel, Context, Mount, HotContext> {
+  protected async addNodeImpl (context: HotContext, flags: ContextFlags, id: string, node: NodeLabel): Promise<undefined> {
     context.source += '\n' + this.addNodeAsString(flags, id, node)
   }
   protected abstract addNodeAsString (flags: ContextFlags, id: string, node: NodeLabel): string
 
-  protected async addEdgeImpl (context: Context, flags: ContextFlags, id: string, from: string, to: string, edge: EdgeLabel): Promise<undefined> {
+  protected async addEdgeImpl (context: HotContext, flags: ContextFlags, id: string, from: string, to: string, edge: EdgeLabel): Promise<undefined> {
     context.source += '\n' + this.addEdgeAsString(flags, id, from, to, edge)
   }
   protected abstract addEdgeAsString (flags: ContextFlags, id: string, from: string, to: string, edge: EdgeLabel): string
 
   readonly driverName: string = 'GraphViz'
-  readonly supportedLayouts = [defaultLayout, ...supported('dot', 'fdp', 'circo', 'neat')]
-  protected options ({ layout }: MountFlags): RenderOptions {
+  readonly supportedLayouts = [defaultLayout, 'dot', 'fdp', 'circo', 'neato']
+  protected options ({ layout }: ContextFlags): RenderOptions {
     const engine = layout === defaultLayout ? 'dot' : layout
     return { engine }
   }
 
-  protected async newContextImpl (): Promise<Context> {
+  protected async newContextImpl (): Promise<HotContext> {
     return {
-      viz: await instance(),
       source: 'digraph { compound=true;'
     }
   }
 
-  protected async finalizeContextImpl (ctx: Context): Promise<Context> {
-    ctx.source += '}'
-    return ctx
+  protected async finalizeContextImpl (ctx: HotContext, flags: ContextFlags): Promise<Context> {
+    const source = ctx.source + '}'
+
+    // build options for the driver to render
+    const options = this.options(flags)
+
+    const canon = await GraphvizDriver.callWorker({ input: source, options: { ...options, format: 'canon' } })
+    const svg = await GraphvizDriver.callWorker({ input: canon, options: { ...options, format: 'svg' } })
+
+    return {
+      source,
+      canon,
+      svg
+    }
+  }
+
+  /** callWorker spawns GraphViz in a background and has it render */
+  private static async callWorker (message: GraphVizRequest): Promise<string> {
+    const worker = new Worker(new URL('graphviz-worker.tsx', import.meta.url), { type: 'module' })
+    return await new Promise<string>((resolve, reject) => {
+      worker.onmessage = (e) => {
+        worker.terminate()
+
+        const data: GraphVizResponse = e.data
+        if (!data.success) {
+          reject(new Error(data.message))
+          return
+        }
+        resolve(data.result)
+      }
+      worker.postMessage(message)
+    })
   }
 
   protected mountImpl (context: Context, flags: MountFlags): Mount {
+    // mount the svg we have already rendered
+    flags.container.innerHTML = context.svg
+    const svg = flags.container.querySelector('svg')
+    if (svg === null) {
+      throw new Error('unable to mount svg element')
+    }
+
     // create the svg element and add it to the container
-    const svg = context.viz.renderSVGElement(context.source, this.options(flags))
     svg.style.height = `${flags.currentSize.height}px`
     svg.style.width = `${flags.currentSize.width}px`
     flags.container.appendChild(svg)
@@ -73,17 +107,15 @@ abstract class GraphvizDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLabel
   }
 
   readonly supportedExportFormats = ['svg', 'gv']
-  protected async objectToBlobImpl ({ svg, zoom }: Mount, { source, viz }: Context, flags: MountFlags, format: string): Promise<Blob> {
+  protected async objectToBlobImpl (mount: Mount, { canon, svg }: Context, flags: MountFlags, format: string): Promise<Blob> {
     switch (format) {
       case 'svg':
       {
-        const svg = viz.renderSVGElement(source, this.options(flags))
-        return new Blob([outerHTML(svg)], { type: Type.SVG })
+        return new Blob([svg], { type: Type.SVG })
       }
       case 'gv':
       {
-        const output = viz.renderString(source, this.options(flags))
-        return new Blob([output], { type: Type.GRAPHVIZ })
+        return new Blob([canon], { type: Type.GRAPHVIZ })
       }
     }
     throw new Error('never reached')
@@ -107,12 +139,6 @@ function makeBody (quoted: Record<string, string>, raw: Record<string, string>):
 
 function quote (value: string): string {
   return '"' + value.replaceAll('"', '\\"') + '"'
-}
-
-function outerHTML (element: Element): string {
-  const fakeParent = document.createElement('div')
-  fakeParent.appendChild(element)
-  return fakeParent.innerHTML
 }
 
 export class GraphVizBundleDriver extends GraphvizDriver<BundleNode, BundleEdge> {
@@ -272,4 +298,4 @@ export class GraphVizModelDriver extends GraphvizDriver<ModelNode, ModelEdge> {
   }
 }
 
-// spellchecker:words fillcolor circo
+// spellchecker:words fillcolor circo neato
