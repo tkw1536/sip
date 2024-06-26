@@ -14,6 +14,7 @@ import DocsView from './views/docs'
 import { setActiveTab } from './state/reducers/inspector/tab'
 import PathbuilderView from './views/pathbuilder'
 import AboutView from './views/about'
+import { Narrow, Wide } from './containers'
 
 class Wrapper extends Component {
   render (): ComponentChild {
@@ -97,28 +98,28 @@ class Inspector extends Component<ReducerProps> {
         <Label><b>Supreme Inspector for Pathbuilders</b></Label>
 
         <Tab title='Pathbuilder' id=''>
-          <PathbuilderView {...props} />
+          <Narrow><PathbuilderView {...props} /></Narrow>
         </Tab>
         <Tab title='Hierarchy' disabled={!loaded} id='hierarchy'>
-          <HierarchyView {...props} />
+          <Wide><HierarchyView {...props} /></Wide>
         </Tab>
         <Tab title='Bundle Graph' disabled={!loaded} id='bundle'>
-          <BundleGraphView {...props} />
+          <Wide fillParent><BundleGraphView {...props} /></Wide>
         </Tab>
         <Tab title='Model Graph' disabled={!loaded} id='model'>
-          <ModelGraphView {...props} />
+          <Wide fillParent><ModelGraphView {...props} /></Wide>
         </Tab>
         <Tab title='Namespace Map &#9881;&#65039;' disabled={!loaded} id='ns'>
-          <MapView {...props} />
+          <Narrow><MapView {...props} /></Narrow>
         </Tab>
         <Tab title='Graph Backends &#9881;&#65039;' disabled={!loaded} id='config'>
-          <GraphConfigView {...props} />
+          <Narrow><GraphConfigView {...props} /></Narrow>
         </Tab>
         <Tab title='Docs' id='docs'>
-          <DocsView />
+          <Narrow><DocsView /></Narrow>
         </Tab>
         <Tab title='About' id='about'>
-          <AboutView />
+          <Narrow><AboutView /></Narrow>
         </Tab>
       </Tabs>
     )
