@@ -24,8 +24,8 @@ abstract class SigmaDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLabel, E
     return new Graph()
   }
 
-  protected async finalizeContextImpl (ctx: Graph): Promise<undefined> {
-    return undefined
+  protected async finalizeContextImpl (ctx: Graph): Promise<Graph> {
+    return ctx
   }
 
   protected mountImpl (graph: Graph, { container, layout }: MountFlags): Sigma {

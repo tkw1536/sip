@@ -109,8 +109,8 @@ abstract class CytoscapeDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLabe
     return []
   }
 
-  protected async finalizeContextImpl (elements: Elements): Promise<undefined> {
-    return undefined
+  protected async finalizeContextImpl (elements: Elements): Promise<Elements> {
+    return elements
   }
 
   protected mountImpl (elements: Elements, { container, layout, definitelyAcyclic }: MountFlags): Cytoscape {

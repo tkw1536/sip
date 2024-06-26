@@ -101,21 +101,21 @@ export default class Kernel<NodeLabel, EdgeLabel> extends Component<KernelProps<
     const ids = new UUIDPool()
 
     // create a new context
-    let ctx = await driver.newContext(ctxFlags)
+    let hCtx = await driver.newContext(ctxFlags)
     if (!ticket()) throw Kernel.errorAborted
 
     // add all nodes and edges
     for (const [id, node] of graph.getNodes()) {
-      ctx = (await driver.addNode(ctx, ctxFlags, ids.for(id), node)) ?? ctx
+      hCtx = (await driver.addNode(hCtx, ctxFlags, ids.for(id), node)) ?? hCtx
       if (!ticket()) throw Kernel.errorAborted
     }
     for (const [id, from, to, edge] of graph.getEdges()) {
-      ctx = (await driver.addEdge(ctx, ctxFlags, ids.for(id), ids.for(from), ids.for(to), edge)) ?? ctx
+      hCtx = (await driver.addEdge(hCtx, ctxFlags, ids.for(id), ids.for(from), ids.for(to), edge)) ?? hCtx
       if (!ticket()) throw Kernel.errorAborted
     }
 
     // finalize the context
-    ctx = (await driver.finalizeContext(ctx, ctxFlags)) ?? ctx
+    const ctx = (await driver.finalizeContext(hCtx, ctxFlags)) ?? hCtx
     if (!ticket()) throw Kernel.errorAborted
 
     return { driver, ctx }

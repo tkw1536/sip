@@ -44,8 +44,9 @@ abstract class GraphvizDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLabel
     }
   }
 
-  protected async finalizeContextImpl (ctx: Context): Promise<undefined> {
+  protected async finalizeContextImpl (ctx: Context): Promise<Context> {
     ctx.source += '}'
+    return ctx
   }
 
   protected mountImpl (context: Context, flags: MountFlags): Mount {

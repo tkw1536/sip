@@ -54,8 +54,8 @@ abstract class VisNetworkDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLab
     return new Dataset()
   }
 
-  protected async finalizeContextImpl (ctx: Dataset): Promise<undefined> {
-    return undefined
+  protected async finalizeContextImpl (ctx: Dataset): Promise<Dataset> {
+    return ctx
   }
 
   protected mountImpl (dataset: Dataset, { container, layout, definitelyAcyclic }: MountFlags): Network {
