@@ -15,7 +15,7 @@ export default function newInspectorState (pathbuilder: Pathbuilder, filename: s
   const tree = PathTree.fromPathbuilder(pathbuilder)
 
   return {
-    loaded: true,
+    loadStage: true,
 
     pathbuilder,
     filename,

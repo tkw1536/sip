@@ -2,18 +2,19 @@ import { Component, type ComponentChild, type ComponentChildren } from 'preact'
 import DropArea from '../../lib/components/drop-area'
 import * as styles from './pathbuilder.module.css'
 import { type ReducerProps } from '../state'
-import { loaderPathbuilder, resetInterface } from '../state/reducers/init'
+import { loaderPathbuilder, resetInterface, setLoadingPage } from '../state/reducers/init'
 import ErrorDisplay from '../../lib/components/error'
 import download from '../../lib/utils/download'
 import { Type } from '../../lib/utils/media'
+import { Loader } from "../loader/loader"
 
 export default class PathbuilderView extends Component<ReducerProps> {
   render (): ComponentChildren {
-    return this.props.state.loaded === true ? <Info {...this.props} /> : <Loader {...this.props} />
+    return this.props.state.loadStage === true ? <InfoView {...this.props} /> : <WelcomeView {...this.props} />
   }
 }
 
-class Loader extends Component<ReducerProps> {
+class WelcomeView extends Component<ReducerProps> {
   private readonly dragContent = (active: boolean, valid: boolean): ComponentChild => {
     switch (true) {
       case active && valid:
@@ -26,11 +27,17 @@ class Loader extends Component<ReducerProps> {
   }
 
   private readonly handleLoadPathbuilder = (file: File): void => {
-    this.props.apply(loaderPathbuilder(file))
+    this.props.apply(setLoadingPage, () => {
+      this.props.apply(loaderPathbuilder(file))
+    })
   }
 
   render (): ComponentChild {
-    const { loaded: error } = this.props.state
+    const { loadStage } = this.props.state
+
+    if (loadStage === 'loading') {
+      return <Loader message='Loading pathbuilder' />
+    }
 
     return (
       <>
@@ -42,10 +49,10 @@ class Loader extends Component<ReducerProps> {
           All processing happens on-device, meaning the server host can not access any data contained within your pathbuilder.
         </p>
         <DropArea class={styles.dropZone} activeValidClass={styles.valid} activeInvalidClass={styles.invalid} onDropFile={this.handleLoadPathbuilder} types={[Type.XML]}>{this.dragContent}</DropArea>
-        {typeof error !== 'boolean' && error.error instanceof Error && (
+        {typeof loadStage === 'object' && loadStage.error instanceof Error && (
           <>
             <p><b>Unable to load pathbuilder: </b></p>
-            <ErrorDisplay error={error.error} />
+            <ErrorDisplay error={loadStage.error} />
           </>
         )}
       </>
@@ -53,7 +60,7 @@ class Loader extends Component<ReducerProps> {
   }
 }
 
-class Info extends Component<ReducerProps> {
+class InfoView extends Component<ReducerProps> {
   private readonly handleClosePathbuilder = (evt: Event): void => {
     evt.preventDefault()
     this.props.apply(resetInterface)

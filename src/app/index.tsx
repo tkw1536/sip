@@ -93,7 +93,7 @@ class Inspector extends Component<ReducerProps> {
   render (): ComponentChild {
     const { apply, state } = this.props
     const props: ReducerProps = { apply, state }
-    const loaded = state.loaded === true
+    const loaded = state.loadStage === true
 
     return (
       <Tabs onChangeTab={this.handleChangeTab} active={state.activeTab}>

@@ -8,7 +8,7 @@ import type Deduplication from './state/deduplication'
 export interface State {
   activeTab: string // the active tab
 
-  loaded: boolean | { error: unknown } // boolean indicating if file has been loaded, string for error
+  loadStage: false | 'loading' | true | { error: unknown } // boolean indicating if file has been loaded, string for error
   filename: string
 
   pathbuilderVersion: number

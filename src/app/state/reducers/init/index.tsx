@@ -9,7 +9,7 @@ import newInspectorState from '../inspector'
 
 export function resetInterface (): State {
   return {
-    loaded: false,
+    loadStage: false,
     activeTab: '',
 
     filename: '',
@@ -41,6 +41,10 @@ export function resetInterface (): State {
   }
 }
 
+export function setLoadingPage (): Partial<State> {
+  return { loadStage: 'loading' }
+}
+
 export function loaderPathbuilder (file: File): Reducer {
   return async (state: State): Promise<Partial<State> | null> => {
     try {
@@ -48,7 +52,7 @@ export function loaderPathbuilder (file: File): Reducer {
       return newInspectorState(Pathbuilder.parse(source), file.name)
     } catch (error: unknown) {
       return {
-        loaded: { error }
+        loadStage: { error }
       }
     }
   }
