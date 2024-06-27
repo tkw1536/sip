@@ -2,7 +2,7 @@ import { Component, type ComponentChild, type ComponentChildren } from 'preact'
 import DropArea from '../../lib/components/drop-area'
 import * as styles from './pathbuilder.module.css'
 import { type ReducerProps } from '../state'
-import { loaderPathbuilder, resetInterface, setLoadingPage } from '../state/reducers/init'
+import { loadPathbuilder, resetInterface, setPathbuilderLoading } from '../state/reducers/init'
 import ErrorDisplay from '../../lib/components/error'
 import download from '../../lib/utils/download'
 import { Type } from '../../lib/utils/media'
@@ -27,9 +27,12 @@ class WelcomeView extends Component<ReducerProps> {
   }
 
   private readonly handleLoadPathbuilder = (file: File): void => {
-    this.props.apply(setLoadingPage, () => {
-      this.props.apply(loaderPathbuilder(file))
-    })
+    this.props.apply(
+      [
+        setPathbuilderLoading,
+        loadPathbuilder(file)
+      ]
+    )
   }
 
   render (): ComponentChild {

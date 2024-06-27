@@ -41,11 +41,11 @@ export function resetInterface (): State {
   }
 }
 
-export function setLoadingPage (): Partial<State> {
+export function setPathbuilderLoading (): Partial<State> {
   return { loadStage: 'loading' }
 }
 
-export function loaderPathbuilder (file: File): Reducer {
+export function loadPathbuilder (file: File): Reducer {
   return async (state: State): Promise<Partial<State> | null> => {
     try {
       const source = await file.text()
