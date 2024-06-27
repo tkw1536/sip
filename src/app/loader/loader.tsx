@@ -1,13 +1,23 @@
 import { Component, type ComponentChildren } from 'preact'
-import { Operation } from '../utils/operation'
+import { Operation } from '../../lib/utils/operation'
+import * as styles from './loader.module.css'
 
 interface LoaderProps {
-  message?: string
+  message?: ComponentChildren
 }
 export class Loader extends Component<LoaderProps> {
   render (): ComponentChildren {
     const { message } = this.props
-    return <AvoidFlicker>{message ?? 'Loading'}</AvoidFlicker>
+    return (
+      <AvoidFlicker>
+        <div class={styles.loader}>
+          <div class={styles.logo} role='progressbar'>
+            <div />
+          </div>
+          {typeof message !== 'undefined' && <div class={styles.message}>{message}</div>}
+        </div>
+      </AvoidFlicker>
+    )
   }
 }
 

@@ -1,5 +1,5 @@
 import { Component, type ComponentChildren } from 'preact'
-import { Loader } from '../../lib/drivers/loader'
+import { Loader } from '../loader/loader'
 import { type ReducerProps } from '../state'
 
 export default class DebugView extends Component<ReducerProps> {

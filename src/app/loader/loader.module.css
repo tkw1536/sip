@@ -1,0 +1,53 @@
+.loader {
+    width: fit-content;
+    cursor: progress;
+    width: 100%;
+    box-sizing: border-box;
+}
+.message {
+    width: 100%;
+    text-align: center;
+}
+.logo {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    width: 230px;
+    height: 255px;
+
+    margin: auto;
+
+    background-color: transparent;
+    background-size: cover;
+    background-image: url('./wisski_glass.svg');
+    width: 230px;
+    height: 255px;
+}
+
+.logo div {
+    background-image: url('./wisski_molecule.svg');
+    background-position: 50% 50%;
+    background-size: 100px 100px;
+    background-repeat: no-repeat;
+    width: 110px;
+    height: 110px;
+    z-index: -1;
+    animation: molecule 2s infinite linear;
+    
+}
+
+@keyframes molecule {
+    0% {
+        transform: translateY(0px) rotate(0deg);
+    }
+
+    50% {
+        transform: translateY(-25px) rotate(180deg);
+    }
+
+    100% {
+        transform:  translateY(0px) rotate(360deg);
+    }
+}
