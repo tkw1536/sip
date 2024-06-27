@@ -24,12 +24,12 @@ export default WithID<ReducerProps>(class ModelGraphView extends Component<Reduc
     this.props.apply(setModelDeduplication((evt.target as HTMLInputElement).value as Deduplication))
   }
 
-  private readonly handleChangeModelLayout = (evt: Event): void => {
-    this.props.apply(setModelLayout((evt.target as HTMLInputElement).value))
-  }
-
   private readonly handleChangeModelRenderer = (value: string): void => {
     this.props.apply(setModelDriver(value))
+  }
+
+  private readonly handleChangeModelLayout = (value: string): void => {
+    this.props.apply(setModelLayout(value))
   }
 
   private readonly displayRef = createRef<GraphDisplay<ModelNode, ModelEdge>>()
@@ -64,6 +64,7 @@ export default WithID<ReducerProps>(class ModelGraphView extends Component<Reduc
     const { state: { modelDeduplication: deduplication, modelGraphLayout: layout }, id } = this.props
 
     const modelGraphName = driver?.driverName
+    const supportedLayouts = driver?.supportedLayouts
     const exportFormats = driver?.supportedExportFormats
 
     return (
@@ -85,12 +86,7 @@ export default WithID<ReducerProps>(class ModelGraphView extends Component<Reduc
             &nbsp;
 
             Layout: &nbsp;
-            {(driver != null) &&
-              <select value={layout} onInput={this.handleChangeModelLayout}>
-                {
-                  driver.supportedLayouts.map(name => <option key={name}>{name}</option>)
-                }
-              </select>}
+            <ValueSelector disabled={driver === null} value={layout} values={supportedLayouts} onInput={this.handleChangeModelLayout} />
           </p>
         </fieldset>
         <fieldset>
