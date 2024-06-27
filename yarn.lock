@@ -3557,10 +3557,15 @@ loose-envify@^1.4.0:
   dependencies:
     js-tokens "^3.0.0 || ^4.0.0"
 
-marked@^4.0.10:
-  version "4.3.0"
-  resolved "https://registry.yarnpkg.com/marked/-/marked-4.3.0.tgz#796362821b019f734054582038b116481b456cf3"
-  integrity sha512-PRsaiG84bK+AMvxziE/lCFss8juXjNaWzVbN5tXAm4XjeaS9NAHhop+PjQxz2A9h8Q4M/xGmzP8vqNwy6JeK0A==
+marked-footnote@^1.2.2:
+  version "1.2.2"
+  resolved "https://registry.yarnpkg.com/marked-footnote/-/marked-footnote-1.2.2.tgz#693404c3fbe93c70cb2afe4642803a65aaf9a4c7"
+  integrity sha512-TFBEHwHLSSedub7P6XHHs+dMMOnDeNV5+kFDo4trU//gDd8iM57lg9jr9NGwDifPwLllHwKmFcRNp5uYvO2Fnw==
+
+marked@^13.0.1:
+  version "13.0.1"
+  resolved "https://registry.yarnpkg.com/marked/-/marked-13.0.1.tgz#38386e1ebe9c09bb4db72c8ed9759411cb80fd43"
+  integrity sha512-7kBohS6GrZKvCsNXZyVVXSW7/hGBHe49ng99YPkDCckSUrrG7MSFLCexsRxptzOmyW2eT5dySh4Md1V6my52fA==
 
 mdn-data@2.0.14:
   version "2.0.14"
@@ -3991,14 +3996,6 @@ posthtml@^0.16.4, posthtml@^0.16.5:
   dependencies:
     posthtml-parser "^0.11.0"
     posthtml-render "^3.0.0"
-
-preact-markdown@^2.1.0:
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/preact-markdown/-/preact-markdown-2.1.0.tgz#c271cdd084b8854778f7d8e3640bbe9a7ea6ba4d"
-  integrity sha512-6c2hfarjLFkVDNa1hUKytXID6wl6yilZnGb2y83xKXnfk5SpXYAwhJc+JENgffAcNALWggqvX/ezlk8/8qJsuA==
-  dependencies:
-    marked "^4.0.10"
-    preact-markup "^2.1.1"
 
 preact-markup@^2.1.1:
   version "2.1.1"

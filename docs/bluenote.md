@@ -19,6 +19,10 @@ The purpose of this document is three-fold:
 2. As a documentation of the SIP tool
 3. As a reference of the pathbuilder format
 
+Here is a simple footnote[^1]. With some additional text after it.
+
+[^1]: My reference.
+
 # Modeling Data in WissKI
 
 WissKI stores data about a set of entities.
