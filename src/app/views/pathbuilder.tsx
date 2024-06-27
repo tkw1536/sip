@@ -6,7 +6,7 @@ import { loaderPathbuilder, resetInterface, setLoadingPage } from '../state/redu
 import ErrorDisplay from '../../lib/components/error'
 import download from '../../lib/utils/download'
 import { Type } from '../../lib/utils/media'
-import { Loader } from "../loader/loader"
+import { Loader } from '../loader/loader'
 
 export default class PathbuilderView extends Component<ReducerProps> {
   render (): ComponentChildren {
