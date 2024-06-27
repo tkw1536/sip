@@ -15,6 +15,7 @@ import { setActiveTab } from './state/reducers/inspector/tab'
 import PathbuilderView from './views/pathbuilder'
 import AboutView from './views/about'
 import { Narrow, Wide } from './containers'
+import DebugView from './views/debug'
 
 class Wrapper extends Component {
   render (): ComponentChild {
@@ -93,6 +94,7 @@ class Inspector extends Component<ReducerProps> {
     const { apply, state } = this.props
     const props: ReducerProps = { apply, state }
     const loaded = state.loaded === true
+
     return (
       <Tabs onChangeTab={this.handleChangeTab} active={state.activeTab}>
         <Label><b>Supreme Inspector for Pathbuilders</b></Label>
@@ -121,6 +123,11 @@ class Inspector extends Component<ReducerProps> {
         <Tab title='About' id='about'>
           <Narrow><AboutView /></Narrow>
         </Tab>
+        {process.env.NODE_ENV !== 'production' && (
+          <Tab title='Debug' id='debug'>
+            <Narrow><DebugView {...props} /></Narrow>
+          </Tab>
+        )}
       </Tabs>
     )
   }

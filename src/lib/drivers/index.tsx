@@ -8,7 +8,7 @@ import type Driver from './impl'
 import type ColorMap from '../colormap'
 import ErrorDisplay from '../components/error'
 import { type ContextFlags, type MountFlags, type Size } from './impl'
-import { AvoidFlicker } from '../components/avoid-flicker'
+import { Loader } from './loader'
 
 type _context = unknown
 type _mount = unknown
@@ -265,13 +265,14 @@ export default class Kernel<NodeLabel, EdgeLabel> extends Component<KernelProps<
   private readonly wrapper = createRef<HTMLDivElement>()
   private readonly container = createRef<HTMLDivElement>()
   render (): ComponentChild {
+    const { driver } = this.props
     const { size, driverLoading, driverError } = this.state
 
     return (
       <div ref={this.wrapper} class={styles.wrapper}>
         {(typeof size !== 'undefined') && (
           <div style={{ width: size.width, height: size.height }} ref={this.container}>
-            {driverLoading && <AvoidFlicker><p>Driver is taking some time to load. Maybe it's a big graph?</p></AvoidFlicker>}
+            {driverLoading && <Loader message={`Rendering Graph with Driver ${driver}`} />}
             {driverError instanceof Error && <ErrorDisplay error={driverError} />}
           </div>
         )}

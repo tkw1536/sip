@@ -1,8 +1,18 @@
 import { Component, type ComponentChildren } from 'preact'
 import { Operation } from '../utils/operation'
 
+interface LoaderProps {
+  message?: string
+}
+export class Loader extends Component<LoaderProps> {
+  render (): ComponentChildren {
+    const { message } = this.props
+    return <AvoidFlicker>{message ?? 'Loading'}</AvoidFlicker>
+  }
+}
+
 /** AvoidFlicker avoids showing children until after delayMS */
-export class AvoidFlicker extends Component<{ delayMs?: number, children: ComponentChildren }> {
+class AvoidFlicker extends Component<{ delayMs?: number, children: ComponentChildren }> {
   static readonly defaultDelayMs = 1000
   state = { visible: false }
 
