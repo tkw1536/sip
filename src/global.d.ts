@@ -3,11 +3,6 @@ declare module '*.module.css' {
   export = classes
 }
 
-declare module 'bundle-text:*' {
-  const content: string
-  export = content
-}
-
 declare module 'cytoscape-cola' {
   import type * as cytoscape from 'cytoscape'
   const ext: cytoscape.Ext
