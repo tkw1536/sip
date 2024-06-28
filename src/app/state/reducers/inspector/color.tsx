@@ -1,6 +1,6 @@
 import { type Reducer, type State } from '../..'
 import ColorMap from '../../../../lib/colormap'
-import { type NodeLike } from '../../../../lib/pathtree'
+import { type PathTreeNode } from '../../../../lib/pathtree'
 import { applyColorPreset as newColor, type ColorPreset } from '../../state/preset'
 
 export { applyColorPreset as newColor } from '../../state/preset'
@@ -15,7 +15,7 @@ export function applyColorPreset (preset: ColorPreset): Reducer {
 }
 
 /** sets the color of a specific node */
-export function setColor (node: NodeLike, color: string): Reducer {
+export function setColor (node: PathTreeNode, color: string): Reducer {
   return ({ colorVersion, cm }: State): Partial<State> => ({
     cm: cm.set(node, color),
     colorVersion: colorVersion + 1,

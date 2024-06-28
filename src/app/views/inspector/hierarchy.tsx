@@ -103,7 +103,7 @@ export default class HierarchyView extends Component<ReducerProps> {
                 <button onClick={this.handleExpandAll}>Expand All</button>
               </td>
             </tr>
-            {tree.mainBundles.map(b => <BundleRows {...this.props} visible bundle={b} level={0} key={b.path.id} />)}
+            {Array.from(tree.children()).map(b => <BundleRows {...this.props} visible bundle={b} level={0} key={b.path.id} />)}
           </tbody>
         </table>
       </>
@@ -156,7 +156,7 @@ class BundleRows extends Component<ReducerProps & { bundle: Bundle, level: numbe
             <input type='color' value={cm.get(bundle)} onInput={this.handleColorChange} />
           </td>
           <td style={{ paddingLeft: INDENT_PER_LEVEL * level }}>
-            <button onClick={this.handleClick} aria-role='toggle' disabled={bundle.childBundles.length === 0 && bundle.childFields.size === 0}>
+            <button onClick={this.handleClick} aria-role='toggle' disabled={bundle.childCount === 0}>
               {expanded ? '∨' : '>'}
             </button>
                     &nbsp;
@@ -184,8 +184,8 @@ class BundleRows extends Component<ReducerProps & { bundle: Bundle, level: numbe
           </td>
         </tr>
 
-        {Array.from(bundle.childFields.entries()).map(([id, field]) => <FieldRow {...props} visible={visible && expanded} level={level + 1} field={field} key={id} />)}
-        {bundle.childBundles.map(bundle => <BundleRows {...props} visible={visible && expanded} level={level + 1} bundle={bundle} key={bundle.path.id} />)}
+        {Array.from(bundle.fields()).map(field => <FieldRow {...props} visible={visible && expanded} level={level + 1} field={field} key={field.path.id} />)}
+        {Array.from(bundle.bundles()).map(bundle => <BundleRows {...props} visible={visible && expanded} level={level + 1} bundle={bundle} key={bundle.path.id} />)}
       </>
     )
   }

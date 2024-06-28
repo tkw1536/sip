@@ -1,5 +1,5 @@
 import { type Reducer, type State } from '../..'
-import { type NodeLike, type PathTree } from '../../../../lib/pathtree'
+import { type PathTreeNode, type PathTree } from '../../../../lib/pathtree'
 import NodeSelection from '../../../../lib/selection'
 
 export function newCollapsed (tree: PathTree): NodeSelection {
@@ -7,7 +7,7 @@ export function newCollapsed (tree: PathTree): NodeSelection {
 }
 
 /** collapses the specific id */
-export function collapseNode (node: NodeLike): Reducer {
+export function collapseNode (node: PathTreeNode): Reducer {
   return ({ collapsed }: State): Partial<State> => ({
     collapsed: collapsed.toggle(node)
   })

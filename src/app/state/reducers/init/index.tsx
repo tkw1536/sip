@@ -17,6 +17,7 @@ export function resetInterface (): State {
     pathbuilderVersion: -1,
     pathbuilder: new Pathbuilder([]),
     tree: new PathTree([]),
+    diagnostics: [],
 
     namespaceVersion: -1,
     ns: NamespaceMap.empty(),

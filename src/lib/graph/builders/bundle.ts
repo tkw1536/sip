@@ -24,7 +24,9 @@ export default class BundleGraphBuilder extends GraphBuilder<BundleNode, BundleE
   }
 
   protected doBuild (): void {
-    this.tree.mainBundles.forEach(bundle => this.addBundle(bundle, 0))
+    for (const bundle of this.tree.children()) {
+      this.addBundle(bundle, 0)
+    }
     this.graph.definitelyAcyclic = true
   }
 
@@ -38,24 +40,24 @@ export default class BundleGraphBuilder extends GraphBuilder<BundleNode, BundleE
     }
 
     // add all the child bundles
-    bundle.childBundles.forEach(cb => {
+    for (const cb of bundle.bundles()) {
       const includeChild = this.addBundle(cb, level + 1)
-      if (!includeChild || !includeSelf) return
+      if (!includeChild || !includeSelf) continue
 
       this.graph.addEdge(id, cb.path.id, { type: 'child_bundle' })
-    })
+    }
 
     // add all the child fields
-    bundle.childFields.forEach(cf => {
+    for (const cf of bundle.fields()) {
       const fieldId = cf.path.id
       const includeField = this.selection.includes(cf)
-      if (!includeField) return
+      if (!includeField) continue
 
       this.graph.addNode({ type: 'field', level: 2 * level + 1, field: cf }, fieldId)
-      if (!includeSelf) return
+      if (!includeSelf) continue
 
       this.graph.addEdge(id, fieldId, { type: 'field' })
-    })
+    }
 
     return includeSelf
   }

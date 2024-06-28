@@ -1,7 +1,7 @@
 import type ColorMap from '../../lib/colormap'
 import { type NamespaceMap } from '../../lib/namespace'
 import { type Pathbuilder } from '../../lib/pathbuilder'
-import { type PathTree } from '../../lib/pathtree'
+import { type Diagnostic, type PathTree } from '../../lib/pathtree'
 import type NodeSelection from '../../lib/selection'
 import type Deduplication from './state/deduplication'
 
@@ -14,6 +14,7 @@ export interface State {
   pathbuilderVersion: number
   pathbuilder: Pathbuilder
   tree: PathTree
+  diagnostics: Diagnostic[]
 
   namespaceVersion: number
   ns: NamespaceMap

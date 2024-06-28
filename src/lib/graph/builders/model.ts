@@ -1,7 +1,7 @@
 import GraphBuilder from '.'
 import Deduplication from '../../../app/state/state/deduplication'
 import type Graph from '..'
-import { type Bundle, type Field, type NodeLike, type PathTree } from '../../pathtree'
+import { Bundle, Field, type PathTreeNode, type PathTree } from '../../pathtree'
 import ArrayTracker from '../../utils/array-tracker'
 import { type NamespaceMap } from '../../namespace'
 
@@ -10,7 +10,7 @@ export type Options = SharedOptions & {
 }
 
 interface SharedOptions {
-  include?: (node: NodeLike) => boolean
+  include?: (node: PathTreeNode) => boolean
 }
 
 export type ModelNode = {
@@ -85,7 +85,7 @@ abstract class SpecificBuilder {
   public abstract build (): void
 
   /** checks if the given uri is included in the graph */
-  protected includes (node: NodeLike): boolean {
+  protected includes (node: PathTreeNode): boolean {
     if (this.options.include == null) return true
 
     return this.options.include(node)
@@ -98,7 +98,9 @@ abstract class SpecificBuilder {
 
 class NoneBuilder extends SpecificBuilder {
   public build (): void {
-    this.tree.mainBundles.forEach(bundle => this.addBundle(null, bundle, 0))
+    for (const bundle of this.tree.children()) {
+      this.addBundle(null, bundle, 0)
+    }
     this.graph.definitelyAcyclic = true
   }
 
@@ -112,17 +114,17 @@ class NoneBuilder extends SpecificBuilder {
     }
 
     // add all the child bundles
-    bundle.childBundles.forEach(cb => {
+    for (const cb of bundle.bundles()) {
       this.addBundle(selfNode, cb, level + 1)
-    })
+    }
 
     // add all the child fields
-    bundle.childFields.forEach(cf => {
+    for (const cf of bundle.fields()) {
       const includeField = this.includes(cf)
-      if (!includeField) return
+      if (!includeField) continue
 
       this.addField(selfNode, cf)
-    })
+    }
 
     return includeSelf
   }
@@ -204,34 +206,38 @@ class NoneBuilder extends SpecificBuilder {
 
 class BundleBuilder extends SpecificBuilder {
   public build (): void {
-    // collect all the known contexts
-    this.tree.mainBundles.forEach(bundle => { this.collectContexts(bundle) })
+    this.collectContext()
 
-    // insert all the nodes
-    this.tree.mainBundles.forEach(bundle => this.addBundle(bundle, 0))
+    for (const bundle of this.tree.children()) {
+      this.addBundle(bundle, 0)
+    }
+  }
+
+  private collectContext (): void {
+    for (const node of this.tree.walk()) {
+      if (node instanceof Field) {
+        const disambiguation = node.path.getDisambiguation()
+        if (disambiguation === null) continue
+
+        this.contexts.add(disambiguation)
+        continue
+      }
+
+      if (node instanceof Bundle) {
+        const path = node.path.pathArray
+        let index = path.length - 1
+        if (index % 2 === 1) {
+          index--
+        }
+        if (index < 0) continue
+
+        this.contexts.add(path[index])
+        continue
+      }
+    }
   }
 
   private readonly contexts = new Set<string>()
-  private collectContexts (bundle: Bundle): void {
-    bundle.childFields.forEach(field => {
-      const disambiguation = field.path.getDisambiguation()
-      if (disambiguation === null) return
-      this.contexts.add(disambiguation)
-    })
-
-    // iterate over children
-    bundle.childBundles.forEach(bundle => { this.collectContexts(bundle) })
-
-    // add the last subject of the path
-    const path = bundle.path.pathArray
-    let index = path.length - 1
-    if (index % 2 === 1) {
-      index--
-    }
-    if (index < 0) return
-    this.contexts.add(path[index])
-  }
-
   private addBundle (bundle: Bundle, level: number): boolean {
     // add a node for this bundle itself
     const includeSelf = this.includes(bundle)
@@ -241,17 +247,17 @@ class BundleBuilder extends SpecificBuilder {
     }
 
     // add all the child bundles
-    bundle.childBundles.forEach(cb => {
+    for (const cb of bundle.bundles()) {
       this.addBundle(cb, level + 1)
-    })
+    }
 
     // add all the child fields
-    bundle.childFields.forEach(cf => {
+    for (const cf of bundle.fields()) {
       const includeField = this.includes(cf)
-      if (!includeField) return
+      if (!includeField) continue
 
       this.addField(cf)
-    })
+    }
 
     return includeSelf
   }
@@ -371,7 +377,9 @@ class BundleBuilder extends SpecificBuilder {
 
 class FullBuilder extends SpecificBuilder {
   public build (): void {
-    this.tree.mainBundles.forEach(bundle => this.addBundle(bundle, 0))
+    for (const bundle of this.tree.children()) {
+      this.addBundle(bundle, 0)
+    }
   }
 
   private addBundle (bundle: Bundle, level: number): boolean {
@@ -383,17 +391,17 @@ class FullBuilder extends SpecificBuilder {
     }
 
     // add all the child bundles
-    bundle.childBundles.forEach(cb => {
+    for (const cb of bundle.bundles()) {
       this.addBundle(cb, level + 1)
-    })
+    }
 
     // add all the child fields
-    bundle.childFields.forEach(cf => {
+    for (const cf of bundle.fields()) {
       const includeField = this.includes(cf)
-      if (!includeField) return
+      if (!includeField) continue
 
       this.addField(cf)
-    })
+    }
 
     return includeSelf
   }

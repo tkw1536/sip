@@ -1,7 +1,7 @@
 import { Path, Pathbuilder } from './pathbuilder'
-import { type NodeLike } from './pathtree'
+import { type PathTreeNode } from './pathtree'
 
-type Key = NodeLike | Path | undefined
+type Key = PathTreeNode | Path | undefined
 
 /** toID turns a Key into an actual id */
 function toID (key: Key): string | null {
@@ -98,7 +98,7 @@ export default class NodeSelection {
   }
 
   /** returns a new pathbuilder consisting of the paths of the given node */
-  toPathbuilder (node: NodeLike): Pathbuilder {
+  toPathbuilder (node: PathTreeNode): Pathbuilder {
     return new Pathbuilder(Array.from(node.paths()).filter(p => this.includes(p)))
   }
 

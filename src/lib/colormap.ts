@@ -1,5 +1,5 @@
 import Color from 'color'
-import { Bundle, Field, NodeLike } from './pathtree'
+import { Bundle, Field, PathTreeNode } from './pathtree'
 
 export interface ColorMapExport {
   type: 'colormap'
@@ -53,7 +53,7 @@ export default class ColorMap {
     return new ColorMap(data.defaultColor, colors)
   }
 
-  static generate (node: NodeLike, colors: { bundle: string, field: string }): ColorMap {
+  static generate (node: PathTreeNode, colors: { bundle: string, field: string }): ColorMap {
     const cm = new Map<string, string>()
     for (const relative of node.walk()) {
       const id = relative.path?.id
@@ -81,12 +81,12 @@ export default class ColorMap {
   }
 
   /** gets the color of the node with the lowest depth and valid id */
-  public get (...nodes: NodeLike[]): string {
-    const node = nodes.sort(NodeLike.compare).find(node => typeof node.path?.id === 'string')
+  public get (...nodes: PathTreeNode[]): string {
+    const node = nodes.sort(PathTreeNode.compare).find(node => typeof node.path?.id === 'string')
     return this.colors.get(node?.path?.id ?? '') ?? this.defaultColor
   }
 
-  public set (node: NodeLike, color: string): ColorMap {
+  public set (node: PathTreeNode, color: string): ColorMap {
     const nColor = ColorMap.parseColor(color) ?? ColorMap.globalDefault
 
     const value = this.get(node)

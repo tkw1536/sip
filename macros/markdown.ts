@@ -8,7 +8,7 @@ const marked = new Marked()
 marked.use(markedFootnote())
 
 /** converts the given markdown file into html */
-export function markdownAsHTML (this: MacroContext | undefined, ...path: string[]): string {
+export function markdownAsHTML (this: MacroContext | void, ...path: string[]): string { // eslint-disable-line @typescript-eslint/no-invalid-void-type
   const file = join(__dirname, '..', ...path)
   this?.invalidateOnFileChange(file)
 

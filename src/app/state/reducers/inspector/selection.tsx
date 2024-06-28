@@ -1,5 +1,5 @@
 import { type Reducer, type State } from '../..'
-import { type NodeLike, type PathTree } from '../../../../lib/pathtree'
+import { type PathTreeNode, type PathTree } from '../../../../lib/pathtree'
 import NodeSelection from '../../../../lib/selection'
 
 export function newSelection (tree: PathTree): NodeSelection {
@@ -15,7 +15,7 @@ export function selectAll (): Reducer {
 }
 
 /** makes sure that the selected items are applied */
-export function updateSelection (pairs: Array<[NodeLike, boolean]>): Reducer {
+export function updateSelection (pairs: Array<[PathTreeNode, boolean]>): Reducer {
   return ({ selection, selectionVersion }: State): Partial<State> => ({
     selection: selection.with(pairs),
     selectionVersion: selectionVersion + 1
