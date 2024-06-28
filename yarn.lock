@@ -3403,7 +3403,7 @@ json5@^2.2.0, json5@^2.2.1:
     object.assign "^4.1.4"
     object.values "^1.1.6"
 
-"keycharm@^0.2.0 || ^0.3.0 || ^0.4.0":
+keycharm@^0.4.0:
   version "0.4.0"
   resolved "https://registry.yarnpkg.com/keycharm/-/keycharm-0.4.0.tgz#8d684ea9cc01379a07fbddee33ff32d97f5ae2a7"
   integrity sha512-TyQTtsabOVv3MeOpR92sIKk/br9wxS+zGj4BG7CR8YbK4jM3tyIBaF0zhzeBUMx36/Q/iQLOKKOT+3jOQtemRQ==

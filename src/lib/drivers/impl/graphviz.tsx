@@ -142,14 +142,6 @@ function quote (value: string): string {
 }
 
 export class GraphVizBundleDriver extends GraphvizDriver<BundleNode, BundleEdge> {
-  private static _instance: GraphVizBundleDriver | null = null
-  static get instance (): GraphVizBundleDriver {
-    if (this._instance === null) {
-      this._instance = new GraphVizBundleDriver()
-    }
-    return this._instance
-  }
-
   protected addNodeAsString ({ cm }: ContextFlags, id: string, node: BundleNode): string {
     if (node.type === 'bundle') {
       const path = node.bundle.path

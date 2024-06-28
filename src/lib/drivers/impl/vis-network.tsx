@@ -83,14 +83,6 @@ abstract class VisNetworkDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLab
 }
 
 export class VisNetworkBundleDriver extends VisNetworkDriver<BundleNode, BundleEdge> {
-  private static _instance: VisNetworkBundleDriver | null = null
-  static get instance (): VisNetworkBundleDriver {
-    if (this._instance === null) {
-      this._instance = new VisNetworkBundleDriver()
-    }
-    return this._instance
-  }
-
   protected async addNodeImpl (dataset: Dataset, { cm }: ContextFlags, id: string, node: BundleNode): Promise<undefined> {
     if (node.type === 'bundle') {
       dataset.addNode({ id, label: 'Bundle\n' + node.bundle.path.name, color: cm.get(node.bundle), level: node.level })
@@ -117,14 +109,6 @@ export class VisNetworkBundleDriver extends VisNetworkDriver<BundleNode, BundleE
 }
 
 export class VisNetworkModelDriver extends VisNetworkDriver<ModelNode, ModelEdge> {
-  private static _instance: VisNetworkModelDriver | null = null
-  static get instance (): VisNetworkModelDriver {
-    if (this._instance === null) {
-      this._instance = new VisNetworkModelDriver()
-    }
-    return this._instance
-  }
-
   protected async addNodeImpl (dataset: Dataset, { ns, cm }: ContextFlags, id: string, node: ModelNode): Promise<undefined> {
     const label = modelNodeLabel(node, ns)
     if (node.type === 'field') {

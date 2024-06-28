@@ -34,7 +34,7 @@
     "graphology-layout": "^0.6.1",
     "graphology-layout-forceatlas2": "^0.10.1",
     "graphology-types": "^0.24.7",
-    "keycharm": "^0.2.0 || ^0.3.0 || ^0.4.0",
+    "keycharm": "^0.4.0",
     "preact": "^10.22.0",
     "preact-markup": "^2.1.1",
     "sigma": "^3.0.0-beta.19",

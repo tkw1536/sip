@@ -66,14 +66,6 @@ abstract class SigmaDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLabel, E
 }
 
 export class SigmaBundleDriver extends SigmaDriver<BundleNode, BundleEdge> {
-  private static _instance: SigmaBundleDriver | null = null
-  static get instance (): SigmaBundleDriver {
-    if (this._instance === null) {
-      this._instance = new SigmaBundleDriver()
-    }
-    return this._instance
-  }
-
   protected async addNodeImpl (graph: Graph, { cm }: ContextFlags, id: string, node: BundleNode): Promise<undefined> {
     if (node.type === 'bundle') {
       graph.addNode(id, { label: 'Bundle\n' + node.bundle.path.name, color: cm.get(node.bundle), size: 20 })
@@ -100,14 +92,6 @@ export class SigmaBundleDriver extends SigmaDriver<BundleNode, BundleEdge> {
 }
 
 export class SigmaModelDriver extends SigmaDriver<ModelNode, ModelEdge> {
-  private static _instance: SigmaModelDriver | null = null
-  static get instance (): SigmaModelDriver {
-    if (this._instance === null) {
-      this._instance = new SigmaModelDriver()
-    }
-    return this._instance
-  }
-
   protected async addNodeImpl (graph: Graph, { ns, cm }: ContextFlags, id: string, node: ModelNode): Promise<undefined> {
     const label = modelNodeLabel(node, ns)
     if (node.type === 'field') {

@@ -138,14 +138,6 @@ abstract class CytoscapeDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLabe
 }
 
 export class CytoBundleDriver extends CytoscapeDriver<BundleNode, BundleEdge> {
-  private static _instance: CytoBundleDriver | null = null
-  static get instance (): CytoBundleDriver {
-    if (this._instance === null) {
-      this._instance = new CytoBundleDriver()
-    }
-    return this._instance
-  }
-
   protected async addNodeImpl (elements: Elements, { cm }: ContextFlags, id: string, node: BundleNode): Promise<undefined> {
     if (node.type === 'bundle') {
       const label = 'Bundle\n' + node.bundle.path.name

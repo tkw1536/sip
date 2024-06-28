@@ -56,11 +56,11 @@ export const models = new DriverCollection<ModelNode, ModelEdge>(
   ],
   [
     'vis-network',
-    async () => await import('./impl/vis-network').then(m => m.VisNetworkModelDriver.instance)
+    async () => await import('./impl/vis-network').then(m => new m.VisNetworkModelDriver())
   ],
   [
     'Sigma.js',
-    async () => await import('./impl/sigma').then(m => m.SigmaModelDriver.instance)
+    async () => await import('./impl/sigma').then(m => new m.SigmaModelDriver())
   ],
   [
     'Cytoscape',
@@ -72,18 +72,18 @@ export const bundles = new DriverCollection<BundleNode, BundleEdge>(
   'GraphViz',
   [
     'GraphViz',
-    async () => await import('./impl/graphviz').then(m => m.GraphVizBundleDriver.instance)
+    async () => await import('./impl/graphviz').then(m => new m.GraphVizBundleDriver())
   ],
   [
     'vis-network',
-    async () => await import('./impl/vis-network').then(m => m.VisNetworkBundleDriver.instance)
+    async () => await import('./impl/vis-network').then(m => new m.VisNetworkBundleDriver())
   ],
   [
     'Sigma.js',
-    async () => await import('./impl/sigma').then(m => m.SigmaBundleDriver.instance)
+    async () => await import('./impl/sigma').then(m => new m.SigmaBundleDriver())
   ],
   [
     'Cytoscape',
-    async () => await import('./impl/cytoscape').then(m => m.CytoBundleDriver.instance)
+    async () => await import('./impl/cytoscape').then(m => new m.CytoBundleDriver())
   ]
 )

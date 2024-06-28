@@ -44,8 +44,6 @@ export default interface Driver<NodeLabel, EdgeLabel> {
 
 /** implements a driver */
 export abstract class DriverImpl<NodeLabel, EdgeLabel, Context, Mount, HotContext = Context> implements Driver<NodeLabel, EdgeLabel> {
-  protected constructor () { }
-
   abstract readonly driverName: string
   async newContext (flags: ContextFlags): Promise<_hot_context> {
     return await this.newContextImpl(flags)
