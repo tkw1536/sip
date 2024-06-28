@@ -37,7 +37,7 @@ export abstract class NodeLike {
     const getOrCreateBundle = (id: string): Bundle => {
       const bundle = bundles.get(id)
       if (typeof bundle === 'undefined') {
-        const bundle = new Bundle(Path.create(), null, [], new Map<string, Field>())
+        const bundle = new Bundle(Path.invalid(), null, [], new Map<string, Field>())
         bundles.set(id, bundle)
         return bundle
       }

@@ -12,7 +12,6 @@ export function markdownAsHTML (this: MacroContext | undefined, ...path: string[
   const file = join(__dirname, '..', ...path)
   this?.invalidateOnFileChange(file)
 
-  const contents = readFileSync(file).toString()
-
+  const contents = readFileSync(file, 'utf-8').toString()
   return marked.parse(contents) as string
 }

@@ -30,8 +30,7 @@ export default class ArrayTracker<T> {
       }
 
       // check if all elements are equal
-      const nonEqualIndex = candidate.findIndex((canElement, index) => !this.equality(canElement, element[index]))
-      return nonEqualIndex < 0
+      return candidate.every((cElement, index) => this.equality(cElement, element[index]))
     })
   }
 }

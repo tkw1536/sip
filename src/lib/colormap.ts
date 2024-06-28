@@ -1,7 +1,7 @@
 import Color from 'color'
 import { Bundle, Field, NodeLike } from './pathtree'
 
-interface ColorMapExport {
+export interface ColorMapExport {
   type: 'colormap'
   defaultColor: string
   colors: Record<string, string>
@@ -30,7 +30,7 @@ export default class ColorMap {
     return (
       (('type' in data) && data.type === 'colormap') &&
       (('defaultColor' in data) && typeof data.defaultColor === 'string') &&
-      (('colors' in data) && data.colors instanceof Object && Object.entries(data.colors).findIndex(([k, v]) => typeof k !== 'string' || typeof v !== 'string') < 0)
+      (('colors' in data) && data.colors instanceof Object && Object.entries(data.colors).every(([k, v]) => typeof k === 'string' && typeof v === 'string'))
     )
   }
 

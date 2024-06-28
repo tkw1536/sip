@@ -1,4 +1,4 @@
-interface NamespaceMapExport {
+export interface NamespaceMapExport {
   type: 'namespace-map'
   namespaces: Array<[string, string]>
 }
@@ -26,10 +26,18 @@ export class NamespaceMap {
   }
 
   private static isValidNamespaceMap (data: any): data is NamespaceMapExport {
-    return (
-      (('type' in data) && data.type === 'namespace-map') &&
-      (('namespaces' in data) && Array.isArray(data.namespaces) && data.namespaces.findIndex((v: any) => !(Array.isArray(v) && v.length === 2 && typeof v[0] === 'string' && typeof v[1] === 'string')) < 0)
-    )
+    if (!(('type' in data) && data.type === 'namespace-map')) {
+      return false
+    }
+    if (!('namespaces' in data)) {
+      return false
+    }
+
+    const { namespaces } = data
+    if (!Array.isArray(namespaces)) {
+      return false
+    }
+    return namespaces.every((v: any) => Array.isArray(v) && v.length === 2 && typeof v[0] === 'string' && typeof v[1] === 'string')
   }
 
   static fromJSON (data: any): NamespaceMap | null {

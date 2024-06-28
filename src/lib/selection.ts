@@ -10,10 +10,47 @@ function toID (key: Key): string | null {
   return path?.id ?? null
 }
 
+export interface NodeSelectionExport {
+  type: 'node-selection'
+  defaultValue: boolean
+  values: string[]
+}
+
 export default class NodeSelection {
   private readonly set = new Set<string>()
   private constructor (private readonly defaultValue: boolean, values: Iterable<string>) {
     this.set = new Set(values)
+  }
+
+  toJSON (): NodeSelectionExport {
+    return {
+      type: 'node-selection',
+      defaultValue: this.defaultValue,
+      values: Array.from(this.set)
+    }
+  }
+
+  private static isValidNodeSelection (data: any): data is NodeSelectionExport {
+    if (!(('type' in data) && data.type === 'node-selection')) {
+      return false
+    }
+    if (!(('defaultValue' in data) && typeof data.defaultValue === 'boolean')) {
+      return false
+    }
+    if (!('values' in data)) {
+      return false
+    }
+    const { values } = data
+    return Array.isArray(values) && values.every(v => typeof v === 'string')
+  }
+
+  /** parses a colormap from json */
+  static fromJSON (data: any): NodeSelection | null {
+    if (!this.isValidNodeSelection(data)) {
+      return null
+    }
+
+    return new NodeSelection(data.defaultValue, data.values)
   }
 
   /** includes checks if the selection includes the given key */

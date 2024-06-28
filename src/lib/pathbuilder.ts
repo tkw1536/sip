@@ -63,7 +63,7 @@ export class Path {
 
   }
 
-  static create (): Path {
+  static invalid (): Path {
     return new Path(
       '', -1, false, '', '', '', '', '', '', -1, '', [], '', '', -1, '', '', false, ''
     )
