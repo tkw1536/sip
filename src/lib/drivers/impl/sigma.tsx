@@ -3,12 +3,18 @@ import Sigma from 'sigma'
 import Graph from 'graphology'
 import { type Settings } from 'sigma/dist/declarations/src/settings'
 import { type BundleEdge, type BundleNode } from '../../graph/builders/bundle'
-import forceAtlas2 from 'graphology-layout-forceatlas2'
+import FA2Layout from 'graphology-layout-forceatlas2/worker'
+import { inferSettings } from 'graphology-layout-forceatlas2'
 import circular from 'graphology-layout/circular'
 import circlepack from 'graphology-layout/circlepack'
 import { type ModelEdge, type ModelNode, modelNodeLabel } from '../../graph/builders/model'
 
-abstract class SigmaDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLabel, EdgeLabel, Graph, Sigma> {
+interface SigmaMount {
+  beforeStop?: () => void
+  sigma: Sigma
+}
+
+abstract class SigmaDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLabel, EdgeLabel, Graph, SigmaMount> {
   protected abstract addNodeImpl (graph: Graph, flags: ContextFlags, id: string, node: NodeLabel): Promise<undefined>
   protected abstract addEdgeImpl (graph: Graph, flags: ContextFlags, id: string, from: string, to: string, edge: EdgeLabel): Promise<undefined>
 
@@ -28,14 +34,19 @@ abstract class SigmaDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLabel, E
     return ctx
   }
 
-  protected mountImpl (graph: Graph, { container, layout }: MountFlags): Sigma {
+  protected mountImpl (graph: Graph, { container, layout }: MountFlags): SigmaMount {
+    let onStop: (() => void) | undefined
     switch (layout === defaultLayout ? 'force2atlas' : layout) {
       case 'force2atlas':
-        circular.assign(graph, { scale: 100 })
-        forceAtlas2.assign(graph, {
-          iterations: 500,
-          settings: forceAtlas2.inferSettings(graph)
-        })
+        {
+          circular.assign(graph, { scale: 100 })
+          const layout = new FA2Layout(graph, {
+            settings: inferSettings(graph)
+          })
+          layout.start()
+          onStop = () => { layout.kill() }
+        }
+
         break
       case 'circlepack':
         circlepack.assign(graph)
@@ -47,25 +58,38 @@ abstract class SigmaDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLabel, E
     // setup an initial layout
 
     const settings = this.settings()
-    return new Sigma(graph, container, settings)
+    return {
+      sigma: new Sigma(graph, container, settings),
+      beforeStop: onStop
+    }
   }
 
-  protected resizeMountImpl (sigma: Sigma, graph: Graph, flags: MountFlags, { width, height }: Size): undefined {
-    sigma.resize()
-    // automatically resized ?
+  protected resizeMountImpl (sigma: SigmaMount, graph: Graph, flags: MountFlags, { width, height }: Size): undefined {
+    sigma.sigma.resize()
   }
 
-  protected unmountImpl (sigma: Sigma, graph: Graph): void {
-    sigma.kill()
+  protected unmountImpl (sigma: SigmaMount, graph: Graph): void {
+    sigma.sigma.kill()
+    if (typeof sigma.beforeStop === 'function') {
+      sigma.beforeStop()
+    }
   }
 
   readonly supportedExportFormats = []
-  protected async objectToBlobImpl (sigma: Sigma, graph: Graph, flags: MountFlags, format: string): Promise<Blob> {
+  protected async objectToBlobImpl (sigma: SigmaMount, graph: Graph, flags: MountFlags, format: string): Promise<Blob> {
     return await Promise.reject(new Error('never reached'))
   }
 }
 
 export class SigmaBundleDriver extends SigmaDriver<BundleNode, BundleEdge> {
+  private static _instance: SigmaBundleDriver | null = null
+  static get instance (): SigmaBundleDriver {
+    if (this._instance === null) {
+      this._instance = new SigmaBundleDriver()
+    }
+    return this._instance
+  }
+
   protected async addNodeImpl (graph: Graph, { cm }: ContextFlags, id: string, node: BundleNode): Promise<undefined> {
     if (node.type === 'bundle') {
       graph.addNode(id, { label: 'Bundle\n' + node.bundle.path.name, color: cm.get(node.bundle), size: 20 })
@@ -92,6 +116,14 @@ export class SigmaBundleDriver extends SigmaDriver<BundleNode, BundleEdge> {
 }
 
 export class SigmaModelDriver extends SigmaDriver<ModelNode, ModelEdge> {
+  private static _instance: SigmaModelDriver | null = null
+  static get instance (): SigmaModelDriver {
+    if (this._instance === null) {
+      this._instance = new SigmaModelDriver()
+    }
+    return this._instance
+  }
+
   protected async addNodeImpl (graph: Graph, { ns, cm }: ContextFlags, id: string, node: ModelNode): Promise<undefined> {
     const label = modelNodeLabel(node, ns)
     if (node.type === 'field') {
