@@ -1,5 +1,3 @@
-import { type Component } from 'preact'
-
 /** Used to coordinate a set of function calls */
 export class Operation {
   #id = 0
@@ -13,28 +11,6 @@ export class Operation {
 
     const id = ++this.#id
     return (): boolean => !this.canceled && id === this.#id
-  }
-
-  /** creates and binds a setState function to component that only calls as long as ticket is not updated */
-  ticketStateSetter <P, S, K extends keyof S>(component: Component<P, S>): StateSetter<P, S, K> {
-    const ticket = this.ticket()
-
-    return Object.assign(
-      async (state: StateSetterArg<P, S, K>): Promise<void> => {
-        if (!ticket()) return
-
-        await new Promise<void>(resolve => {
-          component.setState((prevState, props) => {
-            if (!ticket()) return null
-
-            return typeof state === 'function' ? state(prevState, props) : state
-          }, resolve)
-        })
-      },
-      {
-        ticket
-      }
-    )
   }
 
   /** returns true if cancel has been called */

@@ -65,14 +65,24 @@ export default class Kernel<NodeLabel, EdgeLabel> extends Component<KernelProps<
     })
 
     // create a ticket, and make the context
-    const setState = this.mount.ticketStateSetter(this)
+    const ticket = this.mount.ticket()
 
     this.setState({ driverLoading: true, driverError: undefined }, () => {
-      this.loadContext(setState.ticket, graph, loader, name, ctxFlags)
+      this.loadContext(ticket, graph, loader, name, ctxFlags)
         .then(async ({ driver, ctx }) => {
-          // we've finished loading the page, not make everything sync
-          await setState({ driverError: undefined, driverLoading: false })
-          if (!setState.ticket()) throw Kernel.errorAborted
+          // await to set the new state
+          await new Promise<void>((resolve, reject) => {
+            this.setState(() => {
+              if (!ticket()) return null
+              return { driverError: undefined, driverLoading: false }
+            }, () => {
+              if (ticket()) {
+                resolve()
+              } else {
+                reject(Kernel.errorAborted)
+              }
+            })
+          })
 
           // check that we have a valid layout
           if (!driver.supportedLayouts.includes(flags.layout)) {
@@ -88,7 +98,7 @@ export default class Kernel<NodeLabel, EdgeLabel> extends Component<KernelProps<
           setRef(driverRef, driver)
         })
         .catch((err: unknown) => {
-          if (err === Kernel.errorAborted || !setState.ticket()) return
+          if (err === Kernel.errorAborted || !ticket()) return
 
           console.error('error while mounting driver: ', err)
           const driverError = (err instanceof Error) ? err : new Error(String(err))
