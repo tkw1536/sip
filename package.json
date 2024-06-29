@@ -4,6 +4,7 @@
   "description": "Supreme Inspector For Pathbuilders",
   "author": "Tom Wiesing <tom.wiesing@gmail.com>",
   "devDependencies": {
+    "@jest/globals": "^29.7.0",
     "@parcel/macros": "^2.12.0",
     "@types/color": "^3.0.6",
     "@types/cytoscape": "^3.21.3",
@@ -11,10 +12,12 @@
     "@types/node": "^20.14.5",
     "buffer": "^5.5.0||^6.0.0",
     "cspell": "^8.9.0",
+    "jest": "^29.7.0",
     "marked": "^13.0.1",
     "marked-footnote": "^1.2.2",
     "parcel": "^2.12.0",
     "process": "^0.11.10",
+    "ts-jest": "^29.1.5",
     "ts-standard": "^12.0.2",
     "typescript": "^5.5.2"
   },
@@ -50,9 +53,10 @@
   "scripts": {
     "start": "parcel src/index.html",
     "build": "parcel build src/index.html",
-    "ci": "yarn tsc && yarn lint && yarn spellcheck",
-    "lint": "ts-standard --fix .",
-    "spellcheck": "cspell lint . --config cspell.json --quiet"
+    "ci": "yarn tsc && yarn lint && yarn spellcheck && yarn test",
+    "lint": "ts-standard .",
+    "spellcheck": "cspell lint . --config cspell.json --quiet",
+    "test": "jest"
   },
   "alias": {
     "preact/jsx-dev-runtime": "preact/jsx-runtime"
