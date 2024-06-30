@@ -35,7 +35,7 @@ describe(Operation, () => {
 
     const first = op.ticket()
 
-    // cancelation sets the canceled flag
+    // cancellation sets the canceled flag
     expect(op.canceled).toBe(false)
     op.cancel()
     expect(op.canceled).toBe(true)

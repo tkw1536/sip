@@ -15,6 +15,7 @@
     "strict": true,
     "allowSyntheticDefaultImports": true,
     "experimentalDecorators": true,
+    "noEmit": true,
 
     // HACK HACK HACK
     // This is needed because the 'preact-markdown' module is broken.
