@@ -18,7 +18,7 @@
     "noEmit": true,
 
     // HACK HACK HACK
-    // This is needed because the 'preact-markdown' module is broken.
+    // This is needed because the 'preact-markup' module is broken.
     "skipLibCheck": true
   },
   
