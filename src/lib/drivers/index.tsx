@@ -2,7 +2,7 @@ import { Component, type ComponentChild, createRef, type Ref } from 'preact'
 import type Graph from '../graph'
 import { type NamespaceMap } from '../namespace'
 import * as styles from './index.module.css'
-import { UUIDPool } from '../utils/uuid'
+import { IDPool } from '../utils/id-pool'
 import { Operation } from '../utils/operation'
 import type Driver from './impl'
 import type ColorMap from '../colormap'
@@ -112,7 +112,7 @@ export default class Kernel<NodeLabel, EdgeLabel> extends Component<KernelProps<
     // load the driver
     const driver = await loader.get(name)
 
-    const ids = new UUIDPool()
+    const ids = new IDPool()
 
     // create a new context
     let hCtx = await driver.newContext(ctxFlags)
