@@ -145,11 +145,11 @@ export class GraphVizBundleDriver extends GraphvizDriver<BundleNode, BundleEdge>
   protected addNodeAsString ({ cm }: ContextFlags, id: string, node: BundleNode): string {
     if (node.type === 'bundle') {
       const path = node.bundle.path
-      return makeNode(id, { label: 'Bundle\n' + path.name, fillcolor: cm.get(node.bundle) }, { style: 'filled' })
+      return makeNode(id, { label: 'Bundle\n' + path.name, tooltip: node.bundle.path.id, fillcolor: cm.get(node.bundle) }, { style: 'filled' })
     }
     if (node.type === 'field') {
       const path = node.field.path
-      return makeNode(id, { label: path.name, fillcolor: cm.get(node.field) }, { style: 'filled' })
+      return makeNode(id, { label: path.name, tooltip: node.field.path.id, fillcolor: cm.get(node.field) }, { style: 'filled' })
     }
     throw new Error('never reached')
   }
@@ -175,6 +175,7 @@ export class GraphVizModelDriver extends GraphvizDriver<ModelNode, ModelEdge> {
         id,
         {
           label: flags.ns.apply(node.clz),
+          tooltip: node.clz,
           fillcolor: flags.cm.defaultColor
         },
         {
@@ -204,11 +205,13 @@ export class GraphVizModelDriver extends GraphvizDriver<ModelNode, ModelEdge> {
 
     const { clz, bundles } = node
     let output = 'subgraph { cluster=true;\n'
+    output += 'tooltip="";\n'
 
     output += makeNode(
       id,
       {
-        label: ns.apply(clz)
+        label: ns.apply(clz),
+        tooltip: node.clz
       },
       {
         shape: 'box'
@@ -221,6 +224,7 @@ export class GraphVizModelDriver extends GraphvizDriver<ModelNode, ModelEdge> {
         bundleID,
         {
           label: 'Bundle ' + bundle.path.name,
+          tooltip: bundle.path.id,
           fillcolor: cm.get(bundle)
         },
         {
@@ -237,12 +241,14 @@ export class GraphVizModelDriver extends GraphvizDriver<ModelNode, ModelEdge> {
   }
 
   private makeFieldNodes ({ ns, cm }: ContextFlags, id: string, node: ModelNode & { type: 'field' }): string {
+    const label = modelNodeLabel(node, ns)
     if (this.compact) {
       return makeNode(
         id,
         {
-          label: modelNodeLabel(node, ns),
-          fillcolor: cm.get(...node.fields)
+          label,
+          tooltip: Array.from(node.fields).map(f => f.path.id).join('\n'),
+          fillcolor: cm.get(...node.fields) // TODO: make this custom
         },
         {
           style: 'filled'
@@ -250,6 +256,7 @@ export class GraphVizModelDriver extends GraphvizDriver<ModelNode, ModelEdge> {
       )
     }
     let output = 'subgraph { cluster=true;\n'
+    output += 'tooltip="";\n'
 
     output += makeNode(
       id,
@@ -263,6 +270,7 @@ export class GraphVizModelDriver extends GraphvizDriver<ModelNode, ModelEdge> {
         fieldID,
         {
           label: field.path.name,
+          tooltip: field.path.id,
           fillcolor: cm.get(field)
         },
         {
@@ -270,7 +278,7 @@ export class GraphVizModelDriver extends GraphvizDriver<ModelNode, ModelEdge> {
         }
       )
       output += node + '\n'
-      output += makeEdge(id, fieldID, { label: field.path.informativeFieldType }, {}) + '\n'
+      output += makeEdge(id, fieldID, { label: field.path.informativeFieldType, tooltip: field.path.informativeFieldType }, {}) + '\n'
     })
 
     output += '}'
@@ -280,7 +288,8 @@ export class GraphVizModelDriver extends GraphvizDriver<ModelNode, ModelEdge> {
 
   protected addEdgeAsString ({ ns }: ContextFlags, id: string, from: string, to: string, edge: ModelEdge): string {
     const properties: Record<string, string> = {
-      label: ns.apply(edge.property)
+      label: ns.apply(edge.property),
+      tooltip: edge.property
     }
     return makeEdge(
       from, to,
