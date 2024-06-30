@@ -6,10 +6,8 @@ import svgPanZoom from 'svg-pan-zoom'
 import { type GraphVizResponse, type GraphVizRequest } from './graphviz-worker'
 import { Type } from '../../utils/media'
 
-interface HotContext {
-  source: string
-}
-interface Context extends HotContext {
+interface Context {
+  graph: Graph
   canon: string
   svg: string
 }
@@ -19,17 +17,7 @@ interface Mount {
   zoom: SvgPanZoom.Instance
 }
 
-abstract class GraphvizDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLabel, EdgeLabel, Context, Mount, HotContext> {
-  protected async addNodeImpl (context: HotContext, flags: ContextFlags, id: string, node: NodeLabel): Promise<undefined> {
-    context.source += '\n' + this.addNodeAsString(flags, id, node)
-  }
-  protected abstract addNodeAsString (flags: ContextFlags, id: string, node: NodeLabel): string
-
-  protected async addEdgeImpl (context: HotContext, flags: ContextFlags, id: string, from: string, to: string, edge: EdgeLabel): Promise<undefined> {
-    context.source += '\n' + this.addEdgeAsString(flags, id, from, to, edge)
-  }
-  protected abstract addEdgeAsString (flags: ContextFlags, id: string, from: string, to: string, edge: EdgeLabel): string
-
+abstract class GraphvizDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLabel, EdgeLabel, Context, Mount, FullGraph> {
   readonly driverName: string = 'GraphViz'
   readonly supportedLayouts = [defaultLayout, 'dot', 'fdp', 'circo', 'neato']
   protected options ({ layout }: ContextFlags): RenderOptions {
@@ -37,23 +25,29 @@ abstract class GraphvizDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLabel
     return { engine }
   }
 
-  protected async newContextImpl (): Promise<HotContext> {
+  protected async newContextImpl (): Promise<FullGraph> {
     return {
-      source: 'digraph { compound=true;'
+      name: '',
+      strict: false,
+      directed: true,
+      graphAttributes: { compound: true },
+      nodeAttributes: {},
+      edgeAttributes: {},
+      nodes: [],
+      edges: [],
+      subgraphs: []
     }
   }
 
-  protected async finalizeContextImpl (ctx: HotContext, flags: ContextFlags): Promise<Context> {
-    const source = ctx.source + '}'
-
+  protected async finalizeContextImpl (graph: FullGraph, flags: ContextFlags): Promise<Context> {
     // build options for the driver to render
     const options = this.options(flags)
 
-    const canon = await GraphvizDriver.callWorker({ input: source, options: { ...options, format: 'canon' } })
+    const canon = await GraphvizDriver.callWorker({ input: graph, options: { ...options, format: 'canon' } })
     const svg = await GraphvizDriver.callWorker({ input: canon, options: { ...options, format: 'svg' } })
 
     return {
-      source,
+      graph,
       canon,
       svg
     }
@@ -122,40 +116,45 @@ abstract class GraphvizDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLabel
   }
 }
 
-function makeNode (id: string, quoted: Record<string, string>, raw: Record<string, string>): string {
-  return quote(id) + makeBody(quoted, raw)
-}
-
-function makeEdge (from: string, to: string, quoted: Record<string, string>, raw: Record<string, string>): string {
-  return quote(from) + '->' + quote(to) + makeBody(quoted, raw)
-}
-
-function makeBody (quoted: Record<string, string>, raw: Record<string, string>): string {
-  const quoteAttrs = Object.entries(quoted).map(([attr, value]) => `${attr}=${quote(value)}`)
-  const rawAttrs = Object.entries(raw).map(([attr, value]) => `${attr}=${value}`)
-  const attrs = [...quoteAttrs, ...rawAttrs]
-  return (attrs.length > 0) ? ` [${attrs.join(' ')}]` : ''
-}
-
-function quote (value: string): string {
-  return '"' + value.replaceAll('"', '\\"') + '"'
-}
-
 export class GraphVizBundleDriver extends GraphvizDriver<BundleNode, BundleEdge> {
-  protected addNodeAsString ({ cm }: ContextFlags, id: string, node: BundleNode): string {
+  protected addNodeImpl (graph: FullGraph, { cm }: ContextFlags, id: string, node: BundleNode): undefined {
     if (node.type === 'bundle') {
       const path = node.bundle.path
-      return makeNode(id, { label: 'Bundle\n' + path.name, tooltip: node.bundle.path.id, fillcolor: cm.get(node.bundle) }, { style: 'filled' })
+      graph.nodes.push({
+        name: id,
+        attributes: {
+          label: 'Bundle\n' + path.name,
+          tooltip: path.id,
+
+          style: 'filled',
+          fillcolor: cm.get(node.bundle)
+        }
+      })
+      return
     }
     if (node.type === 'field') {
       const path = node.field.path
-      return makeNode(id, { label: path.name, tooltip: node.field.path.id, fillcolor: cm.get(node.field) }, { style: 'filled' })
+      graph.nodes.push({
+        name: id,
+        attributes: {
+          label: path.name,
+          tooltip: path.id,
+
+          style: 'filled',
+          fillcolor: cm.get(node.field)
+        }
+      })
+      return
     }
     throw new Error('never reached')
   }
 
-  protected addEdgeAsString (flags: ContextFlags, id: string, from: string, to: string, edge: BundleEdge): string {
-    return makeEdge(from, to, {}, {})
+  protected addEdgeImpl (graph: FullGraph, flags: ContextFlags, id: string, from: string, to: string, edge: BundleEdge): undefined {
+    graph.edges.push({
+      tail: from,
+      head: to,
+      attributes: {}
+    })
   }
 }
 
@@ -166,137 +165,211 @@ export class GraphVizModelDriver extends GraphvizDriver<ModelNode, ModelEdge> {
     this.driverName = compact ? 'GraphViz-compact' : 'GraphViz'
   }
 
-  protected addNodeAsString (flags: ContextFlags, id: string, node: ModelNode): string {
+  protected addNodeImpl (graph: FullGraph, flags: ContextFlags, id: string, node: ModelNode): undefined {
     if (node.type === 'field') {
-      return this.makeFieldNodes(flags, id, node)
+      this.makeFieldNodes(graph, flags, id, node)
+      return
     }
     if (node.type === 'class' && node.bundles.size === 0) {
-      return makeNode(
-        id,
-        {
+      graph.nodes.push({
+        name: id,
+        attributes: {
           label: flags.ns.apply(node.clz),
           tooltip: node.clz,
+
+          style: 'filled',
           fillcolor: flags.cm.defaultColor
-        },
-        {
-          style: 'filled'
         }
-      )
+      })
+      return
     }
     if (node.type === 'class' && node.bundles.size > 0) {
-      return this.makeBundleNodes(flags, id, node)
+      this.makeBundleNodes(graph, flags, id, node)
+      return
     }
     throw new Error('never reached')
   }
 
-  private makeBundleNodes ({ ns, cm }: ContextFlags, id: string, node: ModelNode & { type: 'class' }): string {
+  private makeBundleNodes (graph: FullGraph, { ns, cm }: ContextFlags, id: string, node: ModelNode & { type: 'class' }): void {
     if (this.compact) {
-      return makeNode(
-        id,
-        {
+      graph.nodes.push({
+        name: id,
+        attributes: {
           label: modelNodeLabel(node, ns),
+          tooltip: node.clz,
+
+          style: 'filled',
           fillcolor: cm.get(...node.bundles)
-        },
-        {
-          style: 'filled'
         }
-      )
+
+      })
+      return
     }
 
     const { clz, bundles } = node
-    let output = 'subgraph { cluster=true;\n'
-    output += 'tooltip="";\n'
 
-    output += makeNode(
-      id,
-      {
+    const sg: FullSubgraph = {
+      name: `subgraph-${id}`,
+      graphAttributes: { cluster: true, tooltip: '' },
+      nodeAttributes: {},
+      edgeAttributes: {},
+      nodes: [],
+      edges: [],
+      subgraphs: []
+    }
+
+    sg.nodes.push({
+      name: id,
+      attributes: {
         label: ns.apply(clz),
-        tooltip: node.clz
-      },
-      {
+        tooltip: node.clz,
+
         shape: 'box'
       }
-    ) + '\n'
+    })
 
     Array.from(bundles).forEach((bundle, idx) => {
       const bundleID = `${id}-${idx}`
-      const node = makeNode(
-        bundleID,
-        {
+      sg.nodes.push({
+        name: bundleID,
+        attributes: {
           label: 'Bundle ' + bundle.path.name,
           tooltip: bundle.path.id,
-          fillcolor: cm.get(bundle)
-        },
-        {
+
           shape: 'box',
-          style: 'filled'
+          style: 'filled',
+          fillcolor: cm.get(bundle)
         }
-      )
-      output += node + '\n'
-      output += makeEdge(bundleID, id, {}, {}) + '\n'
+      })
+      sg.edges.push({
+        head: id,
+        tail: bundleID,
+        attributes: {}
+      })
     })
 
-    output += '}'
-    return output
+    graph.subgraphs.push(sg)
   }
 
-  private makeFieldNodes ({ ns, cm }: ContextFlags, id: string, node: ModelNode & { type: 'field' }): string {
+  private makeFieldNodes (graph: FullGraph, { ns, cm }: ContextFlags, id: string, node: ModelNode & { type: 'field' }): void {
     const label = modelNodeLabel(node, ns)
     if (this.compact) {
-      return makeNode(
-        id,
-        {
+      graph.nodes.push({
+        name: id,
+        attributes: {
           label,
           tooltip: Array.from(node.fields).map(f => f.path.id).join('\n'),
-          fillcolor: cm.get(...node.fields) // TODO: make this custom
-        },
-        {
-          style: 'filled'
-        }
-      )
-    }
-    let output = 'subgraph { cluster=true;\n'
-    output += 'tooltip="";\n'
 
-    output += makeNode(
-      id,
-      { label: 'Literal' },
-      { shape: 'box' }
-    ) + '\n'
+          style: 'filled',
+          fillcolor: cm.get(...node.fields) // TODO: make this custom
+        }
+      })
+      return
+    }
+
+    const sg: FullSubgraph = {
+      name: `subgraph-${id}`,
+      graphAttributes: { cluster: true, tooltip: '' },
+      nodeAttributes: {},
+      edgeAttributes: {},
+      nodes: [],
+      edges: [],
+      subgraphs: []
+    }
+
+    sg.nodes.push({
+      name: id,
+      attributes: {
+        label: 'Literal',
+        tooltip: 'Literal',
+
+        shape: 'box'
+      }
+    })
 
     Array.from(node.fields).forEach((field, idx) => {
       const fieldID = `${id}-${idx}`
-      const node = makeNode(
-        fieldID,
-        {
+      sg.nodes.push({
+        name: fieldID,
+        attributes: {
           label: field.path.name,
           tooltip: field.path.id,
+
+          style: 'filled',
           fillcolor: cm.get(field)
-        },
-        {
-          style: 'filled'
         }
-      )
-      output += node + '\n'
-      output += makeEdge(id, fieldID, { label: field.path.informativeFieldType, tooltip: field.path.informativeFieldType }, {}) + '\n'
+      })
+      sg.edges.push({
+        head: fieldID,
+        tail: id,
+
+        attributes: {
+          label: field.path.informativeFieldType,
+          tooltip: field.path.informativeFieldType
+        }
+      })
     })
 
-    output += '}'
-
-    return output
+    graph.subgraphs.push(sg)
   }
 
-  protected addEdgeAsString ({ ns }: ContextFlags, id: string, from: string, to: string, edge: ModelEdge): string {
-    const properties: Record<string, string> = {
-      label: ns.apply(edge.property),
-      tooltip: edge.property
-    }
-    return makeEdge(
-      from, to,
-      properties,
-      {}
-    )
+  protected addEdgeImpl (graph: FullGraph, { ns }: ContextFlags, id: string, from: string, to: string, edge: ModelEdge): undefined {
+    graph.edges.push({
+      head: to,
+      tail: from,
+      attributes: {
+        label: ns.apply(edge.property),
+        tooltip: edge.property
+      }
+    })
   }
+}
+
+interface Graph extends Subgraph {
+  strict?: boolean
+  directed?: boolean
+}
+interface FullGraph extends FullSubgraph {
+  strict: boolean
+  directed: boolean
+}
+
+interface Node {
+  name: string
+  attributes?: Attributes
+}
+type FullNode = Required<Node>
+
+interface Edge {
+  tail: string
+  head: string
+  attributes?: Attributes
+}
+type FullEdge = Required<Edge>
+
+interface Subgraph {
+  name?: string
+  graphAttributes?: Attributes
+  nodeAttributes?: Attributes
+  edgeAttributes?: Attributes
+  nodes?: Node[]
+  edges?: Edge[]
+  subgraphs?: Subgraph[]
+}
+interface FullSubgraph {
+  name: string
+  graphAttributes: Attributes
+  nodeAttributes: Attributes
+  edgeAttributes: Attributes
+  nodes: FullNode[]
+  edges: FullEdge[]
+  subgraphs: FullSubgraph[]
+}
+
+type Attributes = Record<string, string | number | boolean | HTMLString>
+
+interface HTMLString {
+  html: string
 }
 
 // spellchecker:words fillcolor circo neato

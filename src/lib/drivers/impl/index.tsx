@@ -53,12 +53,12 @@ export abstract class DriverImpl<NodeLabel, EdgeLabel, Context, Mount, HotContex
   async addNode (ctx: _hot_context, flags: ContextFlags, id: string, node: NodeLabel): Promise<_context | null | undefined> {
     return await this.addNodeImpl(ctx as HotContext, flags, id, node)
   }
-  protected abstract addNodeImpl (ctx: HotContext, flags: ContextFlags, id: string, node: NodeLabel): Promise<HotContext | null | undefined>
+  protected abstract addNodeImpl (ctx: HotContext, flags: ContextFlags, id: string, node: NodeLabel): Promise<HotContext | null | undefined> | null | undefined
 
   async addEdge (ctx: _hot_context, flags: ContextFlags, id: string, from: string, to: string, edge: EdgeLabel): Promise<_context | null | undefined> {
     return await this.addEdgeImpl(ctx as HotContext, flags, id, from, to, edge)
   }
-  protected abstract addEdgeImpl (ctx: HotContext, flags: ContextFlags, id: string, from: string, to: string, edge: EdgeLabel): Promise<HotContext | null | undefined>
+  protected abstract addEdgeImpl (ctx: HotContext, flags: ContextFlags, id: string, from: string, to: string, edge: EdgeLabel): Promise<HotContext | null | undefined> | null | undefined
 
   async finalizeContext (ctx: _hot_context, flags: ContextFlags): Promise<_context> {
     return await this.finalizeContextImpl(ctx as HotContext, flags)
