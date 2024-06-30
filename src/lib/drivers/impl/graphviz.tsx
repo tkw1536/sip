@@ -17,7 +17,7 @@ interface Mount {
   zoom: SvgPanZoom.Instance
 }
 
-abstract class GraphvizDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLabel, EdgeLabel, Context, Mount, FullGraph> {
+abstract class GraphvizDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLabel, EdgeLabel, Context, Mount, Graph> {
   readonly driverName: string = 'GraphViz'
   readonly supportedLayouts = [defaultLayout, 'dot', 'fdp', 'circo', 'neato']
   protected options ({ layout }: ContextFlags): RenderOptions {
@@ -25,7 +25,7 @@ abstract class GraphvizDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLabel
     return { engine }
   }
 
-  protected async newContextImpl (): Promise<FullGraph> {
+  protected async newContextImpl (): Promise<Graph> {
     return {
       name: '',
       strict: false,
@@ -39,7 +39,7 @@ abstract class GraphvizDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLabel
     }
   }
 
-  protected async finalizeContextImpl (graph: FullGraph, flags: ContextFlags): Promise<Context> {
+  protected async finalizeContextImpl (graph: Graph, flags: ContextFlags): Promise<Context> {
     // build options for the driver to render
     const options = this.options(flags)
 
@@ -117,7 +117,7 @@ abstract class GraphvizDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLabel
 }
 
 export class GraphVizBundleDriver extends GraphvizDriver<BundleNode, BundleEdge> {
-  protected addNodeImpl (graph: FullGraph, { cm }: ContextFlags, id: string, node: BundleNode): undefined {
+  protected addNodeImpl (graph: Graph, { cm }: ContextFlags, id: string, node: BundleNode): undefined {
     if (node.type === 'bundle') {
       const path = node.bundle.path
       graph.nodes.push({
@@ -149,7 +149,7 @@ export class GraphVizBundleDriver extends GraphvizDriver<BundleNode, BundleEdge>
     throw new Error('never reached')
   }
 
-  protected addEdgeImpl (graph: FullGraph, flags: ContextFlags, id: string, from: string, to: string, edge: BundleEdge): undefined {
+  protected addEdgeImpl (graph: Graph, flags: ContextFlags, id: string, from: string, to: string, edge: BundleEdge): undefined {
     graph.edges.push({
       tail: from,
       head: to,
@@ -165,7 +165,7 @@ export class GraphVizModelDriver extends GraphvizDriver<ModelNode, ModelEdge> {
     this.driverName = compact ? 'GraphViz-compact' : 'GraphViz'
   }
 
-  protected addNodeImpl (graph: FullGraph, flags: ContextFlags, id: string, node: ModelNode): undefined {
+  protected addNodeImpl (graph: Graph, flags: ContextFlags, id: string, node: ModelNode): undefined {
     if (node.type === 'field') {
       this.makeFieldNodes(graph, flags, id, node)
       return
@@ -190,7 +190,7 @@ export class GraphVizModelDriver extends GraphvizDriver<ModelNode, ModelEdge> {
     throw new Error('never reached')
   }
 
-  private makeBundleNodes (graph: FullGraph, { ns, cm }: ContextFlags, id: string, node: ModelNode & { type: 'class' }): void {
+  private makeBundleNodes (graph: Graph, { ns, cm }: ContextFlags, id: string, node: ModelNode & { type: 'class' }): void {
     if (this.compact) {
       graph.nodes.push({
         name: id,
@@ -208,7 +208,7 @@ export class GraphVizModelDriver extends GraphvizDriver<ModelNode, ModelEdge> {
 
     const { clz, bundles } = node
 
-    const sg: FullSubgraph = {
+    const sg: Subgraph = {
       name: `subgraph-${id}`,
       graphAttributes: { cluster: true, tooltip: '' },
       nodeAttributes: {},
@@ -251,7 +251,7 @@ export class GraphVizModelDriver extends GraphvizDriver<ModelNode, ModelEdge> {
     graph.subgraphs.push(sg)
   }
 
-  private makeFieldNodes (graph: FullGraph, { ns, cm }: ContextFlags, id: string, node: ModelNode & { type: 'field' }): void {
+  private makeFieldNodes (graph: Graph, { ns, cm }: ContextFlags, id: string, node: ModelNode & { type: 'field' }): void {
     const label = modelNodeLabel(node, ns)
     if (this.compact) {
       graph.nodes.push({
@@ -267,7 +267,7 @@ export class GraphVizModelDriver extends GraphvizDriver<ModelNode, ModelEdge> {
       return
     }
 
-    const sg: FullSubgraph = {
+    const sg: Subgraph = {
       name: `subgraph-${id}`,
       graphAttributes: { cluster: true, tooltip: '' },
       nodeAttributes: {},
@@ -313,7 +313,7 @@ export class GraphVizModelDriver extends GraphvizDriver<ModelNode, ModelEdge> {
     graph.subgraphs.push(sg)
   }
 
-  protected addEdgeImpl (graph: FullGraph, { ns }: ContextFlags, id: string, from: string, to: string, edge: ModelEdge): undefined {
+  protected addEdgeImpl (graph: Graph, { ns }: ContextFlags, id: string, from: string, to: string, edge: ModelEdge): undefined {
     graph.edges.push({
       head: to,
       tail: from,
@@ -325,45 +325,31 @@ export class GraphVizModelDriver extends GraphvizDriver<ModelNode, ModelEdge> {
   }
 }
 
+/** Graph represents a graph passed to the viz.js implementation */
 interface Graph extends Subgraph {
-  strict?: boolean
-  directed?: boolean
-}
-interface FullGraph extends FullSubgraph {
   strict: boolean
   directed: boolean
 }
 
 interface Node {
   name: string
-  attributes?: Attributes
+  attributes: Attributes
 }
-type FullNode = Required<Node>
 
 interface Edge {
   tail: string
   head: string
   attributes?: Attributes
 }
-type FullEdge = Required<Edge>
 
 interface Subgraph {
-  name?: string
-  graphAttributes?: Attributes
-  nodeAttributes?: Attributes
-  edgeAttributes?: Attributes
-  nodes?: Node[]
-  edges?: Edge[]
-  subgraphs?: Subgraph[]
-}
-interface FullSubgraph {
   name: string
   graphAttributes: Attributes
   nodeAttributes: Attributes
   edgeAttributes: Attributes
-  nodes: FullNode[]
-  edges: FullEdge[]
-  subgraphs: FullSubgraph[]
+  nodes: Node[]
+  edges: Edge[]
+  subgraphs: Subgraph[]
 }
 
 type Attributes = Record<string, string | number | boolean | HTMLString>
