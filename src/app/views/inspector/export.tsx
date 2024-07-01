@@ -9,7 +9,6 @@ export default class ExportView extends Component<ReducerProps> {
     const { filename, pathbuilder } = this.props.state
     const file = new Blob([pathbuilder.toXML()], { type: 'application/xml' })
     download(file, filename !== '' ? filename : 'pathbuilder.xml')
-      .catch(() => { console.error('never reached') })
   }
 
   render (): ComponentChild {

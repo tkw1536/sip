@@ -41,7 +41,7 @@ export default class HierarchyView extends Component<ReducerProps> {
   private readonly handleColorMapExport = (evt: Event): void => {
     const data = JSON.stringify(this.props.state.cm.toJSON(), null, 2)
     const blob = new Blob([data], { type: Type.JSON })
-    void download(blob, 'colors.json', 'json')
+    download(blob, 'colors.json', 'json')
   }
 
   private readonly handleColorMapImport = (file: File): void => {

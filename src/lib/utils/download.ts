@@ -1,21 +1,20 @@
-/** Download prompts the user to download the selected blob as a local file */
-export default async function download (blob: Blob, filename?: string, extension?: string): Promise<void> {
-  const url = URL.createObjectURL(blob)
+/**
+ * Prompt the user to download the given Blob as a file.
+ *
+ * @param filename Filename of the blob to download.
+ * @param extension Extension of filename to download. Will only be used if filename is omitted.
+ */
+export default function download (blob: Blob, filename?: string, extension?: string): void {
+  // create a link to the object
+  const href = URL.createObjectURL(blob)
+  const download = filename ?? (typeof extension === 'string' ? `export.${extension}` : 'export')
 
+  // create a download link and click it
   const a = document.createElement('a')
-  a.href = url
-  a.download = filename ?? 'export'
-  if (typeof filename === 'undefined' && typeof extension === 'string') {
-    a.download += '.' + extension
-  }
-  document.body.appendChild(a)
+  a.href = href
+  a.download = download
   a.click()
 
-  await new Promise<void>(resolve => {
-    queueMicrotask(() => {
-      document.body.removeChild(a)
-      window.URL.revokeObjectURL(url)
-      resolve()
-    })
-  })
+  // clean up the reference to the object
+  URL.revokeObjectURL(href)
 }

@@ -75,7 +75,6 @@ class InfoView extends Component<ReducerProps> {
     const { pathbuilder } = this.props.state
     const file = new Blob([pathbuilder.toXML()], { type: 'application/xml' })
     download(file, this.filename)
-      .catch(() => { console.error('never reached') })
   }
 
   get filename (): string {

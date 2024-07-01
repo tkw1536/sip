@@ -96,7 +96,7 @@ class ControlsRow extends Component<ReducerProps> {
   private readonly handleNamespaceMapExport = (evt: Event): void => {
     const data = JSON.stringify(this.props.state.ns.toJSON(), null, 2)
     const blob = new Blob([data], { type: Type.JSON })
-    void download(blob, 'namespaces.json', 'json')
+    download(blob, 'namespaces.json', 'json')
   }
 
   private readonly handleNamespaceMapImport = (file: File): void => {
