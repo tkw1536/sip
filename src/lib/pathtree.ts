@@ -214,40 +214,40 @@ export class Bundle extends PathTreeNode {
     this.path = path
 
     bundles.forEach(bundle => {
-      this.bundles2.push(new Bundle(this, bundle))
+      this.childBundles.push(new Bundle(this, bundle))
     })
     fields.forEach(field => {
-      this.fields2.push(new Field(this, field))
+      this.childFields.push(new Field(this, field))
     })
   }
 
   public readonly path: Path
-  private readonly bundles2: Bundle[] = []
-  private readonly fields2: Field[] = [];
+  private readonly childBundles: Bundle[] = []
+  private readonly childFields: Field[] = [];
 
   * children (): IterableIterator<PathTreeNode> {
-    for (const bundle of this.bundles2) {
+    for (const bundle of this.childBundles) {
       yield bundle
     }
-    for (const field of this.fields2) {
+    for (const field of this.childFields) {
       yield field
     }
   }
 
   get childCount (): number {
-    return this.bundles2.length
+    return this.childBundles.length + this.childFields.length
   }
 
   /** the direct bundle descendants */
   * bundles (): IterableIterator<Bundle> {
-    for (const bundle of this.bundles2) {
+    for (const bundle of this.childBundles) {
       yield bundle
     }
   }
 
   /** the direct field descendants */
   * fields (): IterableIterator<Field> {
-    for (const field of this.fields2) {
+    for (const field of this.childFields) {
       yield field
     }
   }
