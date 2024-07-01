@@ -92,6 +92,7 @@ abstract class GraphvizDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLabel
   protected resizeMountImpl ({ svg, zoom }: Mount, ctx: Context, flags: MountFlags, { width, height }: Size): undefined {
     svg.style.height = `${height}px`
     svg.style.width = `${width}px`
+    zoom.resize()
     return undefined
   }
 
