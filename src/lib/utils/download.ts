@@ -5,6 +5,8 @@
  * @param extension Extension of filename to download. Will only be used if filename is omitted.
  */
 export default function download (blob: Blob, filename?: string, extension?: string): void {
+  // TODO: This function is untested
+
   // create a link to the object
   const href = URL.createObjectURL(blob)
   const download = filename ?? (typeof extension === 'string' ? `export.${extension}` : 'export')
