@@ -29,6 +29,8 @@ export default function newInspectorState (pathbuilder: Pathbuilder, filename: s
     tree,
     diagnostics,
 
+    hideEqualParentPaths: false,
+
     namespaceVersion: 0, // this number is updated every time the namespaceMap is updated
     ns: newNamespaceMap(tree),
 

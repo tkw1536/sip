@@ -1,6 +1,6 @@
 import { Component, type ComponentChild, Fragment } from 'preact'
 import { type NamespaceMap } from '../../../lib/namespace'
-import { type Bundle, type Field } from '../../../lib/pathbuilder/pathtree'
+import { Field, type Bundle } from '../../../lib/pathbuilder/pathtree'
 import * as styles from './hierarchy.module.css'
 import { classes } from '../../../lib/utils/classes'
 import { type ColorPreset, colorPresets } from '../../state/state/preset'
@@ -11,6 +11,7 @@ import { applyColorPreset, loadColorMap, setColor } from '../../state/reducers/i
 import DropArea from '../../../lib/components/drop-area'
 import download from '../../../lib/utils/download'
 import { Type } from '../../../lib/utils/media'
+import { setHideEqualParentPaths } from '../../state/reducers/inspector/tree'
 
 export default class HierarchyView extends Component<ReducerProps> {
   private readonly handleSelectAll = (evt: Event): void => {
@@ -48,13 +49,24 @@ export default class HierarchyView extends Component<ReducerProps> {
     this.props.apply(loadColorMap(file))
   }
 
+  private readonly handleHideEqualParentPaths = (event: Event & { currentTarget: HTMLInputElement }): void => {
+    event.preventDefault()
+    this.props.apply(setHideEqualParentPaths(event.currentTarget.checked))
+  }
+
   render (): ComponentChild {
-    const { tree, cmLoadError } = this.props.state
+    const { tree, cmLoadError, hideEqualParentPaths } = this.props.state
     return (
       <>
         <p>
           This page displays the pathbuilder  as a hierarchical structure.
           It is similar to the WissKI Interface, except read-only.
+        </p>
+        <p>
+          <input id='hide-parent-paths' type='checkbox' checked={hideEqualParentPaths} onInput={this.handleHideEqualParentPaths} />
+          <label for='hide-parent-paths'>
+            Hide Paths That Are Shared With Their Parent
+          </label>
         </p>
         <p>
           The checkboxes here are used to include the paths in the graph displays.
@@ -143,7 +155,7 @@ class BundleRows extends Component<ReducerProps & { bundle: Bundle, level: numbe
 
   render (): ComponentChild {
     const { bundle, level, visible, state, apply } = this.props
-    const { ns, cm, selection, collapsed } = state
+    const { ns, cm, selection, collapsed, hideEqualParentPaths } = state
     const props: ReducerProps = { state, apply }
 
     const path = bundle.path
@@ -166,17 +178,7 @@ class BundleRows extends Component<ReducerProps & { bundle: Bundle, level: numbe
             <code>{path.id}</code>
           </td>
           <td>
-            {path.pathArray.map((p, i) => {
-              let role: Role
-              if (i === 2 * path.disambiguation - 2) {
-                role = 'disambiguation'
-              } else if (i % 2 === 0) {
-                role = 'object'
-              } else {
-                role = 'predicate'
-              }
-              return <PathElement role={role} key={`${i}-${p}`} ns={ns} uri={p} />
-            })}
+            <Path hideEqualParentPaths={hideEqualParentPaths} node={bundle} ns={ns} />
           </td>
           <td />
           <td>
@@ -202,7 +204,8 @@ class FieldRow extends Component<ReducerProps & { field: Field, level: number, v
   }
 
   render (): ComponentChild {
-    const { state: { ns, cm, selection }, field, level, visible } = this.props
+    const { state: { ns, cm, selection, hideEqualParentPaths }, field, level, visible } = this.props
+
     const path = field.path
     return (
       <tr class={!visible ? styles.hidden : ''}>
@@ -217,18 +220,7 @@ class FieldRow extends Component<ReducerProps & { field: Field, level: number, v
           <code>{path.id}</code>
         </td>
         <td>
-          {path.pathArray.map((p, i) => {
-            let role: Role
-            if (i === 2 * path.disambiguation - 2) {
-              role = 'disambiguation'
-            } else if (i % 2 === 0) {
-              role = 'object'
-            } else {
-              role = 'predicate'
-            }
-            return <PathElement role={role} key={`${i}-${p}`} ns={ns} uri={p} />
-          })}
-          {path.datatypeProperty !== '' && <PathElement role='datatype' ns={ns} uri={path.datatypeProperty} />}
+          <Path hideEqualParentPaths={hideEqualParentPaths} node={field} ns={ns} />
         </td>
         <td>
           {path.informativeFieldType}
@@ -237,6 +229,36 @@ class FieldRow extends Component<ReducerProps & { field: Field, level: number, v
           {path.cardinality > 0 ? path.cardinality : 'unlimited'}
         </td>
       </tr>
+    )
+  }
+}
+
+class Path extends Component<{ hideEqualParentPaths: boolean, node: Bundle | Field, ns: NamespaceMap }> {
+  render (): ComponentChild {
+    const { hideEqualParentPaths, node, ns } = this.props
+    const parentPathIndex = hideEqualParentPaths ? node.getOwnPathIndex() : null
+    const path = node.path
+
+    return (
+      <>
+        {parentPathIndex !== null && parentPathIndex > 0 && <span class={classes(styles.path, styles.path_skip)} />}
+        {path.pathArray.map((p, i) => {
+          if (parentPathIndex !== null && i < parentPathIndex) {
+            return null
+          }
+
+          let role: Role
+          if (i === 2 * path.disambiguation - 2) {
+            role = 'disambiguation'
+          } else if (i % 2 === 0) {
+            role = 'object'
+          } else {
+            role = 'predicate'
+          }
+          return <PathElement role={role} key={`${i}-${p}`} ns={ns} uri={p} />
+        })}
+        {node instanceof Field && path.datatypeProperty !== '' && <PathElement role='datatype' ns={ns} uri={path.datatypeProperty} />}
+      </>
     )
   }
 }

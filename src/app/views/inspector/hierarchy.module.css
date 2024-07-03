@@ -11,6 +11,12 @@ span.path {
     font-family: monospace;
 }
 
+span.path_skip::before {
+    font-family: monospace;
+    color: gray;
+    content: '…'; 
+}
+
 span.path:not(:last-child)::after {
     content: " →";
 }

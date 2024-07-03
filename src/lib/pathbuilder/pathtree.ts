@@ -26,6 +26,26 @@ export abstract class PathTreeNode {
   /** returns the path that created this PathTreeNode */
   abstract get path (): Path | null
 
+  /**
+   * Gets the first index of the Path.pathArray for which the value is different from the parent.
+   * If the current path array does not start with the parent's path array, returns null.
+   */
+  getOwnPathIndex (): number | null {
+    const path = this.path?.pathArray
+    const parentPath = this.parent?.path?.pathArray
+
+    if (
+      typeof path === 'undefined' || // own path doesn't exist
+      typeof parentPath === 'undefined' || // parent path doesn't exist
+      parentPath.length > path.length || // parent path too long
+      !parentPath.every((p, i) => path[i] === p) // parent path not identical with child path
+    ) {
+      return null
+    }
+
+    return parentPath.length
+  }
+
   /** returns the immediate children of this PathTreeNode */
   abstract children (): IterableIterator<PathTreeNode>
 

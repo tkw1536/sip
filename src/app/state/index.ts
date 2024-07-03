@@ -16,6 +16,8 @@ export interface State {
   tree: PathTree
   diagnostics: Diagnostic[]
 
+  hideEqualParentPaths: boolean
+
   namespaceVersion: number
   ns: NamespaceMap
   nsLoadError?: string

@@ -19,6 +19,8 @@ export function resetInterface (): State {
     tree: new PathTree([]),
     diagnostics: [],
 
+    hideEqualParentPaths: false,
+
     namespaceVersion: -1,
     ns: NamespaceMap.empty(),
 
