@@ -72,3 +72,52 @@ export default class ImmutableMap<K, V> implements ReadonlyMap<K, V> {
     return this.#entries.size
   }
 }
+
+/** like an ImmutableMap,  */
+export class ImmutableMapWithDefault<K, V> extends ImmutableMap<K, V> {
+  constructor (public readonly defaultValue: V, entries?: Iterable<[K, V]> | null) {
+    const values = entries !== null && typeof entries !== 'undefined' ? filterIterable(entries, ([k, v]) => v !== defaultValue) : entries
+    super(values)
+  }
+
+  delete (key: K): ImmutableMapWithDefault<K, V> {
+    if (!this.has(key)) {
+      return this
+    }
+    // create a new map and delete this key
+    const entries = new Map(this)
+    entries.delete(key)
+    return new ImmutableMapWithDefault(this.defaultValue, entries)
+  }
+
+  /** returns the value associated with the given key, or the default value. Note that object values may be mutable. */
+  get (key: K): V {
+    const value = super.get(key)
+    if (typeof value === 'undefined') return this.defaultValue
+    return value
+  }
+
+  /** set sets the key to the given value */
+  set (key: K, value: V): ImmutableMapWithDefault<K, V> {
+    if (value === this.defaultValue) {
+      return this.delete(key)
+    }
+    if (this.has(key) && this.get(key) === value) {
+      return this
+    }
+
+    const entries = new Map(this)
+    entries.set(key, value)
+    return new ImmutableMapWithDefault(this.defaultValue, entries)
+  }
+}
+
+/** filters an iterable by the given predicate */
+function * filterIterable<T> (iterable: Iterable<T>, predicate: (t: T) => boolean): IterableIterator<T> {
+  for (const value of iterable) {
+    if (!predicate(value)) {
+      continue
+    }
+    yield value
+  }
+}
