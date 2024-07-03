@@ -1,6 +1,6 @@
 import { type Reducer, type State } from '../..'
-import { type PathTreeNode, type PathTree } from '../../../../lib/pathtree'
-import NodeSelection from '../../../../lib/selection'
+import { type PathTreeNode, type PathTree } from '../../../../lib/pathbuilder/pathtree'
+import NodeSelection from '../../../../lib/pathbuilder/annotations/selection'
 
 export function newCollapsed (tree: PathTree): NodeSelection {
   return NodeSelection.none()

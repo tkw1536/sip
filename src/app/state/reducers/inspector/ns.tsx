@@ -1,6 +1,6 @@
 import { type Reducer, type State } from '../..'
 import { NamespaceMap } from '../../../../lib/namespace'
-import { type PathTree } from '../../../../lib/pathtree'
+import { type PathTree } from '../../../../lib/pathbuilder/pathtree'
 
 export function newNamespaceMap (tree: PathTree): NamespaceMap {
   return NamespaceMap.generate(tree.uris)

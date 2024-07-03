@@ -1,4 +1,4 @@
-import type ColorMap from '../../colormap'
+import type ColorMap from '../../pathbuilder/annotations/colormap'
 import { type NamespaceMap } from '../../namespace'
 
 export const defaultLayout = 'auto'

@@ -1,3 +1,5 @@
+import { filter } from './iterable'
+
 /** An immutable map, where any change creates a new map instead of modifying the existing one */
 export default class ImmutableMap<K, V> implements ReadonlyMap<K, V> {
   constructor (entries?: Iterable<[K, V]> | null) {
@@ -56,14 +58,26 @@ export default class ImmutableMap<K, V> implements ReadonlyMap<K, V> {
 
   /** Adds a new element with a specified key and value to the Map. If an element with the same key already exists, the element will be updated. */
   set (key: K, value: V): ImmutableMap<K, V> {
-    // value hasn't changed
-    if (this.has(key) && this.get(key) === value) {
-      return this
+    return this.setAll([[key, value]])
+  }
+
+  /** Adds a set of new elements with the specified keys and values */
+  setAll (values: Iterable<[K, V]>): ImmutableMap<K, V> {
+    const entries = new Map(this)
+
+    let modified = false
+    for (const [key, value] of values) {
+      // value hasn't changed
+      if (entries.has(key) && entries.get(key) === value) {
+        continue
+      }
+
+      // modify the value
+      modified = true
+      entries.set(key, value)
     }
 
-    // delete the value from the map and return a new one
-    const entries = new Map(this)
-    entries.set(key, value)
+    if (!modified) return this
     return new ImmutableMap(entries)
   }
 
@@ -76,7 +90,7 @@ export default class ImmutableMap<K, V> implements ReadonlyMap<K, V> {
 /** like an ImmutableMap,  */
 export class ImmutableMapWithDefault<K, V> extends ImmutableMap<K, V> {
   constructor (public readonly defaultValue: V, entries?: Iterable<[K, V]> | null) {
-    const values = entries !== null && typeof entries !== 'undefined' ? filterIterable(entries, ([k, v]) => v !== defaultValue) : entries
+    const values = entries !== null && typeof entries !== 'undefined' ? filter(entries, ([k, v]) => v !== defaultValue) : entries
     super(values)
   }
 
@@ -97,27 +111,38 @@ export class ImmutableMapWithDefault<K, V> extends ImmutableMap<K, V> {
     return value
   }
 
-  /** set sets the key to the given value */
+  /** Adds a new element with a specified key and value to the Map. If an element with the same key already exists, the element will be updated. */
   set (key: K, value: V): ImmutableMapWithDefault<K, V> {
-    if (value === this.defaultValue) {
-      return this.delete(key)
-    }
-    if (this.has(key) && this.get(key) === value) {
-      return this
-    }
-
-    const entries = new Map(this)
-    entries.set(key, value)
-    return new ImmutableMapWithDefault(this.defaultValue, entries)
+    return this.setAll([[key, value]])
   }
-}
 
-/** filters an iterable by the given predicate */
-function * filterIterable<T> (iterable: Iterable<T>, predicate: (t: T) => boolean): IterableIterator<T> {
-  for (const value of iterable) {
-    if (!predicate(value)) {
-      continue
+  setAll (values: Iterable<[K, V]>): ImmutableMapWithDefault<K, V> {
+    const entries = new Map(this)
+
+    let modified = false
+    for (const [key, value] of values) {
+      if (value === this.defaultValue) {
+        // nothing changed
+        if (!entries.has(key)) {
+          continue
+        }
+
+        modified = true
+        entries.delete(key)
+        continue
+      }
+
+      // value hasn't changed
+      if (entries.has(key) && entries.get(key) === value) {
+        continue
+      }
+
+      // modify the value
+      modified = true
+      entries.set(key, value)
     }
-    yield value
+
+    if (!modified) return this
+    return new ImmutableMapWithDefault(this.defaultValue, entries)
   }
 }

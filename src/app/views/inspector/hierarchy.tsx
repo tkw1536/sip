@@ -1,6 +1,6 @@
 import { Component, type ComponentChild, Fragment } from 'preact'
 import { type NamespaceMap } from '../../../lib/namespace'
-import { type Bundle, type Field } from '../../../lib/pathtree'
+import { type Bundle, type Field } from '../../../lib/pathbuilder/pathtree'
 import * as styles from './hierarchy.module.css'
 import { classes } from '../../../lib/utils/classes'
 import { type ColorPreset, colorPresets } from '../../state/state/preset'

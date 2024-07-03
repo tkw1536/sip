@@ -1,6 +1,6 @@
 import { type Reducer, type State } from '../..'
-import ColorMap from '../../../../lib/colormap'
-import { type PathTreeNode } from '../../../../lib/pathtree'
+import ColorMap from '../../../../lib/pathbuilder/annotations/colormap'
+import { type PathTreeNode } from '../../../../lib/pathbuilder/pathtree'
 import { applyColorPreset as newColor, type ColorPreset } from '../../state/preset'
 
 export { applyColorPreset as newColor } from '../../state/preset'

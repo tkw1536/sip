@@ -1,7 +1,7 @@
 import { type Reducer, type State } from '../..'
 import { models } from '../../../../lib/drivers/collection'
 import { defaultLayout } from '../../../../lib/drivers/impl'
-import { type PathTree } from '../../../../lib/pathtree'
+import { type PathTree } from '../../../../lib/pathbuilder/pathtree'
 import Deduplication from '../../state/deduplication'
 
 export function newModelDriver (tree: PathTree): string {

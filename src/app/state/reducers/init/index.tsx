@@ -1,9 +1,9 @@
 import { type Reducer, type State } from '../..'
-import ColorMap from '../../../../lib/colormap'
+import ColorMap from '../../../../lib/pathbuilder/annotations/colormap'
 import { NamespaceMap } from '../../../../lib/namespace'
-import { Pathbuilder } from '../../../../lib/pathbuilder'
-import { PathTree } from '../../../../lib/pathtree'
-import NodeSelection from '../../../../lib/selection'
+import { Pathbuilder } from '../../../../lib/pathbuilder/pathbuilder'
+import { PathTree } from '../../../../lib/pathbuilder/pathtree'
+import NodeSelection from '../../../../lib/pathbuilder/annotations/selection'
 import Deduplication from '../../state/deduplication'
 import newInspectorState from '../inspector'
 

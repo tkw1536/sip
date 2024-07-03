@@ -9,7 +9,7 @@ import { classes } from '../../../../lib/utils/classes'
 import { Operation } from '../../../../lib/utils/operation'
 import type Driver from '../../../../lib/drivers/impl'
 import { type NamespaceMap } from '../../../../lib/namespace'
-import type ColorMap from '../../../../lib/colormap'
+import type ColorMap from '../../../../lib/pathbuilder/annotations/colormap'
 
 interface GraphProps<NodeLabel, EdgeLabel> {
   loader: DriverLoader<NodeLabel, EdgeLabel>

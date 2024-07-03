@@ -1,7 +1,7 @@
 import GraphBuilder from '.'
 import Deduplication from '../../../app/state/state/deduplication'
 import type Graph from '..'
-import { Bundle, Field, type PathTreeNode, type PathTree } from '../../pathtree'
+import { Bundle, Field, type PathTreeNode, type PathTree } from '../../pathbuilder/pathtree'
 import ArrayTracker from '../../utils/array-tracker'
 import { type NamespaceMap } from '../../namespace'
 

@@ -1,5 +1,5 @@
 import Color from 'color'
-import { Bundle, Field, PathTreeNode } from './pathtree'
+import { Bundle, Field, PathTreeNode } from '../pathtree'
 
 export interface ColorMapExport {
   type: 'colormap'

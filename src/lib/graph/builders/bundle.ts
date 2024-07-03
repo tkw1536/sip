@@ -1,6 +1,6 @@
 import GraphBuilder from '.'
-import { type Bundle, type Field, type PathTree } from '../../pathtree'
-import type NodeSelection from '../../selection'
+import { type Bundle, type Field, type PathTree } from '../../pathbuilder/pathtree'
+import type NodeSelection from '../../pathbuilder/annotations/selection'
 
 export type BundleNode = {
   type: 'bundle'

@@ -1,8 +1,8 @@
-import type ColorMap from '../../lib/colormap'
+import type ColorMap from '../../lib/pathbuilder/annotations/colormap'
 import { type NamespaceMap } from '../../lib/namespace'
-import { type Pathbuilder } from '../../lib/pathbuilder'
-import { type Diagnostic, type PathTree } from '../../lib/pathtree'
-import type NodeSelection from '../../lib/selection'
+import { type Pathbuilder } from '../../lib/pathbuilder/pathbuilder'
+import { type Diagnostic, type PathTree } from '../../lib/pathbuilder/pathtree'
+import type NodeSelection from '../../lib/pathbuilder/annotations/selection'
 import type Deduplication from './state/deduplication'
 
 export interface State {
