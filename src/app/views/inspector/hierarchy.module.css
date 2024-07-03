@@ -11,10 +11,21 @@ span.path {
     font-family: monospace;
 }
 
+span.display_path {
+    font-family: monospace;
+}
+
+span.path_class {
+    color: black;
+}
+
+span.path_shared, span.path_skip {
+    color: gray;
+}
+
 span.path_skip::before {
     font-family: monospace;
-    color: gray;
-    content: '…'; 
+    content: '…';
 }
 
 span.path:not(:last-child)::after {

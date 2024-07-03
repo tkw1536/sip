@@ -63,9 +63,14 @@ export default class HierarchyView extends Component<ReducerProps> {
           It is similar to the WissKI Interface, except read-only.
         </p>
         <p>
+          Class URIs are shown in <span class={classes(styles.display_path, styles.path_class)}>black</span>. <br />
+          Predicate URIs are also shown in <span class={classes(styles.display_path, styles.path_predicate)}>black</span>. <br />
+          Disambiguation URIs are shown in <span class={classes(styles.display_path, styles.path_disambiguation)}>red</span>. <br />
+          Datatype Property URIs are shown in <span class={classes(styles.display_path, styles.path_datatype)}>blue</span>. <br />
           <input id='hide-parent-paths' type='checkbox' checked={hideEqualParentPaths} onInput={this.handleHideEqualParentPaths} />
           <label for='hide-parent-paths'>
-            Hide Paths That Are Shared With Their Parent
+            Path URIs shared with their parents are shown in <span class={classes(styles.display_path, styles.path_shared)}>gray</span>.
+            Check to collapse them into a single ellipses.
           </label>
         </p>
         <p>
@@ -236,14 +241,14 @@ class FieldRow extends Component<ReducerProps & { field: Field, level: number, v
 class Path extends Component<{ hideEqualParentPaths: boolean, node: Bundle | Field, ns: NamespaceMap }> {
   render (): ComponentChild {
     const { hideEqualParentPaths, node, ns } = this.props
-    const parentPathIndex = hideEqualParentPaths ? node.getOwnPathIndex() : null
+    const parentPathIndex = node.getOwnPathIndex()
     const path = node.path
 
     return (
       <>
-        {parentPathIndex !== null && parentPathIndex > 0 && <span class={classes(styles.path, styles.path_skip)} />}
+        {hideEqualParentPaths && parentPathIndex !== null && parentPathIndex > 0 && <span class={classes(styles.path, styles.path_skip)} />}
         {path.pathArray.map((p, i) => {
-          if (parentPathIndex !== null && i < parentPathIndex) {
+          if (hideEqualParentPaths && parentPathIndex !== null && i < parentPathIndex) {
             return null
           }
 
@@ -251,11 +256,11 @@ class Path extends Component<{ hideEqualParentPaths: boolean, node: Bundle | Fie
           if (i === 2 * path.disambiguation - 2) {
             role = 'disambiguation'
           } else if (i % 2 === 0) {
-            role = 'object'
+            role = 'class'
           } else {
             role = 'predicate'
           }
-          return <PathElement role={role} key={`${i}-${p}`} ns={ns} uri={p} />
+          return <PathElement role={role} sharedWithParent={parentPathIndex !== null && i < parentPathIndex} key={`${i}-${p}`} ns={ns} uri={p} />
         })}
         {node instanceof Field && path.datatypeProperty !== '' && <PathElement role='datatype' ns={ns} uri={path.datatypeProperty} />}
       </>
@@ -263,11 +268,11 @@ class Path extends Component<{ hideEqualParentPaths: boolean, node: Bundle | Fie
   }
 }
 
-type Role = 'datatype' | 'disambiguation' | 'object' | 'predicate'
+type Role = 'datatype' | 'disambiguation' | 'class' | 'predicate'
 
-class PathElement extends Component<{ uri: string, role: Role, ns: NamespaceMap }> {
+class PathElement extends Component<{ uri: string, sharedWithParent?: boolean, role: Role, ns: NamespaceMap }> {
   render (): ComponentChild {
-    const { uri, ns, role } = this.props
-    return <><span class={classes(styles.path, styles[`path_${role}`])}>{ns.apply(uri)}</span></>
+    const { uri, ns, role, sharedWithParent } = this.props
+    return <><span class={classes(styles.path, styles[`path_${role}`], (sharedWithParent ?? false) && styles.path_shared)}>{ns.apply(uri)}</span></>
   }
 }
