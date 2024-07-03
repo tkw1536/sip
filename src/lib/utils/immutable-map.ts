@@ -33,16 +33,22 @@ export default class ImmutableMap<K, V> implements ReadonlyMap<K, V> {
     this.#entries.forEach(callbackfn)
   }
 
-  /** returns a new ImmutableMap with the value of K deleted */
+  /** delete the specified key from the map */
   delete (key: K): ImmutableMap<K, V> {
-    // if we don't have the key, return this map
-    if (!this.has(key)) {
-      return this
+    return this.deleteAll([key])
+  }
+
+  /** deletes the specified keys from this map */
+  deleteAll (keys: Iterable<K>): ImmutableMap<K, V> {
+    const entries = new Map(this)
+
+    let modified = false
+    for (const key of keys) {
+      if (!entries.delete(key)) continue
+      modified = true
     }
 
-    // create a new map and delete this key
-    const entries = new Map(this)
-    entries.delete(key)
+    if (!modified) return this
     return new ImmutableMap(entries)
   }
 
@@ -95,12 +101,20 @@ export class ImmutableMapWithDefault<K, V> extends ImmutableMap<K, V> {
   }
 
   delete (key: K): ImmutableMapWithDefault<K, V> {
-    if (!this.has(key)) {
-      return this
-    }
-    // create a new map and delete this key
+    return this.deleteAll([key])
+  }
+
+  /** deletes the specified keys from this map */
+  deleteAll (keys: Iterable<K>): ImmutableMapWithDefault<K, V> {
     const entries = new Map(this)
-    entries.delete(key)
+
+    let modified = false
+    for (const key of keys) {
+      if (!entries.delete(key)) continue
+      modified = true
+    }
+
+    if (!modified) return this
     return new ImmutableMapWithDefault(this.defaultValue, entries)
   }
 

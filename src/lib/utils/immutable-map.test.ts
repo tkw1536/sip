@@ -23,32 +23,40 @@ describe(ImmutableMap, () => {
     expect(Array.from(mp.values())).toEqual(['a', 'b', 'c'])
   })
 
-  test('set() creates a new map with appropriate entries', () => {
-    const mp = new ImmutableMap([[1, 'a'], [2, 'b'], [3, 'c']])
+  test('set() and setAll() create a new map with appropriate entries', () => {
+    const original = new ImmutableMap([[1, 'a'], [2, 'b'], [3, 'c']])
 
-    const unchanged = mp.set(1, 'a')
+    const unchanged = original.set(1, 'a')
     expect(Array.from(unchanged.entries())).toEqual([[1, 'a'], [2, 'b'], [3, 'c']])
-    expect(Array.from(mp.entries())).toEqual([[1, 'a'], [2, 'b'], [3, 'c']])
+    expect(Array.from(original.entries())).toEqual([[1, 'a'], [2, 'b'], [3, 'c']])
 
-    const add4 = mp.set(4, 'd')
+    const add4 = original.set(4, 'd')
     expect(Array.from(add4.entries())).toEqual([[1, 'a'], [2, 'b'], [3, 'c'], [4, 'd']])
-    expect(Array.from(mp.entries())).toEqual([[1, 'a'], [2, 'b'], [3, 'c']])
+    expect(Array.from(original.entries())).toEqual([[1, 'a'], [2, 'b'], [3, 'c']])
 
-    const replace3 = mp.set(2, 'B')
+    const replace3 = original.set(2, 'B')
     expect(Array.from(replace3.entries())).toEqual([[1, 'a'], [2, 'B'], [3, 'c']])
-    expect(Array.from(mp.entries())).toEqual([[1, 'a'], [2, 'b'], [3, 'c']])
+    expect(Array.from(original.entries())).toEqual([[1, 'a'], [2, 'b'], [3, 'c']])
+
+    const replaceMore = original.setAll([[1, 'A'], [2, 'B'], [3, 'C'], [4, 'D']])
+    expect(Array.from(replaceMore.entries())).toEqual([[1, 'A'], [2, 'B'], [3, 'C'], [4, 'D']])
+    expect(Array.from(original.entries())).toEqual([[1, 'a'], [2, 'b'], [3, 'c']])
   })
 
-  test('delete() deletes entries and creates an independent map', () => {
-    const mp = new ImmutableMap([[1, 'a'], [2, 'b'], [3, 'c']])
+  test('delete() and deleteAll() delete entries and creates an independent map', () => {
+    const original = new ImmutableMap([[1, 'a'], [2, 'b'], [3, 'c']])
 
-    const deleteNonExisting = mp.delete(4)
+    const deleteNonExisting = original.delete(4)
     expect(Array.from(deleteNonExisting.entries())).toEqual([[1, 'a'], [2, 'b'], [3, 'c']])
-    expect(Array.from(mp.entries())).toEqual([[1, 'a'], [2, 'b'], [3, 'c']])
+    expect(Array.from(original.entries())).toEqual([[1, 'a'], [2, 'b'], [3, 'c']])
 
-    const deleteExisting = mp.delete(3)
+    const deleteExisting = original.delete(3)
     expect(Array.from(deleteExisting.entries())).toEqual([[1, 'a'], [2, 'b']])
-    expect(Array.from(mp.entries())).toEqual([[1, 'a'], [2, 'b'], [3, 'c']])
+    expect(Array.from(original.entries())).toEqual([[1, 'a'], [2, 'b'], [3, 'c']])
+
+    const deleteMany = original.deleteAll([2, 3, 4])
+    expect(Array.from(deleteMany.entries())).toEqual([[1, 'a']])
+    expect(Array.from(original.entries())).toEqual([[1, 'a'], [2, 'b'], [3, 'c']])
   })
 })
 
@@ -74,35 +82,47 @@ describe(ImmutableMapWithDefault, () => {
     expect(Array.from(mp.values())).toEqual(['b', 'c'])
   })
 
-  test('set() creates a new map with appropriate entries', () => {
-    const mp = new ImmutableMap([[1, 'a'], [2, 'b'], [3, 'c']])
+  test('set() and setAll() creates a new map with appropriate entries', () => {
+    const original = new ImmutableMapWithDefault('d', [[1, 'a'], [2, 'b'], [3, 'c']])
 
-    const unchanged = mp.set(1, 'a')
+    const unchanged = original.set(1, 'a')
     expect(Array.from(unchanged.entries())).toEqual([[1, 'a'], [2, 'b'], [3, 'c']])
-    expect(Array.from(mp.entries())).toEqual([[1, 'a'], [2, 'b'], [3, 'c']])
+    expect(Array.from(original.entries())).toEqual([[1, 'a'], [2, 'b'], [3, 'c']])
 
-    const add4 = mp.set(4, 'd')
-    expect(Array.from(add4.entries())).toEqual([[1, 'a'], [2, 'b'], [3, 'c'], [4, 'd']])
-    expect(Array.from(mp.entries())).toEqual([[1, 'a'], [2, 'b'], [3, 'c']])
+    const add4 = original.set(4, 'D')
+    expect(Array.from(add4.entries())).toEqual([[1, 'a'], [2, 'b'], [3, 'c'], [4, 'D']])
+    expect(Array.from(original.entries())).toEqual([[1, 'a'], [2, 'b'], [3, 'c']])
 
-    const replace3 = mp.set(2, 'B')
+    const add5 = original.set(4, 'd')
+    expect(Array.from(add5.entries())).toEqual([[1, 'a'], [2, 'b'], [3, 'c']])
+    expect(Array.from(original.entries())).toEqual([[1, 'a'], [2, 'b'], [3, 'c']])
+
+    const replace3 = original.set(2, 'B')
     expect(Array.from(replace3.entries())).toEqual([[1, 'a'], [2, 'B'], [3, 'c']])
-    expect(Array.from(mp.entries())).toEqual([[1, 'a'], [2, 'b'], [3, 'c']])
+    expect(Array.from(original.entries())).toEqual([[1, 'a'], [2, 'b'], [3, 'c']])
+
+    const replaceMore = original.setAll([[1, 'A'], [2, 'B'], [3, 'C'], [4, 'D']])
+    expect(Array.from(replaceMore.entries())).toEqual([[1, 'A'], [2, 'B'], [3, 'C'], [4, 'D']])
+    expect(Array.from(original.entries())).toEqual([[1, 'a'], [2, 'b'], [3, 'c']])
   })
 
-  test('delete() deletes entries and creates an independent map', () => {
-    const mp = new ImmutableMapWithDefault('a', [[1, 'a'], [2, 'b'], [3, 'c']])
+  test('delete() and deleteAll() delete entries and creates an independent map', () => {
+    const original = new ImmutableMapWithDefault('a', [[1, 'a'], [2, 'b'], [3, 'c']])
 
-    const deleteNonExisting = mp.delete(4)
+    const deleteNonExisting = original.delete(4)
     expect(Array.from(deleteNonExisting.entries())).toEqual([[2, 'b'], [3, 'c']])
-    expect(Array.from(mp.entries())).toEqual([[2, 'b'], [3, 'c']])
+    expect(Array.from(original.entries())).toEqual([[2, 'b'], [3, 'c']])
 
-    const deleteExistingNonDefault = mp.delete(3)
+    const deleteExistingNonDefault = original.delete(3)
     expect(Array.from(deleteExistingNonDefault.entries())).toEqual([[2, 'b']])
-    expect(Array.from(mp.entries())).toEqual([[2, 'b'], [3, 'c']])
+    expect(Array.from(original.entries())).toEqual([[2, 'b'], [3, 'c']])
 
-    const deleteExistingDefault = mp.delete(1)
+    const deleteExistingDefault = original.delete(1)
     expect(Array.from(deleteExistingDefault.entries())).toEqual([[2, 'b'], [3, 'c']])
-    expect(Array.from(mp.entries())).toEqual([[2, 'b'], [3, 'c']])
+    expect(Array.from(original.entries())).toEqual([[2, 'b'], [3, 'c']])
+
+    const deleteMany = original.deleteAll([2, 3, 4])
+    expect(Array.from(deleteMany.entries())).toEqual([])
+    expect(Array.from(original.entries())).toEqual([[2, 'b'], [3, 'c']])
   })
 })
