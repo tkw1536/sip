@@ -41,6 +41,10 @@ describe(ImmutableMap, () => {
     const replaceMore = original.setAll([[1, 'A'], [2, 'B'], [3, 'C'], [4, 'D']])
     expect(Array.from(replaceMore.entries())).toEqual([[1, 'A'], [2, 'B'], [3, 'C'], [4, 'D']])
     expect(Array.from(original.entries())).toEqual([[1, 'a'], [2, 'b'], [3, 'c']])
+
+    const laterWins = original.setAll([[1, 'A'], [2, 'B'], [3, 'C'], [4, 'D'], [1, 'aa']])
+    expect(Array.from(laterWins.entries())).toEqual([[1, 'aa'], [2, 'B'], [3, 'C'], [4, 'D']])
+    expect(Array.from(original.entries())).toEqual([[1, 'a'], [2, 'b'], [3, 'c']])
   })
 
   test('delete() and deleteAll() delete entries and creates an independent map', () => {
@@ -103,6 +107,10 @@ describe(ImmutableMapWithDefault, () => {
 
     const replaceMore = original.setAll([[1, 'A'], [2, 'B'], [3, 'C'], [4, 'D']])
     expect(Array.from(replaceMore.entries())).toEqual([[1, 'A'], [2, 'B'], [3, 'C'], [4, 'D']])
+    expect(Array.from(original.entries())).toEqual([[1, 'a'], [2, 'b'], [3, 'c']])
+
+    const laterWins = original.setAll([[1, 'A'], [2, 'B'], [3, 'C'], [4, 'D'], [1, 'aa']])
+    expect(Array.from(laterWins.entries())).toEqual([[1, 'aa'], [2, 'B'], [3, 'C'], [4, 'D']])
     expect(Array.from(original.entries())).toEqual([[1, 'a'], [2, 'b'], [3, 'c']])
   })
 

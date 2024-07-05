@@ -1,11 +1,14 @@
+import { sameValueZero } from './same-value-zero'
+
 /**
- * Tracks arrays to check if they have been seen before
+ * Keeps track if specific arrays have been seen before.
+ * @param equality Equality check. Defaults to {@link sameValueZero}.
  */
 export default class ArrayTracker<T> {
   /** equality compares individual elements */
   readonly #equality: (l: T, r: T) => boolean
   constructor (equality?: (left: T, right: T) => boolean) {
-    this.#equality = equality ?? ((l, r) => l === r)
+    this.#equality = equality ?? sameValueZero
   }
 
   /** seen is the set of seen arrays */
