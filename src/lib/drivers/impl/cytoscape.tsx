@@ -5,7 +5,7 @@ import dagre from 'cytoscape-dagre'
 import fcose from 'cytoscape-fcose'
 import avsdf from 'cytoscape-avsdf'
 
-import { type ContextFlags, defaultLayout, DriverImpl, type MountFlags, type Size } from '.'
+import { type ContextFlags, defaultLayout, DriverImpl, ErrorUnsupported, type MountFlags, type Size } from '.'
 import { type BundleEdge, type BundleNode } from '../../graph/builders/bundle'
 import { type ModelEdge, type ModelNode, modelNodeLabel } from '../../graph/builders/model'
 cytoscape.use(cola)
@@ -132,8 +132,8 @@ abstract class CytoscapeDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLabe
   }
 
   readonly supportedExportFormats = []
-  protected async objectToBlobImpl (c: Cytoscape, elements: Elements, flags: MountFlags, format: string): Promise<Blob> {
-    throw new Error('never reached')
+  protected async exportImpl (elements: Elements, flags: ContextFlags, format: string, mount?: { mount: Cytoscape, flags: MountFlags }): Promise<Blob> {
+    throw ErrorUnsupported
   }
 }
 

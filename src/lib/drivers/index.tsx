@@ -2,7 +2,6 @@ import { Component, type ComponentChild, createRef, type Ref } from 'preact'
 import type Graph from '../graph'
 import { type NamespaceMap } from '../namespace'
 import * as styles from './index.module.css'
-import { IDPool } from '../utils/id-pool'
 import { Operation } from '../utils/operation'
 import type Driver from './impl'
 import type ColorMap from '../pathbuilder/annotations/colormap'
@@ -111,28 +110,11 @@ export default class Kernel<NodeLabel, EdgeLabel> extends Component<KernelProps<
   private async loadContext (ticket: () => boolean, graph: Graph<NodeLabel, EdgeLabel>, loader: DriverLoader<NodeLabel, EdgeLabel>, name: string, ctxFlags: ContextFlags): Promise<{ ctx: _context, driver: Driver<NodeLabel, EdgeLabel> }> {
     // load the driver
     const driver = await loader.get(name)
+    const ctx = await driver.makeContext(ctxFlags, graph, ticket)
 
-    const ids = new IDPool()
-
-    // create a new context
-    let hCtx = await driver.newContext(ctxFlags)
-    if (!ticket()) throw Kernel.errorAborted
-
-    // add all nodes and edges
-    for (const [id, node] of graph.getNodes()) {
-      hCtx = (await driver.addNode(hCtx, ctxFlags, ids.for(id), node)) ?? hCtx
-      if (!ticket()) throw Kernel.errorAborted
+    return {
+      driver, ctx
     }
-    for (const [id, from, to, edge] of graph.getEdges()) {
-      hCtx = (await driver.addEdge(hCtx, ctxFlags, ids.for(id), ids.for(from), ids.for(to), edge)) ?? hCtx
-      if (!ticket()) throw Kernel.errorAborted
-    }
-
-    // finalize the context
-    const ctx = (await driver.finalizeContext(hCtx, ctxFlags)) ?? hCtx
-    if (!ticket()) throw Kernel.errorAborted
-
-    return { driver, ctx }
   }
 
   private unmountDriver (): void {
@@ -163,7 +145,7 @@ export default class Kernel<NodeLabel, EdgeLabel> extends Component<KernelProps<
       throw new Error('unsupported blob returned')
     }
 
-    return await driver.exportToBlob(this.mod.mount, this.mod.ctx, this.mod.flags, format)
+    return await driver.export(this.mod.ctx, this.mod.flags, format, { mount: this.mod.mount, flags: this.mod.flags })
   }
 
   private readonly mount = new Operation()

@@ -102,7 +102,7 @@ abstract class GraphvizDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLabel
   }
 
   readonly supportedExportFormats = ['svg', 'gv']
-  protected async objectToBlobImpl (mount: Mount, { canon, svg }: Context, flags: MountFlags, format: string): Promise<Blob> {
+  protected async exportImpl ({ canon, svg }: Context, flags: ContextFlags, format: string): Promise<Blob> {
     switch (format) {
       case 'svg':
       {

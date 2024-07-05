@@ -1,4 +1,4 @@
-import { type ContextFlags, defaultLayout, DriverImpl, type MountFlags, type Size } from '.'
+import { type ContextFlags, defaultLayout, DriverImpl, ErrorUnsupported, type MountFlags, type Size } from '.'
 import { type Data, Network, type Options } from 'vis-network'
 import { DataSet } from 'vis-data'
 import { type ModelEdge, type ModelNode, modelNodeLabel } from '../../graph/builders/model'
@@ -77,8 +77,9 @@ abstract class VisNetworkDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLab
   }
 
   readonly supportedExportFormats = ['png']
-  protected async objectToBlobImpl (network: Network, dataset: Dataset, flags: MountFlags, format: string): Promise<Blob> {
-    return await dataset.drawNetworkClone(network, 1000, 1000, Type.PNG, 1)
+  protected async exportImpl (dataset: Dataset, flags: ContextFlags, format: string, mount?: { mount: Network, flags: MountFlags }): Promise<Blob> {
+    if (typeof mount === 'undefined') throw ErrorUnsupported
+    return await dataset.drawNetworkClone(mount.mount, 1000, 1000, Type.PNG, 1)
   }
 }
 

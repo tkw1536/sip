@@ -1,4 +1,4 @@
-import { type ContextFlags, defaultLayout, DriverImpl, type MountFlags, type Size } from '.'
+import { type ContextFlags, defaultLayout, DriverImpl, ErrorUnsupported, type MountFlags, type Size } from '.'
 import Sigma from 'sigma'
 import Graph from 'graphology'
 import { type Settings } from 'sigma/dist/declarations/src/settings'
@@ -76,8 +76,8 @@ abstract class SigmaDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLabel, E
   }
 
   readonly supportedExportFormats = []
-  protected async objectToBlobImpl (sigma: SigmaMount, graph: Graph, flags: MountFlags, format: string): Promise<Blob> {
-    return await Promise.reject(new Error('never reached'))
+  protected async exportImpl (graph: Graph, flags: ContextFlags, format: string, mount?: { mount: SigmaMount, flags: MountFlags }): Promise<Blob> {
+    throw ErrorUnsupported
   }
 }
 
