@@ -1,24 +1,18 @@
 import Graph from '..'
 import ArrayTracker from '../../utils/array-tracker'
+import Once from '../../utils/once'
 
 export default abstract class GraphBuilder<NodeLabel, EdgeLabel> {
-  private done: boolean = false
   protected readonly graph = new Graph<NodeLabel, EdgeLabel>(false)
   protected readonly tracker = new ArrayTracker<string>()
+  readonly #once = new Once()
 
-  public build (): typeof this.graph {
-    // ensure that we're only called once!
-    if (this.done) {
-      return this.graph
-    }
-    this.done = true
+  public async build (): Promise<typeof this.graph> {
+    await this.#once.Do(async () => { await this.doBuild() })
 
-    this.doBuild()
-
-    // and return the graph;
     return this.graph
   }
 
   /** doBuild builds the actual graph */
-  protected abstract doBuild (): void
+  protected abstract doBuild (): Promise<void>
 }

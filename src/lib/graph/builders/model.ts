@@ -72,7 +72,7 @@ export default class ModelGraphBuilder extends GraphBuilder<ModelNode, ModelEdge
     }
   }
 
-  protected doBuild (): void {
+  protected async doBuild (): Promise<void> {
     this.specific.build()
   }
 }

@@ -30,7 +30,7 @@ async function main (): Promise<void> {
   const cm = ColorMap.generate(tree, { field: '#f6b73c', bundle: '#add8e6' })
 
   // build the actual graph
-  const graph = new ModelGraphBuilder(tree, { deduplication: Deduplication.Full }).build()
+  const graph = await new ModelGraphBuilder(tree, { deduplication: Deduplication.Full }).build()
 
   // load the driver and setup flags to use
   const driver = new GraphVizModelDriver(false)

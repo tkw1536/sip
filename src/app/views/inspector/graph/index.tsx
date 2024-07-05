@@ -92,8 +92,8 @@ export default class GraphDisplay<NodeLabel, EdgeLabel> extends Component<GraphP
   private readonly buildGraphModel = (): void => {
     const ticket = this.graphOperation.ticket()
 
-    this.makeGraphBuilder().then(loader => {
-      const graph = loader.build()
+    this.makeGraphBuilder().then(async loader => {
+      const graph = await loader.build()
       this.setState(() => {
         if (!ticket()) return null
         return { graph, graphError: undefined }

@@ -23,7 +23,7 @@ export default class BundleGraphBuilder extends GraphBuilder<BundleNode, BundleE
     super()
   }
 
-  protected doBuild (): void {
+  protected async doBuild (): Promise<void> {
     for (const bundle of this.tree.children()) {
       this.addBundle(bundle, 0)
     }
