@@ -1,5 +1,4 @@
-import { ImmutableMapWithDefault } from '../../utils/immutable-map'
-import { filter, map } from '../../utils/iterable'
+import ImmutableSet from '../../utils/immutable-set'
 import { Path, Pathbuilder } from '../pathbuilder'
 import { type PathTreeNode } from '../pathtree'
 
@@ -19,22 +18,16 @@ export interface NodeSelectionExport {
 }
 
 export default class NodeSelection {
-  #selection: ImmutableMapWithDefault<string, boolean>
-  private constructor (defaultValue: boolean, values: Iterable<string>) {
-    this.#selection = new ImmutableMapWithDefault(defaultValue, map(values, str => [str, !defaultValue]))
-  }
-
-  get #defaultValue (): boolean {
-    return this.#selection.defaultValue
+  readonly #selection: ImmutableSet<string>
+  private constructor (public readonly defaultValue: boolean, values: Iterable<string>) {
+    this.#selection = new ImmutableSet(values)
   }
 
   toJSON (): NodeSelectionExport {
-    const defaultValue = this.#defaultValue
-    const values = map(filter(this.#selection, ([k, v]) => v !== defaultValue), ([k, v]) => k)
     return {
       type: 'node-selection',
-      defaultValue,
-      values: Array.from(values)
+      defaultValue: this.defaultValue,
+      values: Array.from(this.#selection)
     }
   }
 
@@ -65,38 +58,39 @@ export default class NodeSelection {
   includes (key: Key): boolean {
     const id = toID(key)
     if (id === null) return false
-    return this.#selection.get(id)
+    return this.#selection.has(id) !== this.defaultValue
   }
 
   /** with returns a new selection with the specified key set to the specified value */
   with (pairs: Iterable<[Key, boolean]>): NodeSelection {
-    return this.#update(
-      filter(
-        map(pairs, ([k, v]) => {
-          const id = toID(k)
-          if (id === null) return null
-          return [id, v]
-        }),
-        (v): v is [string, boolean] => v !== null
-      )
-    )
-  }
+    const selection = new Set(this.#selection)
+    for (const [key, value] of pairs) {
+      const id = toID(key)
+      if (id === null) continue
 
-  #update (values: Iterable<[string, boolean]>): NodeSelection {
-    const selection = this.#selection.setAll(values)
-    if (selection === this.#selection) {
-      return this
+      if (value === this.defaultValue) {
+        selection.delete(id)
+      } else {
+        selection.add(id)
+      }
     }
-
-    const keys = map(selection.entries(), ([k, v]) => v !== this.#defaultValue ? k : null)
-    return new NodeSelection(this.#defaultValue, filter(keys, k => k !== null))
+    return new NodeSelection(this.defaultValue, selection)
   }
 
   toggle (key: Key): NodeSelection {
     const id = toID(key)
     if (id === null) return this
 
-    return this.#update([[id, !this.includes(key)]])
+    // toggle the selection from the underlying array
+    const newSelection = new Set(this.#selection)
+    if (newSelection.has(id)) {
+      newSelection.delete(id)
+    } else {
+      newSelection.add(id)
+    }
+
+    // and create a new selection with the given default
+    return new NodeSelection(this.defaultValue, newSelection)
   }
 
   /** returns a new pathbuilder consisting of the paths of the given node */
