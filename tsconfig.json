@@ -24,5 +24,7 @@
   
   "include": [
     "./src/**/*",
+    "./macros/**/*",
+    "./scripts/**/*"
   ],
 }

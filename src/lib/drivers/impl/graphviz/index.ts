@@ -1,10 +1,14 @@
-import { type ContextFlags, defaultLayout, DriverImpl, type MountFlags, type Size } from '.'
-import { type BundleEdge, type BundleNode } from '../../graph/builders/bundle'
+import { type ContextFlags, defaultLayout, DriverImpl, type MountFlags, type Size } from '..'
+import { type BundleEdge, type BundleNode } from '../../../graph/builders/bundle'
 import { type RenderOptions } from '@viz-js/viz'
-import { type ModelEdge, type ModelNode, modelNodeLabel } from '../../graph/builders/model'
-import svgPanZoom from 'svg-pan-zoom'
-import { type GraphVizResponse, type GraphVizRequest } from './graphviz-worker'
-import { Type } from '../../utils/media'
+import { type ModelEdge, type ModelNode, modelNodeLabel } from '../../../graph/builders/model'
+import { Type } from '../../../utils/media'
+import { type GraphVizRequest, type GraphVizResponse } from './impl'
+import { LazyValue } from '../../../utils/once'
+
+// lazy import svg-pan-zoom (so that we can skip loading it in server-side mode)
+import { type default as SvgPanZoom } from 'svg-pan-zoom'
+const spz = new LazyValue(async (): Promise<SvgPanZoom.Instance> => await import('svg-pan-zoom') as any)
 
 interface Context {
   graph: Graph
@@ -43,8 +47,12 @@ abstract class GraphvizDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLabel
     // build options for the driver to render
     const options = this.options(flags)
 
-    const canon = await GraphvizDriver.callWorker({ input: graph, options: { ...options, format: 'canon' } })
-    const svg = await GraphvizDriver.callWorker({ input: canon, options: { ...options, format: 'svg' } })
+    if (Object.hasOwn(globalThis, 'window')) {
+      await spz.load()
+    }
+
+    const canon = await GraphvizDriver.#callImpl({ input: graph, options: { ...options, format: 'canon' } })
+    const svg = await GraphvizDriver.#callImpl({ input: canon, options: { ...options, format: 'svg' } })
 
     return {
       graph,
@@ -54,8 +62,24 @@ abstract class GraphvizDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLabel
   }
 
   /** callWorker spawns GraphViz in a background and has it render */
-  private static async callWorker (message: GraphVizRequest): Promise<string> {
-    const worker = new Worker(new URL('graphviz-worker.tsx', import.meta.url), { type: 'module' })
+  static async #callImpl (message: GraphVizRequest): Promise<string> {
+    // check if we have a worker available
+    // and if so, call it!
+    if (Object.hasOwn(globalThis, 'Worker')) {
+      return await this.#callWorkerImpl(message)
+    }
+
+    // if not, use a lazy loading implementation
+    return await this.#callImportImpl(message)
+  }
+
+  static async #callImportImpl (message: GraphVizRequest): Promise<string> {
+    const { processRequest } = await import('./impl')
+    return await processRequest(message)
+  }
+
+  static async #callWorkerImpl (message: GraphVizRequest): Promise<string> {
+    const worker = new Worker(new URL('./worker.ts', import.meta.url), { type: 'module' })
     return await new Promise<string>((resolve, reject) => {
       worker.onmessage = (e) => {
         worker.terminate()
@@ -85,7 +109,7 @@ abstract class GraphvizDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLabel
     flags.container.appendChild(svg)
 
     // add zoom controls
-    const zoom = svgPanZoom(svg, { maxZoom: 1000, minZoom: 1 / 1000, controlIconsEnabled: true, dblClickZoomEnabled: false })
+    const zoom = spz.value(svg, { maxZoom: 1000, minZoom: 1 / 1000, controlIconsEnabled: true, dblClickZoomEnabled: false })
     return { svg, zoom }
   }
 
