@@ -8,7 +8,6 @@ import HierarchyView from './views/inspector/hierarchy'
 import BundleGraphView from './views/inspector/graph/bundle'
 import MapView from './views/inspector/map'
 import ModelGraphView from './views/inspector/graph/model'
-import GraphConfigView from './views/inspector/config'
 import Tabs, { Label, Tab } from '../lib/components/tabs'
 import DocsView from './views/docs'
 import { setActiveTab } from './state/reducers/inspector/tab'
@@ -127,9 +126,6 @@ class Inspector extends Component<ReducerProps> {
         </Tab>
         <Tab title='Namespace Map &#9881;&#65039;' disabled={!loaded} id='ns'>
           <Narrow><MapView {...props} /></Narrow>
-        </Tab>
-        <Tab title='Graph Backends &#9881;&#65039;' disabled={!loaded} id='config'>
-          <Narrow><GraphConfigView {...props} /></Narrow>
         </Tab>
         <Tab title='Docs' id='docs'>
           <Narrow><DocsView /></Narrow>

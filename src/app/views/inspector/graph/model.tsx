@@ -5,8 +5,7 @@ import { explanations, names, values } from '../../../state/state/deduplication'
 import { models } from '../../../../lib/drivers/collection'
 import type GraphBuilder from '../../../../lib/graph/builders'
 import type Driver from '../../../../lib/drivers/impl'
-import GraphDisplay from '.'
-import ValueSelector from '../../../../lib/components/selector'
+import GraphDisplay, { DriverControl, ExportControl } from '.'
 import { type ReducerProps } from '../../../state'
 import { setModelDeduplication, setModelLayout, setModelDriver } from '../../../state/reducers/inspector/model'
 import { WithID } from '../../../../lib/components/wrapper'
@@ -33,15 +32,6 @@ export default WithID<ReducerProps>(class ModelGraphView extends Component<Reduc
   }
 
   private readonly displayRef = createRef<GraphDisplay<ModelNode, ModelEdge>>()
-  private readonly handleExport = (format: string, event: Event): void => {
-    const { current: display } = this.displayRef
-    if (display === null) {
-      console.warn('handleExport called without mounted display')
-      event.preventDefault()
-      return
-    }
-    display.export(format, event)
-  }
 
   render (): ComponentChildren {
     const { modelGraphLayout, modelGraphDriver: modelGraphRenderer, pathbuilderVersion, selectionVersion, optionVersion, colorVersion, ns, cm } = this.props.state
@@ -61,34 +51,17 @@ export default WithID<ReducerProps>(class ModelGraphView extends Component<Reduc
   }
 
   private readonly renderPanel = (driver: Driver<ModelNode, ModelEdge> | null): ComponentChildren => {
-    const { state: { modelDeduplication: deduplication, modelGraphLayout: layout }, id } = this.props
-
-    const modelGraphName = driver?.driverName
-    const supportedLayouts = driver?.supportedLayouts
-    const exportFormats = driver?.supportedExportFormats
+    const { state: { modelDeduplication: deduplication, modelGraphLayout }, id } = this.props
 
     return (
       <>
-        <fieldset>
-          <legend>Renderer</legend>
-
-          <p>
-            The model graph can be shown using different renderers.
-            Each renderer supports different layouts.
-          </p>
-          <p>
-            Changing either value will re-render the graph.
-          </p>
-
-          <p>
-            Renderer: &nbsp;
-            <ValueSelector values={models.names} value={modelGraphName} onInput={this.handleChangeModelRenderer} />
-            &nbsp;
-
-            Layout: &nbsp;
-            <ValueSelector disabled={driver === null} value={layout} values={supportedLayouts} onInput={this.handleChangeModelLayout} />
-          </p>
-        </fieldset>
+        <DriverControl
+          driverNames={models.names}
+          driver={driver}
+          currentLayout={modelGraphLayout}
+          onChangeDriver={this.handleChangeModelRenderer}
+          onChangeLayout={this.handleChangeModelLayout}
+        />
         <fieldset>
           <legend>Deduplication</legend>
 
@@ -113,23 +86,7 @@ export default WithID<ReducerProps>(class ModelGraphView extends Component<Reduc
           }
           </div>
         </fieldset>
-
-        {(exportFormats != null) && exportFormats.length > 0 &&
-          <fieldset>
-            <legend>Graph Export</legend>
-
-            <p>
-              Click the button below to export the graph.
-              Depending on the format and graph size, this might take a few seconds to generate.
-            </p>
-            <p>
-              {exportFormats.map(format =>
-                <Fragment key={format}>
-                  <button onClick={this.handleExport.bind(this, format)}>{format}</button>
-                  &nbsp;
-                </Fragment>)}
-            </p>
-          </fieldset>}
+        <ExportControl driver={driver} display={this.displayRef.current} />
       </>
     )
   }

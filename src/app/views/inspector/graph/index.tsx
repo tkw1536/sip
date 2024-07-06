@@ -10,6 +10,7 @@ import { Operation } from '../../../../lib/utils/operation'
 import type Driver from '../../../../lib/drivers/impl'
 import { type NamespaceMap } from '../../../../lib/namespace'
 import type ColorMap from '../../../../lib/pathbuilder/annotations/colormap'
+import ValueSelector from '../../../../lib/components/selector'
 
 interface GraphProps<NodeLabel, EdgeLabel> {
   loader: DriverLoader<NodeLabel, EdgeLabel>
@@ -167,6 +168,94 @@ export default class GraphDisplay<NodeLabel, EdgeLabel> extends Component<GraphP
         layout={layout}
         driverRef={this.driverRef}
       />
+    )
+  }
+}
+
+/**
+ * A control to pick which driver to control.
+ */
+export class DriverControl<NodeLabel, EdgeLabel> extends Component<{
+  driverNames: string[]
+  driver: Driver<NodeLabel, EdgeLabel> | null
+
+  currentLayout?: string
+
+  onChangeDriver: (driver: string) => void
+  onChangeLayout: (layout: string) => void
+}> {
+  private readonly handleChangeDriver = (driver: string): void => {
+    this.props.onChangeDriver(driver)
+  }
+
+  private readonly handleChangeLayout = (layout: string): void => {
+    this.props.onChangeLayout(layout)
+  }
+
+  render (): ComponentChildren {
+    const { driver, driverNames, currentLayout } = this.props
+
+    return (
+      <fieldset>
+        <legend>Renderer</legend>
+
+        <p>
+          This graph can be shown using different renderers.
+          Each renderer supports different layouts.
+        </p>
+        <p>
+          Changing either value will update the graph.
+        </p>
+        <p>
+          Renderer: &nbsp;
+          <ValueSelector values={driverNames} value={driver?.driverName} onInput={this.handleChangeDriver} />
+          &nbsp;
+
+          Layout: &nbsp;
+          <ValueSelector disabled={driver === null} value={currentLayout} values={driver?.supportedLayouts} onInput={this.handleChangeLayout} />
+        </p>
+      </fieldset>
+    )
+  }
+}
+
+export class ExportControl<NodeLabel, EdgeLabel> extends Component<{
+  driver: Driver<NodeLabel, EdgeLabel> | null
+  display: GraphDisplay<NodeLabel, EdgeLabel> | null
+}> {
+  private readonly handleExport = (format: string, event: Event): void => {
+    event.preventDefault()
+    const { driver, display } = this.props
+    if (driver === null || display === null) {
+      console.warn('handleExport called without mounted display')
+      return
+    }
+
+    display.export(format)
+  }
+
+  render (): ComponentChildren {
+    // check that there are some export formats
+    const exportFormats = this.props.driver?.supportedExportFormats
+    if (typeof exportFormats === 'undefined' || exportFormats.length === 0) {
+      return null
+    }
+    return (
+      <fieldset>
+        <legend>Graph Export</legend>
+
+        <p>
+          Click the button below to export the graph.
+          Depending on the format and graph size, this might take a few seconds to generate.
+        </p>
+        <p>
+          {exportFormats.map(format =>
+            <Fragment key={format}>
+              <button onClick={this.handleExport.bind(this, format)}>{format}</button>
+              &nbsp;
+            </Fragment>)}
+        </p>
+      </fieldset>
     )
   }
 }
