@@ -3,20 +3,22 @@ import ModelGraphBuilder, { type ModelEdge, type ModelNode } from '../../../../l
 import type Deduplication from '../../../state/state/deduplication'
 import { explanations, names, values } from '../../../state/state/deduplication'
 import { models } from '../../../../lib/drivers/collection'
-import type GraphBuilder from '../../../../lib/graph/builders'
 import type Driver from '../../../../lib/drivers/impl'
-import GraphDisplay, { DriverControl, ExportControl } from '.'
+import GraphDisplay, { Control, DriverControl, ExportControl } from '.'
 import { type ReducerProps } from '../../../state'
 import { setModelDeduplication, setModelLayout, setModelDriver } from '../../../state/reducers/inspector/model'
 import { WithID } from '../../../../lib/components/wrapper'
+import type Graph from '../../../../lib/graph'
 
 export default WithID<ReducerProps>(class ModelGraphView extends Component<ReducerProps & { id: string }> {
-  private readonly builder = async (): Promise<GraphBuilder<ModelNode, ModelEdge>> => {
+  private readonly builder = async (): Promise<Graph<ModelNode, ModelEdge>> => {
     const { tree, selection, modelDeduplication: deduplication } = this.props.state
-    return await Promise.resolve(new ModelGraphBuilder(tree, {
+
+    const builder = new ModelGraphBuilder(tree, {
       include: selection.includes.bind(selection),
       deduplication
-    }))
+    })
+    return await builder.build()
   }
 
   private readonly handleChangeMode = (evt: Event): void => {
@@ -42,7 +44,7 @@ export default WithID<ReducerProps>(class ModelGraphView extends Component<Reduc
         loader={models}
         driver={modelGraphRenderer}
         builderKey={`${pathbuilderVersion}-${selectionVersion}-${optionVersion}-${colorVersion}`}
-        builder={this.builder}
+        makeGraph={this.builder}
         ns={ns} cm={cm}
         layout={modelGraphLayout}
         panel={this.renderPanel}
@@ -62,9 +64,7 @@ export default WithID<ReducerProps>(class ModelGraphView extends Component<Reduc
           onChangeDriver={this.handleChangeModelRenderer}
           onChangeLayout={this.handleChangeModelLayout}
         />
-        <fieldset>
-          <legend>Deduplication</legend>
-
+        <Control name='Deduplication'>
           <p>
             Classes may occur in the pathbuilder more than once.
             Usually, each class would be shown as many times as each occurs.
@@ -85,7 +85,7 @@ export default WithID<ReducerProps>(class ModelGraphView extends Component<Reduc
               </p>)
           }
           </div>
-        </fieldset>
+        </Control>
         <ExportControl driver={driver} display={this.displayRef.current} />
       </>
     )

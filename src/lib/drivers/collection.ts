@@ -1,5 +1,6 @@
 import { type BundleEdge, type BundleNode } from '../graph/builders/bundle'
 import { type ModelEdge, type ModelNode } from '../graph/builders/model'
+import { type RDFEdge, type RDFNode } from '../graph/builders/rdf'
 import { Lazy } from '../utils/once'
 import type Driver from './impl'
 
@@ -20,7 +21,7 @@ class DriverCollection<NodeLabel, EdgeLabel> {
   public async get (name: string): Promise<Driver<NodeLabel, EdgeLabel>> {
     const lazy = this.values.get(name)
     if (typeof lazy === 'undefined') {
-      throw new Error('unknown renderer')
+      throw new Error('unknown renderer ' + JSON.stringify(name))
     }
 
     const renderer = await lazy.Get(async (): Promise<Driver<NodeLabel, EdgeLabel>> => {
@@ -85,5 +86,13 @@ export const bundles = new DriverCollection<BundleNode, BundleEdge>(
   [
     'Cytoscape',
     async () => await import('./impl/cytoscape').then(m => new m.CytoBundleDriver())
+  ]
+)
+
+export const triples = new DriverCollection<RDFNode, RDFEdge>(
+  'GraphViz',
+  [
+    'GraphViz',
+    async () => await import('./impl/graphviz').then(m => new m.GraphVizRDFDriver())
   ]
 )

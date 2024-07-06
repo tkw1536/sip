@@ -15,6 +15,7 @@ import PathbuilderView from './views/pathbuilder'
 import AboutView from './views/about'
 import { Narrow, Wide } from './containers'
 import DebugView from './views/debug'
+import RDFGraphView from './views/inspector/graph/rdf'
 
 class Wrapper extends Component {
   render (): ComponentChild {
@@ -124,6 +125,11 @@ class Inspector extends Component<ReducerProps> {
         <Tab title='Model Graph' disabled={!loaded} id='model'>
           <Wide fillParent><ModelGraphView {...props} /></Wide>
         </Tab>
+        {process.env.NODE_ENV !== 'production' && (
+          <Tab title='RDF Graph' id='rdf' disabled={!loaded}>
+            <Wide fillParent><RDFGraphView {...props} /></Wide>
+          </Tab>
+        )}
         <Tab title='Namespace Map &#9881;&#65039;' disabled={!loaded} id='ns'>
           <Narrow><MapView {...props} /></Narrow>
         </Tab>

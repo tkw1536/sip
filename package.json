@@ -22,10 +22,12 @@
     "ts-jest": "^29.1.5",
     "ts-standard": "^12.0.2",
     "typescript": "^5.5.2",
+    "url": "^0.11.0",
     "vite-node": "^1.6.0"
   },
   "dependencies": {
     "@egjs/hammerjs": "^2.0.0",
+    "@types/rdflib": "^1.2.0",
     "@types/uuid": "^10.0.0",
     "@types/xmldom": "^0.1.34",
     "@viz-js/viz": "^3.6.0",
@@ -43,6 +45,7 @@
     "keycharm": "^0.4.0",
     "preact": "^10.22.0",
     "preact-markup": "^2.1.1",
+    "rdflib": "^2.2.35",
     "sigma": "^3.0.0-beta.19",
     "stacktrace-js": "^2.0.2",
     "svg-pan-zoom": "^3.6.1",

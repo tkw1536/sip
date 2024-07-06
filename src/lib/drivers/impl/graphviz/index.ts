@@ -8,6 +8,8 @@ import { LazyValue } from '../../../utils/once'
 
 // lazy import svg-pan-zoom (so that we can skip loading it in server-side mode)
 import { type default as SvgPanZoom } from 'svg-pan-zoom'
+import { type RDFEdge, type RDFNode } from '../../../graph/builders/rdf'
+
 const spz = new LazyValue(async (): Promise<SvgPanZoom.Instance> => await import('svg-pan-zoom') as any)
 
 interface Context {
@@ -346,6 +348,69 @@ export class GraphVizModelDriver extends GraphvizDriver<ModelNode, ModelEdge> {
         label: ns.apply(edge.property),
         tooltip: edge.property
       }
+    })
+  }
+}
+
+export class GraphVizRDFDriver extends GraphvizDriver<RDFNode, RDFEdge> {
+  static readonly colors: Record<RDFNode['termType'], string> = {
+    BlankNode: 'yellow',
+    Literal: 'blue',
+    NamedNode: 'green',
+    Variable: 'red',
+    Collection: 'orange',
+    Empty: 'white'
+  }
+
+  protected addNodeImpl (graph: Graph, flags: ContextFlags, id: string, node: RDFNode): undefined {
+    const attributes: Attributes = {
+      shape: 'ellipse',
+      style: 'filled',
+      fillcolor: GraphVizRDFDriver.colors[node.termType]
+    }
+
+    switch (node.termType) {
+      case 'BlankNode': /** fallthrough */
+        attributes.label = node.id
+        attributes.tooltip = node.id
+        break
+      case 'NamedNode':
+        attributes.label = flags.ns.apply(node.uri)
+        attributes.tooltip = node.uri
+        break
+      case 'Literal':
+        attributes.shape = 'box'
+        attributes.label = node.value
+        attributes.tooltip = node.termType
+        break
+      case 'Variable':
+        attributes.label = '?' + node.value
+        attributes.tooltip = '?' + node.value
+        break
+      case 'Collection':
+        attributes.label = 'Collection'
+        attributes.tooltip = 'Collection'
+        break
+      case 'Empty':
+        attributes.label = 'Empty'
+        attributes.tooltip = 'Empty'
+        break
+      default:
+        throw new Error('never reached')
+    }
+    graph.nodes.push({
+      name: id,
+      attributes
+    })
+  }
+
+  protected addEdgeImpl (graph: Graph, { ns }: ContextFlags, id: string, from: string, to: string, edge: RDFEdge): undefined {
+    const attributes = (edge.termType === 'NamedNode') ? { label: ns.apply(edge.uri), tooltip: edge.uri } : { label: '?' + edge.value, tooltip: '?' + edge.value }
+
+    graph.edges.push({
+      head: to,
+      tail: from,
+      attributes
     })
   }
 }

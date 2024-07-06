@@ -2,7 +2,6 @@ import { Component, createRef, type ComponentChild, Fragment, type ComponentChil
 import download from '../../../../lib/utils/download'
 import Kernel, { type DriverLoader } from '../../../../lib/drivers'
 import type Graph from '../../../../lib/graph'
-import type GraphBuilder from '../../../../lib/graph/builders'
 
 import * as styles from './index.module.css'
 import { classes } from '../../../../lib/utils/classes'
@@ -11,13 +10,14 @@ import type Driver from '../../../../lib/drivers/impl'
 import { type NamespaceMap } from '../../../../lib/namespace'
 import type ColorMap from '../../../../lib/pathbuilder/annotations/colormap'
 import ValueSelector from '../../../../lib/components/selector'
+import ErrorDisplay from '../../../../lib/components/error'
 
 interface GraphProps<NodeLabel, EdgeLabel> {
   loader: DriverLoader<NodeLabel, EdgeLabel>
   driver: string
 
   builderKey: string
-  builder: () => Promise<GraphBuilder<NodeLabel, EdgeLabel>>
+  makeGraph: () => Promise<Graph<NodeLabel, EdgeLabel>>
 
   ns: NamespaceMap
   cm: ColorMap
@@ -30,7 +30,7 @@ interface GraphState<NodeLabel, EdgeLabel> {
   open: boolean
 
   graph?: Graph<NodeLabel, EdgeLabel>
-  graphError?: string
+  graphError?: any
 
   driver: Driver<NodeLabel, EdgeLabel> | null
 }
@@ -44,10 +44,6 @@ export default class GraphDisplay<NodeLabel, EdgeLabel> extends Component<GraphP
 
   protected newGraphBuilder (previousProps: typeof this.props): boolean {
     return this.props.builderKey !== previousProps.builderKey
-  }
-
-  protected async makeGraphBuilder (): Promise<GraphBuilder<NodeLabel, EdgeLabel>> {
-    return await this.props.builder()
   }
 
   protected renderPanel (): ComponentChildren {
@@ -81,7 +77,7 @@ export default class GraphDisplay<NodeLabel, EdgeLabel> extends Component<GraphP
   private readonly kernelRef = createRef<Kernel<NodeLabel, EdgeLabel>>()
 
   componentDidMount (): void {
-    this.buildGraphModel()
+    void this.buildGraphModel()
   }
 
   componentWillUnmount (): void {
@@ -90,17 +86,20 @@ export default class GraphDisplay<NodeLabel, EdgeLabel> extends Component<GraphP
   }
 
   private readonly graphOperation = new Operation()
-  private readonly buildGraphModel = (): void => {
+  private readonly buildGraphModel = async (): Promise<void> => {
     const ticket = this.graphOperation.ticket()
 
-    this.makeGraphBuilder().then(async loader => {
-      const graph = await loader.build()
-      this.setState(() => {
-        if (!ticket()) return null
-        return { graph, graphError: undefined }
-      })
-    }).catch(e => {
-      this.setState({ graph: undefined, graphError: e.toString() })
+    let graph: Graph<NodeLabel, EdgeLabel>
+    try {
+      graph = await this.props.makeGraph()
+    } catch (e) {
+      this.setState({ graph: undefined, graphError: e })
+      return
+    }
+
+    this.setState(() => {
+      if (!ticket()) return null
+      return { graph, graphError: undefined }
     })
   }
 
@@ -110,7 +109,7 @@ export default class GraphDisplay<NodeLabel, EdgeLabel> extends Component<GraphP
     if (
       this.newGraphBuilder(previousProps)
     ) {
-      this.buildGraphModel()
+      void this.buildGraphModel()
     }
   }
 
@@ -145,12 +144,8 @@ export default class GraphDisplay<NodeLabel, EdgeLabel> extends Component<GraphP
   private renderMain (): ComponentChild {
     const { graph, graphError } = this.state
 
-    if (typeof graphError === 'string') {
-      return (
-        <>
-          {typeof graphError === 'string' && <p><b>Error loading graph: </b>{graphError}</p>}
-        </>
-      )
+    if (typeof graphError !== 'undefined') {
+      return <ErrorDisplay error={graphError} />
     }
 
     if ((graph == null)) {
@@ -196,9 +191,7 @@ export class DriverControl<NodeLabel, EdgeLabel> extends Component<{
     const { driver, driverNames, currentLayout } = this.props
 
     return (
-      <fieldset>
-        <legend>Renderer</legend>
-
+      <Control name='Renderer'>
         <p>
           This graph can be shown using different renderers.
           Each renderer supports different layouts.
@@ -214,7 +207,7 @@ export class DriverControl<NodeLabel, EdgeLabel> extends Component<{
           Layout: &nbsp;
           <ValueSelector disabled={driver === null} value={currentLayout} values={driver?.supportedLayouts} onInput={this.handleChangeLayout} />
         </p>
-      </fieldset>
+      </Control>
     )
   }
 }
@@ -241,9 +234,7 @@ export class ExportControl<NodeLabel, EdgeLabel> extends Component<{
       return null
     }
     return (
-      <fieldset>
-        <legend>Graph Export</legend>
-
+      <Control name='Graph Export'>
         <p>
           Click the button below to export the graph.
           Depending on the format and graph size, this might take a few seconds to generate.
@@ -255,6 +246,20 @@ export class ExportControl<NodeLabel, EdgeLabel> extends Component<{
               &nbsp;
             </Fragment>)}
         </p>
+      </Control>
+    )
+  }
+}
+
+export class Control extends Component<{
+  name: string
+  children?: ComponentChildren
+}> {
+  render (): ComponentChildren {
+    return (
+      <fieldset>
+        <legend>{this.props.name}</legend>
+        {this.props.children}
       </fieldset>
     )
   }

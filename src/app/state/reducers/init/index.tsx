@@ -40,6 +40,9 @@ export function resetInterface (): State {
     modelGraphDriver: '',
     modelGraphLayout: '',
 
+    rdfGraphDriver: '',
+    rdfGraphLayout: '',
+
     collapsed: NodeSelection.none()
   }
 }

@@ -39,6 +39,9 @@ export interface State {
   modelGraphDriver: string
   modelGraphLayout: string
 
+  rdfGraphDriver: string
+  rdfGraphLayout: string
+
   collapsed: NodeSelection
 }
 
