@@ -24,4 +24,8 @@ declare module 'cytoscape-avsdf' {
   export default ext
 }
 
+declare interface ImportMeta {
+  compileTime: <T>(file: string) => T
+}
+
 // spellchecker:words avsdf fcose dagre

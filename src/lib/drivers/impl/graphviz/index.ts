@@ -10,7 +10,7 @@ import { LazyValue } from '../../../utils/once'
 import { type default as SvgPanZoom } from 'svg-pan-zoom'
 import { type RDFEdge, type RDFNode } from '../../../graph/builders/rdf'
 
-const spz = new LazyValue(async (): Promise<SvgPanZoom.Instance> => await import('svg-pan-zoom') as any)
+const spz = new LazyValue(async () => await import('svg-pan-zoom').then(spz => spz.default))
 
 interface Context {
   graph: Graph

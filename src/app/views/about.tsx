@@ -1,7 +1,6 @@
 import { Component, type ComponentChildren } from 'preact'
-import { generateDisclaimer } from '../../../macros/disclaimer' with {type: 'macro'}
 
-const disclaimer = generateDisclaimer()
+const disclaimer = import.meta.compileTime<string>('../../../macros/disclaimer.ts')
 
 export default class AboutView extends Component {
   render (): ComponentChildren {

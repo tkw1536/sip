@@ -1,11 +1,10 @@
 import { Component, type ComponentChildren } from 'preact'
-import { markdownAsHTML } from '../../../macros/markdown' with {type: 'macro'}
 
 import * as styles from './docs.module.css'
 import { classes } from '../../lib/utils/classes'
 import Markup from 'preact-markup'
 
-const html = markdownAsHTML('docs', 'bluenote.md')
+const html = import.meta.compileTime<string>('../../../macros/docs.ts')
 
 export default class DocsView extends Component<Record<never, never>> {
   render (): ComponentChildren {
