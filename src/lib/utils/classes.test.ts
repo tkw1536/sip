@@ -2,9 +2,11 @@ import { describe, expect, test } from 'vitest'
 import { classes } from './classes'
 
 describe(classes, () => {
-  test('joins classes property', () => {
-    expect(classes('hello', 'world')).toBe('hello world')
-    expect(classes('is', '', undefined, false, 'included')).toBe('is included')
-    expect(classes([null, undefined, 1234, ''])).toBe('')
+  test.each([
+    [['hello', 'world'], 'hello world'],
+    [['is', '', undefined, false, 'included'], 'is included'],
+    [[null, undefined, 1234, ''], '']
+  ])('classes %#', (args, want) => {
+    expect(classes(...args)).toBe(want)
   })
 })
