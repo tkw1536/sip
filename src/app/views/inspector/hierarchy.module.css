@@ -15,7 +15,7 @@ span.display_path {
     font-family: monospace;
 }
 
-span.path_class {
+span.path_class, span.path_predicate {
     color: black;
 }
 
