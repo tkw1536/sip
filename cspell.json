@@ -18,7 +18,9 @@
         "graphviz",
         "colormap",
         "endregion",
-        "rehype"
+        "rehype",
+        "vitest",
+        "rdflib"
     ],
     "ignorePaths": ["package.json", "node_modules/**", "dist/**", "**/*.svg"],
     // flagWords - list of words to be always considered incorrect
