@@ -18,7 +18,7 @@
         "graphviz",
         "colormap",
         "endregion",
-        "rehype",
+        "prefresh",
         "vitest",
         "rdflib"
     ],
