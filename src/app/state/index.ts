@@ -46,9 +46,14 @@ export interface State {
 }
 
 /** A reducer updates state */
-export type Reducer = (state: State) => Partial<State> | Promise<Partial<State> | null> | null
+export type Reducer = (
+  state: State,
+) => Partial<State> | Promise<Partial<State> | null> | null
 
 export interface ReducerProps {
   state: State
-  apply: (reducers: Reducer | Reducer[], callback?: (error?: unknown) => void) => void
+  apply: (
+    reducers: Reducer | Reducer[],
+    callback?: (error?: unknown) => void,
+  ) => void
 }

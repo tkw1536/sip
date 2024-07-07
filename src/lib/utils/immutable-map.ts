@@ -9,46 +9,49 @@ import { sameValueZero } from './same-value-zero'
  * Such operations include:
  * - Removing an element which is not used as a key; and
  * - Setting the value of a specific key to the same value.
-*/
+ */
 export default class ImmutableMap<K, V> implements ReadonlyMap<K, V> {
-  constructor (entries?: Iterable<[K, V]> | null) {
+  constructor(entries?: Iterable<[K, V]> | null) {
     this.#entries = new Map(entries)
   }
 
-  #entries: Map<K, V>
+  readonly #entries: Map<K, V>
 
   /** returns the key-value pairs in this map in insertion order */
-  public entries (): IterableIterator<[K, V]> {
+  public entries(): IterableIterator<[K, V]> {
     return this.#entries.entries()
   }
 
   /** Returns an iterable of keys in the map */
-  public keys (): IterableIterator<K> {
+  public keys(): IterableIterator<K> {
     return this.#entries.keys()
   }
 
   /** Returns an iterable of values in the map */
-  public values (): IterableIterator<V> {
+  public values(): IterableIterator<V> {
     return this.#entries.values()
   }
 
   /** Returns an iterable of entries in the map. */
-  [Symbol.iterator] (): IterableIterator<[K, V]> {
+  [Symbol.iterator](): IterableIterator<[K, V]> {
     return this.entries()
   }
 
   /** Executes the provided function for each element of the function */
-  forEach (callbackfn: (value: V, key: K, map: Map<K, V>) => void, thisArg?: any): void {
+  forEach(
+    callbackfn: (value: V, key: K, map: Map<K, V>) => void,
+    thisArg?: any,
+  ): void {
     this.#entries.forEach(callbackfn)
   }
 
   /** delete the specified key from the map */
-  delete (key: K): ImmutableMap<K, V> {
+  delete(key: K): ImmutableMap<K, V> {
     return this.deleteAll([key])
   }
 
   /** deletes the specified keys from this map */
-  deleteAll (keys: Iterable<K>): ImmutableMap<K, V> {
+  deleteAll(keys: Iterable<K>): ImmutableMap<K, V> {
     const entries = new Map(this)
 
     let modified = false
@@ -62,17 +65,17 @@ export default class ImmutableMap<K, V> implements ReadonlyMap<K, V> {
   }
 
   /** returns the value associated with the given key, or undefined. Note that object values may not be mutable. */
-  get (key: K): V | undefined {
+  get(key: K): V | undefined {
     return this.#entries.get(key)
   }
 
   /** boolean indicating whether an element with the specified key exists or not. */
-  has (key: K): boolean {
+  has(key: K): boolean {
     return this.#entries.has(key)
   }
 
   /** Adds a new element with a specified key and value to the Map. If an element with the same key already exists, the element will be updated. */
-  set (key: K, value: V): ImmutableMap<K, V> {
+  set(key: K, value: V): ImmutableMap<K, V> {
     return this.setAll([[key, value]])
   }
 
@@ -80,7 +83,7 @@ export default class ImmutableMap<K, V> implements ReadonlyMap<K, V> {
    * Adds a set of new elements with the specified keys and values.
    * If a key occurs multiple times, the latter value wins.
    */
-  setAll (values: Iterable<[K, V]>): ImmutableMap<K, V> {
+  setAll(values: Iterable<[K, V]>): ImmutableMap<K, V> {
     const entries = new Map(this)
 
     let modified = false
@@ -100,7 +103,7 @@ export default class ImmutableMap<K, V> implements ReadonlyMap<K, V> {
   }
 
   /** the number of element in this ImmutableMap */
-  get size (): number {
+  get size(): number {
     return this.#entries.size
   }
 }
@@ -112,17 +115,23 @@ export default class ImmutableMap<K, V> implements ReadonlyMap<K, V> {
  * They do not count against the length of the map.
  */
 export class ImmutableMapWithDefault<K, V> extends ImmutableMap<K, V> {
-  constructor (public readonly defaultValue: V, entries?: Iterable<[K, V]> | null) {
-    const values = entries !== null && typeof entries !== 'undefined' ? filter(entries, ([k, v]) => v !== defaultValue) : entries
+  constructor(
+    public readonly defaultValue: V,
+    entries?: Iterable<[K, V]> | null,
+  ) {
+    const values =
+      entries !== null && typeof entries !== 'undefined'
+        ? filter(entries, ([k, v]) => v !== defaultValue)
+        : entries
     super(values)
   }
 
-  delete (key: K): ImmutableMapWithDefault<K, V> {
+  delete(key: K): ImmutableMapWithDefault<K, V> {
     return this.deleteAll([key])
   }
 
   /** deletes the specified keys from this map */
-  deleteAll (keys: Iterable<K>): ImmutableMapWithDefault<K, V> {
+  deleteAll(keys: Iterable<K>): ImmutableMapWithDefault<K, V> {
     const entries = new Map(this)
 
     let modified = false
@@ -136,18 +145,18 @@ export class ImmutableMapWithDefault<K, V> extends ImmutableMap<K, V> {
   }
 
   /** returns the value associated with the given key, or the default value. Note that object values may be mutable. */
-  get (key: K): V {
+  get(key: K): V {
     const value = super.get(key)
     if (typeof value === 'undefined') return this.defaultValue
     return value
   }
 
   /** Adds a new element with a specified key and value to the Map. If an element with the same key already exists, the element will be updated. */
-  set (key: K, value: V): ImmutableMapWithDefault<K, V> {
+  set(key: K, value: V): ImmutableMapWithDefault<K, V> {
     return this.setAll([[key, value]])
   }
 
-  setAll (values: Iterable<[K, V]>): ImmutableMapWithDefault<K, V> {
+  setAll(values: Iterable<[K, V]>): ImmutableMapWithDefault<K, V> {
     const entries = new Map(this)
 
     let modified = false

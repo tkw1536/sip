@@ -5,9 +5,9 @@ import { type PathTreeNode } from '../pathtree'
 type Key = PathTreeNode | Path | undefined
 
 /** toID turns a Key into an actual id */
-function toID (key: Key): string | null {
+function toID(key: Key): string | null {
   if (typeof key === 'undefined') return null
-  const path = (key instanceof Path) ? key : key.path
+  const path = key instanceof Path ? key : key.path
   return path?.id ?? null
 }
 
@@ -19,23 +19,26 @@ export interface NodeSelectionExport {
 
 export default class NodeSelection {
   readonly #selection: ImmutableSet<string>
-  private constructor (public readonly defaultValue: boolean, values: Iterable<string>) {
+  private constructor(
+    public readonly defaultValue: boolean,
+    values: Iterable<string>,
+  ) {
     this.#selection = new ImmutableSet(values)
   }
 
-  toJSON (): NodeSelectionExport {
+  toJSON(): NodeSelectionExport {
     return {
       type: 'node-selection',
       defaultValue: this.defaultValue,
-      values: Array.from(this.#selection)
+      values: Array.from(this.#selection),
     }
   }
 
-  private static isValidNodeSelection (data: any): data is NodeSelectionExport {
-    if (!(('type' in data) && data.type === 'node-selection')) {
+  private static isValidNodeSelection(data: any): data is NodeSelectionExport {
+    if (!('type' in data && data.type === 'node-selection')) {
       return false
     }
-    if (!(('defaultValue' in data) && typeof data.defaultValue === 'boolean')) {
+    if (!('defaultValue' in data && typeof data.defaultValue === 'boolean')) {
       return false
     }
     if (!('values' in data)) {
@@ -46,7 +49,7 @@ export default class NodeSelection {
   }
 
   /** parses a colormap from json */
-  static fromJSON (data: any): NodeSelection | null {
+  static fromJSON(data: any): NodeSelection | null {
     if (!this.isValidNodeSelection(data)) {
       return null
     }
@@ -55,14 +58,14 @@ export default class NodeSelection {
   }
 
   /** includes checks if the selection includes the given key */
-  includes (key: Key): boolean {
+  includes(key: Key): boolean {
     const id = toID(key)
     if (id === null) return false
     return this.#selection.has(id) !== this.defaultValue
   }
 
   /** with returns a new selection with the specified key set to the specified value */
-  with (pairs: Iterable<[Key, boolean]>): NodeSelection {
+  with(pairs: Iterable<[Key, boolean]>): NodeSelection {
     let selection = new ImmutableSet(this.#selection)
     for (const [key, value] of new Map(pairs).entries()) {
       const id = toID(key)
@@ -77,7 +80,7 @@ export default class NodeSelection {
     return new NodeSelection(this.defaultValue, selection)
   }
 
-  toggle (key: Key): NodeSelection {
+  toggle(key: Key): NodeSelection {
     const id = toID(key)
     if (id === null) return this
 
@@ -94,15 +97,17 @@ export default class NodeSelection {
   }
 
   /** returns a new pathbuilder consisting of the paths of the given node */
-  toPathbuilder (node: PathTreeNode): Pathbuilder {
-    return new Pathbuilder(Array.from(node.paths()).filter(p => this.includes(p)))
+  toPathbuilder(node: PathTreeNode): Pathbuilder {
+    return new Pathbuilder(
+      Array.from(node.paths()).filter(p => this.includes(p)),
+    )
   }
 
-  static none (): NodeSelection {
+  static none(): NodeSelection {
     return new NodeSelection(false, [])
   }
 
-  static all (): NodeSelection {
+  static all(): NodeSelection {
     return new NodeSelection(true, [])
   }
 }

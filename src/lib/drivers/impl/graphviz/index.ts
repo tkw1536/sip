@@ -1,7 +1,20 @@
-import { type ContextFlags, defaultLayout, DriverImpl, type MountFlags, type Size } from '..'
-import { type BundleEdge, type BundleNode } from '../../../graph/builders/bundle'
+import {
+  type ContextFlags,
+  DriverImpl,
+  type MountFlags,
+  type Size,
+  defaultLayout,
+} from '..'
+import {
+  type BundleEdge,
+  type BundleNode,
+} from '../../../graph/builders/bundle'
 import { type RenderOptions } from '@viz-js/viz'
-import { type ModelEdge, type ModelNode, modelNodeLabel } from '../../../graph/builders/model'
+import {
+  type ModelEdge,
+  type ModelNode,
+  modelNodeLabel,
+} from '../../../graph/builders/model'
 import { Type } from '../../../utils/media'
 import { type GraphVizRequest, type GraphVizResponse } from './impl'
 import { LazyValue } from '../../../utils/once'
@@ -10,7 +23,9 @@ import { LazyValue } from '../../../utils/once'
 import { type default as SvgPanZoom } from 'svg-pan-zoom'
 import { type RDFEdge, type RDFNode } from '../../../graph/builders/rdf'
 
-const spz = new LazyValue(async () => await import('svg-pan-zoom').then(spz => spz.default))
+const spz = new LazyValue(
+  async () => await import('svg-pan-zoom').then(spz => spz.default),
+)
 
 interface Context {
   graph: Graph
@@ -23,15 +38,21 @@ interface Mount {
   zoom: SvgPanZoom.Instance
 }
 
-abstract class GraphvizDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLabel, EdgeLabel, Context, Mount, Graph> {
+abstract class GraphvizDriver<NodeLabel, EdgeLabel> extends DriverImpl<
+  NodeLabel,
+  EdgeLabel,
+  Context,
+  Mount,
+  Graph
+> {
   readonly driverName: string = 'GraphViz'
   readonly supportedLayouts = [defaultLayout, 'dot', 'fdp', 'circo', 'neato']
-  protected options ({ layout }: ContextFlags): RenderOptions {
+  protected options({ layout }: ContextFlags): RenderOptions {
     const engine = layout === defaultLayout ? 'dot' : layout
     return { engine }
   }
 
-  protected async newContextImpl (): Promise<Graph> {
+  protected async newContextImpl(): Promise<Graph> {
     return {
       name: '',
       strict: false,
@@ -41,11 +62,14 @@ abstract class GraphvizDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLabel
       edgeAttributes: {},
       nodes: [],
       edges: [],
-      subgraphs: []
+      subgraphs: [],
     }
   }
 
-  protected async finalizeContextImpl (graph: Graph, flags: ContextFlags): Promise<Context> {
+  protected async finalizeContextImpl(
+    graph: Graph,
+    flags: ContextFlags,
+  ): Promise<Context> {
     // build options for the driver to render
     const options = this.options(flags)
 
@@ -53,18 +77,24 @@ abstract class GraphvizDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLabel
       await spz.load()
     }
 
-    const canon = await GraphvizDriver.#callImpl({ input: graph, options: { ...options, format: 'canon' } })
-    const svg = await GraphvizDriver.#callImpl({ input: canon, options: { ...options, format: 'svg' } })
+    const canon = await GraphvizDriver.#callImpl({
+      input: graph,
+      options: { ...options, format: 'canon' },
+    })
+    const svg = await GraphvizDriver.#callImpl({
+      input: canon,
+      options: { ...options, format: 'svg' },
+    })
 
     return {
       graph,
       canon,
-      svg
+      svg,
     }
   }
 
   /** callWorker spawns GraphViz in a background and has it render */
-  static async #callImpl (message: GraphVizRequest): Promise<string> {
+  static async #callImpl(message: GraphVizRequest): Promise<string> {
     // check if we have a worker available
     // and if so, call it!
     if (Object.hasOwn(globalThis, 'Worker')) {
@@ -75,15 +105,17 @@ abstract class GraphvizDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLabel
     return await this.#callImportImpl(message)
   }
 
-  static async #callImportImpl (message: GraphVizRequest): Promise<string> {
+  static async #callImportImpl(message: GraphVizRequest): Promise<string> {
     const { processRequest } = await import('./impl')
     return await processRequest(message)
   }
 
-  static async #callWorkerImpl (message: GraphVizRequest): Promise<string> {
-    const worker = new Worker(new URL('./worker.ts', import.meta.url), { type: 'module' })
+  static async #callWorkerImpl(message: GraphVizRequest): Promise<string> {
+    const worker = new Worker(new URL('./worker.ts', import.meta.url), {
+      type: 'module',
+    })
     return await new Promise<string>((resolve, reject) => {
-      worker.onmessage = (e) => {
+      worker.onmessage = e => {
         worker.terminate()
 
         const data: GraphVizResponse = e.data
@@ -97,7 +129,7 @@ abstract class GraphvizDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLabel
     })
   }
 
-  protected mountImpl (context: Context, flags: MountFlags): Mount {
+  protected mountImpl(context: Context, flags: MountFlags): Mount {
     // mount the svg we have already rendered
     flags.container.innerHTML = context.svg
     const svg = flags.container.querySelector('svg')
@@ -111,31 +143,47 @@ abstract class GraphvizDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLabel
     flags.container.appendChild(svg)
 
     // add zoom controls
-    const zoom = spz.value(svg, { maxZoom: 1000, minZoom: 1 / 1000, controlIconsEnabled: true, dblClickZoomEnabled: false })
+    const zoom = spz.value(svg, {
+      maxZoom: 1000,
+      minZoom: 1 / 1000,
+      controlIconsEnabled: true,
+      dblClickZoomEnabled: false,
+    })
     return { svg, zoom }
   }
 
-  protected resizeMountImpl ({ svg, zoom }: Mount, ctx: Context, flags: MountFlags, { width, height }: Size): undefined {
+  protected resizeMountImpl(
+    { svg, zoom }: Mount,
+    ctx: Context,
+    flags: MountFlags,
+    { width, height }: Size,
+  ): undefined {
     svg.style.height = `${height}px`
     svg.style.width = `${width}px`
     zoom.resize()
     return undefined
   }
 
-  protected unmountImpl ({ svg, zoom }: Mount, ctx: Context, { container }: MountFlags): void {
+  protected unmountImpl(
+    { svg, zoom }: Mount,
+    ctx: Context,
+    { container }: MountFlags,
+  ): void {
     zoom.destroy()
     container.removeChild(svg)
   }
 
   readonly supportedExportFormats = ['svg', 'gv']
-  protected async exportImpl ({ canon, svg }: Context, flags: ContextFlags, format: string): Promise<Blob> {
+  protected async exportImpl(
+    { canon, svg }: Context,
+    flags: ContextFlags,
+    format: string,
+  ): Promise<Blob> {
     switch (format) {
-      case 'svg':
-      {
+      case 'svg': {
         return new Blob([svg], { type: Type.SVG })
       }
-      case 'gv':
-      {
+      case 'gv': {
         return new Blob([canon], { type: Type.GRAPHVIZ })
       }
     }
@@ -143,8 +191,16 @@ abstract class GraphvizDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLabel
   }
 }
 
-export class GraphVizBundleDriver extends GraphvizDriver<BundleNode, BundleEdge> {
-  protected addNodeImpl (graph: Graph, { cm }: ContextFlags, id: string, node: BundleNode): undefined {
+export class GraphVizBundleDriver extends GraphvizDriver<
+  BundleNode,
+  BundleEdge
+> {
+  protected addNodeImpl(
+    graph: Graph,
+    { cm }: ContextFlags,
+    id: string,
+    node: BundleNode,
+  ): undefined {
     if (node.type === 'bundle') {
       const path = node.bundle.path
       graph.nodes.push({
@@ -154,8 +210,8 @@ export class GraphVizBundleDriver extends GraphvizDriver<BundleNode, BundleEdge>
           tooltip: path.id,
 
           style: 'filled',
-          fillcolor: cm.get(node.bundle)
-        }
+          fillcolor: cm.get(node.bundle),
+        },
       })
       return
     }
@@ -168,31 +224,43 @@ export class GraphVizBundleDriver extends GraphvizDriver<BundleNode, BundleEdge>
           tooltip: path.id,
 
           style: 'filled',
-          fillcolor: cm.get(node.field)
-        }
+          fillcolor: cm.get(node.field),
+        },
       })
       return
     }
     throw new Error('never reached')
   }
 
-  protected addEdgeImpl (graph: Graph, flags: ContextFlags, id: string, from: string, to: string, edge: BundleEdge): undefined {
+  protected addEdgeImpl(
+    graph: Graph,
+    flags: ContextFlags,
+    id: string,
+    from: string,
+    to: string,
+    edge: BundleEdge,
+  ): undefined {
     graph.edges.push({
       tail: from,
       head: to,
-      attributes: {}
+      attributes: {},
     })
   }
 }
 
 export class GraphVizModelDriver extends GraphvizDriver<ModelNode, ModelEdge> {
   readonly driverName: string
-  constructor (public readonly compact: boolean) {
+  constructor(public readonly compact: boolean) {
     super()
     this.driverName = compact ? 'GraphViz-compact' : 'GraphViz'
   }
 
-  protected addNodeImpl (graph: Graph, flags: ContextFlags, id: string, node: ModelNode): undefined {
+  protected addNodeImpl(
+    graph: Graph,
+    flags: ContextFlags,
+    id: string,
+    node: ModelNode,
+  ): undefined {
     if (node.type === 'field') {
       this.makeFieldNodes(graph, flags, id, node)
       return
@@ -205,8 +273,8 @@ export class GraphVizModelDriver extends GraphvizDriver<ModelNode, ModelEdge> {
           tooltip: node.clz,
 
           style: 'filled',
-          fillcolor: flags.cm.defaultColor
-        }
+          fillcolor: flags.cm.defaultColor,
+        },
       })
       return
     }
@@ -217,7 +285,12 @@ export class GraphVizModelDriver extends GraphvizDriver<ModelNode, ModelEdge> {
     throw new Error('never reached')
   }
 
-  private makeBundleNodes (graph: Graph, { ns, cm }: ContextFlags, id: string, node: ModelNode & { type: 'class' }): void {
+  private makeBundleNodes(
+    graph: Graph,
+    { ns, cm }: ContextFlags,
+    id: string,
+    node: ModelNode & { type: 'class' },
+  ): void {
     if (this.compact) {
       graph.nodes.push({
         name: id,
@@ -226,9 +299,8 @@ export class GraphVizModelDriver extends GraphvizDriver<ModelNode, ModelEdge> {
           tooltip: node.clz,
 
           style: 'filled',
-          fillcolor: cm.get(...node.bundles)
-        }
-
+          fillcolor: cm.get(...node.bundles),
+        },
       })
       return
     }
@@ -242,7 +314,7 @@ export class GraphVizModelDriver extends GraphvizDriver<ModelNode, ModelEdge> {
       edgeAttributes: {},
       nodes: [],
       edges: [],
-      subgraphs: []
+      subgraphs: [],
     }
 
     sg.nodes.push({
@@ -251,8 +323,8 @@ export class GraphVizModelDriver extends GraphvizDriver<ModelNode, ModelEdge> {
         label: ns.apply(clz),
         tooltip: node.clz,
 
-        shape: 'box'
-      }
+        shape: 'box',
+      },
     })
 
     Array.from(bundles).forEach((bundle, idx) => {
@@ -265,31 +337,38 @@ export class GraphVizModelDriver extends GraphvizDriver<ModelNode, ModelEdge> {
 
           shape: 'box',
           style: 'filled',
-          fillcolor: cm.get(bundle)
-        }
+          fillcolor: cm.get(bundle),
+        },
       })
       sg.edges.push({
         head: id,
         tail: bundleID,
-        attributes: {}
+        attributes: {},
       })
     })
 
     graph.subgraphs.push(sg)
   }
 
-  private makeFieldNodes (graph: Graph, { ns, cm }: ContextFlags, id: string, node: ModelNode & { type: 'field' }): void {
+  private makeFieldNodes(
+    graph: Graph,
+    { ns, cm }: ContextFlags,
+    id: string,
+    node: ModelNode & { type: 'field' },
+  ): void {
     const label = modelNodeLabel(node, ns)
     if (this.compact) {
       graph.nodes.push({
         name: id,
         attributes: {
           label,
-          tooltip: Array.from(node.fields).map(f => f.path.id).join('\n'),
+          tooltip: Array.from(node.fields)
+            .map(f => f.path.id)
+            .join('\n'),
 
           style: 'filled',
-          fillcolor: cm.get(...node.fields) // TODO: make this custom
-        }
+          fillcolor: cm.get(...node.fields), // TODO: make this custom
+        },
       })
       return
     }
@@ -301,7 +380,7 @@ export class GraphVizModelDriver extends GraphvizDriver<ModelNode, ModelEdge> {
       edgeAttributes: {},
       nodes: [],
       edges: [],
-      subgraphs: []
+      subgraphs: [],
     }
 
     sg.nodes.push({
@@ -310,8 +389,8 @@ export class GraphVizModelDriver extends GraphvizDriver<ModelNode, ModelEdge> {
         label: 'Literal',
         tooltip: 'Literal',
 
-        shape: 'box'
-      }
+        shape: 'box',
+      },
     })
 
     Array.from(node.fields).forEach((field, idx) => {
@@ -323,8 +402,8 @@ export class GraphVizModelDriver extends GraphvizDriver<ModelNode, ModelEdge> {
           tooltip: field.path.id,
 
           style: 'filled',
-          fillcolor: cm.get(field)
-        }
+          fillcolor: cm.get(field),
+        },
       })
       sg.edges.push({
         head: fieldID,
@@ -332,22 +411,29 @@ export class GraphVizModelDriver extends GraphvizDriver<ModelNode, ModelEdge> {
 
         attributes: {
           label: field.path.informativeFieldType,
-          tooltip: field.path.informativeFieldType
-        }
+          tooltip: field.path.informativeFieldType,
+        },
       })
     })
 
     graph.subgraphs.push(sg)
   }
 
-  protected addEdgeImpl (graph: Graph, { ns }: ContextFlags, id: string, from: string, to: string, edge: ModelEdge): undefined {
+  protected addEdgeImpl(
+    graph: Graph,
+    { ns }: ContextFlags,
+    id: string,
+    from: string,
+    to: string,
+    edge: ModelEdge,
+  ): undefined {
     graph.edges.push({
       head: to,
       tail: from,
       attributes: {
         label: ns.apply(edge.property),
-        tooltip: edge.property
-      }
+        tooltip: edge.property,
+      },
     })
   }
 }
@@ -359,18 +445,23 @@ export class GraphVizRDFDriver extends GraphvizDriver<RDFNode, RDFEdge> {
     NamedNode: 'green',
     Variable: 'red',
     Collection: 'orange',
-    Empty: 'white'
+    Empty: 'white',
   }
 
-  protected addNodeImpl (graph: Graph, flags: ContextFlags, id: string, node: RDFNode): undefined {
+  protected addNodeImpl(
+    graph: Graph,
+    flags: ContextFlags,
+    id: string,
+    node: RDFNode,
+  ): undefined {
     const attributes: Attributes = {
       shape: 'ellipse',
       style: 'filled',
-      fillcolor: GraphVizRDFDriver.colors[node.termType]
+      fillcolor: GraphVizRDFDriver.colors[node.termType],
     }
 
     switch (node.termType) {
-      case 'BlankNode': /** fallthrough */
+      case 'BlankNode' /** fallthrough */:
         attributes.label = node.id
         attributes.tooltip = node.id
         break
@@ -400,17 +491,27 @@ export class GraphVizRDFDriver extends GraphvizDriver<RDFNode, RDFEdge> {
     }
     graph.nodes.push({
       name: id,
-      attributes
+      attributes,
     })
   }
 
-  protected addEdgeImpl (graph: Graph, { ns }: ContextFlags, id: string, from: string, to: string, edge: RDFEdge): undefined {
-    const attributes = (edge.termType === 'NamedNode') ? { label: ns.apply(edge.uri), tooltip: edge.uri } : { label: '?' + edge.value, tooltip: '?' + edge.value }
+  protected addEdgeImpl(
+    graph: Graph,
+    { ns }: ContextFlags,
+    id: string,
+    from: string,
+    to: string,
+    edge: RDFEdge,
+  ): undefined {
+    const attributes =
+      edge.termType === 'NamedNode'
+        ? { label: ns.apply(edge.uri), tooltip: edge.uri }
+        : { label: '?' + edge.value, tooltip: '?' + edge.value }
 
     graph.edges.push({
       head: to,
       tail: from,
-      attributes
+      attributes,
     })
   }
 }

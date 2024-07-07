@@ -32,7 +32,7 @@ describe(sameValueZero, () => {
     ['foo', NaN, false],
     [NaN, NaN, true],
     [undefined, undefined, true],
-    [null, null, true]
+    [null, null, true],
   ])('%s %s -> %j', (left, right, want) => {
     expect(sameValueZero(left, right)).toBe(want)
   })

@@ -7,12 +7,14 @@ export default abstract class GraphBuilder<NodeLabel, EdgeLabel> {
   protected readonly tracker = new ArrayTracker<string>()
   readonly #once = new Once()
 
-  public async build (): Promise<typeof this.graph> {
-    await this.#once.Do(async () => { await this.doBuild() })
+  public async build(): Promise<typeof this.graph> {
+    await this.#once.Do(async () => {
+      await this.doBuild()
+    })
 
     return this.graph
   }
 
   /** doBuild builds the actual graph */
-  protected abstract doBuild (): Promise<void>
+  protected abstract doBuild(): Promise<void>
 }

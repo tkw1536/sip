@@ -18,13 +18,11 @@ import DebugView from './views/debug'
 import RDFGraphView from './views/inspector/graph/rdf'
 
 class Wrapper extends Component {
-  render (): ComponentChild {
+  render(): ComponentChild {
     const { children } = this.props
     return (
       <>
-        <main class={classes(styles.main)}>
-          {children}
-        </main>
+        <main class={classes(styles.main)}>{children}</main>
         <footer class={classes(styles.footer)}>
           &copy; Tom Wiesing 2024. All rights reserved.
         </footer>
@@ -38,7 +36,10 @@ export class App extends Component<Record<never, never>, State> {
 
   private readonly reduction = new Operation()
 
-  private readonly apply = (reducers: Reducer | Reducer[], callback?: (error?: unknown) => void): void => {
+  private readonly apply = (
+    reducers: Reducer | Reducer[],
+    callback?: (error?: unknown) => void,
+  ): void => {
     const ticket = this.reduction.ticket()
 
     this.applyReducers(ticket, Array.isArray(reducers) ? reducers : [reducers])
@@ -50,46 +51,57 @@ export class App extends Component<Record<never, never>, State> {
       })
   }
 
-  private readonly applyReducers = async (ticket: () => boolean, reducers: Reducer[]): Promise<void> => {
+  private readonly applyReducers = async (
+    ticket: () => boolean,
+    reducers: Reducer[],
+  ): Promise<void> => {
     for (const reducer of reducers) {
       await this.applyReducer(ticket, reducer)
     }
   }
 
-  private readonly applyReducer = async (ticket: () => boolean, reducer: Reducer): Promise<void> => {
+  private readonly applyReducer = async (
+    ticket: () => boolean,
+    reducer: Reducer,
+  ): Promise<void> => {
     await new Promise<void>(resolve => {
       let reducerReturnedPromise = false
-      this.setState(state => {
-        if (!ticket()) return null
+      this.setState(
+        state => {
+          if (!ticket()) return null
 
-        // if we got an actual value, apply it now!
-        const reduced = reducer(state)
-        if (!(reduced instanceof Promise)) {
-          return reduced
-        }
+          // if we got an actual value, apply it now!
+          const reduced = reducer(state)
+          if (!(reduced instanceof Promise)) {
+            return reduced
+          }
 
-        reduced
-          .then(res => {
-            this.setState(() => ticket() ? res : null, resolve)
-          })
-          .catch(err => {
-            console.error('Error applying reducer')
-            console.error(err)
-          })
+          reduced
+            .then(res => {
+              this.setState(() => (ticket() ? res : null), resolve)
+            })
+            .catch(err => {
+              console.error('Error applying reducer')
+              console.error(err)
+            })
 
-        reducerReturnedPromise = true
-        return null // nothing to do for now (only when the promise resolves)
-      },
-      () => { if (!reducerReturnedPromise) { resolve() } }
+          reducerReturnedPromise = true
+          return null // nothing to do for now (only when the promise resolves)
+        },
+        () => {
+          if (!reducerReturnedPromise) {
+            resolve()
+          }
+        },
       )
     })
   }
 
-  componentWillUnmount (): void {
+  componentWillUnmount(): void {
     this.reduction.cancel()
   }
 
-  render (): ComponentChild {
+  render(): ComponentChild {
     const props: ReducerProps = { state: this.state, apply: this.apply }
     return (
       <Wrapper>
@@ -104,44 +116,64 @@ class Inspector extends Component<ReducerProps> {
     this.props.apply(setActiveTab(key))
   }
 
-  render (): ComponentChild {
+  render(): ComponentChild {
     const { apply, state } = this.props
     const props: ReducerProps = { apply, state }
     const loaded = state.loadStage === true
 
     return (
       <Tabs onChangeTab={this.handleChangeTab} active={state.activeTab}>
-        <Label><b>Supreme Inspector for Pathbuilders</b></Label>
+        <Label>
+          <b>Supreme Inspector for Pathbuilders</b>
+        </Label>
 
         <Tab title='Pathbuilder' id=''>
-          <Narrow><PathbuilderView {...props} /></Narrow>
+          <Narrow>
+            <PathbuilderView {...props} />
+          </Narrow>
         </Tab>
         <Tab title='Hierarchy' disabled={!loaded} id='hierarchy'>
-          <Wide><HierarchyView {...props} /></Wide>
+          <Wide>
+            <HierarchyView {...props} />
+          </Wide>
         </Tab>
         <Tab title='Bundle Graph' disabled={!loaded} id='bundle'>
-          <Wide fillParent><BundleGraphView {...props} /></Wide>
+          <Wide fillParent>
+            <BundleGraphView {...props} />
+          </Wide>
         </Tab>
         <Tab title='Model Graph' disabled={!loaded} id='model'>
-          <Wide fillParent><ModelGraphView {...props} /></Wide>
+          <Wide fillParent>
+            <ModelGraphView {...props} />
+          </Wide>
         </Tab>
         {process.env.NODE_ENV !== 'production' && (
           <Tab title='RDF Graph' id='rdf' disabled={!loaded}>
-            <Wide fillParent><RDFGraphView {...props} /></Wide>
+            <Wide fillParent>
+              <RDFGraphView {...props} />
+            </Wide>
           </Tab>
         )}
         <Tab title='Namespace Map &#9881;&#65039;' disabled={!loaded} id='ns'>
-          <Narrow><MapView {...props} /></Narrow>
+          <Narrow>
+            <MapView {...props} />
+          </Narrow>
         </Tab>
         <Tab title='Docs' id='docs'>
-          <Narrow><DocsView /></Narrow>
+          <Narrow>
+            <DocsView />
+          </Narrow>
         </Tab>
         <Tab title='About' id='about'>
-          <Narrow><AboutView /></Narrow>
+          <Narrow>
+            <AboutView />
+          </Narrow>
         </Tab>
         {process.env.NODE_ENV !== 'production' && (
           <Tab title='Debug' id='debug'>
-            <Narrow><DebugView {...props} /></Narrow>
+            <Narrow>
+              <DebugView {...props} />
+            </Narrow>
           </Tab>
         )}
       </Tabs>

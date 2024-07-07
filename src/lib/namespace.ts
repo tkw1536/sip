@@ -11,22 +11,28 @@ export class NamespaceMap {
   private readonly short: string | null
   private readonly long: string | null
 
-  private constructor (parent: NamespaceMap | null, long: string | null, short: string | null) {
+  private constructor(
+    parent: NamespaceMap | null,
+    long: string | null,
+    short: string | null,
+  ) {
     this.parent = parent
     this.short = short
     this.long = long
   }
 
-  toJSON (): NamespaceMapExport {
-    const namespaces = Array.from(this.toMapInternal().entries()).map(([long, short]) => [short, long] as [string, string])
+  toJSON(): NamespaceMapExport {
+    const namespaces = Array.from(this.toMapInternal().entries()).map(
+      ([long, short]) => [short, long] as [string, string],
+    )
     return {
       type: 'namespace-map',
-      namespaces
+      namespaces,
     }
   }
 
-  private static isValidNamespaceMap (data: any): data is NamespaceMapExport {
-    if (!(('type' in data) && data.type === 'namespace-map')) {
+  private static isValidNamespaceMap(data: any): data is NamespaceMapExport {
+    if (!('type' in data && data.type === 'namespace-map')) {
       return false
     }
     if (!('namespaces' in data)) {
@@ -37,10 +43,16 @@ export class NamespaceMap {
     if (!Array.isArray(namespaces)) {
       return false
     }
-    return namespaces.every((v: any) => Array.isArray(v) && v.length === 2 && typeof v[0] === 'string' && typeof v[1] === 'string')
+    return namespaces.every(
+      (v: any) =>
+        Array.isArray(v) &&
+        v.length === 2 &&
+        typeof v[0] === 'string' &&
+        typeof v[1] === 'string',
+    )
   }
 
-  static fromJSON (data: any): NamespaceMap | null {
+  static fromJSON(data: any): NamespaceMap | null {
     if (!this.isValidNamespaceMap(data)) {
       return null
     }
@@ -54,7 +66,7 @@ export class NamespaceMap {
   private map: Map<string, string> | null = null
 
   /** toMapInternal returns a reference to the internal map (which should not be mutated) */
-  private toMapInternal (): Map<string, string> {
+  private toMapInternal(): Map<string, string> {
     // if we already have a map, return it!
     if (this.map !== null) return this.map
 
@@ -84,20 +96,20 @@ export class NamespaceMap {
   }
 
   /** toMap turns this NamespaceMap into a map */
-  toMap (): Map<string, string> {
+  toMap(): Map<string, string> {
     return new Map(this.toMapInternal())
   }
 
-  hasLong (long: string): boolean {
+  hasLong(long: string): boolean {
     return this.toMapInternal().has(long)
   }
 
-  hasShort (short: string): boolean {
+  hasShort(short: string): boolean {
     return new Set(this.toMapInternal().values()).has(short)
   }
 
   /** add creates a new namespace map with long set to short */
-  add (long: string, short: string): NamespaceMap {
+  add(long: string, short: string): NamespaceMap {
     // skip invalid shorts
     if (!NamespaceMap.validKey.test(short)) {
       return this
@@ -107,21 +119,25 @@ export class NamespaceMap {
   }
 
   /** remove removes a long url from this ns-map */
-  remove (long: string): NamespaceMap {
+  remove(long: string): NamespaceMap {
     const elements = this.toMap()
     elements.delete(long)
     return NamespaceMap.fromMap(elements)
   }
 
   /** apply applies this namespace-map to a string */
-  apply (uri: string): string {
+  apply(uri: string): string {
     const prefix = this.prefix(uri)
     if (prefix === '') return uri
-    return (this.toMapInternal().get(prefix) ?? '') + ':' + uri.substring(prefix.length)
+    return (
+      (this.toMapInternal().get(prefix) ?? '') +
+      ':' +
+      uri.substring(prefix.length)
+    )
   }
 
   /** prefix returns the longest prefix of uri for which a namespace is contained within this map */
-  prefix (uri: string): string {
+  prefix(uri: string): string {
     let prefix = '' // prefix used
     this.toMapInternal().forEach((short, long) => {
       // must actually be a prefix
@@ -131,7 +147,7 @@ export class NamespaceMap {
 
       // if we already have a shorter prefix
       // then don't apply it at all!
-      if (prefix !== '' && (long <= prefix)) {
+      if (prefix !== '' && long <= prefix) {
         return
       }
       prefix = long
@@ -140,28 +156,36 @@ export class NamespaceMap {
   }
 
   /** creates a new namespace map from the given map */
-  static fromMap (elements: Map<string, string>): NamespaceMap {
+  static fromMap(elements: Map<string, string>): NamespaceMap {
     let ns = this.empty()
-    elements.forEach((short, long) => { ns = ns.add(long, short) })
+    elements.forEach((short, long) => {
+      ns = ns.add(long, short)
+    })
     // avoid having to re-compute the internal map (we already know it)
     ns.map = new Map(elements)
     return ns
   }
 
   /** empty returns an empty NamespaceMap */
-  static empty (): NamespaceMap {
+  static empty(): NamespaceMap {
     return new NamespaceMap(null, null, null)
   }
 
   /** generate automatically generates a prefix map */
-  static generate (uris: Set<string>, separators: string = '/#', len = 30): NamespaceMap {
+  static generate(
+    uris: Set<string>,
+    separators: string = '/#',
+    len = 30,
+  ): NamespaceMap {
     const prefixes = new Set<string>()
     uris.forEach(uri => {
       if (uri === '') {
         return
       }
 
-      const until = Math.max(...Array.from(separators).map(c => uri.lastIndexOf(c)))
+      const until = Math.max(
+        ...Array.from(separators).map(c => uri.lastIndexOf(c)),
+      )
       // no valid prefix
       if (until === -1) {
         return
@@ -216,30 +240,34 @@ export class NamespaceMap {
   }
 
   /**
-     * returns a suitable prefix for the given url
-     */
-  private static makeNamespacePrefix (uri: string): string {
+   * returns a suitable prefix for the given url
+   */
+  private static makeNamespacePrefix(uri: string): string {
     // trim off the header
     const index = uri.indexOf('://')
-    const name = (index >= 0) ? uri.substring(index + '://'.length) : uri
+    const name = index >= 0 ? uri.substring(index + '://'.length) : uri
 
     // check if we have a special prefix
-    const special = this.specialPrefixes.find(([prefix]) => name.startsWith(prefix))
+    const special = this.specialPrefixes.find(([prefix]) =>
+      name.startsWith(prefix),
+    )
     if (special != null) {
       return special[1]
     }
 
     // guesstimate a special prefix
-    return (name.match(/([a-zA-Z0-9]+)/g) ?? []).find(v => v !== 'www') ?? 'prefix'
+    return (
+      (name.match(/([a-zA-Z0-9]+)/g) ?? []).find(v => v !== 'www') ?? 'prefix'
+    )
   }
 
   /**
-     * Special prefixes used to generate specific names.
-     * These are re-used by some WissKIs.
-     */
+   * Special prefixes used to generate specific names.
+   * These are re-used by some WissKIs.
+   */
   private static readonly specialPrefixes = Object.entries({
     'erlangen-crm.org/': 'ecrm', // spellchecker:disable-line
     'www.cidoc-crm.org/': 'crm', // spellchecker:disable-line
-    'www.w3.org/1999/02/22-rdf-syntax-ns#': 'rdf' // spellchecker:disable-line
+    'www.w3.org/1999/02/22-rdf-syntax-ns#': 'rdf', // spellchecker:disable-line
   })
 }

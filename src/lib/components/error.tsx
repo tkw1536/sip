@@ -10,7 +10,7 @@ interface State {
   stack?: string
 }
 export default class ErrorDisplay extends Component<{ error: unknown }> {
-  render (): ComponentChildren {
+  render(): ComponentChildren {
     const { error } = this.props
     return (
       <div className={styles.display}>
@@ -20,8 +20,8 @@ export default class ErrorDisplay extends Component<{ error: unknown }> {
   }
 }
 
-class ErrorTitle extends Component<{ title: string, message: string }> {
-  render (): ComponentChildren {
+class ErrorTitle extends Component<{ title: string; message: string }> {
+  render(): ComponentChildren {
     const { title, message } = this.props
     return (
       <span class={classes(styles.line, styles.header)}>
@@ -33,7 +33,7 @@ class ErrorTitle extends Component<{ title: string, message: string }> {
 }
 
 class ErrorDisplayAny extends Component<{ error: unknown }> {
-  render (): ComponentChildren {
+  render(): ComponentChildren {
     const { error } = this.props
     if (!(error instanceof Error)) {
       return <ErrorTitle title='error' message={String(error)} />
@@ -62,30 +62,35 @@ class ErrorDisplayError extends Component<{ error: Error }, State> {
       })
   }
 
-  componentDidMount (): void {
+  componentDidMount(): void {
     this.doFormatError()
   }
 
-  componentWillUnmount (): void {
+  componentWillUnmount(): void {
     this.formatError.cancel()
   }
 
-  componentDidUpdate (previousProps: typeof this.props): void {
+  componentDidUpdate(previousProps: typeof this.props): void {
     if (this.props.error !== previousProps.error) {
       this.doFormatError()
     }
   }
 
-  render (): ComponentChildren {
+  render(): ComponentChildren {
     const { error } = this.props
     const { error: sErr, stack: sStack } = this.state
 
-    const stack = (error === sErr) ? (sStack ?? sErr.stack) : error.stack
+    const stack = error === sErr ? sStack ?? sErr.stack : error.stack
     return (
       <>
         <ErrorTitle title={error.name} message={error.message} />
 
-        {typeof stack === 'string' && stack.split('\n').map((frame, index) => <span key={index} class={styles.line}>{frame}</span>)}
+        {typeof stack === 'string' &&
+          stack.split('\n').map((frame, index) => (
+            <span key={index} class={styles.line}>
+              {frame}
+            </span>
+          ))}
         {typeof error.cause !== 'undefined' && error.cause !== null && (
           <details>
             <summary>Cause</summary>
@@ -97,14 +102,17 @@ class ErrorDisplayError extends Component<{ error: Error }, State> {
   }
 }
 
-export class ErrorBoundary extends Component<{ children: ComponentChildren }, { error?: unknown }> {
+export class ErrorBoundary extends Component<
+  { children: ComponentChildren },
+  { error?: unknown }
+> {
   state: { error?: Error } = {}
 
-  componentDidCatch (error: any, info: ErrorInfo): void {
+  componentDidCatch(error: any, info: ErrorInfo): void {
     this.setState({ error: new ApplicationCrash(error, info) })
   }
 
-  render (): ComponentChildren {
+  render(): ComponentChildren {
     const { error } = this.state
     if (error instanceof Error) {
       return <ErrorDisplay error={error} />
@@ -114,9 +122,15 @@ export class ErrorBoundary extends Component<{ children: ComponentChildren }, { 
 }
 
 class ApplicationCrash extends Error {
-  constructor (error: any, { componentStack }: ErrorInfo) {
-    const err = error instanceof Error ? error : new Error(String(error), { cause: error })
-    const message = (typeof componentStack === 'string') ? 'An error occurred while rendering. \n' + componentStack : 'An unexpected error occurred. \n' + err.message
+  constructor(error: any, { componentStack }: ErrorInfo) {
+    const err =
+      error instanceof Error
+        ? error
+        : new Error(String(error), { cause: error })
+    const message =
+      typeof componentStack === 'string'
+        ? 'An error occurred while rendering. \n' + componentStack
+        : 'An unexpected error occurred. \n' + err.message
 
     super(message, { cause: err })
 

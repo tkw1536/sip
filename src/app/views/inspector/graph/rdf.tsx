@@ -1,20 +1,30 @@
-import { Component, createRef, type ComponentChildren } from 'preact'
+import { Component, type ComponentChildren, createRef } from 'preact'
 import GraphDisplay, { Control, DriverControl, ExportControl } from '.'
 import { triples } from '../../../../lib/drivers/collection'
 import { type ReducerProps } from '../../../state'
 import type Driver from '../../../../lib/drivers/impl'
-import { setRDFDriver, setRDFLayout } from '../../../state/reducers/inspector/rdf'
-import RDFGraphBuilder, { type RDFEdge, type RDFNode } from '../../../../lib/graph/builders/rdf'
+import {
+  setRDFDriver,
+  setRDFLayout,
+} from '../../../state/reducers/inspector/rdf'
+import RDFGraphBuilder, {
+  type RDFEdge,
+  type RDFNode,
+} from '../../../../lib/graph/builders/rdf'
 import type Graph from '../../../../lib/graph'
 import DropArea from '../../../../lib/components/drop-area'
 import * as styles from './rdf.module.css'
 import { graph, parse } from 'rdflib'
 
-export default class RDFGraphView extends Component<ReducerProps, { data?: Blob }> {
+export default class RDFGraphView extends Component<
+  ReducerProps,
+  { data?: Blob }
+> {
   state: { data?: Blob } = {}
   private readonly builder = async (): Promise<Graph<RDFNode, RDFEdge>> => {
     const { data } = this.state
-    if (typeof data === 'undefined') throw new Error('tried to build a graph, but there is no blob')
+    if (typeof data === 'undefined')
+      throw new Error('tried to build a graph, but there is no blob')
 
     const text = await data.text()
     const format = 'application/rdf+xml'
@@ -40,7 +50,7 @@ export default class RDFGraphView extends Component<ReducerProps, { data?: Blob 
 
   private readonly displayRef = createRef<GraphDisplay<RDFNode, RDFEdge>>()
 
-  render (): ComponentChildren {
+  render(): ComponentChildren {
     const { data } = this.state
     if (typeof data === 'undefined') {
       return this.renderLoad()
@@ -48,31 +58,84 @@ export default class RDFGraphView extends Component<ReducerProps, { data?: Blob 
     return this.renderView()
   }
 
-  renderLoad (): ComponentChildren {
+  renderLoad(): ComponentChildren {
     return (
       <>
         <h2>RDF Visualizer</h2>
         <p>
-          This is a really simple tool to render an actual RDF graph.
-          It's not the primary purpose of this tool, but may be needed.
+          This is a really simple tool to render an actual RDF graph. It's not
+          the primary purpose of this tool, but may be needed.
         </p>
-        <p>
-          Supported formats are:
-        </p>
+        <p>Supported formats are:</p>
         <ul>
-          <li><a href='https://www.w3.org/TR/turtle/' target='_blank' rel='noopener noreferrer'>Turtle</a></li>
-          <li><a href='https://www.w3.org/TR/trig/' target='_blank' rel='noopener noreferrer'>TriG</a></li>
-          <li><a href='https://www.w3.org/TR/n-triples/' target='_blank' rel='noopener noreferrer'>N-Triples</a></li>
-          <li><a href='https://www.w3.org/TR/n-quads/' target='_blank' rel='noopener noreferrer'>N-Quads</a></li>
-          <li><a href='https://blog.liu.se/olafhartig/2019/01/10/position-statement-rdf-star-and-sparql-star/' target='_blank' rel='noopener noreferrer'>RDF*</a></li>
+          <li>
+            <a
+              href='https://www.w3.org/TR/turtle/'
+              target='_blank'
+              rel='noopener noreferrer'
+            >
+              Turtle
+            </a>
+          </li>
+          <li>
+            <a
+              href='https://www.w3.org/TR/trig/'
+              target='_blank'
+              rel='noopener noreferrer'
+            >
+              TriG
+            </a>
+          </li>
+          <li>
+            <a
+              href='https://www.w3.org/TR/n-triples/'
+              target='_blank'
+              rel='noopener noreferrer'
+            >
+              N-Triples
+            </a>
+          </li>
+          <li>
+            <a
+              href='https://www.w3.org/TR/n-quads/'
+              target='_blank'
+              rel='noopener noreferrer'
+            >
+              N-Quads
+            </a>
+          </li>
+          <li>
+            <a
+              href='https://blog.liu.se/olafhartig/2019/01/10/position-statement-rdf-star-and-sparql-star/'
+              target='_blank'
+              rel='noopener noreferrer'
+            >
+              RDF*
+            </a>
+          </li>
         </ul>
-        <DropArea class={styles.dropZone} activeValidClass={styles.valid} activeInvalidClass={styles.invalid} onDropFile={this.handleOpen}>Drop RDF here</DropArea>
+        <DropArea
+          class={styles.dropZone}
+          activeValidClass={styles.valid}
+          activeInvalidClass={styles.invalid}
+          onDropFile={this.handleOpen}
+        >
+          Drop RDF here
+        </DropArea>
       </>
     )
   }
 
-  renderView (): ComponentChildren {
-    const { rdfGraphLayout, rdfGraphDriver, pathbuilderVersion, selectionVersion, colorVersion, ns, cm } = this.props.state
+  renderView(): ComponentChildren {
+    const {
+      rdfGraphLayout,
+      rdfGraphDriver,
+      pathbuilderVersion,
+      selectionVersion,
+      colorVersion,
+      ns,
+      cm,
+    } = this.props.state
 
     return (
       <GraphDisplay
@@ -81,7 +144,8 @@ export default class RDFGraphView extends Component<ReducerProps, { data?: Blob 
         driver={rdfGraphDriver}
         builderKey={`${pathbuilderVersion}-${selectionVersion}-${colorVersion}`}
         makeGraph={this.builder}
-        ns={ns} cm={cm}
+        ns={ns}
+        cm={cm}
         layout={rdfGraphLayout}
         panel={this.renderPanel}
       />
@@ -96,8 +160,12 @@ export default class RDFGraphView extends Component<ReducerProps, { data?: Blob 
     this.props.apply(setRDFLayout(value))
   }
 
-  private readonly renderPanel = (driver: Driver<RDFNode, RDFEdge> | null): ComponentChildren => {
-    const { state: { rdfGraphLayout } } = this.props
+  private readonly renderPanel = (
+    driver: Driver<RDFNode, RDFEdge> | null,
+  ): ComponentChildren => {
+    const {
+      state: { rdfGraphLayout },
+    } = this.props
 
     return (
       <>

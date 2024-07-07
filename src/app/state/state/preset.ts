@@ -1,5 +1,9 @@
 import ColorMap from '../../../lib/pathbuilder/annotations/colormap'
-import { Bundle, Field, type PathTreeNode } from '../../../lib/pathbuilder/pathtree'
+import {
+  Bundle,
+  Field,
+  type PathTreeNode,
+} from '../../../lib/pathbuilder/pathtree'
 
 export enum ColorPreset {
   BlueAndOrange = 'Blue And Orange',
@@ -8,10 +12,13 @@ export enum ColorPreset {
 
 export const colorPresets: ColorPreset[] = [
   ColorPreset.BlueAndOrange,
-  ColorPreset.OnePerBundle
+  ColorPreset.OnePerBundle,
 ]
 
-export function applyColorPreset (node: PathTreeNode, preset: ColorPreset): ColorMap {
+export function applyColorPreset(
+  node: PathTreeNode,
+  preset: ColorPreset,
+): ColorMap {
   switch (preset) {
     case ColorPreset.OnePerBundle:
       return colorPerBundlePreset(node)
@@ -20,17 +27,19 @@ export function applyColorPreset (node: PathTreeNode, preset: ColorPreset): Colo
   }
 }
 
-function bluePreset (node: PathTreeNode): ColorMap {
+function bluePreset(node: PathTreeNode): ColorMap {
   return ColorMap.generate(node, { field: '#f6b73c', bundle: '#add8e6' })
 }
 
 const GOLDEN_ANGLE = 137.508
-function colorOf (index: number): string {
+function colorOf(index: number): string {
   const h = (index > 0 ? index + 1 : 1) * GOLDEN_ANGLE
-  return ColorMap.parseColor(`hsl(${h % 360},50%,75%)`) ?? ColorMap.globalDefault
+  return (
+    ColorMap.parseColor(`hsl(${h % 360},50%,75%)`) ?? ColorMap.globalDefault
+  )
 }
 
-function colorPerBundlePreset (root: PathTreeNode): ColorMap {
+function colorPerBundlePreset(root: PathTreeNode): ColorMap {
   const map = new Map<string, string>()
   let index = 0
   for (const node of root.walk()) {

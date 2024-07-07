@@ -9,7 +9,9 @@ describe(IDPool, () => {
     expect(pool.next()).toBe('I000000000000001')
     expect(pool.nextInt()).toBe(2)
 
-    for (let i = 0; i < 1000; i++) { pool.next() }
+    for (let i = 0; i < 1000; i++) {
+      pool.next()
+    }
 
     // check that these ids are still correct
     expect(pool.nextInt()).toBe(1003)
@@ -25,7 +27,9 @@ describe(IDPool, () => {
     expect(pool.for('hi')).toBe('I000000000000003')
 
     // generate more (unused IDs)
-    for (let i = 0; i < 1000; i++) { pool.next() }
+    for (let i = 0; i < 1000; i++) {
+      pool.next()
+    }
 
     // check that old ids are maintained
     expect(pool.for('hello world')).toBe('I000000000000001')
@@ -43,7 +47,9 @@ describe(IDPool, () => {
     expect(pool.for('hi')).toBe('I000000000000003')
 
     // generate more (unused IDs)
-    for (let i = 0; i < 1000; i++) { pool.next() }
+    for (let i = 0; i < 1000; i++) {
+      pool.next()
+    }
 
     // check string ids
     expect(pool.of('I000000000000001')).toBe('hello world')

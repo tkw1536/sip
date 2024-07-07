@@ -5,7 +5,10 @@ import { IDPool } from '../../utils/id-pool'
 
 export const defaultLayout = 'auto'
 
-export interface Size { width: number, height: number }
+export interface Size {
+  width: number
+  height: number
+}
 
 export type ContextFlags = Readonly<{
   ns: NamespaceMap
@@ -16,11 +19,13 @@ export type ContextFlags = Readonly<{
   initialSize: Size
 }>
 
-export type MountFlags = Readonly<{
-  container: HTMLElement
-  layout: string
-  currentSize: Size
-} & ContextFlags>
+export type MountFlags = Readonly<
+  {
+    container: HTMLElement
+    layout: string
+    currentSize: Size
+  } & ContextFlags
+>
 
 type _context = unknown
 type _mount = unknown
@@ -40,8 +45,12 @@ export default interface Driver<NodeLabel, EdgeLabel> {
    * @param flags Flags for the context to create
    * @param graph The graph to be rendered
    * @param ticket Used for cancellation. Returns false if the result is known to be discarded. In this case makeContext may chose to throw {@link ErrorAborted}.
-  */
-  makeContext: (flags: ContextFlags, graph: Graph<NodeLabel, EdgeLabel>, ticket: () => boolean) => Promise<_context>
+   */
+  makeContext: (
+    flags: ContextFlags,
+    graph: Graph<NodeLabel, EdgeLabel>,
+    ticket: () => boolean,
+  ) => Promise<_context>
 
   readonly supportedLayouts: string[]
 
@@ -52,7 +61,12 @@ export default interface Driver<NodeLabel, EdgeLabel> {
    */
   mount: (ctx: _context, flags: MountFlags) => _mount
 
-  resizeMount: (mount: _mount, ctx: _context, flags: MountFlags, size: Size) => _mount | null | undefined
+  resizeMount: (
+    mount: _mount,
+    ctx: _context,
+    flags: MountFlags,
+    size: Size,
+  ) => _mount | null | undefined
 
   /**
    * Removes a mount from the page in the browser environment
@@ -70,7 +84,12 @@ export default interface Driver<NodeLabel, EdgeLabel> {
    * @param format Format to be exported in. One of {@link supportedExportFormats}.
    * @param mount Mounted object on the page, if any.
    */
-  export: (ctx: _context, flags: ContextFlags, format: string, mount?: { mount: _mount, flags: MountFlags }) => Promise<Blob>
+  export: (
+    ctx: _context,
+    flags: ContextFlags,
+    format: string,
+    mount?: { mount: _mount; flags: MountFlags },
+  ) => Promise<Blob>
 }
 
 /** indicates to the caller that the driver has aborted it's current operation */
@@ -80,10 +99,21 @@ export const ErrorAborted = new Error('Driver: aborted')
 export const ErrorUnsupported = new Error('Driver: Not supported')
 
 /** implements a driver */
-export abstract class DriverImpl<NodeLabel, EdgeLabel, Context, Mount, HotContext = Context> implements Driver<NodeLabel, EdgeLabel> {
+export abstract class DriverImpl<
+  NodeLabel,
+  EdgeLabel,
+  Context,
+  Mount,
+  HotContext = Context,
+> implements Driver<NodeLabel, EdgeLabel>
+{
   abstract readonly driverName: string
 
-  async makeContext (flags: ContextFlags, graph: Graph<NodeLabel, EdgeLabel>, ticket: () => boolean): Promise<Context> {
+  async makeContext(
+    flags: ContextFlags,
+    graph: Graph<NodeLabel, EdgeLabel>,
+    ticket: () => boolean,
+  ): Promise<Context> {
     const ids = new IDPool()
     if (!ticket()) throw ErrorAborted
 
@@ -96,46 +126,98 @@ export abstract class DriverImpl<NodeLabel, EdgeLabel, Context, Mount, HotContex
       if (!ticket()) throw ErrorAborted
     }
     for (const [id, from, to, edge] of graph.getEdges()) {
-      hCtx = (await this.addEdgeImpl(hCtx, flags, ids.for(id), ids.for(from), ids.for(to), edge)) ?? hCtx
+      hCtx =
+        (await this.addEdgeImpl(
+          hCtx,
+          flags,
+          ids.for(id),
+          ids.for(from),
+          ids.for(to),
+          edge,
+        )) ?? hCtx
       if (!ticket()) throw ErrorAborted
     }
 
     // finalize the context
-    const ctx = (await this.finalizeContextImpl(hCtx, flags))
+    const ctx = await this.finalizeContextImpl(hCtx, flags)
     if (!ticket()) throw ErrorAborted
 
     // return the context
     return ctx
   }
-  protected abstract newContextImpl (flags: ContextFlags): Promise<HotContext>
+  protected abstract newContextImpl(flags: ContextFlags): Promise<HotContext>
 
-  protected abstract addNodeImpl (ctx: HotContext, flags: ContextFlags, id: string, node: NodeLabel): Promise<HotContext | null | undefined> | null | undefined
+  protected abstract addNodeImpl(
+    ctx: HotContext,
+    flags: ContextFlags,
+    id: string,
+    node: NodeLabel,
+  ): Promise<HotContext | null | undefined> | null | undefined
 
-  protected abstract addEdgeImpl (ctx: HotContext, flags: ContextFlags, id: string, from: string, to: string, edge: EdgeLabel): Promise<HotContext | null | undefined> | null | undefined
+  protected abstract addEdgeImpl(
+    ctx: HotContext,
+    flags: ContextFlags,
+    id: string,
+    from: string,
+    to: string,
+    edge: EdgeLabel,
+  ): Promise<HotContext | null | undefined> | null | undefined
 
-  protected abstract finalizeContextImpl (ctx: HotContext, flags: ContextFlags): Promise<Context>
+  protected abstract finalizeContextImpl(
+    ctx: HotContext,
+    flags: ContextFlags,
+  ): Promise<Context>
 
   abstract readonly supportedLayouts: string[]
 
-  mount (ctx: _context, flags: MountFlags): _mount {
+  mount(ctx: _context, flags: MountFlags): _mount {
     return this.mountImpl(ctx as Context, flags)
   }
-  protected abstract mountImpl (ctx: Context, flags: MountFlags): Mount
+  protected abstract mountImpl(ctx: Context, flags: MountFlags): Mount
 
-  resizeMount (mount: _mount, ctx: _context, flags: MountFlags, size: Size): _mount | null | undefined {
+  resizeMount(
+    mount: _mount,
+    ctx: _context,
+    flags: MountFlags,
+    size: Size,
+  ): _mount | null | undefined {
     return this.resizeMountImpl(mount as Mount, ctx as Context, flags, size)
   }
-  protected abstract resizeMountImpl (mount: Mount, ctx: Context, flags: MountFlags, size: Size): Mount | null | undefined
+  protected abstract resizeMountImpl(
+    mount: Mount,
+    ctx: Context,
+    flags: MountFlags,
+    size: Size,
+  ): Mount | null | undefined
 
-  unmount (mount: _mount, ctx: _context, flags: MountFlags): void {
+  unmount(mount: _mount, ctx: _context, flags: MountFlags): void {
     this.unmountImpl(mount as Mount, ctx as Context, flags)
   }
-  protected abstract unmountImpl (mount: Mount, ctx: Context, flags: MountFlags): void
+  protected abstract unmountImpl(
+    mount: Mount,
+    ctx: Context,
+    flags: MountFlags,
+  ): void
 
   abstract readonly supportedExportFormats: string[]
 
-  async export (ctx: _context, flags: ContextFlags, format: string, mount?: { mount: _mount, flags: MountFlags }): Promise<Blob> {
-    return await this.exportImpl(ctx as Context, flags, format, mount as { mount: Mount, flags: MountFlags } | undefined)
+  async export(
+    ctx: _context,
+    flags: ContextFlags,
+    format: string,
+    mount?: { mount: _mount; flags: MountFlags },
+  ): Promise<Blob> {
+    return await this.exportImpl(
+      ctx as Context,
+      flags,
+      format,
+      mount as { mount: Mount; flags: MountFlags } | undefined,
+    )
   }
-  protected abstract exportImpl (ctx: Context, flags: ContextFlags, format: string, mount?: { mount: Mount, flags: MountFlags }): Promise<Blob>
+  protected abstract exportImpl(
+    ctx: Context,
+    flags: ContextFlags,
+    format: string,
+    mount?: { mount: Mount; flags: MountFlags },
+  ): Promise<Blob>
 }

@@ -4,30 +4,30 @@ import { defaultLayout } from '../../../../lib/drivers/impl'
 import { type PathTree } from '../../../../lib/pathbuilder/pathtree'
 import Deduplication from '../../state/deduplication'
 
-export function newModelDriver (tree: PathTree): string {
+export function newModelDriver(tree: PathTree): string {
   return models.defaultDriver
 }
 
-export function setModelDriver (name: string): Reducer {
+export function setModelDriver(name: string): Reducer {
   return ({ tree }: State): Partial<State> => ({
     modelGraphDriver: name,
-    modelGraphLayout: defaultLayout
+    modelGraphLayout: defaultLayout,
   })
 }
 
-export function setModelLayout (layout: string): Reducer {
+export function setModelLayout(layout: string): Reducer {
   return ({ tree }: State): Partial<State> => ({
-    modelGraphLayout: layout
+    modelGraphLayout: layout,
   })
 }
 
-export function newModelDeduplication (tree: PathTree): Deduplication {
+export function newModelDeduplication(tree: PathTree): Deduplication {
   return Deduplication.Bundle
 }
 
-export function setModelDeduplication (dup: Deduplication): Reducer {
+export function setModelDeduplication(dup: Deduplication): Reducer {
   return ({ optionVersion }: State): Partial<State> => ({
     optionVersion: optionVersion + 1,
-    modelDeduplication: dup
+    modelDeduplication: dup,
   })
 }

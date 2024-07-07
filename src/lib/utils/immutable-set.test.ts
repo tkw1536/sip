@@ -3,7 +3,11 @@ import ImmutableSet from './immutable-set'
 
 describe(ImmutableSet, () => {
   /** checks that the set immutable corresponds to the regular set */
-  const assertSetIs = <T>(immutable: ImmutableSet<T>, set: Set<T>, keys?: T[]): void => {
+  const assertSetIs = <T>(
+    immutable: ImmutableSet<T>,
+    set: Set<T>,
+    keys?: T[],
+  ): void => {
     // equal size
     expect(immutable.size).toBe(set.size)
 

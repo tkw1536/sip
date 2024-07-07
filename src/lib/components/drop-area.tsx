@@ -1,4 +1,4 @@
-import { type ComponentChild, Component, createRef, type VNode } from 'preact'
+import { Component, type ComponentChild, type VNode, createRef } from 'preact'
 import { classes } from '../utils/classes'
 
 interface DropAreaProps {
@@ -14,7 +14,9 @@ interface DropAreaProps {
   multiple?: boolean
   types?: string[]
 
-  children?: ComponentChild | ((active: boolean, valid: boolean) => ComponentChild)
+  children?:
+    | ComponentChild
+    | ((active: boolean, valid: boolean) => ComponentChild)
 }
 
 export default class DropArea extends Component<DropAreaProps> {
@@ -24,7 +26,10 @@ export default class DropArea extends Component<DropAreaProps> {
   }
 
   /** validateFiles checks if the given items or files are valid */
-  private readonly validateFiles = (items?: ArrayLike<{ readonly type: string, readonly kind?: string }>, allowEmpty: boolean = false): items is ArrayLike<{ readonly type: string }> => {
+  private readonly validateFiles = (
+    items?: ArrayLike<{ readonly type: string; readonly kind?: string }>,
+    allowEmpty: boolean = false,
+  ): items is ArrayLike<{ readonly type: string }> => {
     const { multiple, types } = this.props
 
     // check that we have the right number of elements
@@ -58,7 +63,10 @@ export default class DropArea extends Component<DropAreaProps> {
 
   private readonly handleDropOver = (event: DragEvent): void => {
     event.preventDefault()
-    this.setState({ dragActive: true, dragValid: this.validateFiles(event.dataTransfer?.items, true) })
+    this.setState({
+      dragActive: true,
+      dragValid: this.validateFiles(event.dataTransfer?.items, true),
+    })
   }
 
   private readonly handleDragLeave = (event: DragEvent): void => {
@@ -82,9 +90,18 @@ export default class DropArea extends Component<DropAreaProps> {
 
   private readonly fileInput = createRef<HTMLInputElement>()
 
-  render (): ComponentChild {
+  render(): ComponentChild {
     const { dragActive, dragValid } = this.state
-    const { class: clz, activeInvalidClass, activeValidClass, passiveClass, children, multiple, types, compact } = this.props
+    const {
+      class: clz,
+      activeInvalidClass,
+      activeValidClass,
+      passiveClass,
+      children,
+      multiple,
+      types,
+      compact,
+    } = this.props
 
     // determine classes to apply
     const dropClasses = [clz]
@@ -99,14 +116,19 @@ export default class DropArea extends Component<DropAreaProps> {
         dropClasses.push(passiveClass)
     }
 
-    const childNodes = typeof children === 'function' ? children(dragActive, dragValid) : children
+    const childNodes =
+      typeof children === 'function'
+        ? children(dragActive, dragValid)
+        : children
 
     let main: VNode
     if (!(compact ?? false)) {
       main = (
         <div
           class={classes(...dropClasses)}
-          onDrop={this.handleDropFile} onDragOver={this.handleDropOver} onDragLeave={this.handleDragLeave}
+          onDrop={this.handleDropFile}
+          onDragOver={this.handleDropOver}
+          onDragLeave={this.handleDragLeave}
           onClick={this.handleClick}
         >
           {childNodes}
@@ -114,10 +136,7 @@ export default class DropArea extends Component<DropAreaProps> {
       )
     } else {
       main = (
-        <button
-          class={classes(clz)}
-          onClick={this.handleClick}
-        >
+        <button class={classes(clz)} onClick={this.handleClick}>
           {childNodes}
         </button>
       )

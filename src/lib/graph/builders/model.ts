@@ -1,7 +1,12 @@
 import GraphBuilder from '.'
 import Deduplication from '../../../app/state/state/deduplication'
 import type Graph from '..'
-import { Bundle, Field, type PathTreeNode, type PathTree } from '../../pathbuilder/pathtree'
+import {
+  Bundle,
+  Field,
+  type PathTree,
+  type PathTreeNode,
+} from '../../pathbuilder/pathtree'
 import ArrayTracker from '../../utils/array-tracker'
 import { type NamespaceMap } from '../../namespace'
 
@@ -13,47 +18,61 @@ interface SharedOptions {
   include?: (node: PathTreeNode) => boolean
 }
 
-export type ModelNode = {
-  /* represents a single class node */
-  type: 'class'
-  clz: string
+export type ModelNode =
+  | {
+      /* represents a single class node */
+      type: 'class'
+      clz: string
 
-  /** bundles rooted at this node */
-  bundles: Set<Bundle>
-} | {
-  type: 'field'
-  fields: Set<Field> /** the field at this path */
-}
+      /** bundles rooted at this node */
+      bundles: Set<Bundle>
+    }
+  | {
+      type: 'field'
+      fields: Set<Field> /** the field at this path */
+    }
 
 /** modelNodeLabel returns a simple label for a model node */
-export function modelNodeLabel (node: ModelNode, ns: NamespaceMap): string {
+export function modelNodeLabel(node: ModelNode, ns: NamespaceMap): string {
   if (node.type === 'field') {
-    return Array.from(node.fields).map(field => field.path.name).join('\n\n')
+    return Array.from(node.fields)
+      .map(field => field.path.name)
+      .join('\n\n')
   }
   if (node.type === 'class' && node.bundles.size === 0) {
     return ns.apply(node.clz)
   }
   if (node.type === 'class' && node.bundles.size > 0) {
-    const names = Array.from(node.bundles).map((bundle) => 'Bundle ' + bundle.path.name).join('\n\n')
+    const names = Array.from(node.bundles)
+      .map(bundle => 'Bundle ' + bundle.path.name)
+      .join('\n\n')
     return ns.apply(node.clz) + '\n\n' + names
   }
   throw new Error('never reached')
 }
 
-export type ModelEdge = {
-  /* represents a property between two class nodes */
-  type: 'property'
-  property: string
-} | {
-  /** represents a datatype property */
-  type: 'data'
-  property: string
-}
+export type ModelEdge =
+  | {
+      /* represents a property between two class nodes */
+      type: 'property'
+      property: string
+    }
+  | {
+      /** represents a datatype property */
+      type: 'data'
+      property: string
+    }
 
 /** builds a new graph for a specific model */
-export default class ModelGraphBuilder extends GraphBuilder<ModelNode, ModelEdge> {
+export default class ModelGraphBuilder extends GraphBuilder<
+  ModelNode,
+  ModelEdge
+> {
   private readonly specific: SpecificBuilder
-  constructor (private readonly tree: PathTree, private readonly options: Options) {
+  constructor(
+    private readonly tree: PathTree,
+    private readonly options: Options,
+  ) {
     super()
 
     const { deduplication, ...specificOptions } = options
@@ -72,39 +91,46 @@ export default class ModelGraphBuilder extends GraphBuilder<ModelNode, ModelEdge
     }
   }
 
-  protected async doBuild (): Promise<void> {
+  protected async doBuild(): Promise<void> {
     this.specific.build()
   }
 }
 
 abstract class SpecificBuilder {
   protected readonly tracker = new ArrayTracker<string>()
-  constructor (public tree: PathTree, private readonly options: SharedOptions, protected graph: Graph<ModelNode, ModelEdge>) {
-  }
+  constructor(
+    public tree: PathTree,
+    private readonly options: SharedOptions,
+    protected graph: Graph<ModelNode, ModelEdge>,
+  ) {}
 
-  public abstract build (): void
+  public abstract build(): void
 
   /** checks if the given uri is included in the graph */
-  protected includes (node: PathTreeNode): boolean {
+  protected includes(node: PathTreeNode): boolean {
     if (this.options.include == null) return true
 
     return this.options.include(node)
   }
 
-  protected id (context: string, typ: 'class' | 'data', id: string): string {
+  protected id(context: string, typ: 'class' | 'data', id: string): string {
     return `context=${encodeURIComponent(context)}&typ=${encodeURIComponent(typ)}&id=${encodeURIComponent(id)}`
   }
 }
 
 class NoneBuilder extends SpecificBuilder {
-  public build (): void {
+  public build(): void {
     for (const bundle of this.tree.children()) {
       this.addBundle(null, bundle, 0)
     }
     this.graph.definitelyAcyclic = true
   }
 
-  private addBundle (parentNode: number | null, bundle: Bundle, level: number): boolean {
+  private addBundle(
+    parentNode: number | null,
+    bundle: Bundle,
+    level: number,
+  ): boolean {
     // add the node for this bundle
     const includeSelf = this.includes(bundle)
 
@@ -129,7 +155,7 @@ class NoneBuilder extends SpecificBuilder {
     return includeSelf
   }
 
-  private addBundleNode (bundle: Bundle, level: number): number | null {
+  private addBundleNode(bundle: Bundle, level: number): number | null {
     const path = bundle.path.pathArray
 
     let index = path.length - 1
@@ -144,10 +170,14 @@ class NoneBuilder extends SpecificBuilder {
     }
 
     const clz = path[index]
-    return this.graph.addNode({ type: 'class', clz, bundles: new Set([bundle]) })
+    return this.graph.addNode({
+      type: 'class',
+      clz,
+      bundles: new Set([bundle]),
+    })
   }
 
-  private addField (parentNode: number | null, node: Field): void {
+  private addField(parentNode: number | null, node: Field): void {
     // get the actual path to add
     const path = node.path
 
@@ -166,7 +196,11 @@ class NoneBuilder extends SpecificBuilder {
 
     // make a function to add a node
     const addNode = (i: number): number => {
-      return this.graph.addNode({ type: 'class', clz: ownPath[i], bundles: new Set() })
+      return this.graph.addNode({
+        type: 'class',
+        clz: ownPath[i],
+        bundles: new Set(),
+      })
     }
 
     // add all the parts of the node
@@ -179,7 +213,7 @@ class NoneBuilder extends SpecificBuilder {
       const property = ownPath[i]
       this.graph.addEdge(prev, next, {
         type: 'property',
-        property
+        property,
       })
       prev = next
     }
@@ -192,20 +226,17 @@ class NoneBuilder extends SpecificBuilder {
     // add the datatype property (if any)
     const datatype = this.graph.addNode({
       type: 'field',
-      fields: new Set([node])
+      fields: new Set([node]),
     })
-    this.graph.addEdge(
-      prev, datatype,
-      {
-        type: 'data',
-        property: path.datatypeProperty
-      }
-    )
+    this.graph.addEdge(prev, datatype, {
+      type: 'data',
+      property: path.datatypeProperty,
+    })
   }
 }
 
 class BundleBuilder extends SpecificBuilder {
-  public build (): void {
+  public build(): void {
     this.collectContext()
 
     for (const bundle of this.tree.children()) {
@@ -213,7 +244,7 @@ class BundleBuilder extends SpecificBuilder {
     }
   }
 
-  private collectContext (): void {
+  private collectContext(): void {
     for (const node of this.tree.walk()) {
       if (node instanceof Field) {
         const disambiguation = node.path.getDisambiguation()
@@ -238,7 +269,7 @@ class BundleBuilder extends SpecificBuilder {
   }
 
   private readonly contexts = new Set<string>()
-  private addBundle (bundle: Bundle, level: number): boolean {
+  private addBundle(bundle: Bundle, level: number): boolean {
     // add a node for this bundle itself
     const includeSelf = this.includes(bundle)
 
@@ -263,7 +294,7 @@ class BundleBuilder extends SpecificBuilder {
   }
 
   /** add a bundle node for the current model */
-  private addBundleNode (bundle: Bundle, level: number): string {
+  private addBundleNode(bundle: Bundle, level: number): string {
     const path = bundle.path.pathArray
 
     let index = path.length - 1
@@ -280,7 +311,7 @@ class BundleBuilder extends SpecificBuilder {
     const clz = path[index]
 
     const id = this.id(clz, 'class', clz)
-    this.graph.addOrUpdateNode(id, (previous) => {
+    this.graph.addOrUpdateNode(id, previous => {
       if (previous?.type === 'field') {
         console.warn('uri used as both property and field', clz)
         return previous
@@ -293,7 +324,7 @@ class BundleBuilder extends SpecificBuilder {
     return id
   }
 
-  private addField (node: Field): void {
+  private addField(node: Field): void {
     // get the actual path to add
     const path = node.path
 
@@ -334,7 +365,7 @@ class BundleBuilder extends SpecificBuilder {
       if (this.tracker.add([currentContext, prev, next, property])) {
         this.graph.addEdge(prev, next, {
           type: 'property',
-          property
+          property,
         })
       }
       prev = next
@@ -349,40 +380,40 @@ class BundleBuilder extends SpecificBuilder {
     // add the current data node
     const dataNode = this.id(prev, 'data', datatypeProperty)
     const shouldAddEdge = !this.graph.hasNode(dataNode)
-    this.graph.addOrUpdateNode(dataNode, (label?: ModelNode | undefined): ModelNode => {
-      if (label?.type === 'class') {
-        throw new Error('ModelBuilder: expected field node in data context')
-      }
+    this.graph.addOrUpdateNode(
+      dataNode,
+      (label?: ModelNode | undefined): ModelNode => {
+        if (label?.type === 'class') {
+          throw new Error('ModelBuilder: expected field node in data context')
+        }
 
-      const fields = new Set(label?.fields ?? [])
-      fields.add(node)
+        const fields = new Set(label?.fields ?? [])
+        fields.add(node)
 
-      return {
-        type: 'field',
-        fields
-      }
-    })
+        return {
+          type: 'field',
+          fields,
+        }
+      },
+    )
 
     if (shouldAddEdge) {
-      this.graph.addEdge(
-        prev, dataNode,
-        {
-          type: 'data',
-          property: datatypeProperty
-        }
-      )
+      this.graph.addEdge(prev, dataNode, {
+        type: 'data',
+        property: datatypeProperty,
+      })
     }
   }
 }
 
 class FullBuilder extends SpecificBuilder {
-  public build (): void {
+  public build(): void {
     for (const bundle of this.tree.children()) {
       this.addBundle(bundle, 0)
     }
   }
 
-  private addBundle (bundle: Bundle, level: number): boolean {
+  private addBundle(bundle: Bundle, level: number): boolean {
     // add the node for this bundle
     const includeSelf = this.includes(bundle)
 
@@ -406,7 +437,7 @@ class FullBuilder extends SpecificBuilder {
     return includeSelf
   }
 
-  private addBundleNode (bundle: Bundle, level: number): void {
+  private addBundleNode(bundle: Bundle, level: number): void {
     const path = bundle.path.pathArray
 
     let index = path.length - 1
@@ -422,7 +453,7 @@ class FullBuilder extends SpecificBuilder {
 
     const clz = path[index]
     const clzID = this.id('', 'class', clz)
-    this.graph.addOrUpdateNode(clzID, (previous) => {
+    this.graph.addOrUpdateNode(clzID, previous => {
       if (previous?.type === 'field') {
         console.warn('uri used as both property and field', clz)
         return previous
@@ -434,7 +465,7 @@ class FullBuilder extends SpecificBuilder {
     })
   }
 
-  private addField (node: Field): void {
+  private addField(node: Field): void {
     // get the actual path to add
     const path = node.path
 
@@ -471,7 +502,7 @@ class FullBuilder extends SpecificBuilder {
       if (this.tracker.add([prev, next, property])) {
         this.graph.addEdge(prev, next, {
           type: 'property',
-          property
+          property,
         })
       }
       prev = next
@@ -486,28 +517,28 @@ class FullBuilder extends SpecificBuilder {
     // add the current data node
     const dataNode = this.id(prev, 'data', datatypeProperty)
     const shouldAddEdge = !this.graph.hasNode(dataNode)
-    this.graph.addOrUpdateNode(dataNode, (label?: ModelNode | undefined): ModelNode => {
-      if (label?.type === 'class') {
-        throw new Error('ModelBuilder: expected field node in data context')
-      }
+    this.graph.addOrUpdateNode(
+      dataNode,
+      (label?: ModelNode | undefined): ModelNode => {
+        if (label?.type === 'class') {
+          throw new Error('ModelBuilder: expected field node in data context')
+        }
 
-      const fields = new Set(label?.fields ?? [])
-      fields.add(node)
+        const fields = new Set(label?.fields ?? [])
+        fields.add(node)
 
-      return {
-        type: 'field',
-        fields
-      }
-    })
+        return {
+          type: 'field',
+          fields,
+        }
+      },
+    )
 
     if (shouldAddEdge) {
-      this.graph.addEdge(
-        prev, dataNode,
-        {
-          type: 'data',
-          property: datatypeProperty
-        }
-      )
+      this.graph.addEdge(prev, dataNode, {
+        type: 'data',
+        property: datatypeProperty,
+      })
     }
   }
 }

@@ -6,7 +6,7 @@ interface LoaderProps {
   message?: ComponentChildren
 }
 export class Loader extends Component<LoaderProps> {
-  render (): ComponentChildren {
+  render(): ComponentChildren {
     const { message } = this.props
     return (
       <AvoidFlicker>
@@ -14,7 +14,9 @@ export class Loader extends Component<LoaderProps> {
           <div class={styles.logo} role='progressbar'>
             <div />
           </div>
-          {typeof message !== 'undefined' && <div class={styles.message}>{message}</div>}
+          {typeof message !== 'undefined' && (
+            <div class={styles.message}>{message}</div>
+          )}
         </div>
       </AvoidFlicker>
     )
@@ -22,12 +24,15 @@ export class Loader extends Component<LoaderProps> {
 }
 
 /** AvoidFlicker avoids showing children until after delayMS */
-class AvoidFlicker extends Component<{ delayMs?: number, children: ComponentChildren }> {
+class AvoidFlicker extends Component<{
+  delayMs?: number
+  children: ComponentChildren
+}> {
   static readonly defaultDelayMs = 1000
   state = { visible: false }
 
   private readonly avoidFlicker = new Operation()
-  componentDidMount (): void {
+  componentDidMount(): void {
     const ticket = this.avoidFlicker.ticket()
     setTimeout(() => {
       if (!ticket()) return
@@ -35,11 +40,11 @@ class AvoidFlicker extends Component<{ delayMs?: number, children: ComponentChil
     }, this.props.delayMs ?? AvoidFlicker.defaultDelayMs)
   }
 
-  componentWillUnmount (): void {
+  componentWillUnmount(): void {
     this.avoidFlicker.cancel()
   }
 
-  render (): ComponentChildren {
+  render(): ComponentChildren {
     const { visible } = this.state
     if (!visible) return false
 

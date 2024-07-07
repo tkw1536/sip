@@ -9,8 +9,12 @@ describe(Once, () => {
 
     const once = new Once()
 
-    await once.Do(async () => { counter++ })
-    await once.Do(async () => { counter++ })
+    await once.Do(async () => {
+      counter++
+    })
+    await once.Do(async () => {
+      counter++
+    })
 
     expect(counter).toBe(1)
   })
@@ -20,8 +24,12 @@ describe(Once, () => {
       const once = new Once()
 
       const all = Promise.all([
-        once.Do(async () => { await new Promise(resolve => setTimeout(resolve, THE_TIMEOUT)) }),
-        once.Do(async () => { throw new Error('this should never be called') })
+        once.Do(async () => {
+          await new Promise(resolve => setTimeout(resolve, THE_TIMEOUT))
+        }),
+        once.Do(async () => {
+          throw new Error('this should never be called')
+        }),
       ])
       vi.runAllTimers()
 

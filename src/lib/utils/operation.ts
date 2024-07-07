@@ -4,7 +4,7 @@ export class Operation {
   #canceled = false
 
   /** ticket returns a function which returns true while ticket and cancel are not called again */
-  ticket (): Ticket {
+  ticket(): Ticket {
     if (this.canceled) {
       return (): boolean => false
     }
@@ -14,12 +14,12 @@ export class Operation {
   }
 
   /** returns true if cancel has been called */
-  get canceled (): boolean {
+  get canceled(): boolean {
     return this.#canceled
   }
 
   /** cancel cancels any ongoing tickets */
-  cancel (): void {
+  cancel(): void {
     this.#canceled = true
   }
 }
@@ -29,8 +29,9 @@ export interface StateSetter<P, S, K extends keyof S> {
   (state: StateSetterArg<P, S, K>): Promise<void>
   ticket: Ticket
 }
-type StateSetterArg<P, S, K extends keyof S> = ((
-  prevState: Readonly<S>,
-  props: Readonly<P>
-) => Pick<S, K> | Partial<S> | null)
-| (Pick<S, K> | Partial<S> | null)
+type StateSetterArg<P, S, K extends keyof S> =
+  | ((
+      prevState: Readonly<S>,
+      props: Readonly<P>,
+    ) => Pick<S, K> | Partial<S> | null)
+  | (Pick<S, K> | Partial<S> | null)

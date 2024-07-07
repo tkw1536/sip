@@ -11,7 +11,7 @@ import { type ContextFlags } from '../src/lib/drivers/impl'
 
 // Usage: node node_modules/vite-node/vite-node.mjs ./scripts/render-model-graphviz.ts -p pathbuilder
 
-async function main (): Promise<void> {
+async function main(): Promise<void> {
   const parser = new ArgumentParser()
 
   parser.add_argument('--pathbuilder', '-p', { required: true })
@@ -19,7 +19,7 @@ async function main (): Promise<void> {
   const config = parser.parse_args()
 
   // parse the pathbuilder as xml
-  const pbXML = await readFile(config.pathbuilder)
+  const pbXML = await readFile(config.pathbuilder as string)
   const pb = Pathbuilder.parse(pbXML.toString())
 
   // create a tree
@@ -30,7 +30,9 @@ async function main (): Promise<void> {
   const cm = ColorMap.generate(tree, { field: '#f6b73c', bundle: '#add8e6' })
 
   // build the actual graph
-  const graph = await new ModelGraphBuilder(tree, { deduplication: Deduplication.Full }).build()
+  const graph = await new ModelGraphBuilder(tree, {
+    deduplication: Deduplication.Full,
+  }).build()
 
   // load the driver and setup flags to use
   const driver = new GraphVizModelDriver(false)
@@ -39,7 +41,7 @@ async function main (): Promise<void> {
     cm,
     definitelyAcyclic: false,
     layout: driver.supportedLayouts[0],
-    initialSize: { width: 1000, height: 1000 }
+    initialSize: { width: 1000, height: 1000 },
   }
 
   // finally create the blob
@@ -49,6 +51,8 @@ async function main (): Promise<void> {
   // write the actual blob to the console
   process.stdout.write(await blob.text())
 }
-main().catch(err => { console.log(err) })
+main().catch(err => {
+  console.log(err)
+})
 
 // spellchecker:words argparse

@@ -1,6 +1,12 @@
 import { type Path, type Pathbuilder } from './pathbuilder'
 
-interface MutableProtoBundle { id: string, data: { index: number, path: Path } | null, parent: MutableProtoBundle | null, bundles: MutableProtoBundle[], fields: ProtoField[] }
+interface MutableProtoBundle {
+  id: string
+  data: { index: number; path: Path } | null
+  parent: MutableProtoBundle | null
+  bundles: MutableProtoBundle[]
+  fields: ProtoField[]
+}
 interface ProtoBundle {
   readonly index: number
   readonly path: Path
@@ -9,28 +15,41 @@ interface ProtoBundle {
   readonly fields: ProtoField[]
 }
 
-interface ProtoField { index: number, id: string, path: Path }
+interface ProtoField {
+  index: number
+  id: string
+  path: Path
+}
 
 export type Diagnostic = OrphanedField | OrphanedBundle | DuplicateBundle
 
-interface OrphanedField { type: 'orphaned_field', path: Path }
-interface OrphanedBundle { type: 'missing_bundle', id: string }
-interface DuplicateBundle { type: 'duplicate_bundle', path: Path }
+interface OrphanedField {
+  type: 'orphaned_field'
+  path: Path
+}
+interface OrphanedBundle {
+  type: 'missing_bundle'
+  id: string
+}
+interface DuplicateBundle {
+  type: 'duplicate_bundle'
+  path: Path
+}
 
 export abstract class PathTreeNode {
-  protected constructor (
+  protected constructor(
     public readonly depth: number,
-    public readonly index: number
+    public readonly index: number,
   ) {}
 
   /** returns the path that created this PathTreeNode */
-  abstract get path (): Path | null
+  abstract get path(): Path | null
 
   /**
    * Gets the first index of the Path.pathArray for which the value is different from the parent.
    * If the current path array does not start with the parent's path array, returns null.
    */
-  getOwnPathIndex (): number | null {
+  getOwnPathIndex(): number | null {
     const path = this.path?.pathArray
     const parentPath = this.parent?.path?.pathArray
 
@@ -47,13 +66,13 @@ export abstract class PathTreeNode {
   }
 
   /** returns the immediate children of this PathTreeNode */
-  abstract children (): IterableIterator<PathTreeNode>
+  abstract children(): IterableIterator<PathTreeNode>
 
   /** the number of children */
-  abstract get childCount (): number
+  abstract get childCount(): number
 
   /** allChildren returns a set containing the ids of all recursive children of this node */
-  * allChildren (): IterableIterator<string> {
+  *allChildren(): IterableIterator<string> {
     for (const child of this.walk()) {
       const id = child.path?.id
       if (typeof id === 'string') {
@@ -63,9 +82,9 @@ export abstract class PathTreeNode {
   }
 
   /** returns the parent of this PathTreeNode */
-  abstract get parent (): PathTreeNode | null
+  abstract get parent(): PathTreeNode | null
 
-  static compare (a: PathTreeNode, b: PathTreeNode): -1 | 1 | 0 {
+  static compare(a: PathTreeNode, b: PathTreeNode): -1 | 1 | 0 {
     if (a.depth < b.depth) {
       return -1
     }
@@ -82,7 +101,7 @@ export abstract class PathTreeNode {
   }
 
   /** recursively walks over the tree of this NodeLike */
-  * walk (): IterableIterator<PathTreeNode> {
+  *walk(): IterableIterator<PathTreeNode> {
     yield this
 
     for (const child of this.children()) {
@@ -93,7 +112,7 @@ export abstract class PathTreeNode {
   }
 
   /** finds a node within the current subtree that has the given id, if any */
-  find (id: string): PathTreeNode | null {
+  find(id: string): PathTreeNode | null {
     for (const node of this.walk()) {
       if (node.path?.id === id) {
         return node
@@ -103,7 +122,7 @@ export abstract class PathTreeNode {
   }
 
   /** paths returns the paths of this NodeLike */
-  * paths (): IterableIterator<Path> {
+  *paths(): IterableIterator<Path> {
     for (const child of this.walk()) {
       const { path } = child
       if (path === null) {
@@ -114,7 +133,7 @@ export abstract class PathTreeNode {
   }
 
   /** returns the set of all known URIs */
-  get uris (): Set<string> {
+  get uris(): Set<string> {
     const uris = new Set<string>()
 
     for (const path of this.paths()) {
@@ -129,7 +148,7 @@ export abstract class PathTreeNode {
 
 export class PathTree extends PathTreeNode {
   private readonly bundles: Bundle[]
-  constructor (bundles: ProtoBundle[]) {
+  constructor(bundles: ProtoBundle[]) {
     super(0, -1)
     this.bundles = bundles.map(bundle => new Bundle(this, bundle))
   }
@@ -137,17 +156,20 @@ export class PathTree extends PathTreeNode {
   readonly path = null
   readonly parent = null;
 
-  * children (): IterableIterator<Bundle> {
+  *children(): IterableIterator<Bundle> {
     for (const bundle of this.bundles) {
       yield bundle
     }
   }
 
-  get childCount (): number {
+  get childCount(): number {
     return this.bundles.length
   }
 
-  static fromPathbuilder (pb: Pathbuilder, emit?: (Diagnostic: Diagnostic) => void): PathTree {
+  static fromPathbuilder(
+    pb: Pathbuilder,
+    emit?: (Diagnostic: Diagnostic) => void,
+  ): PathTree {
     const bundles = new Map<string, MutableProtoBundle>()
     const mainBundles: MutableProtoBundle[] = []
 
@@ -159,7 +181,13 @@ export class PathTree extends PathTreeNode {
         return get
       }
 
-      const create: MutableProtoBundle = { id, data: null, parent: null, fields: [], bundles: [] }
+      const create: MutableProtoBundle = {
+        id,
+        data: null,
+        parent: null,
+        fields: [],
+        bundles: [],
+      }
       bundles.set(id, create)
       return create
     }
@@ -167,7 +195,8 @@ export class PathTree extends PathTreeNode {
     pb.paths.forEach((path, index) => {
       if (!path.enabled) return
 
-      const parent = path.groupId !== '' ? getOrCreateBundle(path.groupId) : null
+      const parent =
+        path.groupId !== '' ? getOrCreateBundle(path.groupId) : null
 
       // not a group => it is just a field
       if (!path.isGroup) {
@@ -204,30 +233,39 @@ export class PathTree extends PathTreeNode {
     }
 
     return new PathTree(
-      mainBundles.map(bundle => this.validateBundle(bundle)).filter(bundle => bundle !== null)
+      mainBundles
+        .map(bundle => this.validateBundle(bundle))
+        .filter(bundle => bundle !== null),
     )
   }
 
-  private static validateBundle ({ id, data, bundles, fields }: MutableProtoBundle): ProtoBundle | null {
+  private static validateBundle({
+    id,
+    data,
+    bundles,
+    fields,
+  }: MutableProtoBundle): ProtoBundle | null {
     if (data === null) {
       return null
     }
 
-    const children = bundles.map(bundle => this.validateBundle(bundle)).filter(bundle => bundle !== null)
+    const children = bundles
+      .map(bundle => this.validateBundle(bundle))
+      .filter(bundle => bundle !== null)
 
     return {
       path: data.path,
       index: data.index,
       bundles: children,
-      fields
+      fields,
     }
   }
 }
 
 export class Bundle extends PathTreeNode {
-  constructor (
+  constructor(
     public readonly parent: Bundle | PathTree,
-    { index, path, bundles, fields }: ProtoBundle
+    { index, path, bundles, fields }: ProtoBundle,
   ) {
     // ensure that the proto bundle object is valid
     super(parent.depth + 1, index)
@@ -245,7 +283,7 @@ export class Bundle extends PathTreeNode {
   private readonly childBundles: Bundle[] = []
   private readonly childFields: Field[] = [];
 
-  * children (): IterableIterator<PathTreeNode> {
+  *children(): IterableIterator<PathTreeNode> {
     for (const bundle of this.childBundles) {
       yield bundle
     }
@@ -254,19 +292,19 @@ export class Bundle extends PathTreeNode {
     }
   }
 
-  get childCount (): number {
+  get childCount(): number {
     return this.childBundles.length + this.childFields.length
   }
 
   /** the direct bundle descendants */
-  * bundles (): IterableIterator<Bundle> {
+  *bundles(): IterableIterator<Bundle> {
     for (const bundle of this.childBundles) {
       yield bundle
     }
   }
 
   /** the direct field descendants */
-  * fields (): IterableIterator<Field> {
+  *fields(): IterableIterator<Field> {
     for (const field of this.childFields) {
       yield field
     }
@@ -274,17 +312,17 @@ export class Bundle extends PathTreeNode {
 }
 
 export class Field extends PathTreeNode {
-  constructor (
+  constructor(
     public readonly parent: Bundle,
-    field: ProtoField
+    field: ProtoField,
   ) {
     super(parent.depth + 1, field.index)
     this.path = field.path
   }
 
-  public readonly path: Path
+  public readonly path: Path;
 
-  * children (): IterableIterator<never> { }
+  *children(): IterableIterator<never> {}
 
   public readonly childCount = 0
 }

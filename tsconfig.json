@@ -24,6 +24,7 @@
   
   "include": [
     "vite.config.ts",
+    "eslint.config.mjs",
     "./src/**/*",
     "./macros/**/*",
     "./scripts/**/*"

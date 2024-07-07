@@ -8,14 +8,14 @@
  *
  * Note that an IDPool is always growing in size.
  *
-*/
+ */
 export class IDPool<T = any> {
   readonly #map = new Map<T, number>()
   readonly #imap = new Map<string, T>()
 
   #state = 0
 
-  static #formatID (id: number): string {
+  static #formatID(id: number): string {
     return 'I' + id.toString(16).toUpperCase().padStart(15, '0')
   }
 
@@ -25,7 +25,7 @@ export class IDPool<T = any> {
    * The format of IDs returned will be is a 16 digit hexadecimal number prefixed with the letter 'I'.
    * The ID only contains capital letters.
    */
-  public next (): string {
+  public next(): string {
     return IDPool.#formatID(this.nextInt())
   }
 
@@ -33,8 +33,8 @@ export class IDPool<T = any> {
    * Same as next, but returns a numeric id instead of a string one.
    * Numerical ids are integers, starting at 1.
    */
-  public nextInt (): number {
-    return (++this.#state)
+  public nextInt(): number {
+    return ++this.#state
   }
 
   /**
@@ -42,7 +42,7 @@ export class IDPool<T = any> {
    * The ID is not recycled, meaning future calls to of and ofInt will return null.
    * A future call to for may assign a new id for the underlying object.
    */
-  public delete (id: string): void {
+  public delete(id: string): void {
     const value = this.#imap.get(id)
 
     if (typeof value === 'undefined') {
@@ -55,7 +55,7 @@ export class IDPool<T = any> {
   }
 
   /** deleteInt is the same as delete, except for taking a numeric id */
-  public deleteInt (id: number): void {
+  public deleteInt(id: number): void {
     if (id <= 0 || id > this.#state) return
     this.delete(IDPool.#formatID(id))
   }
@@ -71,16 +71,16 @@ export class IDPool<T = any> {
    *
    * The id returned in the same for as in next.
    */
-  public for (value: T): string {
+  public for(value: T): string {
     return this.#forImpl(value)[1]
   }
 
   /** Like for, but returns a numerical id instead of a string */
-  public intFor (value: T): number {
+  public intFor(value: T): number {
     return this.#forImpl(value)[0]
   }
 
-  #forImpl (value: T): [number, string] {
+  #forImpl(value: T): [number, string] {
     const old = this.#map.get(value)
     if (typeof old !== 'undefined') {
       return [old, IDPool.#formatID(old)]
@@ -98,11 +98,11 @@ export class IDPool<T = any> {
    * Returns the the value belonging to the given id.
    * If no such value exists, returns null.
    */
-  public of (id: string): T | null {
+  public of(id: string): T | null {
     return this.#imap.get(id) ?? null
   }
 
-  public ofInt (id: number): T | null {
+  public ofInt(id: number): T | null {
     if (id <= 0 || id > this.#state) return null // don't even bother checking for invalid ids
     return this.of(IDPool.#formatID(id))
   }

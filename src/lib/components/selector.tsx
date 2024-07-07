@@ -7,26 +7,35 @@ interface ValueSelectorProps {
   onInput: (value: string) => void
 }
 
-export default class ValueSelector extends Component<ValueSelectorProps, Record<never, never>> {
-  private readonly handleChange = (evt: Event & { currentTarget: HTMLSelectElement }): void => {
+export default class ValueSelector extends Component<
+  ValueSelectorProps,
+  Record<never, never>
+> {
+  private readonly handleChange = (
+    evt: Event & { currentTarget: HTMLSelectElement },
+  ): void => {
     evt.preventDefault()
     if (this.disabled) return
 
     // validate that we have a valid value
     const { value } = evt.currentTarget
     const { values, onInput } = this.props
-    if (typeof values === 'undefined' || !values.includes(value)) return
+    if (!(values?.includes(value) ?? false)) return
 
     // call the handler
     onInput(value)
   }
 
-  get disabled (): boolean {
+  get disabled(): boolean {
     const { value, values, disabled } = this.props
-    return (disabled ?? false) || typeof value === 'undefined' || typeof values === 'undefined'
+    return (
+      (disabled ?? false) ||
+      typeof value === 'undefined' ||
+      typeof values === 'undefined'
+    )
   }
 
-  render (): ComponentChild {
+  render(): ComponentChild {
     const { value, values } = this.props
     if (typeof values === 'undefined') {
       if (typeof value !== 'undefined') {
@@ -39,10 +48,14 @@ export default class ValueSelector extends Component<ValueSelectorProps, Record<
       return <select disabled />
     }
     return (
-      <select value={value} disabled={this.disabled} onInput={this.handleChange}>
-        {
-          values.map(value => <option key={value}>{value}</option>)
-        }
+      <select
+        value={value}
+        disabled={this.disabled}
+        onInput={this.handleChange}
+      >
+        {values.map(value => (
+          <option key={value}>{value}</option>
+        ))}
       </select>
     )
   }

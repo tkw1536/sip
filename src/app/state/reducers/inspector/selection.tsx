@@ -1,31 +1,36 @@
 import { type Reducer, type State } from '../..'
-import { type PathTreeNode, type PathTree } from '../../../../lib/pathbuilder/pathtree'
+import {
+  type PathTree,
+  type PathTreeNode,
+} from '../../../../lib/pathbuilder/pathtree'
 import NodeSelection from '../../../../lib/pathbuilder/annotations/selection'
 
-export function newSelection (tree: PathTree): NodeSelection {
+export function newSelection(tree: PathTree): NodeSelection {
   return NodeSelection.all()
 }
 
 /** selects all items */
-export function selectAll (): Reducer {
+export function selectAll(): Reducer {
   return ({ selectionVersion }: State): Partial<State> => ({
     selection: NodeSelection.all(),
-    selectionVersion: selectionVersion + 1
+    selectionVersion: selectionVersion + 1,
   })
 }
 
 /** makes sure that the selected items are applied */
-export function updateSelection (pairs: Array<[PathTreeNode, boolean]>): Reducer {
+export function updateSelection(
+  pairs: Array<[PathTreeNode, boolean]>,
+): Reducer {
   return ({ selection, selectionVersion }: State): Partial<State> => ({
     selection: selection.with(pairs),
-    selectionVersion: selectionVersion + 1
+    selectionVersion: selectionVersion + 1,
   })
 }
 
 /** selects none of the item */
-export function selectNone (): Reducer {
+export function selectNone(): Reducer {
   return ({ selection, selectionVersion }: State): Partial<State> => ({
     selection: NodeSelection.none(),
-    selectionVersion: selectionVersion + 1
+    selectionVersion: selectionVersion + 1,
   })
 }

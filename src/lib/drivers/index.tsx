@@ -1,4 +1,4 @@
-import { Component, type ComponentChild, createRef, type Ref } from 'preact'
+import { Component, type ComponentChild, type Ref, createRef } from 'preact'
 import type Graph from '../graph'
 import { type NamespaceMap } from '../namespace'
 import * as styles from './index.module.css'
@@ -24,7 +24,11 @@ interface KernelProps<NodeLabel, EdgeLabel> {
   driverRef?: Ref<Driver<NodeLabel, EdgeLabel>>
 }
 
-interface KernelState { size?: Size, driverError?: Error, driverLoading: boolean }
+interface KernelState {
+  size?: Size
+  driverError?: Error
+  driverLoading: boolean
+}
 
 export interface DriverLoader<NodeLabel, EdgeLabel> {
   get: (name: string) => Promise<Driver<NodeLabel, EdgeLabel>>
@@ -33,16 +37,28 @@ export interface DriverLoader<NodeLabel, EdgeLabel> {
 /**
  * Displays a driver on the page
  */
-export default class Kernel<NodeLabel, EdgeLabel> extends Component<KernelProps<NodeLabel, EdgeLabel>, KernelState> {
+export default class Kernel<NodeLabel, EdgeLabel> extends Component<
+  KernelProps<NodeLabel, EdgeLabel>,
+  KernelState
+> {
   private static readonly errorAborted = new Error('aborted')
 
   state: KernelState = { driverLoading: false }
-  private mod: { mount: _mount, ctx: _context, flags: MountFlags, driver: Driver<NodeLabel, EdgeLabel> } | null = null
+  private mod: {
+    mount: _mount
+    ctx: _context
+    flags: MountFlags
+    driver: Driver<NodeLabel, EdgeLabel>
+  } | null = null
 
-  private mountDriver (): void {
+  private mountDriver(): void {
     const { current: container } = this.container
     const { size } = this.state
-    if ((this.mod !== null) || (container === null) || (typeof size === 'undefined')) {
+    if (
+      this.mod !== null ||
+      container === null ||
+      typeof size === 'undefined'
+    ) {
       return
     }
 
@@ -54,13 +70,13 @@ export default class Kernel<NodeLabel, EdgeLabel> extends Component<KernelProps<
       definitelyAcyclic: this.props.graph.definitelyAcyclic,
 
       layout,
-      initialSize: size
+      initialSize: size,
     })
 
     const flags: MountFlags = Object.freeze({
       container,
       currentSize: size,
-      ...ctxFlags
+      ...ctxFlags,
     })
 
     // create a ticket, and make the context
@@ -71,16 +87,19 @@ export default class Kernel<NodeLabel, EdgeLabel> extends Component<KernelProps<
         .then(async ({ driver, ctx }) => {
           // await to set the new state
           await new Promise<void>((resolve, reject) => {
-            this.setState(() => {
-              if (!ticket()) return null
-              return { driverError: undefined, driverLoading: false }
-            }, () => {
-              if (ticket()) {
-                resolve()
-              } else {
-                reject(Kernel.errorAborted)
-              }
-            })
+            this.setState(
+              () => {
+                if (!ticket()) return null
+                return { driverError: undefined, driverLoading: false }
+              },
+              () => {
+                if (ticket()) {
+                  resolve()
+                } else {
+                  reject(Kernel.errorAborted)
+                }
+              },
+            )
           })
 
           // check that we have a valid layout
@@ -100,24 +119,32 @@ export default class Kernel<NodeLabel, EdgeLabel> extends Component<KernelProps<
           if (err === Kernel.errorAborted || !ticket()) return
 
           console.error('error while mounting driver: ', err)
-          const driverError = (err instanceof Error) ? err : new Error(String(err))
+          const driverError =
+            err instanceof Error ? err : new Error(String(err))
           container.innerHTML = '' // remove whatever elements were in there
           this.setState({ driverError, driverLoading: false })
         })
     })
   }
 
-  private async loadContext (ticket: () => boolean, graph: Graph<NodeLabel, EdgeLabel>, loader: DriverLoader<NodeLabel, EdgeLabel>, name: string, ctxFlags: ContextFlags): Promise<{ ctx: _context, driver: Driver<NodeLabel, EdgeLabel> }> {
+  private async loadContext(
+    ticket: () => boolean,
+    graph: Graph<NodeLabel, EdgeLabel>,
+    loader: DriverLoader<NodeLabel, EdgeLabel>,
+    name: string,
+    ctxFlags: ContextFlags,
+  ): Promise<{ ctx: _context; driver: Driver<NodeLabel, EdgeLabel> }> {
     // load the driver
     const driver = await loader.get(name)
     const ctx = await driver.makeContext(ctxFlags, graph, ticket)
 
     return {
-      driver, ctx
+      driver,
+      ctx,
     }
   }
 
-  private unmountDriver (): void {
+  private unmountDriver(): void {
     if (this.mod === null) return
 
     this.mod.driver.unmount(this.mod.mount, this.mod.ctx, this.mod.flags)
@@ -125,19 +152,24 @@ export default class Kernel<NodeLabel, EdgeLabel> extends Component<KernelProps<
     setRef(this.props.driverRef, null)
   }
 
-  private resizeMount (): void {
+  private resizeMount(): void {
     const { size } = this.state
     if (this.mod == null || typeof size === 'undefined') return
 
     // call the resize function and store the new size
-    const next = this.mod.driver.resizeMount(this.mod.mount, this.mod.ctx, this.mod.flags, size)
+    const next = this.mod.driver.resizeMount(
+      this.mod.mount,
+      this.mod.ctx,
+      this.mod.flags,
+      size,
+    )
     this.mod.flags = Object.freeze({ ...this.mod.flags, size })
 
     // update the mounted instance (if applicable)
     this.mod.mount = next ?? this.mod.mount
   }
 
-  async exportBlob (format: string): Promise<Blob> {
+  async exportBlob(format: string): Promise<Blob> {
     if (this.mod == null) throw new Error('instance not setup')
 
     const { driver } = this.mod
@@ -145,15 +177,21 @@ export default class Kernel<NodeLabel, EdgeLabel> extends Component<KernelProps<
       throw new Error('unsupported blob returned')
     }
 
-    return await driver.export(this.mod.ctx, this.mod.flags, format, { mount: this.mod.mount, flags: this.mod.flags })
+    return await driver.export(this.mod.ctx, this.mod.flags, format, {
+      mount: this.mod.mount,
+      flags: this.mod.flags,
+    })
   }
 
   private readonly mount = new Operation()
-  componentDidMount (): void {
+  componentDidMount(): void {
     this.createObserver()
   }
 
-  componentDidUpdate (previousProps: typeof this.props, previousState: typeof this.state): void {
+  componentDidUpdate(
+    previousProps: typeof this.props,
+    previousState: typeof this.state,
+  ): void {
     const { size } = this.state
     const { current: container } = this.container
     if (typeof size === 'undefined' || container === null) return
@@ -172,38 +210,42 @@ export default class Kernel<NodeLabel, EdgeLabel> extends Component<KernelProps<
     }
   }
 
-  private shouldRemount (previousProps: typeof this.props, previousState: typeof this.state): boolean {
+  private shouldRemount(
+    previousProps: typeof this.props,
+    previousState: typeof this.state,
+  ): boolean {
     return (
       // we didn't have a size before, but we do now
-      (typeof previousState.size === 'undefined' && typeof this.state.size !== 'undefined') ||
-
+      (typeof previousState.size === 'undefined' &&
+        typeof this.state.size !== 'undefined') ||
       // the driver or loader changed
-      (previousProps.driver !== this.props.driver) ||
-      (previousProps.loader !== this.props.loader) ||
-
+      previousProps.driver !== this.props.driver ||
+      previousProps.loader !== this.props.loader ||
       // the graph changed
-      (previousProps.graph !== this.props.graph) ||
-
+      previousProps.graph !== this.props.graph ||
       // the layout changed
-      (previousProps.layout !== this.props.layout)
+      previousProps.layout !== this.props.layout
     )
   }
 
-  private shouldResizeMount (previousProps: typeof this.props, previousState: typeof this.state): boolean {
+  private shouldResizeMount(
+    previousProps: typeof this.props,
+    previousState: typeof this.state,
+  ): boolean {
     const { size: prevSize } = previousState
     const { size } = this.state
 
     return (
       // either of the sizes are not defined
-      (typeof prevSize === 'undefined' || typeof size === 'undefined') ||
-
+      typeof prevSize === 'undefined' ||
+      typeof size === 'undefined' ||
       // either of the dimensions have changed
-      (prevSize.width !== size.width) ||
-      (prevSize.height !== size.height)
+      prevSize.width !== size.width ||
+      prevSize.height !== size.height
     )
   }
 
-  componentWillUnmount (): void {
+  componentWillUnmount(): void {
     this.mount.cancel()
     this.destroyObserver()
     this.unmountDriver()
@@ -213,7 +255,7 @@ export default class Kernel<NodeLabel, EdgeLabel> extends Component<KernelProps<
   private observer: ResizeObserver | null = null
 
   /** creates a resize observer unless it already exists */
-  private createObserver (): void {
+  private createObserver(): void {
     // check that we don't already have an observer
     const { current: wrapper } = this.wrapper
     if (wrapper === null || this.observer !== null) return
@@ -223,32 +265,41 @@ export default class Kernel<NodeLabel, EdgeLabel> extends Component<KernelProps<
   }
 
   /** destroys a resize observer if it exists */
-  private destroyObserver (): void {
+  private destroyObserver(): void {
     if (this.observer === null) return
     this.observer.disconnect()
     this.observer = null
   }
 
   /** handles updating the state to the newly observed size */
-  private readonly handleObserverResize = ([entry]: ResizeObserverEntry[]): void => {
+  private readonly handleObserverResize = ([
+    entry,
+  ]: ResizeObserverEntry[]): void => {
     if (this.mount.canceled) return // no longer mounted => no need to do anything
 
     const [width, height] = Kernel.getVisibleSize(entry.target)
 
     this.setState(({ size }) => {
-      if (typeof size !== 'undefined' && size.width === width && size.height === height) return null
+      if (
+        typeof size !== 'undefined' &&
+        size.width === width &&
+        size.height === height
+      )
+        return null
 
       return { size: { width, height } }
     })
   }
 
   /* returns the size of the part of target that is visible in the view port */
-  private static readonly getVisibleSize = (target: Element): [number, number] => {
+  private static readonly getVisibleSize = (
+    target: Element,
+  ): [number, number] => {
     const { top, bottom, left, right } = target.getBoundingClientRect()
 
     return [
       Math.max(Math.min(right, window.innerWidth) - Math.max(left, 0), 0),
-      Math.max(Math.min(bottom, window.innerHeight) - Math.max(top, 0), 0)
+      Math.max(Math.min(bottom, window.innerHeight) - Math.max(top, 0), 0),
     ]
   }
 
@@ -256,15 +307,26 @@ export default class Kernel<NodeLabel, EdgeLabel> extends Component<KernelProps<
 
   private readonly wrapper = createRef<HTMLDivElement>()
   private readonly container = createRef<HTMLDivElement>()
-  render (): ComponentChild {
+  render(): ComponentChild {
     const { size, driverLoading, driverError } = this.state
 
     return (
       <div ref={this.wrapper} class={styles.wrapper}>
-        {(typeof size !== 'undefined') && (
-          <div style={{ width: size.width, height: size.height }} ref={this.container}>
-            {driverLoading && <Loader message={<>Rendering is taking a bit longer. Please be patient. </>} />}
-            {driverError instanceof Error && <ErrorDisplay error={driverError} />}
+        {typeof size !== 'undefined' && (
+          <div
+            style={{ width: size.width, height: size.height }}
+            ref={this.container}
+          >
+            {driverLoading && (
+              <Loader
+                message={
+                  <>Rendering is taking a bit longer. Please be patient. </>
+                }
+              />
+            )}
+            {driverError instanceof Error && (
+              <ErrorDisplay error={driverError} />
+            )}
           </div>
         )}
       </div>
@@ -273,7 +335,7 @@ export default class Kernel<NodeLabel, EdgeLabel> extends Component<KernelProps<
 }
 
 /** sets a reference to a specific value */
-function setRef<T> (ref: Ref<T> | undefined, value: T | null): void {
+function setRef<T>(ref: Ref<T> | undefined, value: T | null): void {
   if (ref === null) return
   switch (typeof ref) {
     case 'undefined':

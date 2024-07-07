@@ -7,7 +7,7 @@ import NodeSelection from '../../../../lib/pathbuilder/annotations/selection'
 import Deduplication from '../../state/deduplication'
 import newInspectorState from '../inspector'
 
-export function resetInterface (): State {
+export function resetInterface(): State {
   return {
     loadStage: false,
     activeTab: '',
@@ -43,22 +43,22 @@ export function resetInterface (): State {
     rdfGraphDriver: '',
     rdfGraphLayout: '',
 
-    collapsed: NodeSelection.none()
+    collapsed: NodeSelection.none(),
   }
 }
 
-export function setPathbuilderLoading (): Partial<State> {
+export function setPathbuilderLoading(): Partial<State> {
   return { loadStage: 'loading' }
 }
 
-export function loadPathbuilder (file: File): Reducer {
+export function loadPathbuilder(file: File): Reducer {
   return async (state: State): Promise<Partial<State> | null> => {
     try {
       const source = await file.text()
       return newInspectorState(Pathbuilder.parse(source), file.name)
     } catch (error: unknown) {
       return {
-        loadStage: { error }
+        loadStage: { error },
       }
     }
   }

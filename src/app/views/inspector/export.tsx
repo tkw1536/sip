@@ -11,16 +11,21 @@ export default class ExportView extends Component<ReducerProps> {
     download(file, filename !== '' ? filename : 'pathbuilder.xml')
   }
 
-  render (): ComponentChild {
+  render(): ComponentChild {
     const { filename } = this.props.state
     return (
       <>
         <p>
-          Use the button below to save the pathbuilder as an xml file.
-          This usually corresponds to exactly the file that was originally loaded.
+          Use the button below to save the pathbuilder as an xml file. This
+          usually corresponds to exactly the file that was originally loaded.
         </p>
 
-        <button onClick={this.handleExport}>Save {typeof filename === 'string' && filename !== '' ? filename : 'pathbuilder.xml'}</button>
+        <button onClick={this.handleExport}>
+          Save
+          {typeof filename === 'string' && filename !== ''
+            ? filename
+            : 'pathbuilder.xml'}
+        </button>
       </>
     )
   }

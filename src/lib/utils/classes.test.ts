@@ -5,7 +5,7 @@ describe(classes, () => {
   test.each([
     [['hello', 'world'], 'hello world'],
     [['is', '', undefined, false, 'included'], 'is included'],
-    [[null, undefined, 1234, ''], '']
+    [[null, undefined, 1234, ''], ''],
   ])('classes %#', (args, want) => {
     expect(classes(...args)).toBe(want)
   })

@@ -2,21 +2,28 @@ import { IDPool } from '../utils/id-pool'
 
 /** Graph implements a generic directed graph */
 export default class Graph<NodeLabel, EdgeLabel> {
-  constructor (public definitelyAcyclic: boolean) {}
+  constructor(public definitelyAcyclic: boolean) {}
 
   private readonly nodes = new Map<number, NodeLabel>()
-  private readonly edges = new Map<number, Map<number, { id: number, label: EdgeLabel }>>()
-  private readonly ids = new IDPool<string>()//  new IDMap<string>()
+  private readonly edges = new Map<
+    number,
+    Map<number, { id: number; label: EdgeLabel }>
+  >()
+  private readonly ids = new IDPool<string>() //  new IDMap<string>()
 
   /** addNode adds a new Node with the given label. If it already exists, it is overwritten. */
-  addNode (label: NodeLabel, id?: string): number {
-    const theId = (typeof id === 'string') ? this.ids.intFor(id) : this.ids.nextInt()
+  addNode(label: NodeLabel, id?: string): number {
+    const theId =
+      typeof id === 'string' ? this.ids.intFor(id) : this.ids.nextInt()
     this.nodes.set(theId, label)
     return theId
   }
 
   /** addOrUpdateNode creates or updates a node */
-  addOrUpdateNode (id: string, update: (label?: NodeLabel) => NodeLabel): number {
+  addOrUpdateNode(
+    id: string,
+    update: (label?: NodeLabel) => NodeLabel,
+  ): number {
     // node already exists => update
     const oldId = this.getNode(id)
     if (typeof oldId === 'number') {
@@ -29,7 +36,7 @@ export default class Graph<NodeLabel, EdgeLabel> {
   }
 
   /** getNode gets the node or returns null */
-  getNode (id: number | string): number | null {
+  getNode(id: number | string): number | null {
     // if we are given an id, ensure that we have the number
     if (typeof id === 'number') {
       if (!this.nodes.has(id)) {
@@ -45,22 +52,22 @@ export default class Graph<NodeLabel, EdgeLabel> {
     return theId
   }
 
-  private getNodeId (id: number | string): number {
-    return (typeof id === 'string') ? this.ids.intFor(id) : id
+  private getNodeId(id: number | string): number {
+    return typeof id === 'string' ? this.ids.intFor(id) : id
   }
 
   /** getNodeLabel gets the string belonging to the given node, or null */
-  getNodeString (id: number): string | null {
+  getNodeString(id: number): string | null {
     return this.ids.ofInt(this.getNodeId(id))
   }
 
   /** hasNode checks if the set has the given node */
-  hasNode (id: string | number): boolean {
+  hasNode(id: string | number): boolean {
     return this.nodes.has(this.getNodeId(id))
   }
 
   /** deleteNode removes the given node and any of it's labels */
-  deleteNode (id: string | number): void {
+  deleteNode(id: string | number): void {
     const theId = this.getNodeId(id)
 
     // remove from known nodes
@@ -73,7 +80,7 @@ export default class Graph<NodeLabel, EdgeLabel> {
   }
 
   /** getNodes gets the ids of the given nodes */
-  getNodes (): Array<[number, NodeLabel]> {
+  getNodes(): Array<[number, NodeLabel]> {
     const nodes: Array<[number, NodeLabel]> = []
     this.nodes.forEach((value, key) => {
       nodes.push([key, value])
@@ -82,13 +89,17 @@ export default class Graph<NodeLabel, EdgeLabel> {
   }
 
   /** getNodeLabels gets the labels of the provided node, if any */
-  getNodeLabel (id: string | number): NodeLabel | null {
+  getNodeLabel(id: string | number): NodeLabel | null {
     const theId = this.getNodeId(id)
     return this.nodes.get(theId) ?? null
   }
 
   /** addEdge adds an edge with the given labels. If the labels are invalid, returns an error. */
-  addEdge (from: string | number, to: string | number, label: EdgeLabel): boolean {
+  addEdge(
+    from: string | number,
+    to: string | number,
+    label: EdgeLabel,
+  ): boolean {
     const fromId = this.getNode(from)
     if (typeof fromId !== 'number') {
       console.warn('unknown from', from)
@@ -104,7 +115,7 @@ export default class Graph<NodeLabel, EdgeLabel> {
     // get or initialize this.edges[fromId]
     let fromMap = this.edges.get(fromId)
     if (fromMap == null) {
-      fromMap = new Map<number, { id: number, label: EdgeLabel }>()
+      fromMap = new Map<number, { id: number; label: EdgeLabel }>()
       this.edges.set(fromId, fromMap)
     }
 
@@ -116,7 +127,7 @@ export default class Graph<NodeLabel, EdgeLabel> {
   }
 
   /** check if we have an edge */
-  hasEdge (from: string | number, to: string | number): boolean {
+  hasEdge(from: string | number, to: string | number): boolean {
     const fromId = this.getNode(from)
     if (typeof fromId !== 'number') return false
 
@@ -129,7 +140,7 @@ export default class Graph<NodeLabel, EdgeLabel> {
   }
 
   /** getEdgeLabels gets the labels of the edge from from to to, or null */
-  getEdgeLabel (from: string | number, to: string | number): EdgeLabel | null {
+  getEdgeLabel(from: string | number, to: string | number): EdgeLabel | null {
     const fromId = this.getNode(from)
     if (typeof fromId !== 'number') return null
 
@@ -145,7 +156,7 @@ export default class Graph<NodeLabel, EdgeLabel> {
   }
 
   /** getEdges gets the set of all edges */
-  getEdges (): Array<[number, number, number, EdgeLabel]> {
+  getEdges(): Array<[number, number, number, EdgeLabel]> {
     const edges: Array<[number, number, number, EdgeLabel]> = []
 
     this.edges.forEach((fromMap, from) => {
@@ -158,7 +169,7 @@ export default class Graph<NodeLabel, EdgeLabel> {
   }
 
   /** deleteEdge removes the between the given edges and any associated labels  */
-  deleteEdge (from: number | string, to: number | string): void {
+  deleteEdge(from: number | string, to: number | string): void {
     const fromId = this.getNode(from)
     if (typeof fromId !== 'number') return
 

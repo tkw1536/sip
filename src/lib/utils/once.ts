@@ -9,8 +9,8 @@ enum State {
 export default class Once {
   #state: State = State.Init
   #rejectReason: any = null
-  #waiters: Array<{ resolve: () => void, reject: (err: any) => void }> = []
-  async Do (func: () => Promise<void>): Promise<void> {
+  #waiters: Array<{ resolve: () => void; reject: (err: any) => void }> = []
+  async Do(func: () => Promise<void>): Promise<void> {
     await new Promise<void>((resolve, reject) => {
       const state = this.#state
       // everything is done already => don't do anything
@@ -19,7 +19,9 @@ export default class Once {
         return
       }
       if (state === State.Rejected) {
+        // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
         reject(this.#rejectReason)
+        return
       }
 
       // add a waiter to the front
@@ -34,15 +36,26 @@ export default class Once {
       func()
         .then(() => {
           this.#state = State.Fulfilled
-          this.#waiters.forEach(({ resolve }) => { resolve() })
-        }).catch((err: any) => {
-          if (this.#state === State.Fulfilled) { throw err } // error occurred during handling => re-throw it
+          this.#waiters.forEach(({ resolve }) => {
+            resolve()
+          })
+        })
+        .catch((err: any) => {
+          // TODO: move to the then() thing
+          // error occurred during handling => re-throw it
+          if (this.#state === State.Fulfilled) {
+            // eslint-disable-next-line @typescript-eslint/only-throw-error
+            throw err
+          }
 
           // error occurred during original promise
           this.#state = State.Rejected
           this.#rejectReason = err
-          this.#waiters.forEach(({ reject }) => { reject(err) })
-        }).finally(() => {
+          this.#waiters.forEach(({ reject }) => {
+            reject(err)
+          })
+        })
+        .finally(() => {
           this.#waiters = [] // prevent memory leaks for the resolve/reject
         })
     })
@@ -53,7 +66,7 @@ export default class Once {
 export class Lazy<T> {
   private readonly once = new Once()
   private stored: T | null = null
-  async Get (getter: () => Promise<T>): Promise<T> {
+  async Get(getter: () => Promise<T>): Promise<T> {
     await this.once.Do(async () => {
       this.stored = await getter()
     })
@@ -65,7 +78,7 @@ export class Lazy<T> {
     return this.stored
   }
 
-  get value (): T {
+  get value(): T {
     if (this.stored === null) throw new Error('Lazy: Value not loaded')
     return this.stored
   }
@@ -73,18 +86,17 @@ export class Lazy<T> {
 
 export class LazyValue<T> {
   private readonly lazy = new Lazy<T>()
-  constructor (private readonly getter: () => Promise<T>) {
-  }
+  constructor(private readonly getter: () => Promise<T>) {}
 
-  get value (): T {
+  get value(): T {
     return this.lazy.value
   }
 
-  async load (): Promise<void> {
+  async load(): Promise<void> {
     await this.lazyValue
   }
 
-  get lazyValue (): Promise<T> {
+  get lazyValue(): Promise<T> {
     return this.lazy.Get(this.getter)
   }
 }

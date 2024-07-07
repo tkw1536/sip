@@ -1,5 +1,9 @@
 import { formatError } from '../../../utils/errors'
-import { type GraphVizRequest, type GraphVizResponse, processRequest } from './impl'
+import {
+  type GraphVizRequest,
+  type GraphVizResponse,
+  processRequest,
+} from './impl'
 
 onmessage = function (e) {
   processMessage(e.data)
@@ -8,12 +12,15 @@ onmessage = function (e) {
       postMessage(message)
     })
     .catch(err => {
-      const message: GraphVizResponse = { success: false, message: formatError(err) }
+      const message: GraphVizResponse = {
+        success: false,
+        message: formatError(err),
+      }
       postMessage(message)
     })
 }
 
-async function processMessage (data: any): Promise<string> {
+async function processMessage(data: any): Promise<string> {
   if (!isRequest(data)) {
     throw new Error('invalid request received')
   }
@@ -21,9 +28,12 @@ async function processMessage (data: any): Promise<string> {
   return await processRequest(data)
 }
 
-function isRequest (data: any): data is GraphVizRequest {
+function isRequest(data: any): data is GraphVizRequest {
   if (typeof data !== 'object' || data === null) {
     return false
   }
-  return Object.hasOwn(data, 'input') && Object.hasOwn(data, 'options')
+  return (
+    Object.hasOwn(data as object, 'input') &&
+    Object.hasOwn(data as object, 'options')
+  )
 }

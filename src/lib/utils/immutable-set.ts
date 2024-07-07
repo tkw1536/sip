@@ -6,21 +6,21 @@
  * Such operations include:
  * - Removing an element which is not in the set; and
  * - Adding an element already in the set
-*/
+ */
 export default class ImmutableSet<T> {
-  constructor (values?: Iterable<T> | null) {
+  constructor(values?: Iterable<T> | null) {
     this.#elements = new Set(values)
   }
 
-  #elements: Set<T>
+  readonly #elements: Set<T>
 
   /* returns a new set with the given element added */
-  add (value: T): ImmutableSet<T> {
+  add(value: T): ImmutableSet<T> {
     return this.addAll([value])
   }
 
   /** adds all values for the given i */
-  addAll (values: Iterable<T>): ImmutableSet<T> {
+  addAll(values: Iterable<T>): ImmutableSet<T> {
     const elements = new Set(this.#elements)
 
     for (const value of values) {
@@ -32,12 +32,12 @@ export default class ImmutableSet<T> {
   }
 
   /** delete the specified  */
-  delete (value: T): ImmutableSet<T> {
+  delete(value: T): ImmutableSet<T> {
     return this.deleteAll([value])
   }
 
   /** returns a new set that deletes from the immutable set */
-  deleteAll (values: Iterable<T>): ImmutableSet<T> {
+  deleteAll(values: Iterable<T>): ImmutableSet<T> {
     const elements = new Set(this.#elements)
 
     for (const value of values) {
@@ -49,37 +49,40 @@ export default class ImmutableSet<T> {
   }
 
   /** calls callbackfn for each element in this set */
-  forEach (callbackfn: (value: T, value2: T, set: Set<T>) => void, thisArg?: any): void {
+  forEach(
+    callbackfn: (value: T, value2: T, set: Set<T>) => void,
+    thisArg?: any,
+  ): void {
     this.#elements.forEach(callbackfn, thisArg)
   }
 
   /** Returns an iterable of entries in the map. */
-  [Symbol.iterator] (): IterableIterator<T> {
+  [Symbol.iterator](): IterableIterator<T> {
     return this.#elements.keys()
   }
 
   /** iterates over all the entries in this set */
-  entries (): IterableIterator<[T, T]> {
+  entries(): IterableIterator<[T, T]> {
     return this.#elements.entries()
   }
 
   /** iterates over all the keys in this set */
-  keys (): IterableIterator<T> {
+  keys(): IterableIterator<T> {
     return this.#elements.keys()
   }
 
   /** same as keys */
-  values (): IterableIterator<T> {
+  values(): IterableIterator<T> {
     return this.#elements.values()
   }
 
   /** returns if this set includes the specified value */
-  has (value: T): boolean {
+  has(value: T): boolean {
     return this.#elements.has(value)
   }
 
   /** returns the number elements in this set */
-  get size (): number {
+  get size(): number {
     return this.#elements.size
   }
 }

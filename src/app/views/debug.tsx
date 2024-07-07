@@ -3,7 +3,7 @@ import { Loader } from '../loader/loader'
 import { type ReducerProps } from '../state'
 
 export default class DebugView extends Component<ReducerProps> {
-  render (): ComponentChildren {
+  render(): ComponentChildren {
     return (
       <>
         <h2>Debug Page</h2>

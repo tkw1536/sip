@@ -7,7 +7,7 @@ import Markup from 'preact-markup'
 const html = import.meta.compileTime<string>('../../../macros/docs.ts')
 
 export default class DocsView extends Component<Record<never, never>> {
-  render (): ComponentChildren {
+  render(): ComponentChildren {
     return (
       <div class={classes(styles.container)}>
         <Markup markup={html} type='html' />

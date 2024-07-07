@@ -12,9 +12,14 @@ import { newRDFDriver } from './rdf'
 import { newSelection } from './selection'
 import { newTabID } from './tab'
 
-export default function newInspectorState (pathbuilder: Pathbuilder, filename: string): State {
+export default function newInspectorState(
+  pathbuilder: Pathbuilder,
+  filename: string,
+): State {
   const diagnostics: Diagnostic[] = []
-  const tree = PathTree.fromPathbuilder(pathbuilder, diag => diagnostics.push(diag))
+  const tree = PathTree.fromPathbuilder(pathbuilder, diag =>
+    diagnostics.push(diag),
+  )
 
   diagnostics.forEach(diag => {
     console.warn('diagnostic received while reading pathbuilder: ', diag)
@@ -55,6 +60,6 @@ export default function newInspectorState (pathbuilder: Pathbuilder, filename: s
 
     collapsed: newCollapsed(tree),
 
-    activeTab: newTabID(tree)
+    activeTab: newTabID(tree),
   }
 }

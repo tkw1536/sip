@@ -6,5 +6,5 @@ export const Type = Object.freeze({
   JSON: 'application/json',
   PNG: 'image/png',
   SVG: 'image/svg+xml',
-  XML: 'text/xml'
+  XML: 'text/xml',
 })
