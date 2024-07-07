@@ -8,6 +8,9 @@ export default defineConfig({
     preact({ reactAliasesEnabled: false }),
     compileTime(),
   ],
+  worker: {
+    format: 'es'
+  },
   test: {
     environment: 'happy-dom'
   },

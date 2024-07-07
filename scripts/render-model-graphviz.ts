@@ -9,7 +9,7 @@ import Deduplication from '../src/app/state/state/deduplication'
 import { GraphVizModelDriver } from '../src/lib/drivers/impl/graphviz'
 import { type ContextFlags } from '../src/lib/drivers/impl'
 
-// Usage: node node_modules/vite-node/vite-node.mjs ./scripts/render-node.ts -p pathbuilder
+// Usage: node node_modules/vite-node/vite-node.mjs ./scripts/render-model-graphviz.ts -p pathbuilder
 
 async function main (): Promise<void> {
   const parser = new ArgumentParser()

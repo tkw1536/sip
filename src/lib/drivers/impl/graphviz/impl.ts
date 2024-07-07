@@ -1,4 +1,4 @@
-import { type Graph, instance, type RenderOptions } from '@viz-js/viz'
+import { type Graph, type RenderOptions } from '@viz-js/viz'
 import { formatError } from '../../../utils/errors'
 
 export interface GraphVizRequest {
@@ -9,6 +9,7 @@ export type GraphVizResponse = { success: true, result: string } | { success: fa
 
 /** processes a graphviz request */
 export async function processRequest (request: GraphVizRequest): Promise<string> {
+  const { instance } = await import('@viz-js/viz')
   const result = (await instance()).render(request.input, request.options)
   if (result.status !== 'success') {
     const message = 'render() returned failure: \n' + result.errors.map(formatError).join('\n')

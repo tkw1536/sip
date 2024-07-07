@@ -1,23 +1,33 @@
-import type { ElementDefinition, Core, CytoscapeOptions } from 'cytoscape'
-import cytoscape from 'cytoscape'
-import cola from 'cytoscape-cola'
-import dagre from 'cytoscape-dagre'
-import fcose from 'cytoscape-fcose'
-import avsdf from 'cytoscape-avsdf'
-
+import { type ElementDefinition, type Core, type CytoscapeOptions } from 'cytoscape'
 import { type ContextFlags, defaultLayout, DriverImpl, ErrorUnsupported, type MountFlags, type Size } from '.'
 import { type BundleEdge, type BundleNode } from '../../graph/builders/bundle'
 import { type ModelEdge, type ModelNode, modelNodeLabel } from '../../graph/builders/model'
-cytoscape.use(cola)
-cytoscape.use(dagre)
-cytoscape.use(fcose)
-cytoscape.use(avsdf)
+import { LazyValue } from '../../utils/once'
+
+const Cytoscape = new LazyValue(async () => {
+  const cytoscape = (await import('cytoscape')).default
+
+  // load all the extensions
+  await Promise.all(
+    [
+      import('cytoscape-cola'),
+      import('cytoscape-dagre'),
+      import('cytoscape-fcose'),
+      import('cytoscape-avsdf')
+    ]
+      .map(
+        async imp => { await imp.then(ext => { cytoscape.use(ext.default) }) }
+      )
+  )
+
+  return cytoscape
+})
 
 type Elements = ElementDefinition[]
-type Cytoscape = Core
+type CytoscapeCore = Core
 type Options = Omit<CytoscapeOptions, 'container' | 'elements'>
 
-abstract class CytoscapeDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLabel, EdgeLabel, Elements, Cytoscape > {
+abstract class CytoscapeDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLabel, EdgeLabel, Elements, CytoscapeCore > {
   protected abstract addNodeImpl (elements: Elements, flags: ContextFlags, id: string, node: NodeLabel): Promise<undefined>
   protected abstract addEdgeImpl (elements: Elements, flags: ContextFlags, id: string, from: string, to: string, edge: EdgeLabel): Promise<undefined>
 
@@ -110,29 +120,30 @@ abstract class CytoscapeDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLabe
   }
 
   protected async finalizeContextImpl (elements: Elements): Promise<Elements> {
+    await Cytoscape.load()
     return elements
   }
 
-  protected mountImpl (elements: Elements, { container, layout, definitelyAcyclic }: MountFlags): Cytoscape {
+  protected mountImpl (elements: Elements, { container, layout, definitelyAcyclic }: MountFlags): CytoscapeCore {
     const options = this.options(layout, definitelyAcyclic)
-    return cytoscape({
+    return Cytoscape.value({
       container,
       elements,
       ...options
     })
   }
 
-  protected resizeMountImpl (c: Cytoscape, elements: Elements, flags: MountFlags, { width, height }: Size): undefined {
+  protected resizeMountImpl (c: CytoscapeCore, elements: Elements, flags: MountFlags, { width, height }: Size): undefined {
     // automatically resized ?
     c.resize()
   }
 
-  protected unmountImpl (c: Cytoscape, elements: unknown): void {
+  protected unmountImpl (c: CytoscapeCore, elements: unknown): void {
     c.destroy()
   }
 
   readonly supportedExportFormats = []
-  protected async exportImpl (elements: Elements, flags: ContextFlags, format: string, mount?: { mount: Cytoscape, flags: MountFlags }): Promise<Blob> {
+  protected async exportImpl (elements: Elements, flags: ContextFlags, format: string, mount?: { mount: CytoscapeCore, flags: MountFlags }): Promise<Blob> {
     throw ErrorUnsupported
   }
 }

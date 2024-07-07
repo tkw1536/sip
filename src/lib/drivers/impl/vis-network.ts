@@ -1,10 +1,13 @@
 import { type ContextFlags, defaultLayout, DriverImpl, ErrorUnsupported, type MountFlags, type Size } from '.'
-import { type Data, Network, type Options } from 'vis-network'
-import { DataSet } from 'vis-data'
+import { type Data, type Network, type Options } from 'vis-network'
+import { type DataSet } from 'vis-data'
 import { type ModelEdge, type ModelNode, modelNodeLabel } from '../../graph/builders/model'
 import { type BundleEdge, type BundleNode } from '../../graph/builders/bundle'
 import * as styles from './vis-network.module.css'
 import { Type } from '../../utils/media'
+import { LazyValue } from '../../utils/once'
+
+const Vis = new LazyValue(async () => await import('vis-network'))
 
 abstract class VisNetworkDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLabel, EdgeLabel, Dataset, Network> {
   protected abstract addNodeImpl (dataset: Dataset, flags: ContextFlags, id: string, node: NodeLabel): Promise<undefined>
@@ -51,7 +54,11 @@ abstract class VisNetworkDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLab
   }
 
   protected async newContextImpl (): Promise<Dataset> {
-    return new Dataset()
+    if (Object.hasOwn(globalThis, 'window')) {
+      await Vis.load()
+    }
+    const { DataSet } = await import('vis-data')
+    return new Dataset(new DataSet(), new DataSet())
   }
 
   protected async finalizeContextImpl (ctx: Dataset): Promise<Dataset> {
@@ -63,7 +70,7 @@ abstract class VisNetworkDriver<NodeLabel, EdgeLabel> extends DriverImpl<NodeLab
 
     const options = this.options(layout, definitelyAcyclic)
     options.autoResize = false
-    return new Network(container, dataset.toData(), options)
+    return new Vis.value.Network(container, dataset.toData(), options)
   }
 
   protected resizeMountImpl (network: Network, dataset: Dataset, flags: MountFlags, { width, height }: Size): undefined {
@@ -193,8 +200,10 @@ interface VisCommon {
 }
 
 class Dataset {
-  private readonly nodes = new DataSet<VisNode<string | number>>()
-  private readonly edges = new DataSet<VisEdge<string | number>>()
+  constructor (
+    private readonly nodes: DataSet<VisNode<string | number>>,
+    private readonly edges: DataSet<VisEdge<string | number>>
+  ) {}
 
   addNode (node: VisNode<string | number>): string {
     const id = this.nodes.add(node)[0] as string
@@ -211,6 +220,8 @@ class Dataset {
 
   /** drawNetworkClone draws a clone of this dataset from the given network */
   async drawNetworkClone (network: Network, width: number, height: number, type?: string, quality?: number): Promise<Blob> {
+    const { DataSet } = await import('vis-data')
+
     // get the original canvas size
     const orgCanvas = (await draw(network)).canvas
 
@@ -238,7 +249,7 @@ class Dataset {
     document.body.append(container)
 
     // create a clone of the network
-    const networkClone = new Network(container, { nodes: nodeSet, edges: edgeSet } as unknown as any, {
+    const networkClone = new Vis.value.Network(container, { nodes: nodeSet, edges: edgeSet } as unknown as any, {
       autoResize: false,
       physics: false,
       layout: {
