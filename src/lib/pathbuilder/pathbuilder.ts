@@ -64,6 +64,7 @@ export interface PathParams {
   name: string
 }
 
+/** a single element of the {@link Pathbuilder} */
 export class Path {
   constructor(params: PathParams) {
     this.id = params.id
@@ -94,17 +95,21 @@ export class Path {
   public readonly bundle: string
   public readonly field: string
   public readonly fieldType: string
+  public readonly fieldTypeInformative: string
   public readonly displayWidget: string
   public readonly formatterWidget: string
   public readonly cardinality: number
-  public readonly fieldTypeInformative: string
   public readonly pathArray: string[]
   public readonly datatypeProperty: string
   public readonly shortName: string
   public readonly disambiguation: number
   public readonly description: string
   public readonly uuid: string
+
+  /** is the path a group */
   public readonly isGroup: boolean
+
+  /** human-readable name */
   public readonly name: string;
 
   /** all uris referenced by this path including concepts, (object) properties, and datatype property  */
