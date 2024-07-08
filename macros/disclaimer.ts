@@ -12,7 +12,6 @@ const YARN_LOCK = join(__dirname, '..', 'yarn.lock')
 export default async function generateDisclaimer(
   args: CompileTimeFunctionArgs,
 ): DefinitelyPromise<CompileTimeFunctionResult> {
-  // eslint-disable-line @typescript-eslint/no-invalid-void-type
   const buffer = await new Promise((resolve, reject) =>
     exec(
       'yarn licenses generate-disclaimer --prod',
