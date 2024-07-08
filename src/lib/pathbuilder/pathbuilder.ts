@@ -65,30 +65,6 @@ export class Path {
     public name: string,
   ) {}
 
-  static invalid(): Path {
-    return new Path(
-      '',
-      -1,
-      false,
-      '',
-      '',
-      '',
-      '',
-      '',
-      '',
-      -1,
-      '',
-      [],
-      '',
-      '',
-      -1,
-      '',
-      '',
-      false,
-      '',
-    )
-  }
-
   /** returns the uris in this path followed by the datatype property (if any) */
   *uris(): IterableIterator<string> {
     for (const uri of this.pathArray) {
