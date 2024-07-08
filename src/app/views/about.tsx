@@ -1,8 +1,6 @@
 import { Component, type ComponentChildren } from 'preact'
 
-const disclaimer = import.meta.compileTime<string>(
-  '../../../macros/disclaimer.ts',
-)
+const disclaimer = import.meta.compileTime<string>('../../../macros/disclaimer.ts') // prettier-ignore
 
 export default class AboutView extends Component {
   render(): ComponentChildren {
