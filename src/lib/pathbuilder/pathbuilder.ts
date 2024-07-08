@@ -118,10 +118,11 @@ export class Path {
   }
 
   /** the informative field type, or the field type */
-  get informativeFieldType(): string {
+  get informativeFieldType(): string | null {
     if (this.fieldTypeInformative !== '') {
       return this.fieldTypeInformative
     }
+    if (this.fieldType === '') return null
     return this.fieldType
   }
 

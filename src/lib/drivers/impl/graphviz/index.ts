@@ -410,8 +410,8 @@ export class GraphVizModelDriver extends GraphvizDriver<ModelNode, ModelEdge> {
         tail: id,
 
         attributes: {
-          label: field.path.informativeFieldType,
-          tooltip: field.path.informativeFieldType,
+          label: field.path.informativeFieldType ?? '',
+          tooltip: field.path.informativeFieldType ?? '',
         },
       })
     })
