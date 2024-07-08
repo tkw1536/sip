@@ -247,7 +247,7 @@ class BundleBuilder extends SpecificBuilder {
   private collectContext(): void {
     for (const node of this.tree.walk()) {
       if (node instanceof Field) {
-        const disambiguation = node.path.getDisambiguation()
+        const disambiguation = node.path.disambiguatedConcept
         if (disambiguation === null) continue
 
         this.contexts.add(disambiguation)

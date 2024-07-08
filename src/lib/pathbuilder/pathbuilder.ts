@@ -42,30 +42,72 @@ export class Pathbuilder {
   }
 }
 
-export class Path {
-  constructor(
-    public id: string,
-    public weight: number,
-    public enabled: boolean,
-    public groupId: string,
-    public bundle: string,
-    public field: string,
-    public fieldType: string,
-    public displayWidget: string,
-    public formatterWidget: string,
-    public cardinality: number,
-    public fieldTypeInformative: string,
-    public pathArray: string[],
-    public datatypeProperty: string,
-    public shortName: string,
-    public disambiguation: number,
-    public description: string,
-    public uuid: string,
-    public isGroup: boolean,
-    public name: string,
-  ) {}
+export interface PathParams {
+  id: string
+  weight: number
+  enabled: boolean
+  groupId: string
+  bundle: string
+  field: string
+  fieldType: string
+  displayWidget: string
+  formatterWidget: string
+  cardinality: number
+  fieldTypeInformative: string
+  pathArray: string[]
+  datatypeProperty: string
+  shortName: string
+  disambiguation: number
+  description: string
+  uuid: string
+  isGroup: boolean
+  name: string
+}
 
-  /** returns the uris in this path followed by the datatype property (if any) */
+export class Path {
+  constructor(params: PathParams) {
+    this.id = params.id
+    this.weight = params.weight
+    this.enabled = params.enabled
+    this.groupId = params.groupId
+    this.bundle = params.bundle
+    this.field = params.field
+    this.fieldType = params.fieldType
+    this.displayWidget = params.displayWidget
+    this.formatterWidget = params.formatterWidget
+    this.cardinality = params.cardinality
+    this.fieldTypeInformative = params.fieldTypeInformative
+    this.pathArray = params.pathArray
+    this.datatypeProperty = params.datatypeProperty
+    this.shortName = params.shortName
+    this.disambiguation = params.disambiguation
+    this.description = params.description
+    this.uuid = params.uuid
+    this.isGroup = params.isGroup
+    this.name = params.name
+  }
+
+  public readonly id: string
+  public readonly weight: number
+  public readonly enabled: boolean
+  public readonly groupId: string
+  public readonly bundle: string
+  public readonly field: string
+  public readonly fieldType: string
+  public readonly displayWidget: string
+  public readonly formatterWidget: string
+  public readonly cardinality: number
+  public readonly fieldTypeInformative: string
+  public readonly pathArray: string[]
+  public readonly datatypeProperty: string
+  public readonly shortName: string
+  public readonly disambiguation: number
+  public readonly description: string
+  public readonly uuid: string
+  public readonly isGroup: boolean
+  public readonly name: string;
+
+  /** all uris referenced by this path including concepts, (object) properties, and datatype property  */
   *uris(): IterableIterator<string> {
     for (const uri of this.pathArray) {
       yield uri
@@ -75,6 +117,7 @@ export class Path {
     }
   }
 
+  /** the informative field type, or the field type */
   get informativeFieldType(): string {
     if (this.fieldTypeInformative !== '') {
       return this.fieldTypeInformative
@@ -82,7 +125,8 @@ export class Path {
     return this.fieldType
   }
 
-  public getDisambiguation(): string | null {
+  /** the concept that is disambiguated by this pathbuilder, if any */
+  get disambiguatedConcept(): string | null {
     const index = 2 * this.disambiguation - 2
     return this.pathArray[index] ?? null
   }
@@ -167,29 +211,29 @@ export class Path {
       return b !== 0
     }
 
-    return new Path(
-      p('id', str),
-      p('weight', int),
-      p('enabled', bool),
-      p('group_id', str0),
+    return new Path({
+      id: p('id', str),
+      weight: p('weight', int),
+      enabled: p('enabled', bool),
+      groupId: p('group_id', str0),
 
-      p('bundle', str),
-      p('field', str),
-      p('fieldtype', str),
-      p('displaywidget', str),
-      p('formatterwidget', str),
-      p('cardinality', int),
-      p('field_type_informative', str),
+      bundle: p('bundle', str),
+      field: p('field', str),
+      fieldType: p('fieldtype', str),
+      displayWidget: p('displaywidget', str),
+      formatterWidget: p('formatterwidget', str),
+      cardinality: p('cardinality', int),
+      fieldTypeInformative: p('field_type_informative', str),
 
-      this.parsePathArray(node),
-      p('datatype_property', strEmpty),
-      p('short_name', str),
-      p('disamb', int),
-      p('description', str),
-      p('uuid', str),
-      p('is_group', bool),
-      p('name', str),
-    )
+      pathArray: this.parsePathArray(node),
+      datatypeProperty: p('datatype_property', strEmpty),
+      shortName: p('short_name', str),
+      disambiguation: p('disamb', int),
+      description: p('description', str),
+      uuid: p('uuid', str),
+      isGroup: p('is_group', bool),
+      name: p('name', str),
+    })
   }
 
   private static serializeElement<T>(
