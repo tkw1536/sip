@@ -13,6 +13,9 @@ const testFiles = [
 
 export default [
   {
+    ignores: ['dist/*', 'node_modules/*'],
+  },
+  {
     ...love,
     files,
   },
