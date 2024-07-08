@@ -15,6 +15,7 @@ import type Graph from '../../../../lib/graph'
 import DropArea from '../../../../lib/components/drop-area'
 import * as styles from './rdf.module.css'
 import { graph, parse } from 'rdflib'
+import { Type } from '../../../../lib/utils/media'
 
 export default class RDFGraphView extends Component<
   ReducerProps,
@@ -28,7 +29,7 @@ export default class RDFGraphView extends Component<
 
     const text = await data.text()
     const format = 'application/rdf+xml'
-    const base = 'http://example.com' // TODO: allow user to determine this
+    const base = '' // TODO: allow user to set this
 
     // parse in the graph
     const store = graph()
@@ -66,61 +67,14 @@ export default class RDFGraphView extends Component<
           This is a really simple tool to render an actual RDF graph. It's not
           the primary purpose of this tool, but may be needed.
         </p>
-        <p>Supported formats are:</p>
-        <ul>
-          <li>
-            <a
-              href='https://www.w3.org/TR/turtle/'
-              target='_blank'
-              rel='noopener noreferrer'
-            >
-              Turtle
-            </a>
-          </li>
-          <li>
-            <a
-              href='https://www.w3.org/TR/trig/'
-              target='_blank'
-              rel='noopener noreferrer'
-            >
-              TriG
-            </a>
-          </li>
-          <li>
-            <a
-              href='https://www.w3.org/TR/n-triples/'
-              target='_blank'
-              rel='noopener noreferrer'
-            >
-              N-Triples
-            </a>
-          </li>
-          <li>
-            <a
-              href='https://www.w3.org/TR/n-quads/'
-              target='_blank'
-              rel='noopener noreferrer'
-            >
-              N-Quads
-            </a>
-          </li>
-          <li>
-            <a
-              href='https://blog.liu.se/olafhartig/2019/01/10/position-statement-rdf-star-and-sparql-star/'
-              target='_blank'
-              rel='noopener noreferrer'
-            >
-              RDF*
-            </a>
-          </li>
-        </ul>
         <DropArea
           class={styles.dropZone}
           activeValidClass={styles.valid}
           activeInvalidClass={styles.invalid}
           onDropFile={this.handleOpen}
+          types={[Type.XML]}
         >
-          Drop RDF here
+          Drop <code>RDF/XML</code> here
         </DropArea>
       </>
     )

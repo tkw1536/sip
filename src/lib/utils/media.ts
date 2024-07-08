@@ -7,4 +7,5 @@ export const Type = Object.freeze({
   PNG: 'image/png',
   SVG: 'image/svg+xml',
   XML: 'text/xml',
+  RDF: 'application/rdf+xml',
 })
