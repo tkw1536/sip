@@ -1,5 +1,7 @@
 // eslint-disable-next-line @typescript-eslint/triple-slash-reference
 /// <reference types="vite-plugin-compile-time/client" />
+// eslint-disable-next-line @typescript-eslint/triple-slash-reference
+/// <reference types="vite/client" />
 declare module '*.module.css' {
   const classes: Record<string, string>
   export = classes

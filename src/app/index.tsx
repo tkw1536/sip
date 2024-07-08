@@ -13,7 +13,6 @@ import DocsView from './views/docs'
 import { setActiveTab } from './state/reducers/inspector/tab'
 import PathbuilderView from './views/pathbuilder'
 import AboutView from './views/about'
-import { Narrow, Wide } from './containers'
 import DebugView from './views/debug'
 import RDFGraphView from './views/inspector/graph/rdf'
 
@@ -128,52 +127,34 @@ class Inspector extends Component<ReducerProps> {
         </Label>
 
         <Tab title='Pathbuilder' id=''>
-          <Narrow>
-            <PathbuilderView {...props} />
-          </Narrow>
+          <PathbuilderView {...props} />
         </Tab>
         <Tab title='Hierarchy' disabled={!loaded} id='hierarchy'>
-          <Wide>
-            <HierarchyView {...props} />
-          </Wide>
+          <HierarchyView {...props} />
         </Tab>
         <Tab title='Bundle Graph' disabled={!loaded} id='bundle'>
-          <Wide fillParent>
-            <BundleGraphView {...props} />
-          </Wide>
+          <BundleGraphView {...props} />
         </Tab>
         <Tab title='Model Graph' disabled={!loaded} id='model'>
-          <Wide fillParent>
-            <ModelGraphView {...props} />
-          </Wide>
+          <ModelGraphView {...props} />
         </Tab>
-        {process.env.NODE_ENV !== 'production' && (
+        {import.meta.env.DEV && (
           <Tab title='RDF Graph' id='rdf' disabled={!loaded}>
-            <Wide fillParent>
-              <RDFGraphView {...props} />
-            </Wide>
+            <RDFGraphView {...props} />
           </Tab>
         )}
         <Tab title='Namespace Map &#9881;&#65039;' disabled={!loaded} id='ns'>
-          <Narrow>
-            <MapView {...props} />
-          </Narrow>
+          <MapView {...props} />
         </Tab>
         <Tab title='Docs' id='docs'>
-          <Narrow>
-            <DocsView />
-          </Narrow>
+          <DocsView />
         </Tab>
         <Tab title='About' id='about'>
-          <Narrow>
-            <AboutView />
-          </Narrow>
+          <AboutView />
         </Tab>
-        {process.env.NODE_ENV !== 'production' && (
+        {import.meta.env.DEV && (
           <Tab title='Debug' id='debug'>
-            <Narrow>
-              <DebugView {...props} />
-            </Narrow>
+            <DebugView {...props} />
           </Tab>
         )}
       </Tabs>
