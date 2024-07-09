@@ -12,8 +12,8 @@ describe(NamespaceMap, () => {
     [
       'adding multiple unrelated namespaces',
       NamespaceMap.empty()
-        .add('https://example.com', 'example')
-        .add('https://other.example.com', 'other'),
+        .add('https://example.com/', 'example')
+        .add('https://other.example.com/', 'other'),
       new Map([
         ['https://example.com/', 'example'],
         ['https://other.example.com/', 'other'],
@@ -62,8 +62,20 @@ describe(NamespaceMap, () => {
         .add('https://example.com/', 'example_new'),
       new Map([['https://example.com/', 'example_new']]),
     ],
-  ])('add / toMap($1)', (_, ns, want) => {
+  ])('add / toMap(%1)', (_, ns, want) => {
     expect(ns.toMap()).toEqual(want)
+  })
+
+  test.each([
+    new Map([
+      ['https://example.com/', 'example'],
+      ['https://other.example.com/', 'other'],
+    ]),
+  ])('round-trip fromMap', data => {
+    const mp = NamespaceMap.fromMap(data)
+    const rtt = NamespaceMap.fromMap(mp.toMap())
+
+    expect(rtt).toEqual(mp)
   })
 
   test('hasLong / hasShort', () => {
@@ -88,7 +100,7 @@ describe(NamespaceMap, () => {
     ['https://example.com/abc/deep', 'https://example.com/abc/', 'abc:deep'],
     ['https://unrelated.example.com/', '', 'https://unrelated.example.com/'],
   ])(
-    'prefix($1) === $2 && apply($1) === $3',
+    'prefix(%1) === %2 && apply(%1) === %3',
     (url: string, wantPrefix: string, wantApply: string) => {
       const mp = NamespaceMap.empty()
         .add('https://example.com/', 'example')

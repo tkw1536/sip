@@ -1,3 +1,6 @@
+import ImmutableMap from './utils/immutable-map'
+import ImmutableSet from './utils/immutable-set'
+
 export interface NamespaceMapExport {
   type: 'namespace-map'
   namespaces: Array<[string, string]>
@@ -7,22 +10,27 @@ export interface NamespaceMapExport {
 export class NamespaceMap {
   static readonly validKey = /^[a-zA-Z0-9_-]+$/
 
-  readonly #parent: NamespaceMap | null
-  readonly #short: string | null
-  readonly #long: string | null
+  readonly #map: ImmutableMap<string, string>
+  readonly #shorts: ImmutableSet<string>
+  private constructor(entries: Iterable<[string, string]>) {
+    const shorts = new Set<string>()
 
-  private constructor(
-    parent: NamespaceMap | null,
-    long: string | null,
-    short: string | null,
-  ) {
-    this.#parent = parent
-    this.#short = short
-    this.#long = long
+    this.#map = new ImmutableMap(
+      Array.from(entries)
+        .reverse()
+        .filter(([_, short]): boolean => {
+          if (shorts.has(short)) {
+            return false
+          }
+          shorts.add(short)
+          return true
+        }),
+    )
+    this.#shorts = new ImmutableSet(shorts)
   }
 
   toJSON(): NamespaceMapExport {
-    const namespaces = Array.from(this.#toMapInternal().entries()).map(
+    const namespaces = Array.from(this.#map).map(
       ([long, short]) => [short, long] as [string, string],
     )
     return {
@@ -62,55 +70,17 @@ export class NamespaceMap {
     return NamespaceMap.fromMap(elements)
   }
 
-  // map holds a map for quickly accessing specific elements.
-  #map: Map<string, string> | null = null
-
-  /** toMapInternal returns a reference to the internal map (which should not be mutated) */
-  #toMapInternal(): Map<string, string> {
-    // if we already have a map, return it!
-    if (this.#map !== null) return this.#map
-
-    // collect all the pairs (these will be in reverse order)
-    const pairs: Array<[string, string]> = []
-    const seenShort = new Set<string>()
-
-    let ns: NamespaceMap | null = this // eslint-disable-line @typescript-eslint/no-this-alias
-    while (ns.#parent !== null) {
-      if (ns.#short !== null && ns.#long !== null) {
-        pairs.push([ns.#long, ns.#short])
-      }
-      ns = ns.#parent
-    }
-
-    // create a map for it
-    const map = new Map<string, string>(
-      pairs
-        .filter(([_, short]): boolean => {
-          if (seenShort.has(short)) {
-            return false
-          }
-          seenShort.add(short)
-          return true
-        })
-        .reverse(),
-    )
-
-    // store and return the map!
-    this.#map = map
-    return map
-  }
-
   /** toMap turns this NamespaceMap into a map */
   toMap(): Map<string, string> {
-    return new Map(this.#toMapInternal())
+    return new Map(this.#map)
   }
 
   hasLong(long: string): boolean {
-    return this.#toMapInternal().has(long)
+    return this.#map.has(long)
   }
 
   hasShort(short: string): boolean {
-    return new Set(this.#toMapInternal().values()).has(short)
+    return this.#shorts.has(short)
   }
 
   /** add creates a new namespace map with long set to short */
@@ -120,7 +90,7 @@ export class NamespaceMap {
       return this
     }
 
-    return new NamespaceMap(this, long, short)
+    return new NamespaceMap(this.#map.set(long, short))
   }
 
   /** remove removes a long url from this ns-map */
@@ -134,17 +104,13 @@ export class NamespaceMap {
   apply(uri: string): string {
     const prefix = this.prefix(uri)
     if (prefix === '') return uri
-    return (
-      (this.#toMapInternal().get(prefix) ?? '') +
-      ':' +
-      uri.substring(prefix.length)
-    )
+    return (this.#map.get(prefix) ?? '') + ':' + uri.substring(prefix.length)
   }
 
   /** prefix returns the longest prefix of uri for which a namespace is contained within this map */
   prefix(uri: string): string {
     let prefix = '' // prefix used
-    this.#toMapInternal().forEach((short, long) => {
+    this.#map.forEach((short, long) => {
       // must actually be a prefix
       if (!uri.startsWith(long)) {
         return
@@ -166,14 +132,12 @@ export class NamespaceMap {
     elements.forEach((short, long) => {
       ns = ns.add(long, short)
     })
-    // avoid having to re-compute the internal map (we already know it)
-    ns.#map = new Map(elements)
     return ns
   }
 
   /** empty returns an empty NamespaceMap */
   static empty(): NamespaceMap {
-    return new NamespaceMap(null, null, null)
+    return new NamespaceMap([])
   }
 
   /** generate automatically generates a prefix map */
