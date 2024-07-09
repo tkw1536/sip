@@ -72,6 +72,7 @@ export class NamespaceMap {
 
     // collect all the pairs (these will be in reverse order)
     const pairs: Array<[string, string]> = []
+    const seenShort = new Set<string>()
 
     let ns: NamespaceMap | null = this // eslint-disable-line @typescript-eslint/no-this-alias
     while (ns.#parent !== null) {
@@ -81,14 +82,18 @@ export class NamespaceMap {
       ns = ns.#parent
     }
 
-    // reverse them to get the right order
-    pairs.reverse()
-
     // create a map for it
-    const map = new Map<string, string>()
-    pairs.forEach(([long, short]) => {
-      map.set(long, short)
-    })
+    const map = new Map<string, string>(
+      pairs
+        .filter(([_, short]): boolean => {
+          if (seenShort.has(short)) {
+            return false
+          }
+          seenShort.add(short)
+          return true
+        })
+        .reverse(),
+    )
 
     // store and return the map!
     this.#map = map
