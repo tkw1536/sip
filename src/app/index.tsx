@@ -33,15 +33,15 @@ class Wrapper extends Component {
 export class App extends Component<Record<never, never>, State> {
   state: State = resetInterface()
 
-  private readonly reduction = new Operation()
+  readonly #reduction = new Operation()
 
-  private readonly apply = (
+  readonly #apply = (
     reducers: Reducer | Reducer[],
     callback?: (error?: unknown) => void,
   ): void => {
-    const ticket = this.reduction.ticket()
+    const ticket = this.#reduction.ticket()
 
-    this.applyReducers(ticket, Array.isArray(reducers) ? reducers : [reducers])
+    this.#applyReducers(ticket, Array.isArray(reducers) ? reducers : [reducers])
       .then(() => {
         if (typeof callback === 'function') callback()
       })
@@ -50,16 +50,16 @@ export class App extends Component<Record<never, never>, State> {
       })
   }
 
-  private readonly applyReducers = async (
+  readonly #applyReducers = async (
     ticket: () => boolean,
     reducers: Reducer[],
   ): Promise<void> => {
     for (const reducer of reducers) {
-      await this.applyReducer(ticket, reducer)
+      await this.#applyReducer(ticket, reducer)
     }
   }
 
-  private readonly applyReducer = async (
+  readonly #applyReducer = async (
     ticket: () => boolean,
     reducer: Reducer,
   ): Promise<void> => {
@@ -97,11 +97,11 @@ export class App extends Component<Record<never, never>, State> {
   }
 
   componentWillUnmount(): void {
-    this.reduction.cancel()
+    this.#reduction.cancel()
   }
 
   render(): ComponentChild {
-    const props: ReducerProps = { state: this.state, apply: this.apply }
+    const props: ReducerProps = { state: this.state, apply: this.#apply }
     return (
       <Wrapper>
         <Inspector {...props} />
@@ -111,7 +111,7 @@ export class App extends Component<Record<never, never>, State> {
 }
 
 class Inspector extends Component<ReducerProps> {
-  private readonly handleChangeTab = (key: string): void => {
+  readonly #handleChangeTab = (key: string): void => {
     this.props.apply(setActiveTab(key))
   }
 
@@ -121,7 +121,7 @@ class Inspector extends Component<ReducerProps> {
     const loaded = state.loadStage === true
 
     return (
-      <Tabs onChangeTab={this.handleChangeTab} active={state.activeTab}>
+      <Tabs onChangeTab={this.#handleChangeTab} active={state.activeTab}>
         <Label>
           <b>Supreme Inspector for Pathbuilders</b>
         </Label>

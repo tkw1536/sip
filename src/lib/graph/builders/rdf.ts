@@ -10,15 +10,17 @@ export type RDFNode = SubjectType | ObjectType
 export type RDFEdge = PredicateType
 
 export default class RDFGraphBuilder extends GraphBuilder<RDFNode, RDFEdge> {
-  constructor(private readonly store: Store) {
+  readonly #store: Store
+  constructor(store: Store) {
     super()
+    this.#store = store
   }
 
   protected async doBuild(): Promise<void> {
-    this.store.statements.forEach(this.addStatement)
+    this.#store.statements.forEach(this.#addStatement)
   }
 
-  private readonly addStatement = (statement: Statement): void => {
+  readonly #addStatement = (statement: Statement): void => {
     const {
       subject: qSubject,
       predicate: qPredicate,
@@ -27,20 +29,20 @@ export default class RDFGraphBuilder extends GraphBuilder<RDFNode, RDFEdge> {
     // create a node for the subject (unless it already exists)
     const subject = this.graph.addNode(
       qSubject,
-      RDFGraphBuilder.subjectID(qSubject),
+      RDFGraphBuilder.#subjectID(qSubject),
     )
 
     // create a node for the object (unless it already exists)
     const object = this.graph.addNode(
       qObject,
-      RDFGraphBuilder.objectID(qObject),
+      RDFGraphBuilder.#objectID(qObject),
     )
 
     // and add the edge
     this.graph.addEdge(subject, object, qPredicate)
   }
 
-  private static subjectID(term: SubjectType): string {
+  static #subjectID(term: SubjectType): string {
     switch (term.termType) {
       case 'BlankNode':
         return 'b//' + term.id
@@ -52,12 +54,12 @@ export default class RDFGraphBuilder extends GraphBuilder<RDFNode, RDFEdge> {
     throw new Error('never reached')
   }
 
-  private static objectID(term: ObjectType): string | undefined {
+  static #objectID(term: ObjectType): string | undefined {
     switch (term.termType) {
       case 'BlankNode':
       case 'NamedNode':
       case 'Variable':
-        return this.subjectID(term)
+        return this.#subjectID(term)
     }
     return undefined
   }

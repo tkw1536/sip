@@ -9,34 +9,31 @@ class DriverCollection<NodeLabel, EdgeLabel> {
     public readonly defaultDriver: string,
     ...loaders: Array<[string, () => Promise<Driver<NodeLabel, EdgeLabel>>]>
   ) {
-    this.loaders = new Map(loaders)
-    if (!this.loaders.has(this.defaultDriver))
+    this.#loaders = new Map(loaders)
+    if (!this.#loaders.has(this.defaultDriver))
       throw new Error('defaultDriver not contained in loaders')
 
     // setup lazy values
-    for (const key of this.loaders.keys()) {
-      this.values.set(key, new Lazy<Driver<NodeLabel, EdgeLabel>>())
+    for (const key of this.#loaders.keys()) {
+      this.#values.set(key, new Lazy<Driver<NodeLabel, EdgeLabel>>())
     }
   }
 
-  private readonly values = new Map<
-    string,
-    Lazy<Driver<NodeLabel, EdgeLabel>>
-  >()
-  private readonly loaders = new Map<
+  readonly #values = new Map<string, Lazy<Driver<NodeLabel, EdgeLabel>>>()
+  readonly #loaders = new Map<
     string,
     () => Promise<Driver<NodeLabel, EdgeLabel>>
   >()
 
   public async get(name: string): Promise<Driver<NodeLabel, EdgeLabel>> {
-    const lazy = this.values.get(name)
+    const lazy = this.#values.get(name)
     if (typeof lazy === 'undefined') {
       throw new Error('unknown renderer ' + JSON.stringify(name))
     }
 
     const renderer = await lazy.Get(
       async (): Promise<Driver<NodeLabel, EdgeLabel>> => {
-        const loader = this.loaders.get(name)
+        const loader = this.#loaders.get(name)
         if (typeof loader === 'undefined') {
           throw new Error('implementation error: loaders missing loader')
         }
@@ -58,7 +55,7 @@ class DriverCollection<NodeLabel, EdgeLabel> {
   }
 
   get names(): string[] {
-    return Array.from(this.loaders.keys())
+    return Array.from(this.#loaders.keys())
   }
 }
 
@@ -93,7 +90,7 @@ export const models = new DriverCollection<ModelNode, ModelEdge>(
   [
     'Cytoscape',
     async () =>
-      await import('./impl/cytoscape').then(m => m.CytoModelDriver.instance),
+      await import('./impl/cytoscape').then(m => new m.CytoModelDriver()),
   ],
 )
 

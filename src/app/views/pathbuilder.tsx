@@ -23,10 +23,7 @@ export default class PathbuilderView extends Component<ReducerProps> {
 }
 
 class WelcomeView extends Component<ReducerProps> {
-  private readonly dragContent = (
-    active: boolean,
-    valid: boolean,
-  ): ComponentChild => {
+  readonly #dragContent = (active: boolean, valid: boolean): ComponentChild => {
     switch (true) {
       case active && valid:
         return (
@@ -50,7 +47,7 @@ class WelcomeView extends Component<ReducerProps> {
     }
   }
 
-  private readonly handleLoadPathbuilder = (file: File): void => {
+  readonly #handleLoadPathbuilder = (file: File): void => {
     this.props.apply([setPathbuilderLoading, loadPathbuilder(file)])
   }
 
@@ -83,10 +80,10 @@ class WelcomeView extends Component<ReducerProps> {
           class={styles.dropZone}
           activeValidClass={styles.valid}
           activeInvalidClass={styles.invalid}
-          onDropFile={this.handleLoadPathbuilder}
+          onDropFile={this.#handleLoadPathbuilder}
           types={[Type.XML]}
         >
-          {this.dragContent}
+          {this.#dragContent}
         </DropArea>
         {typeof loadStage === 'object' && loadStage.error instanceof Error && (
           <>
@@ -102,12 +99,12 @@ class WelcomeView extends Component<ReducerProps> {
 }
 
 class InfoView extends Component<ReducerProps> {
-  private readonly handleClosePathbuilder = (evt: Event): void => {
+  readonly #handleClosePathbuilder = (evt: Event): void => {
     evt.preventDefault()
     this.props.apply(resetInterface)
   }
 
-  private readonly handleExport = (evt: MouseEvent): void => {
+  readonly #handleExport = (evt: MouseEvent): void => {
     evt.preventDefault()
 
     const { pathbuilder } = this.props.state
@@ -125,13 +122,13 @@ class InfoView extends Component<ReducerProps> {
       <>
         <p>
           Pathbuilder{' '}
-          <button onClick={this.handleExport}>{this.filename}</button>{' '}
+          <button onClick={this.#handleExport}>{this.filename}</button>{' '}
           successfully loaded. You can use the other tabs to inspect the
           pathbuilder.
         </p>
         <p>
           You can also close{' '}
-          <button onClick={this.handleClosePathbuilder}>Close</button> this
+          <button onClick={this.#handleClosePathbuilder}>Close</button> this
           pathbuilder.
         </p>
       </>

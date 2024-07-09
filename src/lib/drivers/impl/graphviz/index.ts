@@ -262,7 +262,7 @@ export class GraphVizModelDriver extends GraphvizDriver<ModelNode, ModelEdge> {
     node: ModelNode,
   ): undefined {
     if (node.type === 'field') {
-      this.makeFieldNodes(graph, flags, id, node)
+      this.#makeFieldNodes(graph, flags, id, node)
       return
     }
     if (node.type === 'class' && node.bundles.size === 0) {
@@ -279,13 +279,13 @@ export class GraphVizModelDriver extends GraphvizDriver<ModelNode, ModelEdge> {
       return
     }
     if (node.type === 'class' && node.bundles.size > 0) {
-      this.makeBundleNodes(graph, flags, id, node)
+      this.#makeBundleNodes(graph, flags, id, node)
       return
     }
     throw new Error('never reached')
   }
 
-  private makeBundleNodes(
+  #makeBundleNodes(
     graph: Graph,
     { ns, cm }: ContextFlags,
     id: string,
@@ -350,7 +350,7 @@ export class GraphVizModelDriver extends GraphvizDriver<ModelNode, ModelEdge> {
     graph.subgraphs.push(sg)
   }
 
-  private makeFieldNodes(
+  #makeFieldNodes(
     graph: Graph,
     { ns, cm }: ContextFlags,
     id: string,

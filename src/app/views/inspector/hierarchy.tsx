@@ -26,45 +26,42 @@ import { Type } from '../../../lib/utils/media'
 import { setHideEqualParentPaths } from '../../state/reducers/inspector/tree'
 
 export default class HierarchyView extends Component<ReducerProps> {
-  private readonly handleSelectAll = (evt: Event): void => {
+  readonly #handleSelectAll = (evt: Event): void => {
     evt.preventDefault()
     this.props.apply(selectAll())
   }
 
-  private readonly handleSelectNone = (evt: Event): void => {
+  readonly #handleSelectNone = (evt: Event): void => {
     evt.preventDefault()
     this.props.apply(selectNone())
   }
 
-  private readonly handleExpandAll = (evt: Event): void => {
+  readonly #handleExpandAll = (evt: Event): void => {
     evt.preventDefault()
     this.props.apply(expandAll())
   }
 
-  private readonly handleCollapseAll = (evt: Event): void => {
+  readonly #handleCollapseAll = (evt: Event): void => {
     evt.preventDefault()
     this.props.apply(collapseAll())
   }
 
-  private readonly handleColorPreset = (
-    preset: ColorPreset,
-    evt: Event,
-  ): void => {
+  readonly #handleColorPreset = (preset: ColorPreset, evt: Event): void => {
     evt.preventDefault()
     this.props.apply(applyColorPreset(preset))
   }
 
-  private readonly handleColorMapExport = (evt: Event): void => {
+  readonly #handleColorMapExport = (evt: Event): void => {
     const data = JSON.stringify(this.props.state.cm.toJSON(), null, 2)
     const blob = new Blob([data], { type: Type.JSON })
     download(blob, 'colors.json', 'json')
   }
 
-  private readonly handleColorMapImport = (file: File): void => {
+  readonly #handleColorMapImport = (file: File): void => {
     this.props.apply(loadColorMap(file))
   }
 
-  private readonly handleHideEqualParentPaths = (
+  readonly #handleHideEqualParentPaths = (
     event: Event & { currentTarget: HTMLInputElement },
   ): void => {
     event.preventDefault()
@@ -106,7 +103,7 @@ export default class HierarchyView extends Component<ReducerProps> {
             id='hide-parent-paths'
             type='checkbox'
             checked={hideEqualParentPaths}
-            onInput={this.handleHideEqualParentPaths}
+            onInput={this.#handleHideEqualParentPaths}
           />
           <label for='hide-parent-paths'>
             Path URIs shared with their parents are shown in{' '}
@@ -144,8 +141,8 @@ export default class HierarchyView extends Component<ReducerProps> {
             <tr>
               <td colSpan={6}>
                 Select: &nbsp;
-                <button onClick={this.handleSelectAll}>All</button> &nbsp;
-                <button onClick={this.handleSelectNone}>None</button>
+                <button onClick={this.#handleSelectAll}>All</button> &nbsp;
+                <button onClick={this.#handleSelectNone}>None</button>
               </td>
             </tr>
             <tr>
@@ -153,17 +150,19 @@ export default class HierarchyView extends Component<ReducerProps> {
                 Color Map: &nbsp;
                 {colorPresets.map(preset => (
                   <Fragment key={preset}>
-                    <button onClick={this.handleColorPreset.bind(this, preset)}>
+                    <button
+                      onClick={this.#handleColorPreset.bind(this, preset)}
+                    >
                       {preset}
                     </button>
                     &nbsp;
                   </Fragment>
                 ))}
                 &nbsp;|&nbsp;
-                <button onClick={this.handleColorMapExport}>Export</button>
+                <button onClick={this.#handleColorMapExport}>Export</button>
                 <DropArea
                   types={[Type.JSON]}
-                  onDropFile={this.handleColorMapImport}
+                  onDropFile={this.#handleColorMapImport}
                   compact
                 >
                   Import
@@ -178,9 +177,9 @@ export default class HierarchyView extends Component<ReducerProps> {
             </tr>
             <tr>
               <td colSpan={6}>
-                <button onClick={this.handleCollapseAll}>Collapse All</button>{' '}
+                <button onClick={this.#handleCollapseAll}>Collapse All</button>{' '}
                 &nbsp;
-                <button onClick={this.handleExpandAll}>Expand All</button>
+                <button onClick={this.#handleExpandAll}>Expand All</button>
               </td>
             </tr>
             {Array.from(tree.children()).map(b => (
@@ -204,31 +203,31 @@ const INDENT_PER_LEVEL = 50
 class BundleRows extends Component<
   ReducerProps & { bundle: Bundle; level: number; visible: boolean }
 > {
-  private readonly handleClick = (evt: Event): void => {
+  readonly #handleClick = (evt: Event): void => {
     evt.preventDefault()
 
     this.props.apply(collapseNode(this.props.bundle))
   }
 
-  private shiftHeld = false
-  private readonly handleKeydown = (evt: MouseEvent): void => {
-    this.shiftHeld = evt.shiftKey
+  #shiftHeld = false
+  readonly #handleKeydown = (evt: MouseEvent): void => {
+    this.#shiftHeld = evt.shiftKey
   }
 
-  private readonly handleSelectionChange = (
+  readonly #handleSelectionChange = (
     evt: Event & { currentTarget: HTMLInputElement },
   ): void => {
     evt.preventDefault()
 
     const { bundle } = this.props
 
-    const keys = this.shiftHeld ? Array.from(bundle.walk()) : [bundle]
+    const keys = this.#shiftHeld ? Array.from(bundle.walk()) : [bundle]
     const value = evt.currentTarget.checked
 
     this.props.apply(updateSelection(keys.map(k => [k, value])))
   }
 
-  private readonly handleColorChange = (
+  readonly #handleColorChange = (
     evt: Event & { currentTarget: HTMLInputElement },
   ): void => {
     const { bundle } = this.props
@@ -249,18 +248,18 @@ class BundleRows extends Component<
             <input
               type='checkbox'
               checked={selection.includes(bundle)}
-              onClick={this.handleKeydown}
-              onInput={this.handleSelectionChange}
+              onClick={this.#handleKeydown}
+              onInput={this.#handleSelectionChange}
             />
             <input
               type='color'
               value={cm.get(bundle)}
-              onInput={this.handleColorChange}
+              onInput={this.#handleColorChange}
             />
           </td>
           <td style={{ paddingLeft: INDENT_PER_LEVEL * level }}>
             <button
-              onClick={this.handleClick}
+              onClick={this.#handleClick}
               aria-role='toggle'
               disabled={bundle.childCount === 0}
             >
@@ -309,7 +308,7 @@ class BundleRows extends Component<
 class FieldRow extends Component<
   ReducerProps & { field: Field; level: number; visible: boolean }
 > {
-  private readonly handleSelectionChange = (
+  readonly #handleSelectionChange = (
     evt: Event & { currentTarget: HTMLInputElement },
   ): void => {
     this.props.apply(
@@ -317,7 +316,7 @@ class FieldRow extends Component<
     )
   }
 
-  private readonly handleColorChange = (
+  readonly #handleColorChange = (
     evt: Event & { currentTarget: HTMLInputElement },
   ): void => {
     const { field } = this.props
@@ -339,12 +338,12 @@ class FieldRow extends Component<
           <input
             type='checkbox'
             checked={selection.includes(field)}
-            onInput={this.handleSelectionChange}
+            onInput={this.#handleSelectionChange}
           />
           <input
             type='color'
             value={cm.get(field)}
-            onInput={this.handleColorChange}
+            onInput={this.#handleColorChange}
           />
         </td>
         <td style={{ paddingLeft: INDENT_PER_LEVEL * level }}>{path.name}</td>

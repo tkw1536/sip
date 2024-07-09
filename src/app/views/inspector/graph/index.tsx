@@ -72,7 +72,7 @@ export default class GraphDisplay<NodeLabel, EdgeLabel> extends Component<
   readonly export = (format: string, evt?: Event): void => {
     if (evt != null) evt.preventDefault()
 
-    const { current: kernel } = this.kernelRef
+    const { current: kernel } = this.#kernelRef
     if (kernel === null) return
 
     kernel
@@ -86,25 +86,25 @@ export default class GraphDisplay<NodeLabel, EdgeLabel> extends Component<
       })
   }
 
-  private readonly handleToggle = (evt: Event): void => {
+  readonly #handleToggle = (evt: Event): void => {
     evt.preventDefault()
     this.setState(({ open }) => ({ open: !open }))
   }
 
-  private readonly kernelRef = createRef<Kernel<NodeLabel, EdgeLabel>>()
+  readonly #kernelRef = createRef<Kernel<NodeLabel, EdgeLabel>>()
 
   componentDidMount(): void {
-    void this.buildGraphModel()
+    void this.#buildGraphModel()
   }
 
   componentWillUnmount(): void {
-    this.graphOperation.cancel()
-    this.rendererOperation.cancel()
+    this.#graphOperation.cancel()
+    this.#rendererOperation.cancel()
   }
 
-  private readonly graphOperation = new Operation()
-  private readonly buildGraphModel = async (): Promise<void> => {
-    const ticket = this.graphOperation.ticket()
+  readonly #graphOperation = new Operation()
+  readonly #buildGraphModel = async (): Promise<void> => {
+    const ticket = this.#graphOperation.ticket()
 
     let graph: Graph<NodeLabel, EdgeLabel>
     try {
@@ -120,16 +120,16 @@ export default class GraphDisplay<NodeLabel, EdgeLabel> extends Component<
     })
   }
 
-  private readonly rendererOperation = new Operation()
+  readonly #rendererOperation = new Operation()
   componentDidUpdate(previousProps: typeof this.props): void {
     // builder has changed => return a new changer
     if (this.newGraphBuilder(previousProps)) {
-      void this.buildGraphModel()
+      void this.#buildGraphModel()
     }
   }
 
   render(): ComponentChild {
-    const main = this.renderMain()
+    const main = this.#renderMain()
     const panel = this.renderPanel()
 
     // if we have no children, don't render a panel
@@ -153,7 +153,7 @@ export default class GraphDisplay<NodeLabel, EdgeLabel> extends Component<
         >
           {panel}
         </div>
-        <button class={styles.handle} onClick={this.handleToggle}>
+        <button class={styles.handle} onClick={this.#handleToggle}>
           {open ? '<<' : '>>'}
         </button>
         <div class={styles.main}>{main}</div>
@@ -161,13 +161,11 @@ export default class GraphDisplay<NodeLabel, EdgeLabel> extends Component<
     )
   }
 
-  private readonly driverRef = (
-    driver: Driver<NodeLabel, EdgeLabel> | null,
-  ): void => {
+  readonly #driverRef = (driver: Driver<NodeLabel, EdgeLabel> | null): void => {
     this.setState({ driver })
   }
 
-  private renderMain(): ComponentChild {
+  #renderMain(): ComponentChild {
     const { graph, graphError } = this.state
 
     if (typeof graphError !== 'undefined') {
@@ -183,14 +181,14 @@ export default class GraphDisplay<NodeLabel, EdgeLabel> extends Component<
     const { ns, cm, layout } = this.props
     return (
       <Kernel
-        ref={this.kernelRef}
+        ref={this.#kernelRef}
         graph={graph}
         ns={ns}
         cm={cm}
         loader={loader}
         driver={name}
         layout={layout}
-        driverRef={this.driverRef}
+        driverRef={this.#driverRef}
       />
     )
   }
@@ -208,11 +206,11 @@ export class DriverControl<NodeLabel, EdgeLabel> extends Component<{
   onChangeDriver: (driver: string) => void
   onChangeLayout: (layout: string) => void
 }> {
-  private readonly handleChangeDriver = (driver: string): void => {
+  readonly #handleChangeDriver = (driver: string): void => {
     this.props.onChangeDriver(driver)
   }
 
-  private readonly handleChangeLayout = (layout: string): void => {
+  readonly #handleChangeLayout = (layout: string): void => {
     this.props.onChangeLayout(layout)
   }
 
@@ -231,14 +229,14 @@ export class DriverControl<NodeLabel, EdgeLabel> extends Component<{
           <ValueSelector
             values={driverNames}
             value={driver?.driverName}
-            onInput={this.handleChangeDriver}
+            onInput={this.#handleChangeDriver}
           />
           &nbsp; Layout: &nbsp;
           <ValueSelector
             disabled={driver === null}
             value={currentLayout}
             values={driver?.supportedLayouts}
-            onInput={this.handleChangeLayout}
+            onInput={this.#handleChangeLayout}
           />
         </p>
       </Control>
@@ -250,7 +248,7 @@ export class ExportControl<NodeLabel, EdgeLabel> extends Component<{
   driver: Driver<NodeLabel, EdgeLabel> | null
   display: GraphDisplay<NodeLabel, EdgeLabel> | null
 }> {
-  private readonly handleExport = (format: string, event: Event): void => {
+  readonly #handleExport = (format: string, event: Event): void => {
     event.preventDefault()
     const { driver, display } = this.props
     if (driver === null || display === null) {
@@ -276,7 +274,7 @@ export class ExportControl<NodeLabel, EdgeLabel> extends Component<{
         <p>
           {exportFormats.map(format => (
             <Fragment key={format}>
-              <button onClick={this.handleExport.bind(this, format)}>
+              <button onClick={this.#handleExport.bind(this, format)}>
                 {format}
               </button>
               &nbsp;

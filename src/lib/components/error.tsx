@@ -43,11 +43,11 @@ class ErrorDisplayAny extends Component<{ error: unknown }> {
 }
 class ErrorDisplayError extends Component<{ error: Error }, State> {
   state: State = {}
-  private readonly formatError = new Operation()
+  readonly #formatError = new Operation()
 
-  private readonly doFormatError = (): void => {
+  readonly #doFormatError = (): void => {
     const { error } = this.props
-    const ticket = this.formatError.ticket()
+    const ticket = this.#formatError.ticket()
 
     StackTrace.fromError(error)
       .then(frames => {
@@ -63,16 +63,16 @@ class ErrorDisplayError extends Component<{ error: Error }, State> {
   }
 
   componentDidMount(): void {
-    this.doFormatError()
+    this.#doFormatError()
   }
 
   componentWillUnmount(): void {
-    this.formatError.cancel()
+    this.#formatError.cancel()
   }
 
   componentDidUpdate(previousProps: typeof this.props): void {
     if (this.props.error !== previousProps.error) {
-      this.doFormatError()
+      this.#doFormatError()
     }
   }
 

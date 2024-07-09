@@ -255,14 +255,6 @@ export class CytoBundleDriver extends CytoscapeDriver<BundleNode, BundleEdge> {
 }
 
 export class CytoModelDriver extends CytoscapeDriver<ModelNode, ModelEdge> {
-  private static _instance: CytoModelDriver | null = null
-  static get instance(): CytoModelDriver {
-    if (this._instance === null) {
-      this._instance = new this()
-    }
-    return this._instance
-  }
-
   protected async addNodeImpl(
     elements: Elements,
     { ns, cm }: ContextFlags,

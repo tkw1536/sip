@@ -19,9 +19,7 @@ import type Graph from '../../../../lib/graph'
 
 export default WithID<ReducerProps>(
   class ModelGraphView extends Component<ReducerProps & { id: string }> {
-    private readonly builder = async (): Promise<
-      Graph<ModelNode, ModelEdge>
-    > => {
+    readonly #builder = async (): Promise<Graph<ModelNode, ModelEdge>> => {
       const {
         tree,
         selection,
@@ -35,7 +33,7 @@ export default WithID<ReducerProps>(
       return await builder.build()
     }
 
-    private readonly handleChangeMode = (evt: Event): void => {
+    readonly #handleChangeMode = (evt: Event): void => {
       this.props.apply(
         setModelDeduplication(
           (evt.target as HTMLInputElement).value as Deduplication,
@@ -43,16 +41,15 @@ export default WithID<ReducerProps>(
       )
     }
 
-    private readonly handleChangeModelRenderer = (value: string): void => {
+    readonly #handleChangeModelRenderer = (value: string): void => {
       this.props.apply(setModelDriver(value))
     }
 
-    private readonly handleChangeModelLayout = (value: string): void => {
+    readonly #handleChangeModelLayout = (value: string): void => {
       this.props.apply(setModelLayout(value))
     }
 
-    private readonly displayRef =
-      createRef<GraphDisplay<ModelNode, ModelEdge>>()
+    readonly #displayRef = createRef<GraphDisplay<ModelNode, ModelEdge>>()
 
     render(): ComponentChildren {
       const {
@@ -68,20 +65,20 @@ export default WithID<ReducerProps>(
 
       return (
         <GraphDisplay
-          ref={this.displayRef}
+          ref={this.#displayRef}
           loader={models}
           driver={modelGraphRenderer}
           builderKey={`${pathbuilderVersion}-${selectionVersion}-${optionVersion}-${colorVersion}`}
-          makeGraph={this.builder}
+          makeGraph={this.#builder}
           ns={ns}
           cm={cm}
           layout={modelGraphLayout}
-          panel={this.renderPanel}
+          panel={this.#renderPanel}
         />
       )
     }
 
-    private readonly renderPanel = (
+    readonly #renderPanel = (
       driver: Driver<ModelNode, ModelEdge> | null,
     ): ComponentChildren => {
       const {
@@ -95,8 +92,8 @@ export default WithID<ReducerProps>(
             driverNames={models.names}
             driver={driver}
             currentLayout={modelGraphLayout}
-            onChangeDriver={this.handleChangeModelRenderer}
-            onChangeLayout={this.handleChangeModelLayout}
+            onChangeDriver={this.#handleChangeModelRenderer}
+            onChangeLayout={this.#handleChangeModelLayout}
           />
           <Control name='Deduplication'>
             <p>
@@ -107,7 +104,7 @@ export default WithID<ReducerProps>(
             </p>
             <p>Changing this value will re-render the graph.</p>
 
-            <div onInput={this.handleChangeMode}>
+            <div onInput={this.#handleChangeMode}>
               {values.map(v => (
                 <p key={v}>
                   <input
@@ -126,7 +123,7 @@ export default WithID<ReducerProps>(
               ))}
             </div>
           </Control>
-          <ExportControl driver={driver} display={this.displayRef.current} />
+          <ExportControl driver={driver} display={this.#displayRef.current} />
         </>
       )
     }

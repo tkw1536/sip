@@ -20,13 +20,13 @@ interface DropAreaProps {
 }
 
 export default class DropArea extends Component<DropAreaProps> {
-  private readonly callFileHandler = (files?: FileList): void => {
-    if (!this.validateFiles(files)) return
+  readonly #callFileHandler = (files?: FileList): void => {
+    if (!this.#validateFiles(files)) return
     this.props.onDropFile(...Array.from(files))
   }
 
   /** validateFiles checks if the given items or files are valid */
-  private readonly validateFiles = (
+  readonly #validateFiles = (
     items?: ArrayLike<{ readonly type: string; readonly kind?: string }>,
     allowEmpty: boolean = false,
   ): items is ArrayLike<{ readonly type: string }> => {
@@ -54,41 +54,41 @@ export default class DropArea extends Component<DropAreaProps> {
 
   state = { dragActive: false, dragValid: false }
 
-  private readonly handleDropFile = (event: DragEvent): void => {
+  readonly #handleDropFile = (event: DragEvent): void => {
     event.preventDefault()
     this.setState({ dragActive: false })
 
-    this.callFileHandler(event.dataTransfer?.files)
+    this.#callFileHandler(event.dataTransfer?.files)
   }
 
-  private readonly handleDropOver = (event: DragEvent): void => {
+  readonly #handleDropOver = (event: DragEvent): void => {
     event.preventDefault()
     this.setState({
       dragActive: true,
-      dragValid: this.validateFiles(event.dataTransfer?.items, true),
+      dragValid: this.#validateFiles(event.dataTransfer?.items, true),
     })
   }
 
-  private readonly handleDragLeave = (event: DragEvent): void => {
+  readonly #handleDragLeave = (event: DragEvent): void => {
     event.preventDefault()
     this.setState({ dragActive: false, dragValid: false })
   }
 
-  private readonly handleClick = (event: MouseEvent): void => {
+  readonly #handleClick = (event: MouseEvent): void => {
     event.preventDefault()
 
-    const { current } = this.fileInput
+    const { current } = this.#fileInput
     if (current === null) return
     current.click()
   }
 
-  private readonly handleUploadFile = (event: Event): void => {
+  readonly #handleUploadFile = (event: Event): void => {
     event.preventDefault()
 
-    this.callFileHandler(this.fileInput?.current?.files ?? undefined)
+    this.#callFileHandler(this.#fileInput?.current?.files ?? undefined)
   }
 
-  private readonly fileInput = createRef<HTMLInputElement>()
+  readonly #fileInput = createRef<HTMLInputElement>()
 
   render(): ComponentChild {
     const { dragActive, dragValid } = this.state
@@ -126,17 +126,17 @@ export default class DropArea extends Component<DropAreaProps> {
       main = (
         <div
           class={classes(...dropClasses)}
-          onDrop={this.handleDropFile}
-          onDragOver={this.handleDropOver}
-          onDragLeave={this.handleDragLeave}
-          onClick={this.handleClick}
+          onDrop={this.#handleDropFile}
+          onDragOver={this.#handleDropOver}
+          onDragLeave={this.#handleDragLeave}
+          onClick={this.#handleClick}
         >
           {childNodes}
         </div>
       )
     } else {
       main = (
-        <button class={classes(clz)} onClick={this.handleClick}>
+        <button class={classes(clz)} onClick={this.#handleClick}>
           {childNodes}
         </button>
       )
@@ -147,10 +147,10 @@ export default class DropArea extends Component<DropAreaProps> {
         <input
           type='file'
           style={{ display: 'none' }}
-          ref={this.fileInput}
+          ref={this.#fileInput}
           multiple={multiple}
           accept={types?.join(',')}
-          onInput={this.handleUploadFile}
+          onInput={this.#handleUploadFile}
         />
         {main}
       </>

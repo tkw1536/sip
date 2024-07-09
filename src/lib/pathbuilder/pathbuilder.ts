@@ -137,7 +137,7 @@ export class Path {
     return this.pathArray[index] ?? null
   }
 
-  private static parseValue<T>(
+  static #parseValue<T>(
     element: Element,
     name: string,
     parser: (value: string) => T,
@@ -163,7 +163,7 @@ export class Path {
     )
   }
 
-  private static parsePathArray(element: Element): string[] {
+  static #parsePathArray(element: Element): string[] {
     const children = Array.from(element.childNodes).filter(
       node => node.nodeName === 'path_array',
     )
@@ -187,7 +187,7 @@ export class Path {
       throw new Error(`expected a <path>, but got a <${node.nodeName}>`)
     }
 
-    const p = this.parseValue.bind(this, node) as <T>(
+    const p = this.#parseValue.bind(this, node) as <T>(
       f: string,
       p: (v: string) => T,
     ) => T
@@ -231,7 +231,7 @@ export class Path {
       cardinality: p('cardinality', int),
       fieldTypeInformative: p('field_type_informative', str),
 
-      pathArray: this.parsePathArray(node),
+      pathArray: this.#parsePathArray(node),
       datatypeProperty: p('datatype_property', strEmpty),
       shortName: p('short_name', str),
       disambiguation: p('disamb', int),
@@ -242,7 +242,7 @@ export class Path {
     })
   }
 
-  private static serializeElement<T>(
+  static #serializeElement<T>(
     xml: XMLDocument,
     path: Element,
     name: string,
@@ -273,7 +273,7 @@ export class Path {
       return value ? '1' : '0'
     }
 
-    const s = Path.serializeElement.bind(Path, xml, path) as <T>(
+    const s = Path.#serializeElement.bind(Path, xml, path) as <T>(
       f: string,
       s: (v: T) => string,
       v: T,

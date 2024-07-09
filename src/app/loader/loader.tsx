@@ -31,9 +31,9 @@ class AvoidFlicker extends Component<{
   static readonly defaultDelayMs = 1000
   state = { visible: false }
 
-  private readonly avoidFlicker = new Operation()
+  readonly #avoidFlicker = new Operation()
   componentDidMount(): void {
-    const ticket = this.avoidFlicker.ticket()
+    const ticket = this.#avoidFlicker.ticket()
     setTimeout(() => {
       if (!ticket()) return
       this.setState({ visible: true })
@@ -41,7 +41,7 @@ class AvoidFlicker extends Component<{
   }
 
   componentWillUnmount(): void {
-    this.avoidFlicker.cancel()
+    this.#avoidFlicker.cancel()
   }
 
   render(): ComponentChildren {

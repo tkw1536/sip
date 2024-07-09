@@ -4,18 +4,18 @@ import { IDPool } from '../utils/id-pool'
 export default class Graph<NodeLabel, EdgeLabel> {
   constructor(public definitelyAcyclic: boolean) {}
 
-  private readonly nodes = new Map<number, NodeLabel>()
-  private readonly edges = new Map<
+  readonly #nodes = new Map<number, NodeLabel>()
+  readonly #edges = new Map<
     number,
     Map<number, { id: number; label: EdgeLabel }>
   >()
-  private readonly ids = new IDPool<string>() //  new IDMap<string>()
+  readonly #ids = new IDPool<string>() //  new IDMap<string>()
 
   /** addNode adds a new Node with the given label. If it already exists, it is overwritten. */
   addNode(label: NodeLabel, id?: string): number {
     const theId =
-      typeof id === 'string' ? this.ids.intFor(id) : this.ids.nextInt()
-    this.nodes.set(theId, label)
+      typeof id === 'string' ? this.#ids.intFor(id) : this.#ids.nextInt()
+    this.#nodes.set(theId, label)
     return theId
   }
 
@@ -27,7 +27,7 @@ export default class Graph<NodeLabel, EdgeLabel> {
     // node already exists => update
     const oldId = this.getNode(id)
     if (typeof oldId === 'number') {
-      this.nodes.set(oldId, update(this.nodes.get(oldId)))
+      this.#nodes.set(oldId, update(this.#nodes.get(oldId)))
       return oldId
     }
 
@@ -39,50 +39,50 @@ export default class Graph<NodeLabel, EdgeLabel> {
   getNode(id: number | string): number | null {
     // if we are given an id, ensure that we have the number
     if (typeof id === 'number') {
-      if (!this.nodes.has(id)) {
+      if (!this.#nodes.has(id)) {
         return null
       }
       return id
     }
 
-    const theId = this.ids.intFor(id)
-    if (!this.nodes.has(theId)) {
+    const theId = this.#ids.intFor(id)
+    if (!this.#nodes.has(theId)) {
       return null
     }
     return theId
   }
 
-  private getNodeId(id: number | string): number {
-    return typeof id === 'string' ? this.ids.intFor(id) : id
+  #getNodeId(id: number | string): number {
+    return typeof id === 'string' ? this.#ids.intFor(id) : id
   }
 
   /** getNodeLabel gets the string belonging to the given node, or null */
   getNodeString(id: number): string | null {
-    return this.ids.ofInt(this.getNodeId(id))
+    return this.#ids.ofInt(this.#getNodeId(id))
   }
 
   /** hasNode checks if the set has the given node */
   hasNode(id: string | number): boolean {
-    return this.nodes.has(this.getNodeId(id))
+    return this.#nodes.has(this.#getNodeId(id))
   }
 
   /** deleteNode removes the given node and any of it's labels */
   deleteNode(id: string | number): void {
-    const theId = this.getNodeId(id)
+    const theId = this.#getNodeId(id)
 
     // remove from known nodes
-    this.ids.deleteInt(theId)
-    this.nodes.delete(theId)
+    this.#ids.deleteInt(theId)
+    this.#nodes.delete(theId)
 
     // remove edges to and from the node
-    this.edges.delete(theId)
-    this.edges.forEach(edgeSet => edgeSet.delete(theId))
+    this.#edges.delete(theId)
+    this.#edges.forEach(edgeSet => edgeSet.delete(theId))
   }
 
   /** getNodes gets the ids of the given nodes */
   getNodes(): Array<[number, NodeLabel]> {
     const nodes: Array<[number, NodeLabel]> = []
-    this.nodes.forEach((value, key) => {
+    this.#nodes.forEach((value, key) => {
       nodes.push([key, value])
     })
     return nodes
@@ -90,8 +90,8 @@ export default class Graph<NodeLabel, EdgeLabel> {
 
   /** getNodeLabels gets the labels of the provided node, if any */
   getNodeLabel(id: string | number): NodeLabel | null {
-    const theId = this.getNodeId(id)
-    return this.nodes.get(theId) ?? null
+    const theId = this.#getNodeId(id)
+    return this.#nodes.get(theId) ?? null
   }
 
   /** addEdge adds an edge with the given labels. If the labels are invalid, returns an error. */
@@ -113,14 +113,14 @@ export default class Graph<NodeLabel, EdgeLabel> {
     }
 
     // get or initialize this.edges[fromId]
-    let fromMap = this.edges.get(fromId)
+    let fromMap = this.#edges.get(fromId)
     if (fromMap == null) {
       fromMap = new Map<number, { id: number; label: EdgeLabel }>()
-      this.edges.set(fromId, fromMap)
+      this.#edges.set(fromId, fromMap)
     }
 
     // get or initialize this.edges[fromId][toId];
-    fromMap.set(toId, { id: this.ids.nextInt(), label })
+    fromMap.set(toId, { id: this.#ids.nextInt(), label })
 
     // and done!
     return true
@@ -134,7 +134,7 @@ export default class Graph<NodeLabel, EdgeLabel> {
     const toId = this.getNode(to)
     if (typeof toId !== 'number') return false
 
-    const edgeMap = this.edges.get(fromId)
+    const edgeMap = this.#edges.get(fromId)
     if (typeof edgeMap === 'undefined') return false
     return edgeMap.has(toId)
   }
@@ -147,7 +147,7 @@ export default class Graph<NodeLabel, EdgeLabel> {
     const toId = this.getNode(to)
     if (typeof toId !== 'number') return null
 
-    const fromMap = this.edges.get(fromId)
+    const fromMap = this.#edges.get(fromId)
     if (fromMap == null) return null
 
     const label = fromMap.get(toId)?.label
@@ -159,7 +159,7 @@ export default class Graph<NodeLabel, EdgeLabel> {
   getEdges(): Array<[number, number, number, EdgeLabel]> {
     const edges: Array<[number, number, number, EdgeLabel]> = []
 
-    this.edges.forEach((fromMap, from) => {
+    this.#edges.forEach((fromMap, from) => {
       fromMap.forEach(({ id, label }, to) => {
         edges.push([id, from, to, label])
       })
@@ -176,7 +176,7 @@ export default class Graph<NodeLabel, EdgeLabel> {
     const toId = this.getNode(to)
     if (typeof toId !== 'number') return
 
-    const fromMap = this.edges.get(fromId)
+    const fromMap = this.#edges.get(fromId)
     if (fromMap == null) return
 
     // delete edges to the given id!
@@ -184,7 +184,7 @@ export default class Graph<NodeLabel, EdgeLabel> {
 
     // if there are no more edges left, delete the empty map!
     if (fromMap.size === 0) {
-      this.edges.delete(fromId)
+      this.#edges.delete(fromId)
     }
   }
 }

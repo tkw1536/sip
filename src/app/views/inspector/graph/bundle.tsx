@@ -14,17 +14,14 @@ import {
 import type Graph from '../../../../lib/graph'
 
 export default class BundleGraphView extends Component<ReducerProps> {
-  private readonly builder = async (): Promise<
-    Graph<BundleNode, BundleEdge>
-  > => {
+  readonly #builder = async (): Promise<Graph<BundleNode, BundleEdge>> => {
     const { tree, selection } = this.props.state
 
     const builder = new BundleGraphBuilder(tree, selection)
     return await builder.build()
   }
 
-  private readonly displayRef =
-    createRef<GraphDisplay<BundleNode, BundleEdge>>()
+  readonly #displayRef = createRef<GraphDisplay<BundleNode, BundleEdge>>()
 
   render(): ComponentChildren {
     const {
@@ -39,28 +36,28 @@ export default class BundleGraphView extends Component<ReducerProps> {
 
     return (
       <GraphDisplay
-        ref={this.displayRef}
+        ref={this.#displayRef}
         loader={bundles}
         driver={bundleGraphRenderer}
         builderKey={`${pathbuilderVersion}-${selectionVersion}-${colorVersion}`}
-        makeGraph={this.builder}
+        makeGraph={this.#builder}
         ns={ns}
         cm={cm}
         layout={bundleGraphLayout}
-        panel={this.renderPanel}
+        panel={this.#renderPanel}
       />
     )
   }
 
-  private readonly handleChangeBundleRenderer = (value: string): void => {
+  readonly #handleChangeBundleRenderer = (value: string): void => {
     this.props.apply(setBundleDriver(value))
   }
 
-  private readonly handleChangeBundleLayout = (value: string): void => {
+  readonly #handleChangeBundleLayout = (value: string): void => {
     this.props.apply(setBundleLayout(value))
   }
 
-  private readonly renderPanel = (
+  readonly #renderPanel = (
     driver: Driver<BundleNode, BundleEdge> | null,
   ): ComponentChildren => {
     const {
@@ -73,10 +70,10 @@ export default class BundleGraphView extends Component<ReducerProps> {
           driverNames={bundles.names}
           driver={driver}
           currentLayout={bundleGraphLayout}
-          onChangeDriver={this.handleChangeBundleRenderer}
-          onChangeLayout={this.handleChangeBundleLayout}
+          onChangeDriver={this.#handleChangeBundleRenderer}
+          onChangeLayout={this.#handleChangeBundleLayout}
         />
-        <ExportControl driver={driver} display={this.displayRef.current} />
+        <ExportControl driver={driver} display={this.#displayRef.current} />
       </>
     )
   }

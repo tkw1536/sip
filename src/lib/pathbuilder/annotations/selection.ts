@@ -34,7 +34,7 @@ export default class NodeSelection {
     }
   }
 
-  private static isValidNodeSelection(data: any): data is NodeSelectionExport {
+  static #isValidNodeSelection(data: any): data is NodeSelectionExport {
     if (!('type' in data && data.type === 'node-selection')) {
       return false
     }
@@ -50,7 +50,7 @@ export default class NodeSelection {
 
   /** parses a colormap from json */
   static fromJSON(data: any): NodeSelection | null {
-    if (!this.isValidNodeSelection(data)) {
+    if (!this.#isValidNodeSelection(data)) {
       return null
     }
 

@@ -127,14 +127,6 @@ abstract class SigmaDriver<NodeLabel, EdgeLabel> extends DriverImpl<
 }
 
 export class SigmaBundleDriver extends SigmaDriver<BundleNode, BundleEdge> {
-  private static _instance: SigmaBundleDriver | null = null
-  static get instance(): SigmaBundleDriver {
-    if (this._instance === null) {
-      this._instance = new SigmaBundleDriver()
-    }
-    return this._instance
-  }
-
   protected async addNodeImpl(
     graph: Graph,
     { cm }: ContextFlags,
@@ -191,14 +183,6 @@ export class SigmaBundleDriver extends SigmaDriver<BundleNode, BundleEdge> {
 }
 
 export class SigmaModelDriver extends SigmaDriver<ModelNode, ModelEdge> {
-  private static _instance: SigmaModelDriver | null = null
-  static get instance(): SigmaModelDriver {
-    if (this._instance === null) {
-      this._instance = new SigmaModelDriver()
-    }
-    return this._instance
-  }
-
   protected async addNodeImpl(
     graph: Graph,
     { ns, cm }: ContextFlags,

@@ -9,10 +9,9 @@ export interface ColorMapExport {
 
 export default class ColorMap {
   public readonly defaultColor: string
-  constructor(
-    defaultColor: string,
-    private readonly colors: Map<string, string>,
-  ) {
+  readonly #colors: Map<string, string>
+  constructor(defaultColor: string, colors: Map<string, string>) {
+    this.#colors = colors
     this.defaultColor =
       ColorMap.parseColor(defaultColor) ?? ColorMap.globalDefault
   }
@@ -26,11 +25,11 @@ export default class ColorMap {
     return {
       type: 'colormap',
       defaultColor: this.defaultColor,
-      colors: Object.fromEntries(this.colors),
+      colors: Object.fromEntries(this.#colors),
     }
   }
 
-  private static isValidColorMap(data: any): data is ColorMapExport {
+  static #isValidColorMap(data: any): data is ColorMapExport {
     return (
       'type' in data &&
       data.type === 'colormap' &&
@@ -46,7 +45,7 @@ export default class ColorMap {
 
   /** parses a colormap from json */
   static fromJSON(data: any): ColorMap | null {
-    if (!this.isValidColorMap(data)) {
+    if (!this.#isValidColorMap(data)) {
       return null
     }
 
@@ -98,7 +97,7 @@ export default class ColorMap {
     const node = nodes
       .sort(PathTreeNode.compare.bind(PathTreeNode))
       .find(node => typeof node.path?.id === 'string')
-    return this.colors.get(node?.path?.id ?? '') ?? this.defaultColor
+    return this.#colors.get(node?.path?.id ?? '') ?? this.defaultColor
   }
 
   public set(node: PathTreeNode, color: string): ColorMap {
@@ -112,7 +111,7 @@ export default class ColorMap {
     const id = node.path?.id
     if (typeof id === 'undefined') return this
 
-    const copy = new Map(this.colors)
+    const copy = new Map(this.#colors)
     if (nColor !== this.defaultColor) {
       copy.set(id, nColor)
     } else {

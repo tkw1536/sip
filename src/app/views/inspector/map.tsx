@@ -60,20 +60,20 @@ const AddMapRow = WithID<ReducerProps>(
   class AddMapRow extends Component<ReducerProps & { id: string }> {
     state = { short: '', long: '' }
 
-    private readonly handleSubmit = (evt: SubmitEvent): void => {
+    readonly #handleSubmit = (evt: SubmitEvent): void => {
       evt.preventDefault()
 
       const { short, long } = this.state
       this.props.apply(addNamespace(long, short))
     }
 
-    private readonly handleShortChange = (
+    readonly #handleShortChange = (
       event: Event & { currentTarget: HTMLInputElement },
     ): void => {
       this.setState({ short: event.currentTarget.value })
     }
 
-    private readonly handleLongChange = (
+    readonly #handleLongChange = (
       event: Event & { currentTarget: HTMLInputElement },
     ): void => {
       this.setState({ long: event.currentTarget.value })
@@ -86,7 +86,11 @@ const AddMapRow = WithID<ReducerProps>(
       return (
         <tr>
           <td>
-            <input type='text' value={short} onInput={this.handleShortChange} />
+            <input
+              type='text'
+              value={short}
+              onInput={this.#handleShortChange}
+            />
           </td>
           <td>
             <input
@@ -94,11 +98,11 @@ const AddMapRow = WithID<ReducerProps>(
               class={styles.wide}
               form={id}
               value={long}
-              onInput={this.handleLongChange}
+              onInput={this.#handleLongChange}
             />
           </td>
           <td>
-            <form id={id} onSubmit={this.handleSubmit}>
+            <form id={id} onSubmit={this.#handleSubmit}>
               <button>Add</button>
             </form>
           </td>
@@ -109,18 +113,18 @@ const AddMapRow = WithID<ReducerProps>(
 )
 
 class ControlsRow extends Component<ReducerProps> {
-  private readonly handleSubmit = (evt: SubmitEvent): void => {
+  readonly #handleSubmit = (evt: SubmitEvent): void => {
     evt.preventDefault()
     this.props.apply(resetNamespaceMap())
   }
 
-  private readonly handleNamespaceMapExport = (evt: Event): void => {
+  readonly #handleNamespaceMapExport = (evt: Event): void => {
     const data = JSON.stringify(this.props.state.ns.toJSON(), null, 2)
     const blob = new Blob([data], { type: Type.JSON })
     download(blob, 'namespaces.json', 'json')
   }
 
-  private readonly handleNamespaceMapImport = (file: File): void => {
+  readonly #handleNamespaceMapImport = (file: File): void => {
     this.props.apply(loadNamespaceMap(file))
   }
 
@@ -129,10 +133,10 @@ class ControlsRow extends Component<ReducerProps> {
     return (
       <tr>
         <td colspan={2}>
-          <button onClick={this.handleNamespaceMapExport}>Export</button>
+          <button onClick={this.#handleNamespaceMapExport}>Export</button>
           <DropArea
             types={[Type.JSON]}
-            onDropFile={this.handleNamespaceMapImport}
+            onDropFile={this.#handleNamespaceMapImport}
             compact
           >
             Import
@@ -145,7 +149,7 @@ class ControlsRow extends Component<ReducerProps> {
           )}
         </td>
         <td>
-          <form onSubmit={this.handleSubmit}>
+          <form onSubmit={this.#handleSubmit}>
             <button>Reset To Default</button>
           </form>
         </td>
@@ -160,7 +164,7 @@ class MapViewRow extends Component<
 > {
   state: { value?: string } = {}
 
-  private readonly handleSubmit = (evt: Event): void => {
+  readonly #handleSubmit = (evt: Event): void => {
     evt.preventDefault()
 
     const { value } = this.state
@@ -170,13 +174,13 @@ class MapViewRow extends Component<
     this.props.props.apply(updateNamespace(long, value))
   }
 
-  private readonly handleChange = (
+  readonly #handleChange = (
     event: Event & { currentTarget: HTMLInputElement },
   ): void => {
     this.setState({ value: event.currentTarget.value })
   }
 
-  private readonly handleDelete = (event: Event): void => {
+  readonly #handleDelete = (event: Event): void => {
     event.preventDefault()
 
     this.props.props.apply(deleteNamespace(this.props.long))
@@ -189,11 +193,11 @@ class MapViewRow extends Component<
     return (
       <tr>
         <td>
-          <form onSubmit={this.handleSubmit}>
+          <form onSubmit={this.#handleSubmit}>
             <input
               type='text'
               value={value ?? short}
-              onInput={this.handleChange}
+              onInput={this.#handleChange}
             />
           </form>
         </td>
@@ -201,11 +205,11 @@ class MapViewRow extends Component<
           <code>{long}</code>
         </td>
         <td>
-          <button onClick={this.handleSubmit} disabled={!dirty}>
+          <button onClick={this.#handleSubmit} disabled={!dirty}>
             Apply
           </button>
           &nbsp;
-          <button onClick={this.handleDelete}>Delete</button>
+          <button onClick={this.#handleDelete}>Delete</button>
         </td>
       </tr>
     )

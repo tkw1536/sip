@@ -68,23 +68,20 @@ export default class ModelGraphBuilder extends GraphBuilder<
   ModelNode,
   ModelEdge
 > {
-  private readonly specific: SpecificBuilder
-  constructor(
-    private readonly tree: PathTree,
-    private readonly options: Options,
-  ) {
+  readonly #specific: SpecificBuilder
+  constructor(tree: PathTree, options: Options) {
     super()
 
     const { deduplication, ...specificOptions } = options
-    switch (this.options.deduplication) {
+    switch (options.deduplication) {
       case Deduplication.Full:
-        this.specific = new FullBuilder(tree, specificOptions, this.graph)
+        this.#specific = new FullBuilder(tree, specificOptions, this.graph)
         break
       case Deduplication.None:
-        this.specific = new NoneBuilder(tree, specificOptions, this.graph)
+        this.#specific = new NoneBuilder(tree, specificOptions, this.graph)
         break
       case Deduplication.Bundle:
-        this.specific = new BundleBuilder(tree, specificOptions, this.graph)
+        this.#specific = new BundleBuilder(tree, specificOptions, this.graph)
         break
       default:
         throw new Error('unknown specific builder')
@@ -92,25 +89,28 @@ export default class ModelGraphBuilder extends GraphBuilder<
   }
 
   protected async doBuild(): Promise<void> {
-    this.specific.build()
+    this.#specific.build()
   }
 }
 
 abstract class SpecificBuilder {
   protected readonly tracker = new ArrayTracker<string>()
+  readonly #options: SharedOptions
   constructor(
-    public tree: PathTree,
-    private readonly options: SharedOptions,
+    protected tree: PathTree,
+    options: SharedOptions,
     protected graph: Graph<ModelNode, ModelEdge>,
-  ) {}
+  ) {
+    this.#options = options
+  }
 
   public abstract build(): void
 
   /** checks if the given uri is included in the graph */
   protected includes(node: PathTreeNode): boolean {
-    if (this.options.include == null) return true
+    if (this.#options.include == null) return true
 
-    return this.options.include(node)
+    return this.#options.include(node)
   }
 
   protected id(context: string, typ: 'class' | 'data', id: string): string {
@@ -121,12 +121,12 @@ abstract class SpecificBuilder {
 class NoneBuilder extends SpecificBuilder {
   public build(): void {
     for (const bundle of this.tree.children()) {
-      this.addBundle(null, bundle, 0)
+      this.#addBundle(null, bundle, 0)
     }
     this.graph.definitelyAcyclic = true
   }
 
-  private addBundle(
+  #addBundle(
     parentNode: number | null,
     bundle: Bundle,
     level: number,
@@ -136,12 +136,12 @@ class NoneBuilder extends SpecificBuilder {
 
     let selfNode: number | null = null
     if (includeSelf) {
-      selfNode = this.addBundleNode(bundle, level)
+      selfNode = this.#addBundleNode(bundle, level)
     }
 
     // add all the child bundles
     for (const cb of bundle.bundles()) {
-      this.addBundle(selfNode, cb, level + 1)
+      this.#addBundle(selfNode, cb, level + 1)
     }
 
     // add all the child fields
@@ -149,13 +149,13 @@ class NoneBuilder extends SpecificBuilder {
       const includeField = this.includes(cf)
       if (!includeField) continue
 
-      this.addField(selfNode, cf)
+      this.#addField(selfNode, cf)
     }
 
     return includeSelf
   }
 
-  private addBundleNode(bundle: Bundle, level: number): number | null {
+  #addBundleNode(bundle: Bundle, level: number): number | null {
     const path = bundle.path.pathArray
 
     let index = path.length - 1
@@ -177,7 +177,7 @@ class NoneBuilder extends SpecificBuilder {
     })
   }
 
-  private addField(parentNode: number | null, node: Field): void {
+  #addField(parentNode: number | null, node: Field): void {
     // get the actual path to add
     const path = node.path
 
@@ -237,20 +237,20 @@ class NoneBuilder extends SpecificBuilder {
 
 class BundleBuilder extends SpecificBuilder {
   public build(): void {
-    this.collectContext()
+    this.#collectContext()
 
     for (const bundle of this.tree.children()) {
-      this.addBundle(bundle, 0)
+      this.#addBundle(bundle, 0)
     }
   }
 
-  private collectContext(): void {
+  #collectContext(): void {
     for (const node of this.tree.walk()) {
       if (node instanceof Field) {
         const disambiguation = node.path.disambiguatedConcept
         if (disambiguation === null) continue
 
-        this.contexts.add(disambiguation)
+        this.#contexts.add(disambiguation)
         continue
       }
 
@@ -262,24 +262,24 @@ class BundleBuilder extends SpecificBuilder {
         }
         if (index < 0) continue
 
-        this.contexts.add(path[index])
+        this.#contexts.add(path[index])
         continue
       }
     }
   }
 
-  private readonly contexts = new Set<string>()
-  private addBundle(bundle: Bundle, level: number): boolean {
+  readonly #contexts = new Set<string>()
+  #addBundle(bundle: Bundle, level: number): boolean {
     // add a node for this bundle itself
     const includeSelf = this.includes(bundle)
 
     if (includeSelf) {
-      this.addBundleNode(bundle, level)
+      this.#addBundleNode(bundle, level)
     }
 
     // add all the child bundles
     for (const cb of bundle.bundles()) {
-      this.addBundle(cb, level + 1)
+      this.#addBundle(cb, level + 1)
     }
 
     // add all the child fields
@@ -287,14 +287,14 @@ class BundleBuilder extends SpecificBuilder {
       const includeField = this.includes(cf)
       if (!includeField) continue
 
-      this.addField(cf)
+      this.#addField(cf)
     }
 
     return includeSelf
   }
 
   /** add a bundle node for the current model */
-  private addBundleNode(bundle: Bundle, level: number): string {
+  #addBundleNode(bundle: Bundle, level: number): string {
     const path = bundle.path.pathArray
 
     let index = path.length - 1
@@ -324,7 +324,7 @@ class BundleBuilder extends SpecificBuilder {
     return id
   }
 
-  private addField(node: Field): void {
+  #addField(node: Field): void {
     // get the actual path to add
     const path = node.path
 
@@ -346,7 +346,7 @@ class BundleBuilder extends SpecificBuilder {
     let currentContext: string = ''
     const addNodeIfNotExists = (i: number): string => {
       const clz = ownPath[i]
-      if (this.contexts.has(clz)) {
+      if (this.#contexts.has(clz)) {
         currentContext = clz
       }
 
@@ -409,21 +409,21 @@ class BundleBuilder extends SpecificBuilder {
 class FullBuilder extends SpecificBuilder {
   public build(): void {
     for (const bundle of this.tree.children()) {
-      this.addBundle(bundle, 0)
+      this.#addBundle(bundle, 0)
     }
   }
 
-  private addBundle(bundle: Bundle, level: number): boolean {
+  #addBundle(bundle: Bundle, level: number): boolean {
     // add the node for this bundle
     const includeSelf = this.includes(bundle)
 
     if (includeSelf) {
-      this.addBundleNode(bundle, level)
+      this.#addBundleNode(bundle, level)
     }
 
     // add all the child bundles
     for (const cb of bundle.bundles()) {
-      this.addBundle(cb, level + 1)
+      this.#addBundle(cb, level + 1)
     }
 
     // add all the child fields
@@ -431,13 +431,13 @@ class FullBuilder extends SpecificBuilder {
       const includeField = this.includes(cf)
       if (!includeField) continue
 
-      this.addField(cf)
+      this.#addField(cf)
     }
 
     return includeSelf
   }
 
-  private addBundleNode(bundle: Bundle, level: number): void {
+  #addBundleNode(bundle: Bundle, level: number): void {
     const path = bundle.path.pathArray
 
     let index = path.length - 1
@@ -465,7 +465,7 @@ class FullBuilder extends SpecificBuilder {
     })
   }
 
-  private addField(node: Field): void {
+  #addField(node: Field): void {
     // get the actual path to add
     const path = node.path
 

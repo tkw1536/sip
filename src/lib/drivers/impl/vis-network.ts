@@ -301,22 +301,28 @@ interface VisCommon {
 }
 
 class Dataset {
+  readonly #nodes: DataSet<VisNode<string | number>>
+  readonly #edges: DataSet<VisEdge<string | number>>
+
   constructor(
-    private readonly nodes: DataSet<VisNode<string | number>>,
-    private readonly edges: DataSet<VisEdge<string | number>>,
-  ) {}
+    nodes: DataSet<VisNode<string | number>>,
+    edges: DataSet<VisEdge<string | number>>,
+  ) {
+    this.#nodes = nodes
+    this.#edges = edges
+  }
 
   addNode(node: VisNode<string | number>): string {
-    const id = this.nodes.add(node)[0] as string
+    const id = this.#nodes.add(node)[0] as string
     return id
   }
 
   addEdge(edge: VisEdge<string | number>): string {
-    return this.edges.add(edge)[0] as string
+    return this.#edges.add(edge)[0] as string
   }
 
   toData(): Data {
-    return { nodes: this.nodes, edges: this.edges } as unknown as Data
+    return { nodes: this.#nodes, edges: this.#edges } as unknown as Data
   }
 
   /** drawNetworkClone draws a clone of this dataset from the given network */
@@ -333,8 +339,8 @@ class Dataset {
     const orgCanvas = (await draw(network)).canvas
 
     // copy nodes, edges, positions
-    const nodes = this.nodes.get()
-    const edges = this.edges.get()
+    const nodes = this.#nodes.get()
+    const edges = this.#edges.get()
     const positions = network.getPositions()
 
     // create a new set of nodes

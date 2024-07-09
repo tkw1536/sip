@@ -3,7 +3,7 @@ import download from '../../../lib/utils/download'
 import { type ReducerProps } from '../../state'
 
 export default class ExportView extends Component<ReducerProps> {
-  private readonly handleExport = (evt: MouseEvent): void => {
+  readonly #handleExport = (evt: MouseEvent): void => {
     evt.preventDefault()
 
     const { filename, pathbuilder } = this.props.state
@@ -20,7 +20,7 @@ export default class ExportView extends Component<ReducerProps> {
           usually corresponds to exactly the file that was originally loaded.
         </p>
 
-        <button onClick={this.handleExport}>
+        <button onClick={this.#handleExport}>
           Save
           {typeof filename === 'string' && filename !== ''
             ? filename

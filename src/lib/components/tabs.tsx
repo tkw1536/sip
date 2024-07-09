@@ -32,7 +32,7 @@ interface TabsProps {
 }
 export default class Tabs extends Component<TabsProps> {
   /** getChildren returns an array of VNode<any> children */
-  private static getChildren(children: ComponentChildren): Array<VNode<any>> {
+  static #getChildren(children: ComponentChildren): Array<VNode<any>> {
     return (Array.isArray(children) ? children : [children]).filter(
       child =>
         child !== null &&
@@ -43,7 +43,7 @@ export default class Tabs extends Component<TabsProps> {
   }
 
   get children(): TabChild[] {
-    return Tabs.getChildren(this.props.children)
+    return Tabs.#getChildren(this.props.children)
       .map(c => {
         if (c.type === Tab) {
           return { type: 'tab', ...c.props }
@@ -70,18 +70,15 @@ type TabInterfaceProps = { children: TabChild[]; id: string } & TabsProps
 
 const TabInterface = WithID<TabInterfaceProps>(
   class TabInterface extends Component<TabInterfaceProps> {
-    private readonly handleTabChange = (
-      id: string,
-      event: MouseEvent,
-    ): void => {
+    readonly #handleTabChange = (id: string, event: MouseEvent): void => {
       event.preventDefault()
 
-      const tab = this.findTab(id)
+      const tab = this.#findTab(id)
       if (tab === null || (tab.disabled ?? false)) return
       this.props.onChangeTab(id)
     }
 
-    private readonly findTab = (id: string): TabProps | null => {
+    readonly #findTab = (id: string): TabProps | null => {
       const candidate = this.props.children.find(
         (child): child is TabChild & { type: 'tab' } => {
           return child.type === 'tab' && id === child.id
@@ -112,7 +109,7 @@ const TabInterface = WithID<TabInterfaceProps>(
                 (disabled ?? false) && styles.disabled,
                 selected && styles.selected,
               )
-              const handleClick = this.handleTabChange.bind(this, id)
+              const handleClick = this.#handleTabChange.bind(this, id)
 
               const tabID = `${id}-tab-${index}`
               const panelID = `${id}-panel-${index}`

@@ -147,23 +147,23 @@ export abstract class PathTreeNode {
 }
 
 export class PathTree extends PathTreeNode {
-  private readonly bundles: Bundle[]
+  readonly #bundles: Bundle[]
   constructor(bundles: ProtoBundle[]) {
     super(0, -1)
-    this.bundles = bundles.map(bundle => new Bundle(this, bundle))
+    this.#bundles = bundles.map(bundle => new Bundle(this, bundle))
   }
 
   readonly path = null
   readonly parent = null;
 
   *children(): IterableIterator<Bundle> {
-    for (const bundle of this.bundles) {
+    for (const bundle of this.#bundles) {
       yield bundle
     }
   }
 
   get childCount(): number {
-    return this.bundles.length
+    return this.#bundles.length
   }
 
   static fromPathbuilder(
@@ -234,12 +234,12 @@ export class PathTree extends PathTreeNode {
 
     return new PathTree(
       mainBundles
-        .map(bundle => this.validateBundle(bundle))
+        .map(bundle => this.#validateBundle(bundle))
         .filter(bundle => bundle !== null),
     )
   }
 
-  private static validateBundle({
+  static #validateBundle({
     id,
     data,
     bundles,
@@ -250,7 +250,7 @@ export class PathTree extends PathTreeNode {
     }
 
     const children = bundles
-      .map(bundle => this.validateBundle(bundle))
+      .map(bundle => this.#validateBundle(bundle))
       .filter(bundle => bundle !== null)
 
     return {
@@ -272,40 +272,40 @@ export class Bundle extends PathTreeNode {
     this.path = path
 
     bundles.forEach(bundle => {
-      this.childBundles.push(new Bundle(this, bundle))
+      this.#childBundles.push(new Bundle(this, bundle))
     })
     fields.forEach(field => {
-      this.childFields.push(new Field(this, field))
+      this.#childFields.push(new Field(this, field))
     })
   }
 
   public readonly path: Path
-  private readonly childBundles: Bundle[] = []
-  private readonly childFields: Field[] = [];
+  readonly #childBundles: Bundle[] = []
+  readonly #childFields: Field[] = [];
 
   *children(): IterableIterator<PathTreeNode> {
-    for (const bundle of this.childBundles) {
+    for (const bundle of this.#childBundles) {
       yield bundle
     }
-    for (const field of this.childFields) {
+    for (const field of this.#childFields) {
       yield field
     }
   }
 
   get childCount(): number {
-    return this.childBundles.length + this.childFields.length
+    return this.#childBundles.length + this.#childFields.length
   }
 
   /** the direct bundle descendants */
   *bundles(): IterableIterator<Bundle> {
-    for (const bundle of this.childBundles) {
+    for (const bundle of this.#childBundles) {
       yield bundle
     }
   }
 
   /** the direct field descendants */
   *fields(): IterableIterator<Field> {
-    for (const field of this.childFields) {
+    for (const field of this.#childFields) {
       yield field
     }
   }

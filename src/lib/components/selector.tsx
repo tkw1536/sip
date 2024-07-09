@@ -11,7 +11,7 @@ export default class ValueSelector extends Component<
   ValueSelectorProps,
   Record<never, never>
 > {
-  private readonly handleChange = (
+  readonly #handleChange = (
     evt: Event & { currentTarget: HTMLSelectElement },
   ): void => {
     evt.preventDefault()
@@ -51,7 +51,7 @@ export default class ValueSelector extends Component<
       <select
         value={value}
         disabled={this.disabled}
-        onInput={this.handleChange}
+        onInput={this.#handleChange}
       >
         {values.map(value => (
           <option key={value}>{value}</option>

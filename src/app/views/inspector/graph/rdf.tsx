@@ -22,7 +22,7 @@ export default class RDFGraphView extends Component<
   { data?: Blob }
 > {
   state: { data?: Blob } = {}
-  private readonly builder = async (): Promise<Graph<RDFNode, RDFEdge>> => {
+  readonly #builder = async (): Promise<Graph<RDFNode, RDFEdge>> => {
     const { data } = this.state
     if (typeof data === 'undefined')
       throw new Error('tried to build a graph, but there is no blob')
@@ -40,16 +40,16 @@ export default class RDFGraphView extends Component<
     return await builder.build()
   }
 
-  private readonly handleClose = (evt: Event): void => {
+  readonly #handleClose = (evt: Event): void => {
     evt.preventDefault()
     this.setState({ data: undefined })
   }
 
-  private readonly handleOpen = (file: File): void => {
+  readonly #handleOpen = (file: File): void => {
     this.setState({ data: file })
   }
 
-  private readonly displayRef = createRef<GraphDisplay<RDFNode, RDFEdge>>()
+  readonly #displayRef = createRef<GraphDisplay<RDFNode, RDFEdge>>()
 
   render(): ComponentChildren {
     const { data } = this.state
@@ -71,7 +71,7 @@ export default class RDFGraphView extends Component<
           class={styles.dropZone}
           activeValidClass={styles.valid}
           activeInvalidClass={styles.invalid}
-          onDropFile={this.handleOpen}
+          onDropFile={this.#handleOpen}
           types={[Type.XML]}
         >
           Drop <code>RDF/XML</code> here
@@ -93,28 +93,28 @@ export default class RDFGraphView extends Component<
 
     return (
       <GraphDisplay
-        ref={this.displayRef}
+        ref={this.#displayRef}
         loader={triples}
         driver={rdfGraphDriver}
         builderKey={`${pathbuilderVersion}-${selectionVersion}-${colorVersion}`}
-        makeGraph={this.builder}
+        makeGraph={this.#builder}
         ns={ns}
         cm={cm}
         layout={rdfGraphLayout}
-        panel={this.renderPanel}
+        panel={this.#renderPanel}
       />
     )
   }
 
-  private readonly handleChangeRDFRenderer = (value: string): void => {
+  readonly #handleChangeRDFRenderer = (value: string): void => {
     this.props.apply(setRDFDriver(value))
   }
 
-  private readonly handleChangeRDFLayout = (value: string): void => {
+  readonly #handleChangeRDFLayout = (value: string): void => {
     this.props.apply(setRDFLayout(value))
   }
 
-  private readonly renderPanel = (
+  readonly #renderPanel = (
     driver: Driver<RDFNode, RDFEdge> | null,
   ): ComponentChildren => {
     const {
@@ -127,13 +127,13 @@ export default class RDFGraphView extends Component<
           driverNames={triples.names}
           driver={driver}
           currentLayout={rdfGraphLayout}
-          onChangeDriver={this.handleChangeRDFRenderer}
-          onChangeLayout={this.handleChangeRDFLayout}
+          onChangeDriver={this.#handleChangeRDFRenderer}
+          onChangeLayout={this.#handleChangeRDFLayout}
         />
         <Control name='Close'>
-          <button onClick={this.handleClose}>Close and Open Another</button>
+          <button onClick={this.#handleClose}>Close and Open Another</button>
         </Control>
-        <ExportControl driver={driver} display={this.displayRef.current} />
+        <ExportControl driver={driver} display={this.#displayRef.current} />
       </>
     )
   }

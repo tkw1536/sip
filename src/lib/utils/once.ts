@@ -64,32 +64,35 @@ export default class Once {
 
 /** Lazy computes a specific value once */
 export class Lazy<T> {
-  private readonly once = new Once()
-  private stored: T | null = null
+  readonly #once = new Once()
+  #stored: T | null = null
   async Get(getter: () => Promise<T>): Promise<T> {
-    await this.once.Do(async () => {
-      this.stored = await getter()
+    await this.#once.Do(async () => {
+      this.#stored = await getter()
     })
 
-    if (this.stored === null) {
+    if (this.#stored === null) {
       throw new Error('internal error: value not stored')
     }
 
-    return this.stored
+    return this.#stored
   }
 
   get value(): T {
-    if (this.stored === null) throw new Error('Lazy: Value not loaded')
-    return this.stored
+    if (this.#stored === null) throw new Error('Lazy: Value not loaded')
+    return this.#stored
   }
 }
 
 export class LazyValue<T> {
-  private readonly lazy = new Lazy<T>()
-  constructor(private readonly getter: () => Promise<T>) {}
+  readonly #lazy = new Lazy<T>()
+  readonly #getter: () => Promise<T>
+  constructor(getter: () => Promise<T>) {
+    this.#getter = getter
+  }
 
   get value(): T {
-    return this.lazy.value
+    return this.#lazy.value
   }
 
   async load(): Promise<void> {
@@ -97,6 +100,6 @@ export class LazyValue<T> {
   }
 
   get lazyValue(): Promise<T> {
-    return this.lazy.Get(this.getter)
+    return this.#lazy.Get(this.#getter)
   }
 }
