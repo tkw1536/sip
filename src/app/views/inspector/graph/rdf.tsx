@@ -15,13 +15,12 @@ import type Graph from '../../../../lib/graph'
 import DropArea from '../../../../lib/components/drop-area'
 import * as styles from './rdf.module.css'
 import { graph, parse } from 'rdflib'
-import { Type } from '../../../../lib/utils/media'
 
 export default class RDFGraphView extends Component<
   ReducerProps,
   { data?: Blob }
 > {
-  state: { data?: Blob } = {}
+  state: { data?: File } = {}
   readonly #builder = async (): Promise<Graph<RDFNode, RDFEdge>> => {
     const { data } = this.state
     if (typeof data === 'undefined')
@@ -29,7 +28,8 @@ export default class RDFGraphView extends Component<
 
     const text = await data.text()
     const format = 'application/rdf+xml'
-    const base = '' // TODO: allow user to set this
+    const { name } = data
+    const base = 'file://' + (name !== '' ? name : 'upload.xml') // TODO: allow user to set this
 
     // parse in the graph
     const store = graph()
@@ -72,7 +72,6 @@ export default class RDFGraphView extends Component<
           activeValidClass={styles.valid}
           activeInvalidClass={styles.invalid}
           onDropFile={this.#handleOpen}
-          types={[Type.XML]}
         >
           Drop <code>RDF/XML</code> here
         </DropArea>

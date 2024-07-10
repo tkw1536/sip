@@ -1,5 +1,5 @@
-import ImmutableMap from './utils/immutable-map'
-import ImmutableSet from './utils/immutable-set'
+import ImmutableMap from '../utils/immutable-map'
+import ImmutableSet from '../utils/immutable-set'
 
 export interface NamespaceMapExport {
   type: 'namespace-map'

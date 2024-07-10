@@ -1,5 +1,5 @@
 import { Component, type ComponentChild, Fragment } from 'preact'
-import { type NamespaceMap } from '../../../lib/namespace'
+import { type NamespaceMap } from '../../../lib/pathbuilder/namespace'
 import { type Bundle, Field } from '../../../lib/pathbuilder/pathtree'
 import * as styles from './hierarchy.module.css'
 import { classes } from '../../../lib/utils/classes'

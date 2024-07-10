@@ -1,5 +1,5 @@
 import { type Reducer, type State } from '../..'
-import { NamespaceMap } from '../../../../lib/namespace'
+import { NamespaceMap } from '../../../../lib/pathbuilder/namespace'
 import { type PathTree } from '../../../../lib/pathbuilder/pathtree'
 
 export function newNamespaceMap(tree: PathTree): NamespaceMap {

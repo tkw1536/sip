@@ -1,5 +1,5 @@
 import type ColorMap from '../../pathbuilder/annotations/colormap'
-import { type NamespaceMap } from '../../namespace'
+import { type NamespaceMap } from '../../pathbuilder/namespace'
 import type Graph from '../../graph'
 import { IDPool } from '../../utils/id-pool'
 

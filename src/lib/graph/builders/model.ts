@@ -8,7 +8,7 @@ import {
   type PathTreeNode,
 } from '../../pathbuilder/pathtree'
 import ArrayTracker from '../../utils/array-tracker'
-import { type NamespaceMap } from '../../namespace'
+import { type NamespaceMap } from '../../pathbuilder/namespace'
 
 export type Options = SharedOptions & {
   deduplication?: Deduplication

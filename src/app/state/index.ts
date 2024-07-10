@@ -1,5 +1,5 @@
 import type ColorMap from '../../lib/pathbuilder/annotations/colormap'
-import { type NamespaceMap } from '../../lib/namespace'
+import { type NamespaceMap } from '../../lib/pathbuilder/namespace'
 import { type Pathbuilder } from '../../lib/pathbuilder/pathbuilder'
 import { type Diagnostic, type PathTree } from '../../lib/pathbuilder/pathtree'
 import type NodeSelection from '../../lib/pathbuilder/annotations/selection'

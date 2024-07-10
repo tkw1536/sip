@@ -1,6 +1,6 @@
 import { Component, type ComponentChild, type Ref, createRef } from 'preact'
 import type Graph from '../graph'
-import { type NamespaceMap } from '../namespace'
+import { type NamespaceMap } from '../pathbuilder/namespace'
 import * as styles from './index.module.css'
 import { Operation } from '../utils/operation'
 import type Driver from './impl'
