@@ -16,10 +16,13 @@ export default class ImmutableSet<T> {
 
   /* returns a new set with the given element added */
   add(value: T): ImmutableSet<T> {
-    return this.addAll([value])
+    if (this.has(value)) return this
+    const next = new Set(this.#elements)
+    next.add(value)
+    return new ImmutableSet(next)
   }
 
-  /** adds all values for the given i */
+  /** like repeatedly calling {@link add} for each value of the iterator */
   addAll(values: Iterable<T>): ImmutableSet<T> {
     const elements = new Set(this.#elements)
 
@@ -31,12 +34,15 @@ export default class ImmutableSet<T> {
     return new ImmutableSet(elements)
   }
 
-  /** delete the specified  */
+  /** returns a set with the given value removed */
   delete(value: T): ImmutableSet<T> {
-    return this.deleteAll([value])
+    if (!this.has(value)) return this
+    const next = new Set(this.#elements)
+    next.delete(value)
+    return new ImmutableSet(next)
   }
 
-  /** returns a new set that deletes from the immutable set */
+  /** like repeatedly calling {@link delete} for each value of the iterator */
   deleteAll(values: Iterable<T>): ImmutableSet<T> {
     const elements = new Set(this.#elements)
 
@@ -81,7 +87,7 @@ export default class ImmutableSet<T> {
     return this.#elements.has(value)
   }
 
-  /** returns the number elements in this set */
+  /** the number of unique elements of this */
   get size(): number {
     return this.#elements.size
   }

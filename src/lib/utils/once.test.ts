@@ -4,37 +4,63 @@ import Once, { Lazy, LazyValue } from './once'
 vi.useFakeTimers()
 
 describe(Once, () => {
-  test('Do() only calls the function once', async () => {
-    let counter = 0
+  const THE_TIMEOUT = 1000
 
+  test('resolves in concurrent mode', async () => {
     const once = new Once()
 
-    await once.Do(async () => {
-      counter++
+    const p1 = once.Do(async () => {
+      await new Promise(resolve => setTimeout(resolve, THE_TIMEOUT))
     })
-    await once.Do(async () => {
-      counter++
+    const p2 = once.Do(async () => {
+      throw new Error('this should never be called')
     })
+    vi.runAllTimers()
 
-    expect(counter).toBe(1)
+    await expect(p1).resolves.toBeUndefined()
+    await expect(p2).resolves.toBeUndefined()
   })
-  test('Do() waits for execution to be complete', async () => {
-    const THE_TIMEOUT = 1000
-    for (let i = 0; i < 1000; i++) {
-      const once = new Once()
 
-      const all = Promise.all([
-        once.Do(async () => {
-          await new Promise(resolve => setTimeout(resolve, THE_TIMEOUT))
-        }),
-        once.Do(async () => {
-          throw new Error('this should never be called')
-        }),
-      ])
-      vi.runAllTimers()
+  test('resolves in sequential mode', async () => {
+    const once = new Once()
 
-      await all
-    }
+    const p1 = once.Do(async () => {
+      await new Promise(resolve => setTimeout(resolve, THE_TIMEOUT))
+    })
+    vi.runAllTimers()
+    await expect(p1).resolves.toBeUndefined()
+
+    const p2 = once.Do(async () => {
+      throw new Error('this should never be called')
+    })
+    await expect(p2).resolves.toBeUndefined()
+  })
+
+  test('rejection in concurrent mode', async () => {
+    const once = new Once()
+    const p1 = once.Do(async () => {
+      await new Promise(resolve => setTimeout(resolve, THE_TIMEOUT))
+      throw new Error('debug rejection')
+    })
+    const p2 = once.Do(async () => {})
+
+    vi.runAllTimers()
+
+    await expect(p1).rejects.toThrow('debug rejection')
+    await expect(p2).rejects.toThrow('debug rejection')
+  })
+
+  test('rejection in sequential mode', async () => {
+    const once = new Once()
+    const p1 = once.Do(async () => {
+      await new Promise(resolve => setTimeout(resolve, THE_TIMEOUT))
+      throw new Error('debug rejection')
+    })
+    vi.runAllTimers()
+    await expect(p1).rejects.toThrow('debug rejection')
+
+    const p2 = once.Do(async () => {})
+    await expect(p2).rejects.toThrow('debug rejection')
   })
 })
 

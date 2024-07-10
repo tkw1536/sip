@@ -34,27 +34,21 @@ export default class Once {
 
       this.#state = State.Pending
       func()
-        .then(() => {
-          this.#state = State.Fulfilled
-          this.#waiters.forEach(({ resolve }) => {
-            resolve()
-          })
-        })
-        .catch((err: any) => {
-          // TODO: move to the then() thing
-          // error occurred during handling => re-throw it
-          if (this.#state === State.Fulfilled) {
-            // eslint-disable-next-line @typescript-eslint/only-throw-error
-            throw err
-          }
-
-          // error occurred during original promise
-          this.#state = State.Rejected
-          this.#rejectReason = err
-          this.#waiters.forEach(({ reject }) => {
-            reject(err)
-          })
-        })
+        .then(
+          () => {
+            this.#state = State.Fulfilled
+            this.#waiters.forEach(({ resolve }) => {
+              resolve()
+            })
+          },
+          (err: any) => {
+            this.#state = State.Rejected
+            this.#rejectReason = err
+            this.#waiters.forEach(({ reject }) => {
+              reject(err)
+            })
+          },
+        )
         .finally(() => {
           this.#waiters = [] // prevent memory leaks for the resolve/reject
         })
