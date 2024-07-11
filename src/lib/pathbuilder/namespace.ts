@@ -24,9 +24,15 @@ export class NamespaceMap {
           }
           shorts.add(short)
           return true
-        }),
+        })
+        .reverse(),
     )
     this.#shorts = new ImmutableSet(shorts)
+  }
+
+  /** iterate over [long, short] of this map */
+  get entries(): IterableIterator<[string, string]> {
+    return this.#map.entries()
   }
 
   toJSON(): NamespaceMapExport {
