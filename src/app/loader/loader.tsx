@@ -1,6 +1,8 @@
-import { Component, type ComponentChildren } from 'preact'
+import { Component, type ComponentType, type ComponentChildren } from 'preact'
 import { Operation } from '../../lib/utils/operation'
 import * as styles from './loader.module.css'
+import { Lazy as LazyImpl } from '../../lib/components/wrapper'
+import { type PropsWithoutRef } from 'preact/compat'
 
 interface LoaderProps {
   message?: ComponentChildren
@@ -21,6 +23,14 @@ export class Loader extends Component<LoaderProps> {
       </AvoidFlicker>
     )
   }
+}
+
+/** Like {@link Lazy} except that it uses the default lazy component */
+export function LazyLoaded<P>(
+  loader: () => Promise<ComponentType<P>>,
+  message?: string,
+): ComponentType<PropsWithoutRef<P>> {
+  return LazyImpl(loader, <Loader message={message} />)
 }
 
 /** AvoidFlicker avoids showing children until after delayMS */

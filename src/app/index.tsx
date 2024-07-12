@@ -4,17 +4,32 @@ import { classes } from '../lib/utils/classes'
 import { resetInterface } from './state/reducers/init'
 import { type Reducer, type ReducerProps, type State } from './state'
 import { Operation } from '../lib/utils/operation'
-import HierarchyView from './views/inspector/hierarchy'
-import BundleGraphView from './views/inspector/graph/bundle'
-import MapView from './views/inspector/map'
-import ModelGraphView from './views/inspector/graph/model'
-import Tabs, { Label, Tab } from '../lib/components/tabs'
-import DocsView from './views/docs'
 import { setActiveTab } from './state/reducers/inspector/tab'
-import PathbuilderView from './views/pathbuilder'
-import AboutView from './views/about'
+import Tabs, { Label, Tab } from '../lib/components/tabs'
+
 import DebugView from './views/debug'
 import RDFGraphView from './views/inspector/graph/rdf'
+import { LazyLoaded } from './loader/loader'
+
+const PathbuilderView = LazyLoaded(
+  async () => (await import('./views/pathbuilder')).default,
+)
+const HierarchyView = LazyLoaded(
+  async () => (await import('./views/inspector/hierarchy')).default,
+)
+const BundleGraphView = LazyLoaded(
+  async () => (await import('./views/inspector/graph/bundle')).default,
+)
+const ModelGraphView = LazyLoaded(
+  async () => (await import('./views/inspector/graph/model')).default,
+)
+const MapView = LazyLoaded(
+  async () => (await import('./views/inspector/map')).default,
+)
+const DocsView = LazyLoaded(async () => (await import('./views/docs')).default)
+const AboutView = LazyLoaded(
+  async () => (await import('./views/about')).default,
+)
 
 class Wrapper extends Component {
   render(): ComponentChild {
