@@ -28,4 +28,6 @@ declare module 'cytoscape-avsdf' {
   export default ext
 }
 
+declare module 'preact/debug' {}
+
 // spellchecker:words avsdf fcose dagre
