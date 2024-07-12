@@ -2,14 +2,14 @@ import { Component, type ComponentChild } from 'preact'
 import * as styles from './index.module.css'
 import { classes } from '../lib/utils/classes'
 import { resetInterface } from './state/reducers/init'
-import { type Reducer, type ReducerProps, type State } from './state'
-import { Operation } from '../lib/utils/operation'
+import { type ReducerProps, type State } from './state'
 import { setActiveTab } from './state/reducers/inspector/tab'
 import Tabs, { Label, Tab } from '../lib/components/tabs'
 
 import DebugView from './views/debug'
 import RDFGraphView from './views/inspector/graph/rdf'
 import { LazyLoaded } from './loader/loader'
+import StateManager from '../lib/state_management'
 
 const PathbuilderView = LazyLoaded(
   async () => (await import('./views/pathbuilder')).default,
@@ -48,78 +48,16 @@ class Wrapper extends Component {
 export class App extends Component<Record<never, never>, State> {
   state: State = resetInterface()
 
-  readonly #reduction = new Operation()
-
-  readonly #apply = (
-    reducers: Reducer | Reducer[],
-    callback?: (error?: unknown) => void,
-  ): void => {
-    const ticket = this.#reduction.ticket()
-
-    this.#applyReducers(ticket, Array.isArray(reducers) ? reducers : [reducers])
-      .then(() => {
-        if (typeof callback === 'function') callback()
-      })
-      .catch(err => {
-        if (typeof callback === 'function') callback(err)
-      })
-  }
-
-  readonly #applyReducers = async (
-    ticket: () => boolean,
-    reducers: Reducer[],
-  ): Promise<void> => {
-    for (const reducer of reducers) {
-      await this.#applyReducer(ticket, reducer)
-    }
-  }
-
-  readonly #applyReducer = async (
-    ticket: () => boolean,
-    reducer: Reducer,
-  ): Promise<void> => {
-    await new Promise<void>(resolve => {
-      let reducerReturnedPromise = false
-      this.setState(
-        state => {
-          if (!ticket()) return null
-
-          // if we got an actual value, apply it now!
-          const reduced = reducer(state)
-          if (!(reduced instanceof Promise)) {
-            return reduced
-          }
-
-          reduced
-            .then(res => {
-              this.setState(() => (ticket() ? res : null), resolve)
-            })
-            .catch(err => {
-              console.error('Error applying reducer')
-              console.error(err)
-            })
-
-          reducerReturnedPromise = true
-          return null // nothing to do for now (only when the promise resolves)
-        },
-        () => {
-          if (!reducerReturnedPromise) {
-            resolve()
-          }
-        },
-      )
-    })
-  }
+  readonly #manager = new StateManager<State>(this.setState.bind(this))
 
   componentWillUnmount(): void {
-    this.#reduction.cancel()
+    this.#manager.cancel()
   }
 
   render(): ComponentChild {
-    const props: ReducerProps = { state: this.state, apply: this.#apply }
     return (
       <Wrapper>
-        <Inspector {...props} />
+        <Inspector {...this.#manager.props(this.state)} />
       </Wrapper>
     )
   }

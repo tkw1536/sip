@@ -4,6 +4,10 @@ import { type Pathbuilder } from '../../lib/pathbuilder/pathbuilder'
 import { type Diagnostic, type PathTree } from '../../lib/pathbuilder/pathtree'
 import type NodeSelection from '../../lib/pathbuilder/annotations/selection'
 import type Deduplication from './state/deduplication'
+import {
+  type Reducer as ReducerT,
+  type ReducerProps as ReducerPropsT,
+} from '../../lib/state_management'
 
 export interface State {
   activeTab: string // the active tab
@@ -45,15 +49,5 @@ export interface State {
   collapsed: NodeSelection
 }
 
-/** A reducer updates state */
-export type Reducer = (
-  state: State,
-) => Partial<State> | Promise<Partial<State> | null> | null
-
-export interface ReducerProps {
-  state: State
-  apply: (
-    reducers: Reducer | Reducer[],
-    callback?: (error?: unknown) => void,
-  ) => void
-}
+export type Reducer = ReducerT<State>
+export type ReducerProps = ReducerPropsT<State>
