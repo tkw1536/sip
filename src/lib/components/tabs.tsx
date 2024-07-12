@@ -1,4 +1,9 @@
-import { Component, type ComponentChildren, type VNode } from 'preact'
+import {
+  Component,
+  toChildArray,
+  type ComponentChildren,
+  type VNode,
+} from 'preact'
 import * as styles from './tabs.module.css'
 import { WithID } from './wrapper'
 import { classes } from '../utils/classes'
@@ -33,8 +38,8 @@ interface TabsProps {
 export default class Tabs extends Component<TabsProps> {
   /** getChildren returns an array of VNode<any> children */
   static #getChildren(children: ComponentChildren): Array<VNode<any>> {
-    return (Array.isArray(children) ? children : [children]).filter(
-      child =>
+    return toChildArray(children).filter(
+      (child): child is VNode<any> =>
         child !== null &&
         typeof child === 'object' &&
         Object.prototype.hasOwnProperty.call(child, 'type') &&
