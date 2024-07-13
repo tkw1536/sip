@@ -1,5 +1,5 @@
 import GraphBuilder from '.'
-import Deduplication from '../../../app/state/state/deduplication'
+import Deduplication from '../../../app/inspector/state/state/deduplication'
 import type Graph from '..'
 import {
   Bundle,

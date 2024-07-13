@@ -5,7 +5,7 @@ import { PathTree } from '../src/lib/pathbuilder/pathtree'
 import { NamespaceMap } from '../src/lib/pathbuilder/namespace'
 import ColorMap from '../src/lib/pathbuilder/annotations/colormap'
 import ModelGraphBuilder from '../src/lib/graph/builders/model'
-import Deduplication from '../src/app/state/state/deduplication'
+import Deduplication from '../src/app/inspector/state/state/deduplication'
 import { GraphVizModelDriver } from '../src/lib/drivers/impl/graphviz'
 import { type ContextFlags } from '../src/lib/drivers/impl'
 

@@ -7,7 +7,7 @@ import type Driver from './impl'
 import type ColorMap from '../pathbuilder/annotations/colormap'
 import ErrorDisplay from '../components/error'
 import { type ContextFlags, type MountFlags, type Size } from './impl'
-import { Loader } from '../../app/loader/loader'
+import { Loader } from '../components/loader/loader'
 
 type _context = unknown
 type _mount = unknown
