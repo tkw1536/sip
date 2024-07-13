@@ -19,7 +19,6 @@ import NamespaceEditor from '../../../../../lib/components/namespace-editor'
 import { NamespaceMap } from '../../../../../lib/pathbuilder/namespace'
 import { Operation } from '../../../../../lib/utils/operation'
 import ErrorDisplay from '../../../../../lib/components/error'
-import { type Term } from 'rdflib/lib/tf-types'
 
 export default class RDFGraphView extends Component<
   ReducerProps,
@@ -131,17 +130,15 @@ class RDFGraphDisplay extends Component<
 
   /** generates a namespace map from the props */
   readonly #generateNS = (): NamespaceMap => {
-    const uris = new Set<string>()
-    const addTerm = (term: Term): void => {
-      if (term.termType !== 'NamedNode') return
-      uris.add(term.value)
-    }
-    this.props.store.statements.forEach(statement => {
-      addTerm(statement.subject)
-      addTerm(statement.predicate)
-      addTerm(statement.object)
-    })
-    return NamespaceMap.generate(uris)
+    const entries = Object.entries(this.props.store.namespaces)
+      .sort(([s1, l1], [s2, l2]) => {
+        if (s1 < s2) return -1
+        if (s2 > s1) return 1
+        return 0
+      })
+      .map<[string, string]>(([s, l]) => [l, s])
+    console.log('got entries', entries)
+    return NamespaceMap.fromMap(new Map(entries))
   }
   state: GraphDisplayState = {
     ns: this.#generateNS(),
