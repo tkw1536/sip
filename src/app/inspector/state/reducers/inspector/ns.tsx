@@ -8,7 +8,6 @@ export function newNamespaceMap(tree: PathTree): NamespaceMap {
 export function resetNamespaceMap(): IReducer {
   return ({ namespaceVersion, tree }: IState): Partial<IState> => ({
     ns: newNamespaceMap(tree),
-    nsLoadError: undefined,
     namespaceVersion: namespaceVersion + 1,
   })
 }
@@ -16,7 +15,6 @@ export function resetNamespaceMap(): IReducer {
 export function setNamespaceMap(ns: NamespaceMap): IReducer {
   return ({ namespaceVersion }: IState): Partial<IState> => ({
     ns,
-    nsLoadError: undefined,
     namespaceVersion: namespaceVersion + 1,
   })
 }

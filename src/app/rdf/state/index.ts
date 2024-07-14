@@ -11,7 +11,6 @@ export interface RState {
   store: Store
 
   ns: NamespaceMap
-  nsLoadError?: string
   namespaceVersion: number
 
   rdfGraphDriver: string

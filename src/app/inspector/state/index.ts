@@ -24,7 +24,6 @@ export interface IState {
 
   namespaceVersion: number
   ns: NamespaceMap
-  nsLoadError?: string
 
   colorVersion: number
   cm: ColorMap

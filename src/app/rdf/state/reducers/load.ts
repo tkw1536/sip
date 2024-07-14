@@ -37,7 +37,6 @@ export function newStoreState(text: string, filename: string): RState {
     store,
 
     ns: newNamespaceMap(store),
-    nsLoadError: undefined,
     namespaceVersion: 0,
 
     rdfGraphDriver: newRDFDriver(),

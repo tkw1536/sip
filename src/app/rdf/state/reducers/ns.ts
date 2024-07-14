@@ -15,7 +15,6 @@ export function newNamespaceMap(store: Store): NamespaceMap {
 export function resetNamespaceMap(): RReducer {
   return ({ namespaceVersion, store }: RState): Partial<RState> => ({
     ns: newNamespaceMap(store),
-    nsLoadError: undefined,
     namespaceVersion: namespaceVersion + 1,
   })
 }
@@ -23,7 +22,6 @@ export function resetNamespaceMap(): RReducer {
 export function setNamespaceMap(ns: NamespaceMap): RReducer {
   return ({ namespaceVersion }: RState): Partial<RState> => ({
     ns,
-    nsLoadError: undefined,
     namespaceVersion: namespaceVersion + 1,
   })
 }
