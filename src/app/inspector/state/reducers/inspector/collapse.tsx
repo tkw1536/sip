@@ -1,4 +1,4 @@
-import { type Reducer, type State } from '../..'
+import { type IReducer, type IState } from '../..'
 import {
   type PathTree,
   type PathTreeNode,
@@ -10,22 +10,22 @@ export function newCollapsed(tree: PathTree): NodeSelection {
 }
 
 /** collapses the specific id */
-export function collapseNode(node: PathTreeNode): Reducer {
-  return ({ collapsed }: State): Partial<State> => ({
+export function collapseNode(node: PathTreeNode): IReducer {
+  return ({ collapsed }: IState): Partial<IState> => ({
     collapsed: collapsed.toggle(node),
   })
 }
 
 /** collapses all nodes */
-export function collapseAll(): Reducer {
-  return (state: State): Partial<State> => ({
+export function collapseAll(): IReducer {
+  return (state: IState): Partial<IState> => ({
     collapsed: NodeSelection.all(),
   })
 }
 
 /** expands all nodes */
-export function expandAll(): Reducer {
-  return (state: State): Partial<State> => ({
+export function expandAll(): IReducer {
+  return (state: IState): Partial<IState> => ({
     collapsed: NodeSelection.none(),
   })
 }

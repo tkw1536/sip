@@ -1,10 +1,10 @@
 import { Component, type ComponentChild, type ComponentChildren } from 'preact'
 import DropArea from '../../../lib/components/drop-area'
 import * as styles from './pathbuilder.module.css'
-import { type ReducerProps } from '../state'
+import { type IReducerProps } from '../state'
 import {
   loadPathbuilder,
-  resetInterface,
+  resetInspector,
   setPathbuilderLoading,
 } from '../state/reducers/init'
 import ErrorDisplay from '../../../lib/components/error'
@@ -12,7 +12,7 @@ import download from '../../../lib/utils/download'
 import { Type } from '../../../lib/utils/media'
 import { Loader } from '../../../lib/components/loader/loader'
 
-export default class PathbuilderView extends Component<ReducerProps> {
+export default class PathbuilderView extends Component<IReducerProps> {
   render(): ComponentChildren {
     return this.props.state.loadStage === true ? (
       <InfoView {...this.props} />
@@ -22,7 +22,7 @@ export default class PathbuilderView extends Component<ReducerProps> {
   }
 }
 
-class WelcomeView extends Component<ReducerProps> {
+class WelcomeView extends Component<IReducerProps> {
   readonly #dragContent = (active: boolean, valid: boolean): ComponentChild => {
     switch (true) {
       case active && valid:
@@ -98,10 +98,10 @@ class WelcomeView extends Component<ReducerProps> {
   }
 }
 
-class InfoView extends Component<ReducerProps> {
+class InfoView extends Component<IReducerProps> {
   readonly #handleClosePathbuilder = (evt: Event): void => {
     evt.preventDefault()
-    this.props.apply(resetInterface)
+    this.props.apply(resetInspector)
   }
 
   readonly #handleExport = (evt: MouseEvent): void => {

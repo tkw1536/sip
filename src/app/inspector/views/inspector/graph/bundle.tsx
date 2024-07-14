@@ -5,7 +5,7 @@ import BundleGraphBuilder, {
   type BundleNode,
 } from '../../../../../lib/graph/builders/bundle'
 import { bundles } from '../../../../../lib/drivers/collection'
-import { type ReducerProps } from '../../../state'
+import { type IReducerProps } from '../../../state'
 import type Driver from '../../../../../lib/drivers/impl'
 import {
   setBundleDriver,
@@ -13,7 +13,7 @@ import {
 } from '../../../state/reducers/inspector/bundle'
 import type Graph from '../../../../../lib/graph'
 
-export default class BundleGraphView extends Component<ReducerProps> {
+export default class BundleGraphView extends Component<IReducerProps> {
   readonly #builder = async (): Promise<Graph<BundleNode, BundleEdge>> => {
     const { tree, selection } = this.props.state
 

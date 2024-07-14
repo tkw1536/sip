@@ -8,7 +8,7 @@ import { explanations, names, values } from '../../../state/state/deduplication'
 import { models } from '../../../../../lib/drivers/collection'
 import type Driver from '../../../../../lib/drivers/impl'
 import GraphDisplay, { Control, DriverControl, ExportControl } from '.'
-import { type ReducerProps } from '../../../state'
+import { type IReducerProps } from '../../../state'
 import {
   setModelDeduplication,
   setModelDriver,
@@ -17,8 +17,8 @@ import {
 import { WithID } from '../../../../../lib/components/wrapper'
 import type Graph from '../../../../../lib/graph'
 
-export default WithID<ReducerProps>(
-  class ModelGraphView extends Component<ReducerProps & { id: string }> {
+export default WithID<IReducerProps>(
+  class ModelGraphView extends Component<IReducerProps & { id: string }> {
     readonly #builder = async (): Promise<Graph<ModelNode, ModelEdge>> => {
       const {
         tree,

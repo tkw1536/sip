@@ -1,4 +1,4 @@
-import { type Reducer, type State } from '../..'
+import { type IReducer, type IState } from '../..'
 import ColorMap from '../../../../../lib/pathbuilder/annotations/colormap'
 import { NamespaceMap } from '../../../../../lib/pathbuilder/namespace'
 import { Pathbuilder } from '../../../../../lib/pathbuilder/pathbuilder'
@@ -7,7 +7,7 @@ import NodeSelection from '../../../../../lib/pathbuilder/annotations/selection'
 import Deduplication from '../../state/deduplication'
 import newInspectorState from '../inspector'
 
-export function resetInterface(): State {
+export function resetInspector(): IState {
   return {
     loadStage: false,
     activeTab: '',
@@ -47,12 +47,12 @@ export function resetInterface(): State {
   }
 }
 
-export function setPathbuilderLoading(): Partial<State> {
+export function setPathbuilderLoading(): Partial<IState> {
   return { loadStage: 'loading' }
 }
 
-export function loadPathbuilder(file: File): Reducer {
-  return async (state: State): Promise<Partial<State> | null> => {
+export function loadPathbuilder(file: File): IReducer {
+  return async (state: IState): Promise<Partial<IState> | null> => {
     try {
       const source = await file.text()
       return newInspectorState(Pathbuilder.parse(source), file.name)

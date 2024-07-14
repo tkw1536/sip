@@ -1,8 +1,8 @@
 import { Component, type ComponentChildren } from 'preact'
 import { Loader } from '../../../lib/components/loader/loader'
-import { type ReducerProps } from '../state'
+import { type IReducerProps } from '../state'
 
-export default class DebugView extends Component<ReducerProps> {
+export default class DebugView extends Component<IReducerProps> {
   render(): ComponentChildren {
     return (
       <>

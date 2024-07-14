@@ -1,7 +1,7 @@
-import { type Reducer, type State } from '../..'
+import { type IReducer, type IState } from '../..'
 
 export function setHideEqualParentPaths(
   hideEqualParentPaths: boolean,
-): Reducer {
-  return (state: State) => ({ hideEqualParentPaths })
+): IReducer {
+  return (state: IState) => ({ hideEqualParentPaths })
 }

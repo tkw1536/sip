@@ -7,12 +7,9 @@ import {
 } from '../../../lib/pathbuilder/pathtree'
 import type NodeSelection from '../../../lib/pathbuilder/annotations/selection'
 import type Deduplication from './state/deduplication'
-import {
-  type Reducer as ReducerT,
-  type ReducerProps as ReducerPropsT,
-} from '../../../lib/state_management'
+import { type Reducer, type ReducerProps } from '../../../lib/state_management'
 
-export interface State {
+export interface IState {
   activeTab: string // the active tab
 
   loadStage: false | 'loading' | true | { error: unknown } // boolean indicating if file has been loaded, string for error
@@ -52,5 +49,5 @@ export interface State {
   collapsed: NodeSelection
 }
 
-export type Reducer = ReducerT<State>
-export type ReducerProps = ReducerPropsT<State>
+export type IReducer = Reducer<IState>
+export type IReducerProps = ReducerProps<IState>

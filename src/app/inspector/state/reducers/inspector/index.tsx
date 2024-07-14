@@ -1,4 +1,4 @@
-import { type State } from '../..'
+import { type IState } from '../..'
 import { defaultLayout } from '../../../../../lib/drivers/impl'
 import { type Pathbuilder } from '../../../../../lib/pathbuilder/pathbuilder'
 import {
@@ -18,7 +18,7 @@ import { newTabID } from './tab'
 export default function newInspectorState(
   pathbuilder: Pathbuilder,
   filename: string,
-): State {
+): IState {
   const diagnostics: Diagnostic[] = []
   const tree = PathTree.fromPathbuilder(pathbuilder, diag =>
     diagnostics.push(diag),

@@ -1,6 +1,6 @@
 import { Component, type ComponentChild } from 'preact'
-import { resetInterface } from './state/reducers/init'
-import { type ReducerProps, type State } from './state'
+import { resetInspector } from './state/reducers/init'
+import { type IReducerProps, type IState } from './state'
 import { setActiveTab } from './state/reducers/inspector/tab'
 import Tabs, { Label, Tab } from '../../lib/components/tabs'
 
@@ -29,10 +29,10 @@ const AboutView = LazyLoaded(
   async () => (await import('./views/about')).default,
 )
 
-export class App extends Component<Record<never, never>, State> {
-  state: State = resetInterface()
+export class App extends Component<Record<never, never>, IState> {
+  state: IState = resetInspector()
 
-  readonly #manager = new StateManager<State>(this.setState.bind(this))
+  readonly #manager = new StateManager<IState>(this.setState.bind(this))
 
   componentWillUnmount(): void {
     this.#manager.cancel()
@@ -43,14 +43,14 @@ export class App extends Component<Record<never, never>, State> {
   }
 }
 
-class Inspector extends Component<ReducerProps> {
+class Inspector extends Component<IReducerProps> {
   readonly #handleChangeTab = (key: string): void => {
     this.props.apply(setActiveTab(key))
   }
 
   render(): ComponentChild {
     const { apply, state } = this.props
-    const props: ReducerProps = { apply, state }
+    const props: IReducerProps = { apply, state }
     const loaded = state.loadStage === true
 
     return (

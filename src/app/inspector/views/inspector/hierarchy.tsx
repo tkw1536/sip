@@ -4,7 +4,7 @@ import { type Bundle, Field } from '../../../../lib/pathbuilder/pathtree'
 import * as styles from './hierarchy.module.css'
 import { classes } from '../../../../lib/utils/classes'
 import { type ColorPreset, colorPresets } from '../../state/state/preset'
-import { type ReducerProps } from '../../state'
+import { type IReducerProps } from '../../state'
 import {
   selectAll,
   selectNone,
@@ -25,7 +25,7 @@ import download from '../../../../lib/utils/download'
 import { Type } from '../../../../lib/utils/media'
 import { setHideEqualParentPaths } from '../../state/reducers/inspector/tree'
 
-export default class HierarchyView extends Component<ReducerProps> {
+export default class HierarchyView extends Component<IReducerProps> {
   readonly #handleSelectAll = (evt: Event): void => {
     evt.preventDefault()
     this.props.apply(selectAll())
@@ -201,7 +201,7 @@ export default class HierarchyView extends Component<ReducerProps> {
 const INDENT_PER_LEVEL = 50
 
 class BundleRows extends Component<
-  ReducerProps & { bundle: Bundle; level: number; visible: boolean }
+  IReducerProps & { bundle: Bundle; level: number; visible: boolean }
 > {
   readonly #handleClick = (evt: Event): void => {
     evt.preventDefault()
@@ -237,7 +237,7 @@ class BundleRows extends Component<
   render(): ComponentChild {
     const { bundle, level, visible, state, apply } = this.props
     const { ns, cm, selection, collapsed, hideEqualParentPaths } = state
-    const props: ReducerProps = { state, apply }
+    const props: IReducerProps = { state, apply }
 
     const path = bundle.path
     const expanded = !collapsed.includes(bundle)
@@ -306,7 +306,7 @@ class BundleRows extends Component<
 }
 
 class FieldRow extends Component<
-  ReducerProps & { field: Field; level: number; visible: boolean }
+  IReducerProps & { field: Field; level: number; visible: boolean }
 > {
   readonly #handleSelectionChange = (
     evt: Event & { currentTarget: HTMLInputElement },

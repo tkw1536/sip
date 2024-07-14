@@ -1,7 +1,7 @@
 import { Component, type ComponentChildren, createRef } from 'preact'
 import GraphDisplay, { Control, DriverControl, ExportControl } from '.'
 import { triples } from '../../../../../lib/drivers/collection'
-import { type ReducerProps } from '../../../state'
+import { type IReducerProps } from '../../../state'
 import type Driver from '../../../../../lib/drivers/impl'
 import {
   setRDFDriver,
@@ -21,7 +21,7 @@ import { Operation } from '../../../../../lib/utils/operation'
 import ErrorDisplay from '../../../../../lib/components/error'
 
 export default class RDFGraphView extends Component<
-  ReducerProps,
+  IReducerProps,
   { loadError?: any; store?: Store; fileName?: string }
 > {
   state: { loadError?: any; store?: Store; fileName?: string } = {}
@@ -123,7 +123,7 @@ class RDFGraphDisplay extends Component<
     store: Store
     fileName: string
     onClose: () => void
-  } & ReducerProps,
+  } & IReducerProps,
   GraphDisplayState
 > {
   readonly #displayRef = createRef<GraphDisplay<RDFNode, RDFEdge>>()

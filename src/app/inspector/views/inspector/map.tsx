@@ -1,5 +1,5 @@
 import { Component, type ComponentChild } from 'preact'
-import { type ReducerProps } from '../../state'
+import { type IReducerProps } from '../../state'
 import {
   resetNamespaceMap,
   setNamespaceMap,
@@ -7,7 +7,7 @@ import {
 import { type NamespaceMap } from '../../../../lib/pathbuilder/namespace'
 import NamespaceEditor from '../../../../lib/components/namespace-editor'
 
-export default class MapView extends Component<ReducerProps> {
+export default class MapView extends Component<IReducerProps> {
   readonly #handleReset = (): void => {
     this.props.apply(resetNamespaceMap())
   }

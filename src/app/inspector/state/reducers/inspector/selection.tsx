@@ -1,4 +1,4 @@
-import { type Reducer, type State } from '../..'
+import { type IReducer, type IState } from '../..'
 import {
   type PathTree,
   type PathTreeNode,
@@ -10,8 +10,8 @@ export function newSelection(tree: PathTree): NodeSelection {
 }
 
 /** selects all items */
-export function selectAll(): Reducer {
-  return ({ selectionVersion }: State): Partial<State> => ({
+export function selectAll(): IReducer {
+  return ({ selectionVersion }: IState): Partial<IState> => ({
     selection: NodeSelection.all(),
     selectionVersion: selectionVersion + 1,
   })
@@ -20,16 +20,16 @@ export function selectAll(): Reducer {
 /** makes sure that the selected items are applied */
 export function updateSelection(
   pairs: Array<[PathTreeNode, boolean]>,
-): Reducer {
-  return ({ selection, selectionVersion }: State): Partial<State> => ({
+): IReducer {
+  return ({ selection, selectionVersion }: IState): Partial<IState> => ({
     selection: selection.with(pairs),
     selectionVersion: selectionVersion + 1,
   })
 }
 
 /** selects none of the item */
-export function selectNone(): Reducer {
-  return ({ selection, selectionVersion }: State): Partial<State> => ({
+export function selectNone(): IReducer {
+  return ({ selection, selectionVersion }: IState): Partial<IState> => ({
     selection: NodeSelection.none(),
     selectionVersion: selectionVersion + 1,
   })
