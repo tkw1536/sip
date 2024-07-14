@@ -1,17 +1,17 @@
 import { Component, type ComponentChildren, createRef } from 'preact'
-import GraphDisplay, { DriverControl, ExportControl } from '.'
+import GraphDisplay, {
+  DriverControl,
+  ExportControl,
+} from '../../../components/graph-display'
 import BundleGraphBuilder, {
   type BundleEdge,
   type BundleNode,
-} from '../../../../../lib/graph/builders/bundle'
-import { bundles } from '../../../../../lib/drivers/collection'
-import { type IReducerProps } from '../../../state'
-import type Driver from '../../../../../lib/drivers/impl'
-import {
-  setBundleDriver,
-  setBundleLayout,
-} from '../../../state/reducers/bundle'
-import type Graph from '../../../../../lib/graph'
+} from '../../../lib/graph/builders/bundle'
+import { bundles } from '../../../lib/drivers/collection'
+import { type IReducerProps } from '../state'
+import type Driver from '../../../lib/drivers/impl'
+import { setBundleDriver, setBundleLayout } from '../state/reducers/bundle'
+import type Graph from '../../../lib/graph'
 
 export default class BundleGraphView extends Component<IReducerProps> {
   readonly #builder = async (): Promise<Graph<BundleNode, BundleEdge>> => {

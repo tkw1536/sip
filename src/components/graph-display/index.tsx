@@ -5,18 +5,18 @@ import {
   Fragment,
   createRef,
 } from 'preact'
-import download from '../../../../../lib/utils/download'
-import Kernel, { type DriverLoader } from '../../../../../lib/drivers'
-import type Graph from '../../../../../lib/graph'
+import download from '../../lib/utils/download'
+import Kernel, { type DriverLoader } from '../../lib/drivers'
+import type Graph from '../../lib/graph'
 
 import * as styles from './index.module.css'
-import { classes } from '../../../../../lib/utils/classes'
-import { Operation } from '../../../../../lib/utils/operation'
-import type Driver from '../../../../../lib/drivers/impl'
-import { type NamespaceMap } from '../../../../../lib/pathbuilder/namespace'
-import type ColorMap from '../../../../../lib/pathbuilder/annotations/colormap'
-import ValueSelector from '../../../../../components/selector'
-import ErrorDisplay from '../../../../../components/error'
+import { classes } from '../../lib/utils/classes'
+import { Operation } from '../../lib/utils/operation'
+import type Driver from '../../lib/drivers/impl'
+import { type NamespaceMap } from '../../lib/pathbuilder/namespace'
+import type ColorMap from '../../lib/pathbuilder/annotations/colormap'
+import ValueSelector from '../selector'
+import ErrorDisplay from '../error'
 
 interface GraphProps<NodeLabel, EdgeLabel> {
   loader: DriverLoader<NodeLabel, EdgeLabel>

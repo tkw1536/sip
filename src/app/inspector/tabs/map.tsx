@@ -1,9 +1,6 @@
 import { Component, type ComponentChild } from 'preact'
 import { type IReducerProps } from '../state'
-import {
-  resetNamespaceMap,
-  setNamespaceMap,
-} from '../state/reducers/ns'
+import { resetNamespaceMap, setNamespaceMap } from '../state/reducers/ns'
 import { type NamespaceMap } from '../../../lib/pathbuilder/namespace'
 import NamespaceEditor from '../../../components/namespace-editor'
 

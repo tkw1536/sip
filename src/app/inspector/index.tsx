@@ -15,10 +15,10 @@ const HierarchyTab = LazyLoaded(
   async () => (await import('./tabs/hierarchy')).default,
 )
 const BundleGraphTab = LazyLoaded(
-  async () => (await import('./tabs/inspector/graph/bundle')).default,
+  async () => (await import('./tabs/bundle')).default,
 )
 const ModelGraphTab = LazyLoaded(
-  async () => (await import('./tabs/inspector/graph/model')).default,
+  async () => (await import('./tabs/model')).default,
 )
 const MapTab = LazyLoaded(async () => (await import('./tabs/map')).default)
 const DocsTab = LazyLoaded(async () => (await import('./tabs/docs')).default)

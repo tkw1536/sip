@@ -2,20 +2,24 @@ import { Component, type ComponentChildren, createRef } from 'preact'
 import ModelGraphBuilder, {
   type ModelEdge,
   type ModelNode,
-} from '../../../../../lib/graph/builders/model'
-import type Deduplication from '../../../state/state/deduplication'
-import { explanations, names, values } from '../../../state/state/deduplication'
-import { models } from '../../../../../lib/drivers/collection'
-import type Driver from '../../../../../lib/drivers/impl'
-import GraphDisplay, { Control, DriverControl, ExportControl } from '.'
-import { type IReducerProps } from '../../../state'
+} from '../../../lib/graph/builders/model'
+import type Deduplication from '../state/state/deduplication'
+import { explanations, names, values } from '../state/state/deduplication'
+import { models } from '../../../lib/drivers/collection'
+import type Driver from '../../../lib/drivers/impl'
+import GraphDisplay, {
+  Control,
+  DriverControl,
+  ExportControl,
+} from '../../../components/graph-display'
+import { type IReducerProps } from '../state'
 import {
   setModelDeduplication,
   setModelDriver,
   setModelLayout,
-} from '../../../state/reducers/model'
-import { WithID } from '../../../../../components/wrapper'
-import type Graph from '../../../../../lib/graph'
+} from '../state/reducers/model'
+import { WithID } from '../../../components/wrapper'
+import type Graph from '../../../lib/graph'
 
 export default WithID<IReducerProps>(
   class ModelGraphView extends Component<IReducerProps & { id: string }> {

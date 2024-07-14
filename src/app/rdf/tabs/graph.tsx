@@ -3,7 +3,7 @@ import { type RReducerProps } from '../state'
 import GraphDisplay, {
   DriverControl,
   ExportControl,
-} from '../../inspector/tabs/inspector/graph'
+} from '../../../components/graph-display'
 import ColorMap from '../../../lib/pathbuilder/annotations/colormap'
 import RDFGraphBuilder, {
   type RDFEdge,
