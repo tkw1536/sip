@@ -8,25 +8,21 @@ import DebugTab from './tabs/debug'
 import { LazyLoaded } from '../../components/spinner'
 import StateManager from '../../lib/state_management'
 
-const PathbuilderView = LazyLoaded(
+const PathbuilderTab = LazyLoaded(
   async () => (await import('./tabs/pathbuilder')).default,
 )
-const HierarchyView = LazyLoaded(
+const HierarchyTab = LazyLoaded(
   async () => (await import('./tabs/hierarchy')).default,
 )
-const BundleGraphView = LazyLoaded(
+const BundleGraphTab = LazyLoaded(
   async () => (await import('./tabs/inspector/graph/bundle')).default,
 )
-const ModelGraphView = LazyLoaded(
+const ModelGraphTab = LazyLoaded(
   async () => (await import('./tabs/inspector/graph/model')).default,
 )
-const MapView = LazyLoaded(
-  async () => (await import('./tabs/map')).default,
-)
-const DocsView = LazyLoaded(async () => (await import('./tabs/docs')).default)
-const AboutView = LazyLoaded(
-  async () => (await import('./tabs/about')).default,
-)
+const MapTab = LazyLoaded(async () => (await import('./tabs/map')).default)
+const DocsTab = LazyLoaded(async () => (await import('./tabs/docs')).default)
+const AboutTab = LazyLoaded(async () => (await import('./tabs/about')).default)
 
 export class App extends Component<Record<never, never>, IState> {
   state: IState = resetInspector()
@@ -59,25 +55,25 @@ class Inspector extends Component<IReducerProps> {
         </Label>
 
         <Tab title='Pathbuilder' id=''>
-          <PathbuilderView {...props} />
+          <PathbuilderTab {...props} />
         </Tab>
         <Tab title='Hierarchy' disabled={!loaded} id='hierarchy'>
-          <HierarchyView {...props} />
+          <HierarchyTab {...props} />
         </Tab>
         <Tab title='Bundle Graph' disabled={!loaded} id='bundle'>
-          <BundleGraphView {...props} />
+          <BundleGraphTab {...props} />
         </Tab>
         <Tab title='Model Graph' disabled={!loaded} id='model'>
-          <ModelGraphView {...props} />
+          <ModelGraphTab {...props} />
         </Tab>
         <Tab title='Namespace Map &#9881;&#65039;' disabled={!loaded} id='ns'>
-          <MapView {...props} />
+          <MapTab {...props} />
         </Tab>
         <Tab title='Docs' id='docs'>
-          <DocsView />
+          <DocsTab />
         </Tab>
         <Tab title='About' id='about'>
-          <AboutView />
+          <AboutTab />
         </Tab>
         {import.meta.env.DEV && (
           <Tab title='Debug' id='debug'>

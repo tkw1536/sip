@@ -3,11 +3,14 @@ import { resetRDFInterface } from './state/reducers/init'
 import { type RReducerProps, type RState } from './state'
 import { setActiveTab } from './state/reducers/tab'
 import Tabs, { Label, Tab } from '../../components/tabs'
-
 import StateManager from '../../lib/state_management'
-import RDFTab from './tabs/rdf'
-import MapTab from './tabs/map'
-import GraphTab from './tabs/graph'
+import { LazyLoaded } from '../../components/spinner'
+
+const RDFTab = LazyLoaded(async () => (await import('./tabs/rdf')).default)
+const MapTab = LazyLoaded(async () => (await import('./tabs/map')).default)
+const GraphTab = LazyLoaded(async () => (await import('./tabs/graph')).default)
+const DocsTab = LazyLoaded(async () => (await import('./tabs/docs')).default)
+const AboutTab = LazyLoaded(async () => (await import('./tabs/about')).default)
 
 export class App extends Component<Record<never, never>, RState> {
   state: RState = resetRDFInterface()
@@ -47,6 +50,12 @@ class RDFViewer extends Component<RReducerProps> {
         </Tab>
         <Tab title='Namespace Map &#9881;&#65039;' disabled={!loaded} id='ns'>
           <MapTab {...props} />
+        </Tab>
+        <Tab title='Docs' id='docs'>
+          <DocsTab />
+        </Tab>
+        <Tab title='About' id='about'>
+          <AboutTab />
         </Tab>
       </Tabs>
     )

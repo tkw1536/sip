@@ -1,3 +1,3 @@
 # RDF Viewer
 
-This RDF viewer is an additional tool to display an RDF graph in SIP
+RDF Viewer docs are a work in progress. 
