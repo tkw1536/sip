@@ -5,7 +5,7 @@ import { setActiveTab } from './state/reducers/inspector/tab'
 import Tabs, { Label, Tab } from '../../components/tabs'
 
 import DebugTab from './tabs/debug'
-import { LazyLoaded } from '../../components/loader/loader'
+import { LazyLoaded } from '../../components/spinner'
 import StateManager from '../../lib/state_management'
 
 const PathbuilderView = LazyLoaded(

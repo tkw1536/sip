@@ -10,7 +10,7 @@ import {
 import ErrorDisplay from '../../../components/error'
 import download from '../../../lib/utils/download'
 import { Type } from '../../../lib/utils/media'
-import { Loader } from '../../../components/loader/loader'
+import Spinner from '../../../components/spinner'
 
 export default class PathbuilderTab extends Component<IReducerProps> {
   render(): ComponentChildren {
@@ -55,7 +55,7 @@ class WelcomeView extends Component<IReducerProps> {
     const { loadStage } = this.props.state
 
     if (loadStage === 'loading') {
-      return <Loader message='Loading pathbuilder' />
+      return <Spinner message='Loading pathbuilder' />
     }
 
     return (

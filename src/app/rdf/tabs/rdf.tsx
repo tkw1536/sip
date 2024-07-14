@@ -1,7 +1,7 @@
 import { Component, type ComponentChildren, type VNode } from 'preact'
 import { type RReducerProps } from '../state'
 import { loadRDF, setStoreLoading } from '../state/reducers/load'
-import { Loader } from '../../../components/loader/loader'
+import Spinner from '../../../components/spinner'
 import * as styles from './rdf.module.css'
 import DropArea from '../../../components/drop-area'
 import ErrorDisplay from '../../../components/error'
@@ -24,7 +24,7 @@ class WelcomeView extends Component<RReducerProps> {
     const { loadStage } = this.props.state
 
     if (loadStage === 'loading') {
-      return <Loader message='Loading RDF' />
+      return <Spinner message='Loading RDF' />
     }
 
     return (

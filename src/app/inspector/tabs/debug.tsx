@@ -1,5 +1,5 @@
 import { Component, type ComponentChildren } from 'preact'
-import { Loader } from '../../../components/loader/loader'
+import Spinner from '../../../components/spinner'
 import { type IReducerProps } from '../state'
 
 export default class DebugTab extends Component<IReducerProps> {
@@ -8,7 +8,7 @@ export default class DebugTab extends Component<IReducerProps> {
       <>
         <h2>Debug Page</h2>
 
-        <Loader message='Your message here' />
+        <Spinner message='Your message here' />
       </>
     )
   }

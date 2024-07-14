@@ -7,7 +7,7 @@ import type Driver from './impl'
 import type ColorMap from '../pathbuilder/annotations/colormap'
 import ErrorDisplay from '../../components/error'
 import { type ContextFlags, type MountFlags, type Size } from './impl'
-import { Loader } from '../../components/loader/loader'
+import Spinner from '../../components/spinner'
 
 type _context = unknown
 type _mount = unknown
@@ -314,7 +314,7 @@ export default class Kernel<NodeLabel, EdgeLabel> extends Component<
             ref={this.#container}
           >
             {driverLoading && (
-              <Loader
+              <Spinner
                 message={
                   <>Rendering is taking a bit longer. Please be patient. </>
                 }
