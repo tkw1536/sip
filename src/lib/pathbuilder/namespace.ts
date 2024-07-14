@@ -1,47 +1,34 @@
 import ImmutableMap from '../utils/immutable-map'
-import ImmutableSet from '../utils/immutable-set'
+import { filter, find } from '../utils/iterable'
 
 export interface NamespaceMapExport {
   type: 'namespace-map'
   namespaces: Array<[string, string]>
 }
 
-/** NamespaceMap is an immutable namespace map */
+/**
+ * NamespaceMap represents an immutable namespace map
+ */
 export class NamespaceMap {
   static readonly validKey = /^[a-zA-Z0-9_-]+$/
 
-  readonly #map: ImmutableMap<string, string>
-  readonly #shorts: ImmutableSet<string>
-  private constructor(entries: Iterable<[string, string]>) {
-    const shorts = new Set<string>()
+  /** maps short to long */
+  readonly #entries: ImmutableMap<string, string>
 
-    this.#map = new ImmutableMap(
-      Array.from(entries)
-        .reverse()
-        .filter(([_, short]): boolean => {
-          if (shorts.has(short)) {
-            return false
-          }
-          shorts.add(short)
-          return true
-        })
-        .reverse(),
-    )
-    this.#shorts = new ImmutableSet(shorts)
+  private constructor(entries: ImmutableMap<string, string>) {
+    this.#entries = entries
   }
 
-  /** iterate over [long, short] of this map */
-  get entries(): IterableIterator<[string, string]> {
-    return this.#map.entries()
+  /** iterates over all values [short, long] of this map */
+  [Symbol.iterator](): IterableIterator<[string, string]> {
+    return this.#entries.entries()
   }
 
+  /** turns a map into a json map */
   toJSON(): NamespaceMapExport {
-    const namespaces = Array.from(this.#map).map(
-      ([long, short]) => [short, long] as [string, string],
-    )
     return {
       type: 'namespace-map',
-      namespaces,
+      namespaces: Array.from(this.#entries),
     }
   }
 
@@ -71,85 +58,83 @@ export class NamespaceMap {
       return null
     }
 
-    const elements = new Map<string, string>()
-    data.namespaces.map(([short, long]) => elements.set(long, short))
-    return NamespaceMap.fromMap(elements)
+    return NamespaceMap.fromMap(data.namespaces)
   }
 
-  /** toMap turns this NamespaceMap into a map */
-  toMap(): Map<string, string> {
-    return new Map(this.#map)
-  }
-
-  hasLong(long: string): boolean {
-    return this.#map.has(long)
-  }
-
-  hasShort(short: string): boolean {
-    return this.#shorts.has(short)
+  /** does this namespace map know the given has? */
+  has(short: string): boolean {
+    return this.#entries.has(short)
   }
 
   /** add creates a new namespace map with long set to short */
-  add(long: string, short: string): NamespaceMap {
+  add(short: string, long: string): NamespaceMap {
     // skip invalid shorts
     if (!NamespaceMap.validKey.test(short)) {
       return this
     }
 
-    return new NamespaceMap(this.#map.set(long, short))
+    return new NamespaceMap(this.#entries.set(short, long))
   }
 
   /** remove removes a long url from this ns-map */
-  remove(long: string): NamespaceMap {
-    const elements = this.toMap()
-    elements.delete(long)
-    return NamespaceMap.fromMap(elements)
+  remove(ns: string): NamespaceMap {
+    if (!this.has(ns)) {
+      return this
+    }
+
+    return new NamespaceMap(this.#entries.delete(ns))
   }
 
   /** apply applies this namespace-map to a string */
   apply(uri: string): string {
-    const prefix = this.prefix(uri)
-    if (prefix === '') return uri
-    return (this.#map.get(prefix) ?? '') + ':' + uri.substring(prefix.length)
+    const [ns, prefix] = this.#match(uri)
+    if (ns === null) return uri
+    return ns + ':' + uri.substring(prefix.length)
   }
 
-  /** prefix returns the longest prefix of uri for which a namespace is contained within this map */
-  prefix(uri: string): string {
-    let prefix = '' // prefix used
-    this.#map.forEach((short, long) => {
+  /** match matches the given uri against the prefixes known to this NamespaceMap */
+  #match(uri: string): [string, string] | [null, null] {
+    let prefix = ''
+    let ns: string | null = null
+    this.#entries.forEach((l, s) => {
       // must actually be a prefix
-      if (!uri.startsWith(long)) {
+      if (!uri.startsWith(l)) {
         return
       }
 
       // if we already have a shorter prefix
       // then don't apply it at all!
-      if (prefix !== '' && long <= prefix) {
+      if (prefix !== '' && l <= prefix) {
         return
       }
-      prefix = long
+      prefix = l
+      ns = s
     })
-    return prefix
-  }
-
-  /** creates a new namespace map from the given map */
-  static fromMap(elements: Map<string, string>): NamespaceMap {
-    let ns = this.empty()
-    elements.forEach((short, long) => {
-      ns = ns.add(long, short)
-    })
-    return ns
+    if (ns === null) {
+      return [null, null]
+    }
+    return [ns, prefix]
   }
 
   /** empty returns an empty NamespaceMap */
   static empty(): NamespaceMap {
-    return new NamespaceMap([])
+    return new NamespaceMap(new ImmutableMap())
+  }
+
+  /** creates a new namespace map from the given map */
+  static fromMap(elements: Iterable<[string, string]>): NamespaceMap {
+    return new NamespaceMap(
+      new ImmutableMap<string, string>(
+        filter(elements, ([short, long]) => NamespaceMap.validKey.test(short)),
+      ),
+    )
   }
 
   /** generate automatically generates a prefix map */
   static generate(
     uris: Set<string>,
     separators: string = '/#',
+    specials: Iterable<[string, string]> | undefined = undefined,
     len = 30,
   ): NamespaceMap {
     const prefixes = new Set<string>()
@@ -200,7 +185,7 @@ export class NamespaceMap {
 
     const seen = new Map<string, number>()
     prefixes.forEach(prefix => {
-      let theName = this.#makeNamespacePrefix(prefix).substring(0, len)
+      let theName = this.getNamespacePrefix(prefix, specials).substring(0, len)
       const counter = seen.get(theName)
       if (typeof counter === 'number') {
         seen.set(theName, counter + 1)
@@ -209,25 +194,32 @@ export class NamespaceMap {
         seen.set(theName, 1)
       }
 
-      ns.set(prefix, theName)
+      ns.set(theName, prefix)
     })
     return this.fromMap(ns)
   }
 
   /**
-   * returns a suitable prefix for the given url
+   * Given a long URI, generate a namespace prefix to use.
+   * @param long Long URL to use
+   * @param specials A set of special;
+   * @returns
    */
-  static #makeNamespacePrefix(uri: string): string {
+  static getNamespacePrefix(
+    long: string,
+    specials?: Iterable<[string, string]>,
+  ): string {
     // trim off the header
-    const index = uri.indexOf('://')
-    const name = index >= 0 ? uri.substring(index + '://'.length) : uri
+    const index = long.indexOf('://')
+    const name = index >= 0 ? long.substring(index + '://'.length) : long
 
     // check if we have a special prefix
-    const special = this.#specialPrefixes.find(([prefix]) =>
-      name.startsWith(prefix),
+    const special = find(
+      specials ?? [],
+      ([short, long]) => name.startsWith(long) || long.startsWith(long),
     )
-    if (special != null) {
-      return special[1]
+    if (typeof special !== 'undefined') {
+      return special[0]
     }
 
     // guesstimate a special prefix
@@ -236,13 +228,18 @@ export class NamespaceMap {
     )
   }
 
-  /**
-   * Special prefixes used to generate specific names.
-   * These are re-used by some WissKIs.
-   */
-  static readonly #specialPrefixes = Object.entries({
-    'erlangen-crm.org/': 'ecrm', // spellchecker:disable-line
-    'www.cidoc-crm.org/': 'crm', // spellchecker:disable-line
-    'www.w3.org/1999/02/22-rdf-syntax-ns#': 'rdf', // spellchecker:disable-line
-  })
+  /** a list of known special prefixes */
+  static readonly KnownPrefixes = new ImmutableMap(
+    Object.entries({
+      // spellchecker:disable
+      rdf: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
+      rdfs: 'http://www.w3.org/2000/01/rdf-schema#',
+      owl: 'http://www.w3.org/2002/07/owl#',
+      dc: 'http://purl.org/dc/elements/1.1/',
+
+      ecrm: 'http://erlangen-crm.org/',
+      crm: 'http://www.cidoc-crm.org/',
+      // spellchecker:enable
+    }),
+  )
 }

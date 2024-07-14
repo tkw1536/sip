@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { entries, filter, map } from './iterable'
+import { entries, filter, find, map } from './iterable'
 
 describe(entries, () => {
   test.each([[], [1, 2, 3, 4, 5], ['hello', 42], ['something', 'else']])(
@@ -49,5 +49,24 @@ describe(map, () => {
     const want = array.map(callbackfn)
 
     expect(Array.from(got)).toEqual(Array.from(want))
+  })
+})
+
+describe(find, () => {
+  test.each([
+    [
+      [],
+      (value: string, index: number) => {
+        throw new Error('never reached')
+      },
+    ],
+    [['a', 'b', 'c'], (elem: string) => elem === 'b'],
+    [['a', 'b', 'c'], (elem: string, index: number) => index % 2 === 1],
+    [['a', 'b', 'c'], (elem: string, index: number) => false],
+  ])('find %#', (array, callbackfn) => {
+    const got = find(array, callbackfn)
+    const want = array.find(callbackfn)
+
+    expect(got).toEqual(want)
   })
 })

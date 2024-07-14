@@ -3,7 +3,7 @@ import { NamespaceMap } from '../../../../lib/pathbuilder/namespace'
 import { type PathTree } from '../../../../lib/pathbuilder/pathtree'
 
 export function newNamespaceMap(tree: PathTree): NamespaceMap {
-  return NamespaceMap.generate(tree.uris)
+  return NamespaceMap.generate(tree.uris, undefined, NamespaceMap.KnownPrefixes)
 }
 export function resetNamespaceMap(): IReducer {
   return ({ namespaceVersion, tree }: IState): Partial<IState> => ({

@@ -46,3 +46,26 @@ export function* filter<T>(
     yield value
   }
 }
+
+/** returns the first value in iterable where predicate returns true */
+export function find<T, S extends T>(
+  iterable: Iterable<T>,
+  predicate: (value: T, index: number, iterable: Iterable<T>) => value is S,
+  thisArg?: any,
+): S | undefined
+export function find<T>(
+  iterable: Iterable<T>,
+  predicate: (value: T, index: number, iterable: Iterable<T>) => unknown,
+  thisArg?: any,
+): T | undefined
+export function find<T>(
+  iterable: Iterable<T>,
+  predicate: (value: T, index: number, iterable: Iterable<T>) => unknown,
+  thisArg?: any,
+): T | undefined {
+  for (const [index, value] of entries(iterable)) {
+    if (predicate.call(thisArg, value, index, iterable) as boolean) {
+      return value
+    }
+  }
+}

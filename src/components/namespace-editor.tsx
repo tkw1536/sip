@@ -7,6 +7,7 @@ import DropArea from './drop-area'
 import ErrorDisplay from './error'
 import * as styles from './namespace-editor.module.css'
 import { Operation } from '../lib/utils/operation'
+import { classes } from '../lib/utils/classes'
 
 interface NamespaceEditorProps {
   ns: NamespaceMap
@@ -25,12 +26,12 @@ export default class NamespaceEditor extends Component<
 > {
   state: NamespaceEditorState = {}
 
-  readonly #setNS = (long: string, short: string): void => {
+  readonly #handleSet = (short: string, long: string): void => {
     this.setState({ loadError: undefined }, () => {
-      this.props.onUpdate(this.props.ns.add(long, short))
+      this.props.onUpdate(this.props.ns.add(short, long))
     })
   }
-  readonly #deleteLong = (long: string): void => {
+  readonly #handleDelete = (long: string): void => {
     this.setState({ loadError: undefined }, () => {
       this.props.onUpdate(this.props.ns.remove(long))
     })
@@ -75,16 +76,16 @@ export default class NamespaceEditor extends Component<
           </tr>
         </thead>
         <tbody>
-          {Array.from(ns.entries).map(([long, short]) => (
+          {Array.from(ns).map(([short, long]) => (
             <MapViewRow
               long={long}
               short={short}
               key={short}
-              onUpdate={this.#setNS.bind(this, long)}
-              onDelete={this.#deleteLong.bind(this, long)}
+              onUpdate={this.#handleSet.bind(this, short)}
+              onDelete={this.#handleDelete.bind(this, short)}
             />
           ))}
-          <AddMapRow key={nsKey} onAdd={this.#setNS} />
+          <AddMapRow key={nsKey} onAdd={this.#handleSet} />
           <ControlsRow
             ns={ns}
             nsLoadError={this.state.loadError}
@@ -103,30 +104,34 @@ interface AddRowProps {
 
 const AddMapRow = WithID<AddRowProps>(
   class AddMapRow extends Component<AddRowProps & { id: string }> {
-    state = { short: '', long: '' }
+    state = { short: '', shortValid: false, long: '', longValid: false }
 
     readonly #handleSubmit = (evt: SubmitEvent): void => {
       evt.preventDefault()
 
       const { short, long } = this.state
-      this.props.onAdd(long, short)
+      this.props.onAdd(short, long)
     }
 
     readonly #handleShortChange = (
       event: Event & { currentTarget: HTMLInputElement },
     ): void => {
-      this.setState({ short: event.currentTarget.value })
+      const { value: short } = event.currentTarget
+      const shortValid = NamespaceMap.validKey.test(short)
+      this.setState({ short, shortValid })
     }
 
     readonly #handleLongChange = (
       event: Event & { currentTarget: HTMLInputElement },
     ): void => {
-      this.setState({ long: event.currentTarget.value })
+      const { value: long } = event.currentTarget
+      const longValid = long !== ''
+      this.setState({ long, longValid })
     }
 
     render(): ComponentChild {
       const { id } = this.props
-      const { short, long } = this.state
+      const { short, shortValid, long, longValid } = this.state
 
       return (
         <tr>
@@ -134,15 +139,16 @@ const AddMapRow = WithID<AddRowProps>(
             <input
               type='text'
               value={short}
+              class={classes(!shortValid && styles.invalid)}
               onInput={this.#handleShortChange}
             />
           </td>
           <td>
             <input
               type='text'
-              class={styles.wide}
               form={id}
               value={long}
+              class={classes(styles.wide, !longValid && styles.invalid)}
               onInput={this.#handleLongChange}
             />
           </td>
@@ -209,7 +215,7 @@ class MapViewRow extends Component<
   {
     long: string
     short: string
-    onUpdate: (newShort: string) => void
+    onUpdate: (newLong: string) => void
     onDelete: () => void
   },
   { value?: string }
@@ -239,21 +245,22 @@ class MapViewRow extends Component<
 
   render(): ComponentChild {
     const { long, short } = this.props
-    const value = this.state.value ?? short
-    const dirty = value !== short
+    const value = this.state.value ?? long
+    const dirty = value !== long
     return (
       <tr>
+        <td>
+          <code>{short}</code>
+        </td>
         <td>
           <form onSubmit={this.#handleUpdate}>
             <input
               type='text'
-              value={value ?? short}
+              value={value}
               onInput={this.#handleEdit}
+              class={styles.wide}
             />
           </form>
-        </td>
-        <td>
-          <code>{long}</code>
         </td>
         <td>
           <button onClick={this.#handleUpdate} disabled={!dirty}>

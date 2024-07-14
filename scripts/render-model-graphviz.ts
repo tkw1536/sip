@@ -26,7 +26,11 @@ async function main(): Promise<void> {
   const tree = PathTree.fromPathbuilder(pb)
 
   // generate a colormap
-  const ns = NamespaceMap.generate(tree.uris)
+  const ns = NamespaceMap.generate(
+    tree.uris,
+    undefined,
+    NamespaceMap.KnownPrefixes,
+  )
   const cm = ColorMap.generate(tree, { field: '#f6b73c', bundle: '#add8e6' })
 
   // build the actual graph
