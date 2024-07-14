@@ -9,21 +9,21 @@ import {
   selectAll,
   selectNone,
   updateSelection,
-} from '../state/reducers/inspector/selection'
+} from '../state/reducers/selection'
 import {
   collapseAll,
   collapseNode,
   expandAll,
-} from '../state/reducers/inspector/collapse'
+} from '../state/reducers/collapse'
 import {
   applyColorPreset,
   loadColorMap,
   setColor,
-} from '../state/reducers/inspector/color'
+} from '../state/reducers/color'
 import DropArea from '../../../components/drop-area'
 import download from '../../../lib/utils/download'
 import { Type } from '../../../lib/utils/media'
-import { setHideEqualParentPaths } from '../state/reducers/inspector/tree'
+import { setHideEqualParentPaths } from '../state/reducers/tree'
 
 export default class HierarchyTab extends Component<IReducerProps> {
   readonly #handleSelectAll = (evt: Event): void => {

@@ -3,7 +3,7 @@ import { type IReducerProps } from '../state'
 import {
   resetNamespaceMap,
   setNamespaceMap,
-} from '../state/reducers/inspector/ns'
+} from '../state/reducers/ns'
 import { type NamespaceMap } from '../../../lib/pathbuilder/namespace'
 import NamespaceEditor from '../../../components/namespace-editor'
 

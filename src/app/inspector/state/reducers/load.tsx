@@ -1,11 +1,8 @@
-import { type IState } from '../..'
-import { defaultLayout } from '../../../../../lib/drivers/impl'
-import { type Pathbuilder } from '../../../../../lib/pathbuilder/pathbuilder'
-import {
-  type Diagnostic,
-  PathTree,
-} from '../../../../../lib/pathbuilder/pathtree'
-import { ColorPreset } from '../../state/preset'
+import { type IState } from '..'
+import { defaultLayout } from '../../../../lib/drivers/impl'
+import { type Pathbuilder } from '../../../../lib/pathbuilder/pathbuilder'
+import { type Diagnostic, PathTree } from '../../../../lib/pathbuilder/pathtree'
+import { ColorPreset } from '../state/preset'
 import { newBundleDriver } from './bundle'
 import { newCollapsed } from './collapse'
 import { newColor } from './color'

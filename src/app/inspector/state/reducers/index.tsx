@@ -1,11 +1,11 @@
-import { type IReducer, type IState } from '../..'
-import ColorMap from '../../../../../lib/pathbuilder/annotations/colormap'
-import { NamespaceMap } from '../../../../../lib/pathbuilder/namespace'
-import { Pathbuilder } from '../../../../../lib/pathbuilder/pathbuilder'
-import { PathTree } from '../../../../../lib/pathbuilder/pathtree'
-import NodeSelection from '../../../../../lib/pathbuilder/annotations/selection'
-import Deduplication from '../../state/deduplication'
-import newInspectorState from '../inspector'
+import { type IReducer, type IState } from '..'
+import ColorMap from '../../../../lib/pathbuilder/annotations/colormap'
+import { NamespaceMap } from '../../../../lib/pathbuilder/namespace'
+import { Pathbuilder } from '../../../../lib/pathbuilder/pathbuilder'
+import { PathTree } from '../../../../lib/pathbuilder/pathtree'
+import NodeSelection from '../../../../lib/pathbuilder/annotations/selection'
+import Deduplication from '../state/deduplication'
+import newInspectorState from './load'
 
 export function resetInspector(): IState {
   return {

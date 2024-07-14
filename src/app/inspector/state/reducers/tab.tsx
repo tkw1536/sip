@@ -1,7 +1,7 @@
-import { type IReducer, type IState } from '../..'
-import { type PathTree } from '../../../../../lib/pathbuilder/pathtree'
+import { type IReducer, type IState } from '..'
+import { type PathTree } from '../../../../lib/pathbuilder/pathtree'
 
-export { applyColorPreset as newColor } from '../../state/preset'
+export { applyColorPreset as newColor } from '../state/preset'
 
 export function newTabID(tree: PathTree): string {
   return ''

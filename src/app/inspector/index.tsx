@@ -1,7 +1,7 @@
 import { Component, type ComponentChild } from 'preact'
-import { resetInspector } from './state/reducers/init'
+import { resetInspector } from './state/reducers'
 import { type IReducerProps, type IState } from './state'
-import { setActiveTab } from './state/reducers/inspector/tab'
+import { setActiveTab } from './state/reducers/tab'
 import Tabs, { Label, Tab } from '../../components/tabs'
 
 import DebugTab from './tabs/debug'

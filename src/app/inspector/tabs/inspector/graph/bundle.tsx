@@ -10,7 +10,7 @@ import type Driver from '../../../../../lib/drivers/impl'
 import {
   setBundleDriver,
   setBundleLayout,
-} from '../../../state/reducers/inspector/bundle'
+} from '../../../state/reducers/bundle'
 import type Graph from '../../../../../lib/graph'
 
 export default class BundleGraphView extends Component<IReducerProps> {

@@ -13,7 +13,7 @@ import {
   setModelDeduplication,
   setModelDriver,
   setModelLayout,
-} from '../../../state/reducers/inspector/model'
+} from '../../../state/reducers/model'
 import { WithID } from '../../../../../components/wrapper'
 import type Graph from '../../../../../lib/graph'
 

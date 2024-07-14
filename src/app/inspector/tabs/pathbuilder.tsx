@@ -6,7 +6,7 @@ import {
   loadPathbuilder,
   resetInspector,
   setPathbuilderLoading,
-} from '../state/reducers/init'
+} from '../state/reducers'
 import ErrorDisplay from '../../../components/error'
 import download from '../../../lib/utils/download'
 import { Type } from '../../../lib/utils/media'

@@ -1,12 +1,9 @@
-import { type IReducer, type IState } from '../..'
-import ColorMap from '../../../../../lib/pathbuilder/annotations/colormap'
-import { type PathTreeNode } from '../../../../../lib/pathbuilder/pathtree'
-import {
-  type ColorPreset,
-  applyColorPreset as newColor,
-} from '../../state/preset'
+import { type IReducer, type IState } from '..'
+import ColorMap from '../../../../lib/pathbuilder/annotations/colormap'
+import { type PathTreeNode } from '../../../../lib/pathbuilder/pathtree'
+import { type ColorPreset, applyColorPreset as newColor } from '../state/preset'
 
-export { applyColorPreset as newColor } from '../../state/preset'
+export { applyColorPreset as newColor } from '../state/preset'
 
 /** applies the given color preset to the given tree */
 export function applyColorPreset(preset: ColorPreset): IReducer {
