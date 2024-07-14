@@ -43,9 +43,6 @@ export interface IState {
   modelGraphDriver: string
   modelGraphLayout: string
 
-  rdfGraphDriver: string
-  rdfGraphLayout: string
-
   collapsed: NodeSelection
 }
 

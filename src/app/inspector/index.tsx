@@ -5,7 +5,6 @@ import { setActiveTab } from './state/reducers/inspector/tab'
 import Tabs, { Label, Tab } from '../../lib/components/tabs'
 
 import DebugView from './views/debug'
-import RDFGraphView from './views/inspector/graph/rdf'
 import { LazyLoaded } from '../../lib/components/loader/loader'
 import StateManager from '../../lib/state_management'
 
@@ -71,11 +70,6 @@ class Inspector extends Component<IReducerProps> {
         <Tab title='Model Graph' disabled={!loaded} id='model'>
           <ModelGraphView {...props} />
         </Tab>
-        {import.meta.env.DEV && (
-          <Tab title='RDF Graph' id='rdf' disabled={!loaded}>
-            <RDFGraphView {...props} />
-          </Tab>
-        )}
         <Tab title='Namespace Map &#9881;&#65039;' disabled={!loaded} id='ns'>
           <MapView {...props} />
         </Tab>

@@ -40,9 +40,6 @@ export function resetInspector(): IState {
     modelGraphDriver: '',
     modelGraphLayout: '',
 
-    rdfGraphDriver: '',
-    rdfGraphLayout: '',
-
     collapsed: NodeSelection.none(),
   }
 }

@@ -11,7 +11,6 @@ import { newCollapsed } from './collapse'
 import { newColor } from './color'
 import { newModelDeduplication, newModelDriver } from './model'
 import { newNamespaceMap } from './ns'
-import { newRDFDriver } from './rdf'
 import { newSelection } from './selection'
 import { newTabID } from './tab'
 
@@ -57,9 +56,6 @@ export default function newInspectorState(
 
     modelGraphDriver: newModelDriver(tree),
     modelGraphLayout: defaultLayout,
-
-    rdfGraphDriver: newRDFDriver(tree),
-    rdfGraphLayout: defaultLayout,
 
     collapsed: newCollapsed(tree),
 
