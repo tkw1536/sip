@@ -1,5 +1,5 @@
 import { Component, type ComponentChildren } from 'preact'
-import { classes } from '../../utils/classes'
+import { classes } from '../../lib/utils/classes'
 import * as styles from './index.module.css'
 
 export default class Layout extends Component {

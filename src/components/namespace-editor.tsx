@@ -1,12 +1,12 @@
 import { Component, type ComponentChild } from 'preact'
-import { NamespaceMap } from '../pathbuilder/namespace'
+import { NamespaceMap } from '../lib/pathbuilder/namespace'
 import { WithID } from './wrapper'
-import { Type } from '../utils/media'
-import download from '../utils/download'
+import { Type } from '../lib/utils/media'
+import download from '../lib/utils/download'
 import DropArea from './drop-area'
 import ErrorDisplay from './error'
 import * as styles from './namespace-editor.module.css'
-import { Operation } from '../utils/operation'
+import { Operation } from '../lib/utils/operation'
 
 interface NamespaceEditorProps {
   ns: NamespaceMap

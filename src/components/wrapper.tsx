@@ -9,7 +9,7 @@ import {
   forwardRef,
   type PropsWithoutRef,
 } from 'preact/compat'
-import { LazyValue } from '../utils/once'
+import { LazyValue } from '../lib/utils/once'
 import ErrorDisplay from './error'
 
 type PropsWithoutID<T> = PropsWithoutRef<Omit<T, 'id'>>

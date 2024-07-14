@@ -1,10 +1,10 @@
 import { Component, type ComponentChildren, type VNode } from 'preact'
 import { type RReducerProps } from '../state'
 import { loadRDF, setStoreLoading } from '../state/reducers/load'
-import { Loader } from '../../../lib/components/loader/loader'
+import { Loader } from '../../../components/loader/loader'
 import * as styles from './rdf.module.css'
-import DropArea from '../../../lib/components/drop-area'
-import ErrorDisplay from '../../../lib/components/error'
+import DropArea from '../../../components/drop-area'
+import ErrorDisplay from '../../../components/error'
 import { resetRDFInterface } from '../state/reducers/init'
 
 export default function RDFTab(props: RReducerProps): VNode<any> {

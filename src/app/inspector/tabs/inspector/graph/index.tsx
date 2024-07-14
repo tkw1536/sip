@@ -15,8 +15,8 @@ import { Operation } from '../../../../../lib/utils/operation'
 import type Driver from '../../../../../lib/drivers/impl'
 import { type NamespaceMap } from '../../../../../lib/pathbuilder/namespace'
 import type ColorMap from '../../../../../lib/pathbuilder/annotations/colormap'
-import ValueSelector from '../../../../../lib/components/selector'
-import ErrorDisplay from '../../../../../lib/components/error'
+import ValueSelector from '../../../../../components/selector'
+import ErrorDisplay from '../../../../../components/error'
 
 interface GraphProps<NodeLabel, EdgeLabel> {
   loader: DriverLoader<NodeLabel, EdgeLabel>

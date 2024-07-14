@@ -1,5 +1,5 @@
 import { Component, type ComponentChild, type VNode, createRef } from 'preact'
-import { classes } from '../utils/classes'
+import { classes } from '../lib/utils/classes'
 
 interface DropAreaProps {
   onDropFile: (...files: File[]) => void

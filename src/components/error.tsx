@@ -1,9 +1,9 @@
 import { Component, type ComponentChildren, type ErrorInfo } from 'preact'
-import { Operation } from '../utils/operation'
+import { Operation } from '../lib/utils/operation'
 import * as styles from './error.module.css'
 
 import StackTrace from 'stacktrace-js'
-import { classes } from '../utils/classes'
+import { classes } from '../lib/utils/classes'
 
 interface State {
   error?: Error

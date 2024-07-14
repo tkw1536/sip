@@ -2,7 +2,7 @@ import { Component, type ComponentChild } from 'preact'
 import { resetRDFInterface } from './state/reducers/init'
 import { type RReducerProps, type RState } from './state'
 import { setActiveTab } from './state/reducers/tab'
-import Tabs, { Label, Tab } from '../../lib/components/tabs'
+import Tabs, { Label, Tab } from '../../components/tabs'
 
 import StateManager from '../../lib/state_management'
 import RDFTab from './tabs/rdf'

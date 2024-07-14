@@ -1,5 +1,5 @@
 import { Component, type ComponentType, type ComponentChildren } from 'preact'
-import { Operation } from '../../utils/operation'
+import { Operation } from '../../lib/utils/operation'
 import * as styles from './loader.module.css'
 import { Lazy as LazyImpl } from '../wrapper'
 import { type PropsWithoutRef } from 'preact/compat'

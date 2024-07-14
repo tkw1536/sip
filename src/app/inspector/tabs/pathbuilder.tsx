@@ -1,5 +1,5 @@
 import { Component, type ComponentChild, type ComponentChildren } from 'preact'
-import DropArea from '../../../lib/components/drop-area'
+import DropArea from '../../../components/drop-area'
 import * as styles from './pathbuilder.module.css'
 import { type IReducerProps } from '../state'
 import {
@@ -7,12 +7,12 @@ import {
   resetInspector,
   setPathbuilderLoading,
 } from '../state/reducers/init'
-import ErrorDisplay from '../../../lib/components/error'
+import ErrorDisplay from '../../../components/error'
 import download from '../../../lib/utils/download'
 import { Type } from '../../../lib/utils/media'
-import { Loader } from '../../../lib/components/loader/loader'
+import { Loader } from '../../../components/loader/loader'
 
-export default class PathbuilderView extends Component<IReducerProps> {
+export default class PathbuilderTab extends Component<IReducerProps> {
   render(): ComponentChildren {
     return this.props.state.loadStage === true ? (
       <InfoView {...this.props} />

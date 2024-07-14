@@ -1,7 +1,7 @@
 import { render } from 'preact'
 import { App } from '.'
-import { ErrorBoundary } from '../../lib/components/error'
-import Layout from '../../lib/components/layout'
+import { ErrorBoundary } from '../../components/error'
+import Layout from '../../components/layout'
 
 function main(): void {
   const root = document.getElementById('root')

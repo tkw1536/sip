@@ -1,6 +1,6 @@
 import { render } from 'preact'
-import { ErrorBoundary } from '../../lib/components/error'
-import Layout from '../../lib/components/layout'
+import { ErrorBoundary } from '../../components/error'
+import Layout from '../../components/layout'
 import { App } from '.'
 
 function main(): void {

@@ -14,7 +14,7 @@ import {
   setModelDriver,
   setModelLayout,
 } from '../../../state/reducers/inspector/model'
-import { WithID } from '../../../../../lib/components/wrapper'
+import { WithID } from '../../../../../components/wrapper'
 import type Graph from '../../../../../lib/graph'
 
 export default WithID<IReducerProps>(

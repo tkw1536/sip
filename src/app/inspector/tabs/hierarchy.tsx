@@ -1,31 +1,31 @@
 import { Component, type ComponentChild, Fragment } from 'preact'
-import { type NamespaceMap } from '../../../../lib/pathbuilder/namespace'
-import { type Bundle, Field } from '../../../../lib/pathbuilder/pathtree'
+import { type NamespaceMap } from '../../../lib/pathbuilder/namespace'
+import { type Bundle, Field } from '../../../lib/pathbuilder/pathtree'
 import * as styles from './hierarchy.module.css'
-import { classes } from '../../../../lib/utils/classes'
-import { type ColorPreset, colorPresets } from '../../state/state/preset'
-import { type IReducerProps } from '../../state'
+import { classes } from '../../../lib/utils/classes'
+import { type ColorPreset, colorPresets } from '../state/state/preset'
+import { type IReducerProps } from '../state'
 import {
   selectAll,
   selectNone,
   updateSelection,
-} from '../../state/reducers/inspector/selection'
+} from '../state/reducers/inspector/selection'
 import {
   collapseAll,
   collapseNode,
   expandAll,
-} from '../../state/reducers/inspector/collapse'
+} from '../state/reducers/inspector/collapse'
 import {
   applyColorPreset,
   loadColorMap,
   setColor,
-} from '../../state/reducers/inspector/color'
-import DropArea from '../../../../lib/components/drop-area'
-import download from '../../../../lib/utils/download'
-import { Type } from '../../../../lib/utils/media'
-import { setHideEqualParentPaths } from '../../state/reducers/inspector/tree'
+} from '../state/reducers/inspector/color'
+import DropArea from '../../../components/drop-area'
+import download from '../../../lib/utils/download'
+import { Type } from '../../../lib/utils/media'
+import { setHideEqualParentPaths } from '../state/reducers/inspector/tree'
 
-export default class HierarchyView extends Component<IReducerProps> {
+export default class HierarchyTab extends Component<IReducerProps> {
   readonly #handleSelectAll = (evt: Event): void => {
     evt.preventDefault()
     this.props.apply(selectAll())

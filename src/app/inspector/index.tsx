@@ -2,30 +2,30 @@ import { Component, type ComponentChild } from 'preact'
 import { resetInspector } from './state/reducers/init'
 import { type IReducerProps, type IState } from './state'
 import { setActiveTab } from './state/reducers/inspector/tab'
-import Tabs, { Label, Tab } from '../../lib/components/tabs'
+import Tabs, { Label, Tab } from '../../components/tabs'
 
-import DebugView from './views/debug'
-import { LazyLoaded } from '../../lib/components/loader/loader'
+import DebugTab from './tabs/debug'
+import { LazyLoaded } from '../../components/loader/loader'
 import StateManager from '../../lib/state_management'
 
 const PathbuilderView = LazyLoaded(
-  async () => (await import('./views/pathbuilder')).default,
+  async () => (await import('./tabs/pathbuilder')).default,
 )
 const HierarchyView = LazyLoaded(
-  async () => (await import('./views/inspector/hierarchy')).default,
+  async () => (await import('./tabs/hierarchy')).default,
 )
 const BundleGraphView = LazyLoaded(
-  async () => (await import('./views/inspector/graph/bundle')).default,
+  async () => (await import('./tabs/inspector/graph/bundle')).default,
 )
 const ModelGraphView = LazyLoaded(
-  async () => (await import('./views/inspector/graph/model')).default,
+  async () => (await import('./tabs/inspector/graph/model')).default,
 )
 const MapView = LazyLoaded(
-  async () => (await import('./views/inspector/map')).default,
+  async () => (await import('./tabs/map')).default,
 )
-const DocsView = LazyLoaded(async () => (await import('./views/docs')).default)
+const DocsView = LazyLoaded(async () => (await import('./tabs/docs')).default)
 const AboutView = LazyLoaded(
-  async () => (await import('./views/about')).default,
+  async () => (await import('./tabs/about')).default,
 )
 
 export class App extends Component<Record<never, never>, IState> {
@@ -81,7 +81,7 @@ class Inspector extends Component<IReducerProps> {
         </Tab>
         {import.meta.env.DEV && (
           <Tab title='Debug' id='debug'>
-            <DebugView {...props} />
+            <DebugTab {...props} />
           </Tab>
         )}
       </Tabs>

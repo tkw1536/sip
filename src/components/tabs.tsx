@@ -6,7 +6,7 @@ import {
 } from 'preact'
 import * as styles from './tabs.module.css'
 import { WithID } from './wrapper'
-import { classes } from '../utils/classes'
+import { classes } from '../lib/utils/classes'
 
 interface TabProps {
   title: string

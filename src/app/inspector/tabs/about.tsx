@@ -2,7 +2,7 @@ import { Component, type ComponentChildren } from 'preact'
 
 const disclaimer = import.meta.compileTime<string>('../../../../macros/disclaimer.ts') // prettier-ignore
 
-export default class AboutView extends Component {
+export default class AboutTab extends Component {
   render(): ComponentChildren {
     return (
       <>
