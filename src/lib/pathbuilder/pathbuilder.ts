@@ -1,4 +1,4 @@
-import { DOMImplementation, DOMParser, XMLSerializer } from 'xmldom'
+import { DOMImplementation, DOMParser, XMLSerializer } from '@xmldom/xmldom'
 export class Pathbuilder {
   constructor(public paths: Path[]) {}
 
