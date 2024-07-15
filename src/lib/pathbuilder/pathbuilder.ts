@@ -30,15 +30,23 @@ export class Pathbuilder {
     return new Pathbuilder(paths.map(n => Path.fromNode(n as Element)))
   }
 
+  static readonly #dom = new DOMImplementation()
+  static readonly #serializer = new XMLSerializer()
   toXML(): string {
-    const xml = new DOMImplementation().createDocument(null, 'pathbuilder.xml')
+    const xml = Pathbuilder.#dom.createDocument(null, 'pathbuilderinterface')
 
-    // create the interface
-    const pb = xml.createElement('pathbuilderinterface')
-    this.paths.map(p => p.toXML(xml)).forEach(path => pb.appendChild(path))
+    // create the common xml pi
+    const header = xml.createProcessingInstruction('xml', 'version="1.0"')
+    xml.insertBefore(header, xml.firstChild)
 
-    xml.appendChild(pb)
-    return new XMLSerializer().serializeToString(pb)
+    // add all the <path>s to the <pathbuilderinterface>
+    const pathbuilderinterface = xml.documentElement
+    this.paths
+      .map(path => path.toXML(xml))
+      .forEach(path => pathbuilderinterface.appendChild(path))
+
+    // and serialize
+    return Pathbuilder.#serializer.serializeToString(xml)
   }
 }
 
