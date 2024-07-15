@@ -1,5 +1,17 @@
-input.wide {
+.stretch {
     width: 100%;
+}
+
+.table tr td:nth-child(2) {
+    width: 80%
+}
+
+.table tr td:nth-child(3) {
+    width: 20%
+}
+
+
+input.stretch {
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
     box-sizing: border-box;

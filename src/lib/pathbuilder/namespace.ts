@@ -1,5 +1,5 @@
 import ImmutableMap from '../utils/immutable-map'
-import { filter, find } from '../utils/iterable'
+import { filter } from '../utils/iterable'
 
 export interface NamespaceMapExport {
   type: 'namespace-map'
@@ -134,7 +134,7 @@ export class NamespaceMap {
   static generate(
     uris: Set<string>,
     separators: string = '/#',
-    specials: Iterable<[string, string]> | undefined = undefined,
+    specials: Array<[string, string]> | undefined = undefined,
     len = 30,
   ): NamespaceMap {
     const prefixes = new Set<string>()
@@ -207,16 +207,15 @@ export class NamespaceMap {
    */
   static getNamespacePrefix(
     long: string,
-    specials?: Iterable<[string, string]>,
+    specials?: Array<[string, string]>,
   ): string {
     // trim off the header
     const index = long.indexOf('://')
     const name = index >= 0 ? long.substring(index + '://'.length) : long
 
     // check if we have a special prefix
-    const special = find(
-      specials ?? [],
-      ([short, long]) => name.startsWith(long) || long.startsWith(long),
+    const special = (specials ?? []).find(
+      ([s, l]) => name.startsWith(l) || long.startsWith(l),
     )
     if (typeof special !== 'undefined') {
       return special[0]
@@ -229,7 +228,7 @@ export class NamespaceMap {
   }
 
   /** a list of known special prefixes */
-  static readonly KnownPrefixes = new ImmutableMap(
+  static readonly KnownPrefixes = Array.from(
     Object.entries({
       // spellchecker:disable
       rdf: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',

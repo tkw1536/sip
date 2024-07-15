@@ -67,7 +67,7 @@ export default class NamespaceEditor extends Component<
   render(): ComponentChild {
     const { nsKey, ns, onReset } = this.props
     return (
-      <table>
+      <table class={classes(styles.table)}>
         <thead>
           <tr>
             <th>NS</th>
@@ -148,7 +148,7 @@ const AddMapRow = WithID<AddRowProps>(
               type='text'
               form={id}
               value={long}
-              class={classes(styles.wide, !longValid && styles.invalid)}
+              class={classes(styles.stretch, !longValid && styles.invalid)}
               onInput={this.#handleLongChange}
             />
           </td>
@@ -258,7 +258,7 @@ class MapViewRow extends Component<
               type='text'
               value={value}
               onInput={this.#handleEdit}
-              class={styles.wide}
+              class={styles.stretch}
             />
           </form>
         </td>
