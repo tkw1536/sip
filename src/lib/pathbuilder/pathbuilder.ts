@@ -139,10 +139,18 @@ export class Path {
     return this.fieldType
   }
 
+  /** the index of the disambiguated concept in the pathArray, or null */
+  get disambiguationIndex(): number | null {
+    const index = 2 * this.disambiguation - 2
+    if (index < 0 || index >= this.pathArray.length) return null
+    return index
+  }
+
   /** the concept that is disambiguated by this pathbuilder, if any */
   get disambiguatedConcept(): string | null {
-    const index = 2 * this.disambiguation - 2
-    return this.pathArray[index] ?? null
+    const index = this.disambiguationIndex
+    if (index === null) return null
+    return this.pathArray[index]
   }
 
   static #parseValue<T>(

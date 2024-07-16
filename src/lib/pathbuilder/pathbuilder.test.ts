@@ -82,7 +82,15 @@ describe(Path, async () => {
     [aDocumentBundlePath, null],
     [regularPropertyPath, null],
     [entityReferencePath, 'http://erlangen-crm.org/240307/E21_Person'],
-  ])('disambiguated_concept $#', (path: Path, want: string | null) => {
+  ])('disambiguatedConcept $#', (path: Path, want: string | null) => {
     expect(path.disambiguatedConcept).toEqual(want)
+  })
+
+  test.each([
+    [aDocumentBundlePath, null],
+    [regularPropertyPath, null],
+    [entityReferencePath, 4],
+  ])('disambiguationIndex $#', (path: Path, want: number | null) => {
+    expect(path.disambiguationIndex).toEqual(want)
   })
 })
