@@ -46,18 +46,26 @@ export abstract class PathTreeNode {
   abstract get path(): Path | null
 
   /**
-   * Gets the first index of the Path.pathArray for which the value is different from the parent.
-   * If the current path array does not start with the parent's path array, returns null.
+   * The first index in the pathArray that is not shared with the parent.
+   * The parent must have an odd-length pathArray (i.e. be a group) which is a prefix of this node's pathArray.
+   * If either condition is not met, returns null.
    */
-  getOwnPathIndex(): number | null {
-    const path = this.path?.pathArray
-    const parentPath = this.parent?.path?.pathArray
+  get ownPathIndex(): number | null {
+    const nodePath = this.path?.pathArray
+    if (!Array.isArray(nodePath)) {
+      return null
+    }
 
+    // parent must have an odd length pathArray
+    const parentPath = this.parent?.path?.pathArray
+    if (!Array.isArray(parentPath) || parentPath.length % 2 === 0) {
+      return null
+    }
+
+    // pathArray must be a prefix of the parent's pathArray
     if (
-      typeof path === 'undefined' || // own path doesn't exist
-      typeof parentPath === 'undefined' || // parent path doesn't exist
-      parentPath.length > path.length || // parent path too long
-      !parentPath.every((p, i) => path[i] === p) // parent path not identical with child path
+      parentPath.length >= nodePath.length ||
+      parentPath.some((parentURI, index) => nodePath[index] !== parentURI)
     ) {
       return null
     }

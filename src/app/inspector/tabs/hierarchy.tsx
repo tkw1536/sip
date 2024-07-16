@@ -371,27 +371,25 @@ class Path extends Component<{
 }> {
   render(): ComponentChild {
     const { hideEqualParentPaths, node, ns } = this.props
-    const parentPathIndex = node.getOwnPathIndex()
-    const path = node.path
+    const { path, ownPathIndex } = node
+    const disambiguation = path.disambiguationIndex
 
     return (
       <>
-        {hideEqualParentPaths &&
-          parentPathIndex !== null &&
-          parentPathIndex > 0 && (
-            <span class={classes(styles.path, styles.path_skip)} />
-          )}
+        {hideEqualParentPaths && ownPathIndex !== null && ownPathIndex > 0 && (
+          <span class={classes(styles.path, styles.path_skip)} />
+        )}
         {path.pathArray.map((p, i) => {
           if (
             hideEqualParentPaths &&
-            parentPathIndex !== null &&
-            i < parentPathIndex
+            ownPathIndex !== null &&
+            i < ownPathIndex
           ) {
             return null
           }
 
           let role: Role
-          if (i === 2 * path.disambiguation - 2) {
+          if (i === disambiguation) {
             role = 'disambiguation'
           } else if (i % 2 === 0) {
             role = 'class'
@@ -401,7 +399,7 @@ class Path extends Component<{
           return (
             <PathElement
               role={role}
-              sharedWithParent={parentPathIndex !== null && i < parentPathIndex}
+              sharedWithParent={ownPathIndex !== null && i < ownPathIndex}
               key={`${i}-${p}`}
               ns={ns}
               uri={p}
