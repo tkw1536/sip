@@ -14,7 +14,7 @@ export default async function generateDisclaimer(
 ): DefinitelyPromise<CompileTimeFunctionResult> {
   const buffer = await new Promise((resolve, reject) =>
     exec(
-      'yarn licenses generate-disclaimer --prod',
+      'yarn licenses generate-disclaimer --production',
       (error, stdout, stderr) => {
         if (error !== null) {
           reject(error)

@@ -154,7 +154,7 @@ const AddMapRow = WithID<AddRowProps>(
           </td>
           <td>
             <form id={id} onSubmit={this.#handleSubmit}>
-              <button>Add</button>
+              <button disabled={!(longValid && shortValid)}>Add</button>
             </form>
           </td>
         </tr>

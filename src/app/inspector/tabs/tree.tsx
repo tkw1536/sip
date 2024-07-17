@@ -1,7 +1,7 @@
 import { Component, type ComponentChild, Fragment } from 'preact'
 import { type NamespaceMap } from '../../../lib/pathbuilder/namespace'
 import { type Bundle, Field } from '../../../lib/pathbuilder/pathtree'
-import * as styles from './hierarchy.module.css'
+import * as styles from './tree.module.css'
 import { classes } from '../../../lib/utils/classes'
 import { type ColorPreset, colorPresets } from '../state/state/preset'
 import { type IReducerProps } from '../state'
@@ -25,7 +25,7 @@ import download from '../../../lib/utils/download'
 import { Type } from '../../../lib/utils/media'
 import { setHideEqualParentPaths } from '../state/reducers/tree'
 
-export default class HierarchyTab extends Component<IReducerProps> {
+export default class TreeTab extends Component<IReducerProps> {
   readonly #handleSelectAll = (evt: Event): void => {
     evt.preventDefault()
     this.props.apply(selectAll())

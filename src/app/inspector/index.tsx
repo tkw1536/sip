@@ -11,9 +11,7 @@ import StateManager from '../../lib/state_management'
 const PathbuilderTab = LazyLoaded(
   async () => (await import('./tabs/pathbuilder')).default,
 )
-const HierarchyTab = LazyLoaded(
-  async () => (await import('./tabs/hierarchy')).default,
-)
+const TreeTab = LazyLoaded(async () => (await import('./tabs/tree')).default)
 const BundleGraphTab = LazyLoaded(
   async () => (await import('./tabs/bundle')).default,
 )
@@ -21,7 +19,6 @@ const ModelGraphTab = LazyLoaded(
   async () => (await import('./tabs/model')).default,
 )
 const MapTab = LazyLoaded(async () => (await import('./tabs/map')).default)
-const DocsTab = LazyLoaded(async () => (await import('./tabs/docs')).default)
 const AboutTab = LazyLoaded(async () => (await import('./tabs/about')).default)
 
 export class App extends Component<Record<never, never>, IState> {
@@ -57,8 +54,8 @@ class Inspector extends Component<IReducerProps> {
         <Tab title='Pathbuilder' id=''>
           <PathbuilderTab {...props} />
         </Tab>
-        <Tab title='Hierarchy' disabled={!loaded} id='hierarchy'>
-          <HierarchyTab {...props} />
+        <Tab title='Tree' disabled={!loaded} id='tree'>
+          <TreeTab {...props} />
         </Tab>
         <Tab title='Bundle Graph' disabled={!loaded} id='bundle'>
           <BundleGraphTab {...props} />
@@ -68,9 +65,6 @@ class Inspector extends Component<IReducerProps> {
         </Tab>
         <Tab title='Namespace Map &#9881;&#65039;' disabled={!loaded} id='ns'>
           <MapTab {...props} />
-        </Tab>
-        <Tab title='Docs' id='docs'>
-          <DocsTab />
         </Tab>
         <Tab title='About' id='about'>
           <AboutTab />

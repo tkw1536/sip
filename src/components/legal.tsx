@@ -28,10 +28,16 @@ export default function Legal(): VNode<any> {
       </p>
       <details>
         <summary>Legal Notices</summary>
-        <pre>
-          <code>{disclaimer}</code>
-        </pre>
+        <LegalDisclaimer />
       </details>
     </>
+  )
+}
+
+export function LegalDisclaimer(): VNode<any> {
+  return (
+    <pre>
+      <code>{disclaimer}</code>
+    </pre>
   )
 }
