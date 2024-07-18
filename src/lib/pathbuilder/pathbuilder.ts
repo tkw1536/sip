@@ -118,7 +118,34 @@ export class Path {
   public readonly isGroup: boolean
 
   /** human-readable name */
-  public readonly name: string;
+  public readonly name: string
+
+  equals(other: Path): boolean {
+    return (
+      this.id === other.id &&
+      this.weight === other.weight &&
+      this.enabled === other.enabled &&
+      this.groupId === other.groupId &&
+      this.bundle === other.bundle &&
+      this.field === other.field &&
+      this.fieldType === other.fieldType &&
+      this.displayWidget === other.displayWidget &&
+      this.formatterWidget === other.formatterWidget &&
+      this.cardinality === other.cardinality &&
+      this.fieldTypeInformative === other.fieldTypeInformative &&
+      this.datatypeProperty === other.datatypeProperty &&
+      this.shortName === other.shortName &&
+      this.disambiguation === other.disambiguation &&
+      this.description === other.description &&
+      this.uuid === other.uuid &&
+      this.isGroup === other.isGroup &&
+      this.name === other.name &&
+      this.pathArray.length === other.pathArray.length &&
+      this.pathArray.every(
+        (element, index) => element === other.pathArray[index],
+      )
+    )
+  }
 
   /** all uris referenced by this path including concepts, (object) properties, and datatype property  */
   *uris(): IterableIterator<string> {

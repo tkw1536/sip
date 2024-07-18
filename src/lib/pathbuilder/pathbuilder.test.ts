@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest'
 import { Path, Pathbuilder, type PathParams } from './pathbuilder'
 import { readFixture, readFixtureJSON } from '../utils/test/fixture'
+import { DOMImplementation } from '@xmldom/xmldom'
 
 const sampleJSON = await readFixtureJSON<PathParams[]>(
   'pathbuilder',
@@ -80,5 +81,31 @@ describe(Path, async () => {
     [entityReferencePath, 4],
   ])('disambiguationIndex $#', (path: Path, want: number | null) => {
     expect(path.disambiguationIndex).toEqual(want)
+  })
+
+  test('path clone equality', () => {
+    const paths = samplePB.paths.slice(0)
+
+    // clone all the paths
+    const doc = new DOMImplementation().createDocument(null, null, null)
+    const clones = paths.map(p => Path.fromNode(p.toXML(doc)))
+
+    // expect clones to be equal to the original
+    paths.forEach((path, i) => {
+      clones.forEach((clone, j) => {
+        expect(clone.equals(path)).toEqual(i === j)
+        expect(path.equals(clone)).toEqual(i === j)
+      })
+    })
+  })
+
+  test('path self equality', () => {
+    const paths = samplePB.paths.slice(0)
+    paths.forEach((pathOuter, i) => {
+      paths.forEach((pathInner, j) => {
+        expect(pathInner.equals(pathOuter)).toEqual(i === j)
+        expect(pathOuter.equals(pathInner)).toEqual(i === j)
+      })
+    })
   })
 })
