@@ -1,23 +1,11 @@
 import { describe, expect, test } from 'vitest'
 import { Path, Pathbuilder, type PathParams } from './pathbuilder'
-import { join } from 'path'
-import { readFile } from 'fs'
+import { readFixture, readFixtureJSON } from '../utils/test/fixture'
 
-const fixturePath = join(__dirname, '..', '..', '..', 'fixtures', 'pathbuilder')
-async function readFixture(name: string): Promise<string> {
-  const path = join(fixturePath, name)
-  return await new Promise((resolve, reject) => {
-    readFile(path, (err, data) => {
-      if (err !== null) {
-        reject(err)
-        return
-      }
-      resolve(data.toString())
-    })
-  })
-}
-
-const sampleJSON = JSON.parse(await readFixture('sample.json')) as PathParams[]
+const sampleJSON = await readFixtureJSON<PathParams[]>(
+  'pathbuilder',
+  'sample.json',
+)
 const samplePB = new Pathbuilder(sampleJSON.map(p => new Path(p)))
 
 const aDocumentBundlePath = samplePB.paths[0] // path for a document group
@@ -26,13 +14,13 @@ const entityReferencePath = samplePB.paths[7] // path with disambiguation
 
 describe(Pathbuilder, async () => {
   test('parses valid xml', async () => {
-    const sampleXML = await readFixture('sample.xml')
+    const sampleXML = await readFixture('pathbuilder', 'sample.xml')
     const got = Pathbuilder.parse(sampleXML)
     expect(got).toEqual(samplePB)
   })
 
   test('does not parse invalid xml', async () => {
-    const invalidXML = await readFixture('invalid.xml')
+    const invalidXML = await readFixture('pathbuilder', 'invalid.xml')
     expect(() => Pathbuilder.parse(invalidXML)).toThrow()
   })
 
