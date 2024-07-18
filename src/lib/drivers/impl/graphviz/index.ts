@@ -261,7 +261,7 @@ export class GraphVizModelDriver extends GraphvizDriver<ModelNode, ModelEdge> {
     id: string,
     node: ModelNode,
   ): undefined {
-    if (node.type === 'field') {
+    if (node.type === 'literal') {
       this.#makeFieldNodes(graph, flags, id, node)
       return
     }
@@ -354,7 +354,7 @@ export class GraphVizModelDriver extends GraphvizDriver<ModelNode, ModelEdge> {
     graph: Graph,
     { ns, cm }: ContextFlags,
     id: string,
-    node: ModelNode & { type: 'field' },
+    node: ModelNode & { type: 'literal' },
   ): void {
     const label = modelNodeLabel(node, ns)
     if (this.compact) {

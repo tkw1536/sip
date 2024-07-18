@@ -262,7 +262,7 @@ export class CytoModelDriver extends CytoscapeDriver<ModelNode, ModelEdge> {
     node: ModelNode,
   ): Promise<undefined> {
     const label = modelNodeLabel(node, ns)
-    if (node.type === 'field') {
+    if (node.type === 'literal') {
       const data = { id, label, color: cm.get(...node.fields) }
       elements.push({ data })
       return

@@ -190,7 +190,7 @@ export class SigmaModelDriver extends SigmaDriver<ModelNode, ModelEdge> {
     node: ModelNode,
   ): Promise<undefined> {
     const label = modelNodeLabel(node, ns)
-    if (node.type === 'field') {
+    if (node.type === 'literal') {
       graph.addNode(id, {
         label,
 

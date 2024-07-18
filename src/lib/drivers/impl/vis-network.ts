@@ -198,7 +198,7 @@ export class VisNetworkModelDriver extends VisNetworkDriver<
     node: ModelNode,
   ): Promise<undefined> {
     const label = modelNodeLabel(node, ns)
-    if (node.type === 'field') {
+    if (node.type === 'literal') {
       dataset.addNode({
         id,
         label,

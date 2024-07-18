@@ -23,15 +23,18 @@ export type ModelNode =
 
       /** bundles rooted at this node */
       bundles: ImmutableSet<Bundle>
+
+      /** non-datatype fields at this node */
+      fields: ImmutableSet<Field>
     }
   | {
-      type: 'field'
+      type: 'literal'
       fields: ImmutableSet<Field> /** the field at this path */
     }
 
 /** modelNodeLabel returns a simple label for a model node */
 export function modelNodeLabel(node: ModelNode, ns: NamespaceMap): string {
-  if (node.type === 'field') {
+  if (node.type === 'literal') {
     return Array.from(node.fields)
       .map(field => field.path.name)
       .join('\n\n')
@@ -61,7 +64,8 @@ export type ModelEdge =
     }
 
 /**
- * A specification for which to draw the node in
+ * A specification for which to draw the node in.
+ * Numeric-only IDs should be avoided.
  *
  * - `true` means to always draw the node, even if it has been included before.
  * - `false` means never to draw the node
@@ -98,7 +102,7 @@ export abstract class DeduplicatingBuilder {
       if (!(node instanceof Bundle || node instanceof Field)) {
         continue
       }
-      let lastContext = this.buildNode(nodeContexts, node)
+      let lastContext = this.#buildNode(nodeContexts, node)
 
       // default to nothing having been drawn
       if (typeof lastContext === 'undefined') {
@@ -111,33 +115,19 @@ export abstract class DeduplicatingBuilder {
     }
   }
 
-  private readonly seen = new Set<string>()
-  private nextCandidateID = 0
-  private resolveContextSpec(next: NodeContextSpec): NodeContext {
-    if (next === false) return false
-    if (typeof next === 'string') {
-      this.seen.add(next)
-      return next
-    }
+  /** checks if the given uri is included in the graph */
+  #includesNode(node: PathTreeNode): boolean {
+    if (this.#options.include == null) return true
 
-    // iterate through numbers
-    while (true) {
-      const candidate = this.nextCandidateID.toString()
-      this.nextCandidateID++
-
-      if (!this.seen.has(candidate)) {
-        this.seen.add(candidate)
-        return candidate
-      }
-    }
+    return this.#options.include(node)
   }
 
-  private buildNode(
+  #buildNode(
     nodeContexts: Map<PathTreeNode, NodeContext[]>,
     node: Bundle | Field,
   ): NodeContext[] | undefined {
     // skip nodes that aren't included
-    if (node.path === null || !this.includes(node)) return
+    if (node.path === null || !this.#includesNode(node)) return
 
     const { parent } = node
     const parentContext = parent !== null ? nodeContexts.get(parent) : undefined
@@ -158,7 +148,7 @@ export abstract class DeduplicatingBuilder {
       )
 
       // update the context
-      context = this.resolveContextSpec(newContextSpec)
+      context = this.#resolveContextSpec(newContextSpec)
 
       // and store that we used this context
       contexts.push(context)
@@ -170,7 +160,7 @@ export abstract class DeduplicatingBuilder {
 
       // generate the string id for this node
       // and check if we already have it
-      const str = this.id(context, 'class', element.uri)
+      const str = this.#makeID(context, 'class', element.uri)
       return this.graph.addOrUpdateNode(
         str,
         (label?: ModelNode | undefined): ModelNode => {
@@ -179,6 +169,7 @@ export abstract class DeduplicatingBuilder {
               type: 'class',
               clz: element.uri,
               bundles: new ImmutableSet(),
+              fields: new ImmutableSet(),
             }
           )
         },
@@ -229,10 +220,9 @@ export abstract class DeduplicatingBuilder {
     }
 
     // draw the datatype property (if any)
-    // todo: draw datatype fields
-    if (node instanceof Field) {
+    if (node instanceof Field && node.path.datatypeProperty !== '') {
       ;(() => {
-        if (node.path.datatypeProperty === '' || elements.length === 0) return
+        if (elements.length === 0) return
         const dataElement = elements.find(
           (node): node is PropertyPathElement & { role: 'datatype' } =>
             node.role === 'datatype',
@@ -280,12 +270,12 @@ export abstract class DeduplicatingBuilder {
           node,
           contexts[sourceConcept.conceptIndex] ?? false,
         )
-        context = this.resolveContextSpec(dtContextSpec)
+        context = this.#resolveContextSpec(dtContextSpec)
         contexts.push(context)
 
         // no need to draw it
         if (context === false) return
-        const id = this.id(context, 'data', dataElement.uri)
+        const id = this.#makeID(context, 'data', dataElement.uri)
 
         // add the field type
         const targetNode = this.graph.addOrUpdateNode(
@@ -296,7 +286,7 @@ export abstract class DeduplicatingBuilder {
             }
 
             return {
-              type: 'field',
+              type: 'literal',
               fields: (label?.fields ?? new ImmutableSet([])).add(node),
             }
           },
@@ -316,47 +306,64 @@ export abstract class DeduplicatingBuilder {
       })()
     }
 
+    const updateLastConcept = (
+      update: (node: ModelNode & { type: 'class' }) => ModelNode,
+    ): void => {
+      // the field is the last concept node
+      const concept = elements
+        .slice()
+        .reverse()
+        .find(node => node.type === 'concept')?.index
+
+      if (typeof concept === 'undefined') {
+        console.warn(
+          'Missing final concept element in node (is it empty)?',
+          node,
+        )
+        return
+      }
+
+      // get the actual id of the node
+      const conceptNode = nodes[concept]
+      if (typeof conceptNode === 'undefined') {
+        console.warn(
+          'Last concept not drawn in node, skipping annotation',
+          node,
+        )
+        return
+      }
+
+      this.graph.addOrUpdateNode(conceptNode, label => {
+        if (typeof label === 'undefined') {
+          throw new Error('never reached')
+        }
+
+        if (label.type === 'literal') {
+          throw new Error('never reached')
+        }
+
+        return update(label)
+      })
+    }
+
+    // draw the datatype property (if any)
+    if (node instanceof Field && node.path.datatypeProperty === '') {
+      updateLastConcept(({ clz, bundles, fields, type }) => ({
+        clz,
+        bundles,
+        fields: fields.add(node),
+        type,
+      }))
+    }
+
     // draw the bundle (if any)
     if (node instanceof Bundle) {
-      ;(() => {
-        // the bundle is the last concept node
-        const bundle = elements
-          .slice()
-          .reverse()
-          .find(node => node.type === 'concept')?.index
-
-        if (typeof bundle === 'undefined') {
-          console.warn(
-            'Missing bundle concept element in node (is it empty)?',
-            node,
-          )
-          return
-        }
-
-        // get the actual id of the node
-        const bundleNode = nodes[bundle]
-        if (typeof bundleNode === 'undefined') {
-          console.warn(
-            'Bundle concept not drawn in node, skipping bundle annotation',
-            node,
-          )
-          return
-        }
-
-        this.graph.addOrUpdateNode(bundleNode, label => {
-          if (typeof label === 'undefined') {
-            throw new Error('never reached')
-          }
-
-          if (label.type === 'field') {
-            throw new Error('never reached')
-          }
-
-          // add the current bundle to the nodes
-          const { clz, bundles, type } = label
-          return { clz, type, bundles: bundles.add(node) }
-        })
-      })()
+      updateLastConcept(({ clz, bundles, fields, type }) => ({
+        clz,
+        bundles: bundles.add(node),
+        fields,
+        type,
+      }))
     }
 
     return contexts
@@ -375,14 +382,29 @@ export abstract class DeduplicatingBuilder {
     parent: NodeContext,
   ): NodeContextSpec
 
-  /** checks if the given uri is included in the graph */
-  protected includes(node: PathTreeNode): boolean {
-    if (this.#options.include == null) return true
-
-    return this.#options.include(node)
+  /** makes an id for a node within a deduplication context */
+  #makeID(context: string, typ: 'class' | 'data', id: string): string {
+    return `context=${encodeURIComponent(context)}&typ=${encodeURIComponent(typ)}&id=${encodeURIComponent(id)}`
   }
 
-  id(context: string, typ: 'class' | 'data', id: string): string {
-    return `context=${encodeURIComponent(context)}&typ=${encodeURIComponent(typ)}&id=${encodeURIComponent(id)}`
+  readonly #seenContexts = new Set<string>()
+  #nextResolveID = 0
+  #resolveContextSpec(next: NodeContextSpec): NodeContext {
+    if (next === false) return false
+    if (typeof next === 'string') {
+      this.#seenContexts.add(next)
+      return next
+    }
+
+    // iterate through numbers
+    while (true) {
+      const candidate = this.#nextResolveID.toString()
+      this.#nextResolveID++
+
+      if (!this.#seenContexts.has(candidate)) {
+        this.#seenContexts.add(candidate)
+        return candidate
+      }
+    }
   }
 }
