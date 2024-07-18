@@ -12,12 +12,12 @@ import {
   defaultLayout,
 } from '.'
 import { type BundleEdge, type BundleNode } from '../../graph/builders/bundle'
+import { LazyValue } from '../../utils/once'
 import {
+  modelNodeLabel,
   type ModelEdge,
   type ModelNode,
-  modelNodeLabel,
-} from '../../graph/builders/model'
-import { LazyValue } from '../../utils/once'
+} from '../../graph/builders/model/specific'
 
 const Cytoscape = new LazyValue(async () => {
   const cytoscape = (await import('cytoscape')).default

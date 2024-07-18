@@ -10,11 +10,6 @@ import {
   type BundleNode,
 } from '../../../graph/builders/bundle'
 import { type RenderOptions } from '@viz-js/viz'
-import {
-  type ModelEdge,
-  type ModelNode,
-  modelNodeLabel,
-} from '../../../graph/builders/model'
 import { Type } from '../../../utils/media'
 import { type GraphVizRequest, type GraphVizResponse } from './impl'
 import { LazyValue } from '../../../utils/once'
@@ -22,6 +17,11 @@ import { LazyValue } from '../../../utils/once'
 // lazy import svg-pan-zoom (so that we can skip loading it in server-side mode)
 import { type default as SvgPanZoom } from 'svg-pan-zoom'
 import { type RDFEdge, type RDFNode } from '../../../graph/builders/rdf'
+import {
+  type ModelEdge,
+  type ModelNode,
+  modelNodeLabel,
+} from '../../../graph/builders/model/specific'
 
 const spz = new LazyValue(
   async () => await import('svg-pan-zoom').then(spz => spz.default),

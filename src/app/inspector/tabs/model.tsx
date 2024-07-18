@@ -1,8 +1,5 @@
 import { Component, type ComponentChildren, createRef } from 'preact'
-import ModelGraphBuilder, {
-  type ModelEdge,
-  type ModelNode,
-} from '../../../lib/graph/builders/model'
+import ModelGraphBuilder from '../../../lib/graph/builders/model'
 import type Deduplication from '../state/state/deduplication'
 import { explanations, names, values } from '../state/state/deduplication'
 import { models } from '../../../lib/drivers/collection'
@@ -20,6 +17,10 @@ import {
 } from '../state/reducers/model'
 import { WithID } from '../../../components/wrapper'
 import type Graph from '../../../lib/graph'
+import {
+  type ModelEdge,
+  type ModelNode,
+} from '../../../lib/graph/builders/model/specific'
 
 export default WithID<IReducerProps>(
   class ModelGraphView extends Component<IReducerProps & { id: string }> {

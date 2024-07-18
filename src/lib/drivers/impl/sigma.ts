@@ -18,7 +18,7 @@ import {
   type ModelEdge,
   type ModelNode,
   modelNodeLabel,
-} from '../../graph/builders/model'
+} from '../../graph/builders/model/specific'
 
 interface SigmaMount {
   beforeStop?: () => void
