@@ -166,7 +166,7 @@ describe(PathTree, async () => {
     expect(Array.from(got)).toEqual(Array.from(want))
   })
 
-  test('navigation works', () => {
+  test('tree navigation works', () => {
     const checkParentRelation = (
       node: PathTreeNode,
       wantParent: PathTreeNode | null,

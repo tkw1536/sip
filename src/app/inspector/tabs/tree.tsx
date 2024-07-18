@@ -1,6 +1,10 @@
-import { Component, type ComponentChild, Fragment } from 'preact'
+import { Component, type ComponentChild, Fragment, type VNode } from 'preact'
 import { type NamespaceMap } from '../../../lib/pathbuilder/namespace'
-import { type Bundle, Field } from '../../../lib/pathbuilder/pathtree'
+import {
+  type Bundle,
+  type Field,
+  type PathElement as PathElementT,
+} from '../../../lib/pathbuilder/pathtree'
 import * as styles from './tree.module.css'
 import { classes } from '../../../lib/utils/classes'
 import { type ColorPreset, colorPresets } from '../state/state/preset'
@@ -371,71 +375,65 @@ class Path extends Component<{
 }> {
   render(): ComponentChild {
     const { hideEqualParentPaths, node, ns } = this.props
-    const { path, ownPathIndex } = node
-    const disambiguation = path.disambiguationIndex
+    const elements = Array.from(node.elements())
 
     return (
       <>
-        {hideEqualParentPaths && ownPathIndex !== null && ownPathIndex > 0 && (
-          <span class={classes(styles.path, styles.path_skip)} />
-        )}
-        {path.pathArray.map((p, i) => {
-          if (
-            hideEqualParentPaths &&
-            ownPathIndex !== null &&
-            i < ownPathIndex
-          ) {
-            return null
-          }
-
-          let role: Role
-          if (i === disambiguation) {
-            role = 'disambiguation'
-          } else if (i % 2 === 0) {
-            role = 'class'
-          } else {
-            role = 'predicate'
-          }
-          return (
-            <PathElement
-              role={role}
-              sharedWithParent={ownPathIndex !== null && i < ownPathIndex}
-              key={`${i}-${p}`}
-              ns={ns}
-              uri={p}
-            />
-          )
-        })}
-        {node instanceof Field && path.datatypeProperty !== '' && (
-          <PathElement role='datatype' ns={ns} uri={path.datatypeProperty} />
-        )}
+        {hideEqualParentPaths &&
+          elements.some(
+            ({ common }) => typeof common === 'number' && common < 0,
+          ) && <span class={classes(styles.path, styles.path_skip)} />}
+        {elements.map(element => (
+          <PathElement
+            element={element}
+            key={element.index}
+            hideCommon={hideEqualParentPaths}
+            ns={ns}
+          />
+        ))}
       </>
     )
   }
 }
 
-type Role = 'datatype' | 'disambiguation' | 'class' | 'predicate'
-
-class PathElement extends Component<{
-  uri: string
-  sharedWithParent?: boolean
-  role: Role
+function PathElement({
+  element,
+  hideCommon,
+  ns,
+}: {
+  element: PathElementT
+  hideCommon: boolean
   ns: NamespaceMap
-}> {
-  render(): ComponentChild {
-    const { uri, ns, role, sharedWithParent } = this.props
-    return (
-      <>
-        <span
-          class={classes(
-            styles.path,
-            styles[`path_${role}`],
-            (sharedWithParent ?? false) && styles.path_shared,
-          )}
-        >
-          {ns.apply(uri)}
-        </span>
-      </>
-    )
+}): VNode<any> | null {
+  if (hideCommon && typeof element.common === 'number' && element.common < 0) {
+    return null
   }
+
+  return (
+    <span
+      class={classes(
+        styles.path,
+        styles[`path_${elementClass(element)}`],
+        (element.common ?? 0) < 0 && styles.path_shared,
+      )}
+    >
+      {ns.apply(element.uri)}
+    </span>
+  )
+}
+
+function elementClass(
+  element: PathElementT,
+): 'datatype' | 'disambiguation' | 'class' | 'predicate' {
+  if (element.type === 'concept') {
+    if (element.disambiguation === 0) return 'disambiguation'
+    return 'class'
+  }
+  if (element.type === 'property') {
+    if (element.role === 'datatype') {
+      return 'datatype'
+    }
+    return 'predicate'
+  }
+  throw new Error('never reached')
 }

@@ -36,6 +36,53 @@ interface DuplicateBundle {
   path: Path
 }
 
+/** an element within the pathArray of this node */
+export type PathElement = ConceptPathElement | PropertyPathElement
+
+interface ConceptPathElement extends CommonPathElement {
+  /** @inheritdoc */
+  type: 'concept'
+
+  /** @inheritdoc */
+  role?: never
+}
+interface PropertyPathElement extends CommonPathElement {
+  /** @inheritdoc */
+  type: 'property'
+
+  /** @inheritdoc */
+  role: 'relation' | 'datatype'
+}
+
+interface CommonPathElement {
+  /** is this a concept or a property */
+  type: string
+  /** what role does this element play (if any?) */
+  role?: string
+  /** the uri of this path element */
+  uri: string
+
+  /** the index of this path element within the PathArray */
+  index: number
+
+  /**
+   * How does this element relate to elements shared with the parent?
+   * - a negative value indicates how many elements (including this one) will still appear before the first uncommon concept
+   * - a `0` or positive value indicates how many elements have not been shared with the parent (not including this one)
+   * - `null` indicates there are no shared concepts.
+   */
+  common: number | null
+
+  /**
+   * How does this element related to the disambiguated concept?
+   * - a negative value indicates how many elements (including this one) will still appear before the disambiguated concept
+   * - a `0` value indicates that this is the disambiguated concept
+   * - a positive value indicates how many elements (including this one) have appeared after the disambiguated concept
+   * - `null` indicates there is no disambiguation set on this path
+   */
+  disambiguation: number | null
+}
+
 export abstract class PathTreeNode {
   protected constructor(
     public readonly depth: number,
@@ -48,13 +95,67 @@ export abstract class PathTreeNode {
   /** returns the path that created this PathTreeNode */
   abstract get path(): Path | null
 
+  /** iterates over the elements in the pathArray belonging to the path of this node (if any) */
+  *elements(): IterableIterator<PathElement> {
+    // get the path
+    const path = this.path
+    const elements = path?.pathArray?.slice(0)
+    if (path === null || typeof elements === 'undefined') return
+
+    // ensure that we have a valid path
+    if (elements.length % 2 === 0) {
+      console.warn('path of even length: ignoring dangling property')
+      elements.pop()
+    }
+
+    // figure out what the index within the path is
+    const ownPathIndex = this.#ownPathIndex(elements)
+    const disambiguationIndex = path.disambiguationIndex
+
+    // add the datatype property (if any)
+    const datatypeIndex = elements.length
+    if (this instanceof Field && path.datatypeProperty !== '') {
+      elements.push(path.datatypeProperty)
+    }
+
+    // do the iteration
+    for (const [index, uri] of elements.entries()) {
+      const common = ownPathIndex !== null ? index - ownPathIndex : null
+      const disambiguation =
+        disambiguationIndex !== null ? index - disambiguationIndex : null
+
+      switch (index % 2) {
+        case 0:
+          yield {
+            type: 'concept',
+            uri,
+            index,
+            common,
+            disambiguation,
+          }
+          break
+        case 1:
+          yield {
+            type: 'property',
+            role: index !== datatypeIndex ? 'relation' : 'datatype',
+            uri,
+            index,
+            common,
+            disambiguation,
+          }
+          break
+        default:
+          throw new Error('never reached')
+      }
+    }
+  }
+
   /**
    * The first index in the pathArray that is not shared with the parent.
    * The parent must have an odd-length pathArray (i.e. be a group) which is a prefix of this node's pathArray.
    * If either condition is not met, returns null.
    */
-  get ownPathIndex(): number | null {
-    const nodePath = this.path?.pathArray
+  #ownPathIndex(nodePath: string[] | undefined): number | null {
     if (!Array.isArray(nodePath)) {
       return null
     }
@@ -85,6 +186,7 @@ export abstract class PathTreeNode {
   /** returns the parent of this PathTreeNode */
   abstract get parent(): PathTreeNode | null
 
+  /** compares two nodes, first by depth, then by index */
   static compare(a: PathTreeNode, b: PathTreeNode): -1 | 1 | 0 {
     if (a.depth < b.depth) {
       return -1
