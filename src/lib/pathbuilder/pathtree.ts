@@ -42,6 +42,9 @@ export abstract class PathTreeNode {
     public readonly index: number,
   ) {}
 
+  /** checks if this PathTreeNode equals another node */
+  abstract equals(other: PathTreeNode): boolean
+
   /** returns the path that created this PathTreeNode */
   abstract get path(): Path | null
 
@@ -159,6 +162,17 @@ export class PathTree extends PathTreeNode {
   constructor(bundles: ProtoBundle[]) {
     super(0, -1)
     this.#bundles = bundles.map(bundle => new Bundle(this, bundle))
+  }
+
+  /** checks if this PathTreeNode equals another node */
+  equals(other: PathTreeNode): boolean {
+    return (
+      other instanceof PathTree &&
+      this.#bundles.length === other.#bundles.length &&
+      this.#bundles.every((bundle, index) =>
+        bundle.equals(other.#bundles[index]),
+      )
+    )
   }
 
   readonly path = null
@@ -287,6 +301,21 @@ export class Bundle extends PathTreeNode {
     })
   }
 
+  equals(other: PathTreeNode): boolean {
+    return (
+      other instanceof Bundle &&
+      this.path.equals(other.path) && // TODO: path equality
+      this.#childBundles.length === other.#childBundles.length &&
+      this.#childBundles.every((bundle, index) =>
+        bundle.equals(other.#childBundles[index]),
+      ) &&
+      this.#childFields.length === other.#childFields.length &&
+      this.#childFields.every((field, index) =>
+        field.equals(other.#childFields[index]),
+      )
+    )
+  }
+
   public readonly path: Path
   readonly #childBundles: Bundle[] = []
   readonly #childFields: Field[] = [];
@@ -326,6 +355,10 @@ export class Field extends PathTreeNode {
   ) {
     super(parent.depth + 1, field.index)
     this.path = field.path
+  }
+
+  equals(other: PathTreeNode): boolean {
+    return other instanceof Field && this.path.equals(other.path)
   }
 
   public readonly path: Path;
