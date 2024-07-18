@@ -82,16 +82,6 @@ export abstract class PathTreeNode {
   /** the number of children */
   abstract get childCount(): number
 
-  /** allChildren returns a set containing the ids of all recursive children of this node */
-  *allChildren(): IterableIterator<string> {
-    for (const child of this.walk()) {
-      const id = child.path?.id
-      if (typeof id === 'string') {
-        yield id
-      }
-    }
-  }
-
   /** returns the parent of this PathTreeNode */
   abstract get parent(): PathTreeNode | null
 
@@ -118,6 +108,16 @@ export abstract class PathTreeNode {
     for (const child of this.children()) {
       for (const relative of child.walk()) {
         yield relative
+      }
+    }
+  }
+
+  /** recursively walks over the children of this NodeLike */
+  *walkIDs(): IterableIterator<string> {
+    for (const child of this.walk()) {
+      const id = child.path?.id
+      if (typeof id === 'string') {
+        yield id
       }
     }
   }
