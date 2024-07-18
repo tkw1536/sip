@@ -1,11 +1,15 @@
 import GraphBuilder from '..'
 import Deduplication from '../../../../app/inspector/state/state/deduplication'
 import { type PathTree } from '../../../pathbuilder/pathtree'
-import type SpecificBuilder from './specific'
-import { type ModelEdge, type ModelNode, type SharedOptions } from './specific'
-import BundleBuilder from './specific_bundle'
-import FullBuilder from './specific_full'
-import NoneBuilder from './specific_none'
+import {
+  type DeduplicatingBuilder,
+  type ModelEdge,
+  type ModelNode,
+  type SharedOptions,
+} from './dedup'
+import BundleBuilder from './dedup_bundle'
+import FullBuilder from './dedup_full'
+import NoneBuilder from './dedup_none'
 
 export type Options = SharedOptions & {
   deduplication?: Deduplication
@@ -16,7 +20,7 @@ export default class ModelGraphBuilder extends GraphBuilder<
   ModelNode,
   ModelEdge
 > {
-  readonly #specific: SpecificBuilder
+  readonly #specific: DeduplicatingBuilder
   constructor(tree: PathTree, options: Options) {
     super()
 

@@ -39,16 +39,22 @@ interface DuplicateBundle {
 /** an element within the pathArray of this node */
 export type PathElement = ConceptPathElement | PropertyPathElement
 
-interface ConceptPathElement extends CommonPathElement {
+export interface ConceptPathElement extends CommonPathElement {
   /** @inheritdoc */
   type: 'concept'
+
+  /** 0-based concept index */
+  conceptIndex: number
 
   /** @inheritdoc */
   role?: never
 }
-interface PropertyPathElement extends CommonPathElement {
+export interface PropertyPathElement extends CommonPathElement {
   /** @inheritdoc */
   type: 'property'
+
+  /** 0-based property index */
+  propertyIndex: number
 
   /** @inheritdoc */
   role: 'relation' | 'datatype'
@@ -119,6 +125,8 @@ export abstract class PathTreeNode {
     }
 
     // do the iteration
+    let conceptIndex = 0
+    let propertyIndex = 0
     for (const [index, uri] of elements.entries()) {
       const common = ownPathIndex !== null ? index - ownPathIndex : null
       const disambiguation =
@@ -130,9 +138,11 @@ export abstract class PathTreeNode {
             type: 'concept',
             uri,
             index,
+            conceptIndex,
             common,
             disambiguation,
           }
+          conceptIndex++
           break
         case 1:
           yield {
@@ -140,9 +150,11 @@ export abstract class PathTreeNode {
             role: index !== datatypeIndex ? 'relation' : 'datatype',
             uri,
             index,
+            propertyIndex,
             common,
             disambiguation,
           }
+          propertyIndex++
           break
         default:
           throw new Error('never reached')

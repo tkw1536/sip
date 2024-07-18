@@ -147,6 +147,11 @@ export class Path {
     )
   }
 
+  /** gets the number of concepts in this path */
+  get conceptCount(): number {
+    return Math.ceil(this.pathArray.length / 2)
+  }
+
   /** all uris referenced by this path including concepts, (object) properties, and datatype property  */
   *uris(): IterableIterator<string> {
     for (const uri of this.pathArray) {

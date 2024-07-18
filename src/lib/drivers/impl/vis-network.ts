@@ -16,7 +16,7 @@ import {
   type ModelEdge,
   type ModelNode,
   modelNodeLabel,
-} from '../../graph/builders/model/specific'
+} from '../../graph/builders/model/dedup'
 
 const Vis = new LazyValue(async () => await import('vis-network'))
 

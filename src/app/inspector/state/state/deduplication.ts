@@ -20,5 +20,5 @@ export const explanations = Object.freeze<Info>({
     'Draw each class at most once. This corresponds to drawing a subset of the associated ontology with their domains and ranges',
   [Deduplication.Bundle]: 'Draw nodes once within the current bundle',
   [Deduplication.None]:
-    'Do not deduplicate nodes at all (except for shared parent paths)',
+    'Do not deduplicate nodes at all (except for drawn shared parent paths)',
 })

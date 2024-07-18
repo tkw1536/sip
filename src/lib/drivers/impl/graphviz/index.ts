@@ -21,7 +21,7 @@ import {
   type ModelEdge,
   type ModelNode,
   modelNodeLabel,
-} from '../../../graph/builders/model/specific'
+} from '../../../graph/builders/model/dedup'
 
 const spz = new LazyValue(
   async () => await import('svg-pan-zoom').then(spz => spz.default),

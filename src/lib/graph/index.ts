@@ -21,7 +21,7 @@ export default class Graph<NodeLabel, EdgeLabel> {
 
   /** addOrUpdateNode creates or updates a node */
   addOrUpdateNode(
-    id: string,
+    id: string | number,
     update: (label?: NodeLabel) => NodeLabel,
   ): number {
     // node already exists => update
@@ -32,7 +32,7 @@ export default class Graph<NodeLabel, EdgeLabel> {
     }
 
     // node doesn't exist yet => create it
-    return this.addNode(update(), id)
+    return this.addNode(update(), typeof id === 'string' ? id : undefined)
   }
 
   /** getNode gets the node or returns null */

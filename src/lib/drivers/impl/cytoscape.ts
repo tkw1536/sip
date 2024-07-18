@@ -17,7 +17,7 @@ import {
   modelNodeLabel,
   type ModelEdge,
   type ModelNode,
-} from '../../graph/builders/model/specific'
+} from '../../graph/builders/model/dedup'
 
 const Cytoscape = new LazyValue(async () => {
   const cytoscape = (await import('cytoscape')).default
