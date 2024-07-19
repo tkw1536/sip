@@ -14,11 +14,11 @@ import FA2Layout from 'graphology-layout-forceatlas2/worker'
 import { inferSettings } from 'graphology-layout-forceatlas2'
 import circular from 'graphology-layout/circular'
 import circlepack from 'graphology-layout/circlepack'
+import { modelNodeLabel } from '../../graph/builders/model/dedup'
 import {
   type ModelEdge,
   type ModelNode,
-  modelNodeLabel,
-} from '../../graph/builders/model/dedup'
+} from '../../graph/builders/model/types'
 
 interface SigmaMount {
   beforeStop?: () => void

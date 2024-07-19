@@ -12,11 +12,11 @@ import { type BundleEdge, type BundleNode } from '../../graph/builders/bundle'
 import * as styles from './vis-network.module.css'
 import { Type } from '../../utils/media'
 import { LazyValue } from '../../utils/once'
+import { modelNodeLabel } from '../../graph/builders/model/dedup'
 import {
   type ModelEdge,
   type ModelNode,
-  modelNodeLabel,
-} from '../../graph/builders/model/dedup'
+} from '../../graph/builders/model/types'
 
 const Vis = new LazyValue(async () => await import('vis-network'))
 

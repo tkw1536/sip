@@ -10,27 +10,11 @@ import {
 } from '../../../pathbuilder/pathtree'
 import ArrayTracker from '../../../utils/array-tracker'
 import ImmutableSet from '../../../utils/immutable-set'
+import { type ModelEdge, type ModelNode } from './types'
 
-export interface SharedOptions {
+export interface DedupOptions {
   include?: (node: PathTreeNode) => boolean
 }
-
-export type ModelNode =
-  | {
-      /* represents a single class node */
-      type: 'class'
-      clz: string
-
-      /** bundles rooted at this node */
-      bundles: ImmutableSet<Bundle>
-
-      /** non-datatype fields at this node */
-      fields: ImmutableSet<Field>
-    }
-  | {
-      type: 'literal'
-      fields: ImmutableSet<Field> /** the field at this path */
-    }
 
 /** modelNodeLabel returns a simple label for a model node */
 export function modelNodeLabel(node: ModelNode, ns: NamespaceMap): string {
@@ -51,42 +35,34 @@ export function modelNodeLabel(node: ModelNode, ns: NamespaceMap): string {
   throw new Error('never reached')
 }
 
-export type ModelEdge =
-  | {
-      /* represents a property between two class nodes */
-      type: 'property'
-      property: string
-    }
-  | {
-      /** represents a datatype property */
-      type: 'data'
-      property: string
-    }
-
 /**
  * A specification for which to draw the node in.
- * Numeric-only IDs should be avoided.
  *
  * - `true` means to always draw the node, even if it has been included before.
  * - `false` means never to draw the node
- * - a string means to draw the node IFF no other node with the same uri doesn't already exist.
+ * - a string means to draw the node IFF no other node in the context with the same uri doesn't already exist.
+ * - a number represents an internal transparent context.
  * */
-export type NodeContextSpec = string | boolean
+export type NodeContextSpec = NodeContext | true
 
 /**
  * A context in which a node was or was not drawn in.
  * - a string uniquely identifies a context the node was drawn in.
+ * - a node uniquely identifies an internal node.
  * - `false` means that node was not drawn
+ *
+ * Number contexts are never equal to string contexts.
+ * Number contexts MUST NOT be created by code outside of DeduplicationBuilder.
  */
-export type NodeContext = string | false
+export type NodeContext = number | string | false
 
 /** A builder that deduplicates within a specific context */
 export abstract class DeduplicatingBuilder {
   protected readonly tracker = new ArrayTracker<number | string>()
-  readonly #options: SharedOptions
+  readonly #options: DedupOptions
   constructor(
     protected tree: PathTree,
-    options: SharedOptions,
+    options: DedupOptions,
     protected graph: Graph<ModelNode, ModelEdge>,
   ) {
     this.#options = options
@@ -102,16 +78,9 @@ export abstract class DeduplicatingBuilder {
       if (!(node instanceof Bundle || node instanceof Field)) {
         continue
       }
-      let lastContext = this.#buildNode(nodeContexts, node)
 
-      // default to nothing having been drawn
-      if (typeof lastContext === 'undefined') {
-        // TODO: concept count
-        lastContext = [...new Array(node?.path?.conceptCount ?? 0)].map(
-          () => false,
-        )
-      }
-      nodeContexts.set(node, lastContext)
+      const build = this.buildNode(nodeContexts, node)
+      nodeContexts.set(node, build)
     }
   }
 
@@ -122,12 +91,15 @@ export abstract class DeduplicatingBuilder {
     return this.#options.include(node)
   }
 
-  #buildNode(
+  buildNode(
     nodeContexts: Map<PathTreeNode, NodeContext[]>,
     node: Bundle | Field,
-  ): NodeContext[] | undefined {
-    // skip nodes that aren't included
-    if (node.path === null || !this.#includesNode(node)) return
+  ): NodeContext[] {
+    // if the node isn't included do stuff
+    const included = this.#includesNode(node)
+    if (!included) {
+      return this.#buildOmittedNode(nodeContexts, node)
+    }
 
     const { parent } = node
     const parentContext = parent !== null ? nodeContexts.get(parent) : undefined
@@ -139,12 +111,14 @@ export abstract class DeduplicatingBuilder {
     const drawConceptElement = (
       element: ConceptPathElement,
     ): number | undefined => {
+      const parent = (parentContext ?? [])[element.conceptIndex] ?? false
+
       // find the context for the new element
       const newContextSpec = this.getConceptContext(
         element,
         context,
         node,
-        parentContext ?? [],
+        parent,
       )
 
       // update the context
@@ -252,24 +226,11 @@ export abstract class DeduplicatingBuilder {
           )
           return
         }
-        const sourceNode = nodes[lastConcept]
-        if (
-          typeof sourceNode === 'undefined' ||
-          typeof sourceConcept === 'undefined'
-        ) {
-          console.warn(
-            'Final concept element not drawn in node, skipping datatype annotation',
-            node,
-          )
-          return
-        }
+
+        const parent = contexts[sourceConcept.conceptIndex] ?? false
 
         // get the context to draw the datatype in
-        const dtContextSpec = this.getDatatypeContext(
-          dataElement,
-          node,
-          contexts[sourceConcept.conceptIndex] ?? false,
-        )
+        const dtContextSpec = this.getDatatypeContext(dataElement, node, parent)
         context = this.#resolveContextSpec(dtContextSpec)
         contexts.push(context)
 
@@ -277,7 +238,7 @@ export abstract class DeduplicatingBuilder {
         if (context === false) return
         const id = this.#makeID(context, 'data', dataElement.uri)
 
-        // add the field type
+        // add the datatype node
         const targetNode = this.graph.addOrUpdateNode(
           id,
           (label?: ModelNode | undefined): ModelNode => {
@@ -291,6 +252,18 @@ export abstract class DeduplicatingBuilder {
             }
           },
         )
+
+        const sourceNode = nodes[lastConcept]
+        if (
+          typeof sourceNode === 'undefined' ||
+          typeof sourceConcept === 'undefined'
+        ) {
+          console.warn(
+            'Final concept element not drawn in node, skipping datatype edge',
+            node,
+          )
+          return
+        }
 
         // if we've already added the arrow, don't redraw
         // TODO: Do we want this configurable?
@@ -369,13 +342,57 @@ export abstract class DeduplicatingBuilder {
     return contexts
   }
 
+  #buildOmittedNode(
+    nodeContexts: Map<PathTreeNode, NodeContext[]>,
+    node: Bundle | Field,
+  ): NodeContext[] {
+    const contexts: NodeContext[] = []
+
+    // TODO: Make this a virtual thing
+    const elements = Array.from(node.elements())
+    const parent = nodeContexts.get(node.parent) ?? []
+    elements.forEach(element => {
+      if (element.type !== 'concept') return
+      const { common } = element
+
+      if (common !== null && common < 0) {
+        const parentID = parent[element.conceptIndex]
+        if (typeof parentID !== 'undefined') {
+          contexts.push(parentID)
+          return
+        }
+      }
+
+      // create a new context
+      contexts.push(this.#newContext())
+    })
+    return contexts
+  }
+  /**
+   * Gets the {@link NodeContextSpec} to draw a concept node in.
+   *
+   * @param elem concept of path to draw
+   * @param previous the previous context that a node was drawn in
+   * @param node the current {@link PathTreeNode} that this concept is being drawn for
+   *
+   * @param parent function to return the context that the corresponding shared parent concept was drawn in.
+   * When the parent concept was not included in the graph, a new unique id will be silently generated and used for all children.
+   */
   protected abstract getConceptContext(
     elem: ConceptPathElement,
     previous: NodeContext,
     node: Bundle | Field,
-    parent: NodeContext[],
+    parent: NodeContext,
   ): NodeContextSpec
 
+  /**
+   * Gets the {@link NodeContextSpec} to draw a datatype node in.
+   *
+   * @param elem datatype element to draw
+   * @param node the field this datatype is attached to.
+   *
+   * @param parent function to return the context that the final context was drawn in
+   */
   protected abstract getDatatypeContext(
     elem: PropertyPathElement & { role: 'datatype' },
     node: Field,
@@ -383,28 +400,17 @@ export abstract class DeduplicatingBuilder {
   ): NodeContextSpec
 
   /** makes an id for a node within a deduplication context */
-  #makeID(context: string, typ: 'class' | 'data', id: string): string {
-    return `context=${encodeURIComponent(context)}&typ=${encodeURIComponent(typ)}&id=${encodeURIComponent(id)}`
+  #makeID(context: string | number, typ: 'class' | 'data', id: string): string {
+    return `context=${encodeURIComponent(JSON.stringify(context))}&typ=${encodeURIComponent(typ)}&id=${encodeURIComponent(id)}`
   }
 
-  readonly #seenContexts = new Set<string>()
-  #nextResolveID = 0
   #resolveContextSpec(next: NodeContextSpec): NodeContext {
-    if (next === false) return false
-    if (typeof next === 'string') {
-      this.#seenContexts.add(next)
-      return next
-    }
+    if (next === true) return this.#newContext()
+    return next
+  }
 
-    // iterate through numbers
-    while (true) {
-      const candidate = this.#nextResolveID.toString()
-      this.#nextResolveID++
-
-      if (!this.#seenContexts.has(candidate)) {
-        this.#seenContexts.add(candidate)
-        return candidate
-      }
-    }
+  #nextContextID = 0
+  readonly #newContext = (): number => {
+    return ++this.#nextContextID
   }
 }

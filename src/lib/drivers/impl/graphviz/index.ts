@@ -17,11 +17,11 @@ import { LazyValue } from '../../../utils/once'
 // lazy import svg-pan-zoom (so that we can skip loading it in server-side mode)
 import { type default as SvgPanZoom } from 'svg-pan-zoom'
 import { type RDFEdge, type RDFNode } from '../../../graph/builders/rdf'
+import { modelNodeLabel } from '../../../graph/builders/model/dedup'
 import {
   type ModelEdge,
   type ModelNode,
-  modelNodeLabel,
-} from '../../../graph/builders/model/dedup'
+} from '../../../graph/builders/model/types'
 
 const spz = new LazyValue(
   async () => await import('svg-pan-zoom').then(spz => spz.default),

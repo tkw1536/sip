@@ -39,14 +39,12 @@ export default class BundleBuilder extends DeduplicatingBuilder {
     elem: ConceptPathElement,
     previous: NodeContext,
     node: Bundle | Field,
-    parent: NodeContext[],
+    parent: NodeContext,
   ): NodeContextSpec {
-    // if we are in common with the parent, reuse their context!
+    // if we have a common element with the parent, use that
     const { common } = elem
-    if (common !== null && common < 0) {
-      const parentID = parent[elem.conceptIndex] as NodeContext | undefined
-      if (typeof parentID !== 'string') return true
-      return parentID
+    if (common !== null && common < 0 && parent !== false) {
+      return parent
     }
 
     // if we have the class as a context => use it

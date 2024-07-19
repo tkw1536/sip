@@ -20,7 +20,7 @@ import type Graph from '../../../lib/graph'
 import {
   type ModelEdge,
   type ModelNode,
-} from '../../../lib/graph/builders/model/dedup'
+} from '../../../lib/graph/builders/model/types'
 
 export default WithID<IReducerProps>(
   class ModelGraphView extends Component<IReducerProps & { id: string }> {

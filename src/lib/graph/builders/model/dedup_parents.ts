@@ -10,17 +10,25 @@ import {
   DeduplicatingBuilder,
 } from './dedup'
 
-/** FullBuilder deduplicates nodes globally */
-export default class FullBuilder extends DeduplicatingBuilder {
-  static readonly #context = ''
-
+/** ParentsBuilder deduplicates only shared parent paths */
+export default class ParentsBuilder extends DeduplicatingBuilder {
+  prepare(): void {
+    this.graph.definitelyAcyclic = true
+  }
   protected getConceptContext(
     elem: ConceptPathElement,
     previous: NodeContext,
     node: Bundle | Field,
     parent: NodeContext,
   ): NodeContextSpec {
-    return FullBuilder.#context
+    // if we have a common element with the parent, use that
+    const { common } = elem
+    if (common !== null && common < 0 && parent !== false) {
+      return parent
+    }
+
+    // else make a new node
+    return true
   }
 
   protected getDatatypeContext(
@@ -28,6 +36,6 @@ export default class FullBuilder extends DeduplicatingBuilder {
     node: Field,
     parent: NodeContext,
   ): NodeContextSpec {
-    return FullBuilder.#context
+    return true
   }
 }

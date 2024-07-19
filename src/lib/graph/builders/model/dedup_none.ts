@@ -10,7 +10,7 @@ import {
   DeduplicatingBuilder,
 } from './dedup'
 
-/** NoneBuilder deduplicates only shared parent paths */
+/** NoneBuilder doesn't deduplicate */
 export default class NoneBuilder extends DeduplicatingBuilder {
   prepare(): void {
     this.graph.definitelyAcyclic = true
@@ -19,15 +19,8 @@ export default class NoneBuilder extends DeduplicatingBuilder {
     elem: ConceptPathElement,
     previous: NodeContext,
     node: Bundle | Field,
-    parent: NodeContext[],
+    parent: NodeContext,
   ): NodeContextSpec {
-    const { common } = elem
-    if (common !== null && common < 0) {
-      // note: we add the undefined here in case the parent array doesn't have our element
-      const parentID = parent[elem.conceptIndex] as NodeContext | undefined
-      if (typeof parentID !== 'string') return true
-      return parentID
-    }
     return true
   }
 

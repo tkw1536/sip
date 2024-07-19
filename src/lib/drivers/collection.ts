@@ -1,5 +1,5 @@
 import { type BundleEdge, type BundleNode } from '../graph/builders/bundle'
-import { type ModelEdge, type ModelNode } from '../graph/builders/model/dedup'
+import { type ModelEdge, type ModelNode } from '../graph/builders/model/types'
 import { type RDFEdge, type RDFNode } from '../graph/builders/rdf'
 import { Lazy } from '../utils/once'
 import type Driver from './impl'
