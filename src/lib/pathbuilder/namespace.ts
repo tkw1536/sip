@@ -1,5 +1,5 @@
 import ImmutableMap from '../utils/immutable-map'
-import { filter } from '../utils/iterable'
+import { filter, map } from '../utils/iterable'
 
 export interface NamespaceMapExport {
   type: 'namespace-map'
@@ -74,6 +74,49 @@ export class NamespaceMap {
     }
 
     return new NamespaceMap(this.#entries.set(short, long))
+  }
+
+  /**
+   * Sets an existing entry for short to expand to long.
+   * Order of entries is maintained.
+   * If short does not exist with this NamespaceMap, returns the map as is.
+   */
+  update(short: string, long: string): NamespaceMap {
+    // check if the current value exists and if it is actually being changed
+    const oldLong = this.#entries.get(short)
+    if (typeof oldLong === 'undefined' || oldLong === long) {
+      return this
+    }
+
+    return new NamespaceMap(
+      new ImmutableMap(
+        map(this.#entries, ([s, l]) => (s === short ? [s, long] : [s, l])),
+      ),
+    )
+  }
+
+  /**
+   * Renames the entry for short to newShort.
+   * Order of entries is maintained.
+   *
+   * If short does not exist with this NamespaceMap, returns the map as is.
+   * If an entry for newShort already exists, returns the map as is.
+   */
+  rename(short: string, newShort: string): NamespaceMap {
+    if (
+      short === newShort ||
+      !this.has(short) ||
+      this.has(newShort) ||
+      !NamespaceMap.validKey.test(newShort)
+    ) {
+      return this
+    }
+
+    return new NamespaceMap(
+      new ImmutableMap(
+        map(this.#entries, ([s, l]) => (s === short ? [newShort, l] : [s, l])),
+      ),
+    )
   }
 
   /** remove removes a long url from this ns-map */

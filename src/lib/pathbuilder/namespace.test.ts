@@ -65,7 +65,77 @@ describe(NamespaceMap, () => {
         ['example2', 'https://example.com/'],
       ],
     ],
-  ])('add / toMap(%1)', (_, ns, ary) => {
+
+    [
+      'updating valid entry',
+      NamespaceMap.empty()
+        .add('first', 'https://example.com/first/')
+        .add('second', 'https://example.com/second/')
+        .add('third', 'https://example.com/third/')
+        .update('second', 'https://example.com/2/'),
+      [
+        ['first', 'https://example.com/first/'],
+        ['second', 'https://example.com/2/'],
+        ['third', 'https://example.com/third/'],
+      ],
+    ],
+
+    [
+      'updating invalid entry',
+      NamespaceMap.empty()
+        .add('first', 'https://example.com/first/')
+        .add('second', 'https://example.com/second/')
+        .add('third', 'https://example.com/third/')
+        .update('fourth', 'https://example.com/fourth/'),
+      [
+        ['first', 'https://example.com/first/'],
+        ['second', 'https://example.com/second/'],
+        ['third', 'https://example.com/third/'],
+      ],
+    ],
+
+    [
+      'renaming into new name',
+      NamespaceMap.empty()
+        .add('first', 'https://example.com/first/')
+        .add('second', 'https://example.com/second/')
+        .add('third', 'https://example.com/third/')
+        .rename('second', 'second_and_a_half'),
+      [
+        ['first', 'https://example.com/first/'],
+        ['second_and_a_half', 'https://example.com/second/'],
+        ['third', 'https://example.com/third/'],
+      ],
+    ],
+
+    [
+      'renaming into invalid name',
+      NamespaceMap.empty()
+        .add('first', 'https://example.com/first/')
+        .add('second', 'https://example.com/second/')
+        .add('third', 'https://example.com/third/')
+        .rename('second', 'first'),
+      [
+        ['first', 'https://example.com/first/'],
+        ['second', 'https://example.com/second/'],
+        ['third', 'https://example.com/third/'],
+      ],
+    ],
+
+    [
+      'renaming into invalid name',
+      NamespaceMap.empty()
+        .add('first', 'https://example.com/first/')
+        .add('second', 'https://example.com/second/')
+        .add('third', 'https://example.com/third/')
+        .rename('second', ''),
+      [
+        ['first', 'https://example.com/first/'],
+        ['second', 'https://example.com/second/'],
+        ['third', 'https://example.com/third/'],
+      ],
+    ],
+  ])('add / update / rename / remove (%1)', (_, ns, ary) => {
     const got = Array.from(ns)
     expect(got).toEqual(ary)
   })

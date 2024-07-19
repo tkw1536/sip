@@ -26,7 +26,24 @@ export default class NamespaceEditor extends Component<
 > {
   state: NamespaceEditorState = {}
 
-  readonly #handleSet = (short: string, long: string): void => {
+  readonly #handleUpdate = (
+    short: string,
+    newShort: string | undefined,
+    newLong: string | undefined,
+  ): void => {
+    this.setState({ loadError: undefined }, () => {
+      let { ns } = this.props
+      if (typeof newLong === 'string') {
+        ns = ns.update(short, newLong)
+      }
+      if (typeof newShort === 'string') {
+        ns = ns.rename(short, newShort)
+      }
+
+      this.props.onUpdate(ns)
+    })
+  }
+  readonly #handleAdd = (short: string, long: string): void => {
     this.setState({ loadError: undefined }, () => {
       this.props.onUpdate(this.props.ns.add(short, long))
     })
@@ -78,14 +95,15 @@ export default class NamespaceEditor extends Component<
         <tbody>
           {Array.from(ns).map(([short, long]) => (
             <MapViewRow
+              ns={ns}
               long={long}
               short={short}
               key={short}
-              onUpdate={this.#handleSet.bind(this, short)}
+              onUpdate={this.#handleUpdate.bind(this, short)}
               onDelete={this.#handleDelete.bind(this, short)}
             />
           ))}
-          <AddMapRow key={nsKey} onAdd={this.#handleSet} />
+          <AddMapRow ns={ns} key={nsKey} onAdd={this.#handleAdd} />
           <ControlsRow
             ns={ns}
             nsLoadError={this.state.loadError}
@@ -99,6 +117,7 @@ export default class NamespaceEditor extends Component<
 }
 
 interface AddRowProps {
+  ns: NamespaceMap
   onAdd: (long: string, short: string) => void
 }
 
@@ -110,6 +129,9 @@ const AddMapRow = WithID<AddRowProps>(
       evt.preventDefault()
 
       const { short, long } = this.state
+      const { shortValid, longValid } = this.state
+      if (!shortValid || !longValid) return
+
       this.props.onAdd(short, long)
     }
 
@@ -117,16 +139,14 @@ const AddMapRow = WithID<AddRowProps>(
       event: Event & { currentTarget: HTMLInputElement },
     ): void => {
       const { value: short } = event.currentTarget
-      const shortValid = NamespaceMap.validKey.test(short)
-      this.setState({ short, shortValid })
+      this.setState({ short, shortValid: isShortValid(short, this.props.ns) })
     }
 
     readonly #handleLongChange = (
       event: Event & { currentTarget: HTMLInputElement },
     ): void => {
       const { value: long } = event.currentTarget
-      const longValid = long !== ''
-      this.setState({ long, longValid })
+      this.setState({ long, longValid: isLongValid(long, this.props.ns) })
     }
 
     render(): ComponentChild {
@@ -211,30 +231,58 @@ class ControlsRow extends Component<{
   }
 }
 
-class MapViewRow extends Component<
-  {
-    long: string
-    short: string
-    onUpdate: (newLong: string) => void
-    onDelete: () => void
-  },
-  { value?: string }
-> {
-  state: { value?: string } = {}
+interface MapViewProps {
+  ns: NamespaceMap
+  long: string
+  short: string
+  onUpdate: (newShort: string | undefined, newLong: string | undefined) => void
+  onDelete: () => void
+}
 
-  readonly #handleUpdate = (evt: Event): void => {
+interface MapViewState {
+  short?: string
+  shortValid: boolean
+  long?: string
+  longValid: boolean
+}
+
+class MapViewRow extends Component<MapViewProps, MapViewState> {
+  state: MapViewState = { shortValid: true, longValid: true }
+
+  readonly #handleApply = (evt: Event): void => {
     evt.preventDefault()
 
-    const { value } = this.state
-    if (typeof value !== 'string') return // do nothing
+    const { short, long } = this.props
+    const { long: longValue = long, short: shortValue = short } = this.state
 
-    this.props.onUpdate(value)
+    const newShort = short !== shortValue ? shortValue : undefined
+    const newLong = long !== longValue ? longValue : undefined
+
+    // ensure that something has changed
+    if (typeof newShort === 'undefined' && typeof newLong === 'undefined') {
+      return
+    }
+
+    // ensure that both elements are valid
+    const { shortValid, longValid } = this.state
+    if (!shortValid || !longValid) return
+
+    this.props.onUpdate(newShort, newLong)
   }
 
-  readonly #handleEdit = (
+  readonly #handleEditShort = (
     event: Event & { currentTarget: HTMLInputElement },
   ): void => {
-    this.setState({ value: event.currentTarget.value })
+    const { value: short } = event.currentTarget
+    const { short: oldShort, ns } = this.props
+    this.setState({ short, shortValid: isShortValid(short, ns, oldShort) })
+  }
+  readonly #handleEditLong = (
+    event: Event & { currentTarget: HTMLInputElement },
+  ): void => {
+    const { value: long } = event.currentTarget
+    const { long: oldLong, ns } = this.props
+    this.setState({ long, longValid: isLongValid(long, ns, oldLong) })
   }
 
   readonly #handleDelete = (event: Event): void => {
@@ -245,25 +293,41 @@ class MapViewRow extends Component<
 
   render(): ComponentChild {
     const { long, short } = this.props
-    const value = this.state.value ?? long
-    const dirty = value !== long
+    const {
+      long: longValue = long,
+      longValid,
+      short: shortValue = short,
+      shortValid,
+    } = this.state
+
+    const valid = longValid && shortValid
+    const dirty = longValue !== long || shortValue !== short
+    const enabled = valid && dirty
+
     return (
       <tr>
         <td>
-          <code>{short}</code>
-        </td>
-        <td>
-          <form onSubmit={this.#handleUpdate}>
+          <form onSubmit={this.#handleApply}>
             <input
               type='text'
-              value={value}
-              onInput={this.#handleEdit}
-              class={styles.stretch}
+              value={shortValue}
+              onInput={this.#handleEditShort}
+              class={classes(!shortValid && styles.invalid)}
             />
           </form>
         </td>
         <td>
-          <button onClick={this.#handleUpdate} disabled={!dirty}>
+          <form onSubmit={this.#handleApply}>
+            <input
+              type='text'
+              value={longValue}
+              onInput={this.#handleEditLong}
+              class={classes(styles.stretch, !longValid && styles.invalid)}
+            />
+          </form>
+        </td>
+        <td>
+          <button onClick={this.#handleApply} disabled={!enabled}>
             Apply
           </button>
           &nbsp;
@@ -272,4 +336,26 @@ class MapViewRow extends Component<
       </tr>
     )
   }
+}
+
+function isShortValid(
+  short: string,
+  ns: NamespaceMap,
+  oldShort?: string,
+): boolean {
+  if (!NamespaceMap.validKey.test(short)) {
+    return false
+  }
+  if (typeof oldShort === 'string' && short === oldShort) {
+    return true
+  }
+  return !ns.has(short)
+}
+
+function isLongValid(
+  long: string,
+  ns: NamespaceMap,
+  oldLong?: string,
+): boolean {
+  return long !== ''
 }
