@@ -1,13 +1,27 @@
-import { type BundleEdge, type BundleNode } from '../graph/builders/bundle'
-import { type ModelEdge, type ModelNode } from '../graph/builders/model/types'
-import { type RDFEdge, type RDFNode } from '../graph/builders/rdf'
+import {
+  type BundleOptions,
+  type BundleEdge,
+  type BundleNode,
+} from '../graph/builders/bundle'
+import {
+  type ModelOptions,
+  type ModelEdge,
+  type ModelNode,
+} from '../graph/builders/model/types'
+import {
+  type RDFOptions,
+  type RDFEdge,
+  type RDFNode,
+} from '../graph/builders/rdf'
 import { Lazy } from '../utils/once'
 import type Driver from './impl'
 
-class DriverCollection<NodeLabel, EdgeLabel> {
+class DriverCollection<NodeLabel, EdgeLabel, Options> {
   constructor(
     public readonly defaultDriver: string,
-    ...loaders: Array<[string, () => Promise<Driver<NodeLabel, EdgeLabel>>]>
+    ...loaders: Array<
+      [string, () => Promise<Driver<NodeLabel, EdgeLabel, Options>>]
+    >
   ) {
     this.#loaders = new Map(loaders)
     if (!this.#loaders.has(this.defaultDriver))
@@ -15,24 +29,29 @@ class DriverCollection<NodeLabel, EdgeLabel> {
 
     // setup lazy values
     for (const key of this.#loaders.keys()) {
-      this.#values.set(key, new Lazy<Driver<NodeLabel, EdgeLabel>>())
+      this.#values.set(key, new Lazy<Driver<NodeLabel, EdgeLabel, Options>>())
     }
   }
 
-  readonly #values = new Map<string, Lazy<Driver<NodeLabel, EdgeLabel>>>()
+  readonly #values = new Map<
+    string,
+    Lazy<Driver<NodeLabel, EdgeLabel, Options>>
+  >()
   readonly #loaders = new Map<
     string,
-    () => Promise<Driver<NodeLabel, EdgeLabel>>
+    () => Promise<Driver<NodeLabel, EdgeLabel, Options>>
   >()
 
-  public async get(name: string): Promise<Driver<NodeLabel, EdgeLabel>> {
+  public async get(
+    name: string,
+  ): Promise<Driver<NodeLabel, EdgeLabel, Options>> {
     const lazy = this.#values.get(name)
     if (typeof lazy === 'undefined') {
       throw new Error('unknown renderer ' + JSON.stringify(name))
     }
 
     const renderer = await lazy.Get(
-      async (): Promise<Driver<NodeLabel, EdgeLabel>> => {
+      async (): Promise<Driver<NodeLabel, EdgeLabel, Options>> => {
         const loader = this.#loaders.get(name)
         if (typeof loader === 'undefined') {
           throw new Error('implementation error: loaders missing loader')
@@ -59,7 +78,7 @@ class DriverCollection<NodeLabel, EdgeLabel> {
   }
 }
 
-export const models = new DriverCollection<ModelNode, ModelEdge>(
+export const models = new DriverCollection<ModelNode, ModelEdge, ModelOptions>(
   'GraphViz',
   [
     'GraphViz',
@@ -94,7 +113,11 @@ export const models = new DriverCollection<ModelNode, ModelEdge>(
   ],
 )
 
-export const bundles = new DriverCollection<BundleNode, BundleEdge>(
+export const bundles = new DriverCollection<
+  BundleNode,
+  BundleEdge,
+  BundleOptions
+>(
   'GraphViz',
   [
     'GraphViz',
@@ -120,8 +143,11 @@ export const bundles = new DriverCollection<BundleNode, BundleEdge>(
   ],
 )
 
-export const triples = new DriverCollection<RDFNode, RDFEdge>('GraphViz', [
+export const triples = new DriverCollection<RDFNode, RDFEdge, RDFOptions>(
   'GraphViz',
-  async () =>
-    await import('./impl/graphviz').then(m => new m.GraphVizRDFDriver()),
-])
+  [
+    'GraphViz',
+    async () =>
+      await import('./impl/graphviz').then(m => new m.GraphVizRDFDriver()),
+  ],
+)

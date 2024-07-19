@@ -6,35 +6,43 @@ import {
   type Size,
   defaultLayout,
 } from '.'
-import { type Data, type Network, type Options } from 'vis-network'
+import {
+  type Data,
+  type Network,
+  type Options as VisOptions,
+} from 'vis-network'
 import { type DataSet } from 'vis-data'
-import { type BundleEdge, type BundleNode } from '../../graph/builders/bundle'
+import {
+  type BundleOptions,
+  type BundleEdge,
+  type BundleNode,
+} from '../../graph/builders/bundle'
 import * as styles from './vis-network.module.css'
 import { Type } from '../../utils/media'
 import { LazyValue } from '../../utils/once'
 import { modelNodeLabel } from '../../graph/builders/model/dedup'
 import {
+  type ModelOptions,
   type ModelEdge,
   type ModelNode,
 } from '../../graph/builders/model/types'
 
 const Vis = new LazyValue(async () => await import('vis-network'))
 
-abstract class VisNetworkDriver<NodeLabel, EdgeLabel> extends DriverImpl<
+abstract class VisNetworkDriver<
   NodeLabel,
   EdgeLabel,
-  Dataset,
-  Network
-> {
+  Options,
+> extends DriverImpl<NodeLabel, EdgeLabel, Options, Dataset, Network> {
   protected abstract addNodeImpl(
     dataset: Dataset,
-    flags: ContextFlags,
+    flags: ContextFlags<Options>,
     id: string,
     node: NodeLabel,
   ): Promise<undefined>
   protected abstract addEdgeImpl(
     dataset: Dataset,
-    flags: ContextFlags,
+    flags: ContextFlags<Options>,
     id: string,
     from: string,
     to: string,
@@ -44,7 +52,7 @@ abstract class VisNetworkDriver<NodeLabel, EdgeLabel> extends DriverImpl<
   readonly driverName = 'vis-network'
   readonly supportedLayouts = [defaultLayout, 'hierarchical', 'force2atlas']
 
-  protected options(layout: string, definitelyAcyclic: boolean): Options {
+  protected options(layout: string, definitelyAcyclic: boolean): VisOptions {
     const hierarchical =
       layout === defaultLayout ? definitelyAcyclic : layout === 'hierarchical'
 
@@ -96,7 +104,7 @@ abstract class VisNetworkDriver<NodeLabel, EdgeLabel> extends DriverImpl<
 
   protected mountImpl(
     dataset: Dataset,
-    { container, layout, definitelyAcyclic }: MountFlags,
+    { container, layout, definitelyAcyclic }: MountFlags<Options>,
   ): Network {
     container.classList.add(styles.container)
 
@@ -108,7 +116,7 @@ abstract class VisNetworkDriver<NodeLabel, EdgeLabel> extends DriverImpl<
   protected resizeMountImpl(
     network: Network,
     dataset: Dataset,
-    flags: MountFlags,
+    flags: MountFlags<Options>,
     { width, height }: Size,
   ): undefined {
     network.setSize(`${width}px`, `${height}px`)
@@ -118,7 +126,7 @@ abstract class VisNetworkDriver<NodeLabel, EdgeLabel> extends DriverImpl<
   protected unmountImpl(
     network: Network,
     dataset: Dataset,
-    { container }: MountFlags,
+    { container }: MountFlags<Options>,
   ): void {
     container.classList.remove(styles.container)
     network.destroy()
@@ -127,9 +135,9 @@ abstract class VisNetworkDriver<NodeLabel, EdgeLabel> extends DriverImpl<
   readonly supportedExportFormats = ['png']
   protected async exportImpl(
     dataset: Dataset,
-    flags: ContextFlags,
+    flags: ContextFlags<Options>,
     format: string,
-    mount?: { mount: Network; flags: MountFlags },
+    mount?: { mount: Network; flags: MountFlags<Options> },
   ): Promise<Blob> {
     if (typeof mount === 'undefined') throw ErrorUnsupported
     return await dataset.drawNetworkClone(mount.mount, 1000, 1000, Type.PNG, 1)
@@ -138,11 +146,12 @@ abstract class VisNetworkDriver<NodeLabel, EdgeLabel> extends DriverImpl<
 
 export class VisNetworkBundleDriver extends VisNetworkDriver<
   BundleNode,
-  BundleEdge
+  BundleEdge,
+  BundleOptions
 > {
   protected async addNodeImpl(
     dataset: Dataset,
-    { cm }: ContextFlags,
+    { options: { cm } }: ContextFlags<BundleOptions>,
     id: string,
     node: BundleNode,
   ): Promise<undefined> {
@@ -169,7 +178,7 @@ export class VisNetworkBundleDriver extends VisNetworkDriver<
 
   protected async addEdgeImpl(
     dataset: Dataset,
-    flags: ContextFlags,
+    flags: ContextFlags<BundleOptions>,
     id: string,
     from: string,
     to: string,
@@ -189,11 +198,12 @@ export class VisNetworkBundleDriver extends VisNetworkDriver<
 
 export class VisNetworkModelDriver extends VisNetworkDriver<
   ModelNode,
-  ModelEdge
+  ModelEdge,
+  ModelOptions
 > {
   protected async addNodeImpl(
     dataset: Dataset,
-    { ns, cm }: ContextFlags,
+    { options: { ns, cm } }: ContextFlags<ModelOptions>,
     id: string,
     node: ModelNode,
   ): Promise<undefined> {
@@ -232,7 +242,7 @@ export class VisNetworkModelDriver extends VisNetworkDriver<
 
   protected async addEdgeImpl(
     dataset: Dataset,
-    { ns }: ContextFlags,
+    { options: { ns } }: ContextFlags<ModelOptions>,
     id: string,
     from: string,
     to: string,

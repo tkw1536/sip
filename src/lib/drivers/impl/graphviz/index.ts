@@ -6,6 +6,7 @@ import {
   defaultLayout,
 } from '..'
 import {
+  type BundleOptions,
   type BundleEdge,
   type BundleNode,
 } from '../../../graph/builders/bundle'
@@ -16,9 +17,14 @@ import { LazyValue } from '../../../utils/once'
 
 // lazy import svg-pan-zoom (so that we can skip loading it in server-side mode)
 import { type default as SvgPanZoom } from 'svg-pan-zoom'
-import { type RDFEdge, type RDFNode } from '../../../graph/builders/rdf'
+import {
+  type RDFOptions,
+  type RDFEdge,
+  type RDFNode,
+} from '../../../graph/builders/rdf'
 import { modelNodeLabel } from '../../../graph/builders/model/dedup'
 import {
+  type ModelOptions,
   type ModelEdge,
   type ModelNode,
 } from '../../../graph/builders/model/types'
@@ -38,16 +44,17 @@ interface Mount {
   zoom: SvgPanZoom.Instance
 }
 
-abstract class GraphvizDriver<NodeLabel, EdgeLabel> extends DriverImpl<
+abstract class GraphvizDriver<NodeLabel, EdgeLabel, Options> extends DriverImpl<
   NodeLabel,
   EdgeLabel,
+  Options,
   Context,
   Mount,
   Graph
 > {
   readonly driverName: string = 'GraphViz'
   readonly supportedLayouts = [defaultLayout, 'dot', 'fdp', 'circo', 'neato']
-  protected options({ layout }: ContextFlags): RenderOptions {
+  protected options({ layout }: ContextFlags<Options>): RenderOptions {
     const engine = layout === defaultLayout ? 'dot' : layout
     return { engine }
   }
@@ -68,7 +75,7 @@ abstract class GraphvizDriver<NodeLabel, EdgeLabel> extends DriverImpl<
 
   protected async finalizeContextImpl(
     graph: Graph,
-    flags: ContextFlags,
+    flags: ContextFlags<Options>,
   ): Promise<Context> {
     // build options for the driver to render
     const options = this.options(flags)
@@ -129,7 +136,7 @@ abstract class GraphvizDriver<NodeLabel, EdgeLabel> extends DriverImpl<
     })
   }
 
-  protected mountImpl(context: Context, flags: MountFlags): Mount {
+  protected mountImpl(context: Context, flags: MountFlags<Options>): Mount {
     // mount the svg we have already rendered
     flags.container.innerHTML = context.svg
     const svg = flags.container.querySelector('svg')
@@ -155,7 +162,7 @@ abstract class GraphvizDriver<NodeLabel, EdgeLabel> extends DriverImpl<
   protected resizeMountImpl(
     { svg, zoom }: Mount,
     ctx: Context,
-    flags: MountFlags,
+    flags: MountFlags<Options>,
     { width, height }: Size,
   ): undefined {
     svg.style.height = `${height}px`
@@ -167,7 +174,7 @@ abstract class GraphvizDriver<NodeLabel, EdgeLabel> extends DriverImpl<
   protected unmountImpl(
     { svg, zoom }: Mount,
     ctx: Context,
-    { container }: MountFlags,
+    { container }: MountFlags<Options>,
   ): void {
     zoom.destroy()
     container.removeChild(svg)
@@ -176,7 +183,7 @@ abstract class GraphvizDriver<NodeLabel, EdgeLabel> extends DriverImpl<
   readonly supportedExportFormats = ['svg', 'gv']
   protected async exportImpl(
     { canon, svg }: Context,
-    flags: ContextFlags,
+    flags: ContextFlags<Options>,
     format: string,
   ): Promise<Blob> {
     switch (format) {
@@ -193,11 +200,12 @@ abstract class GraphvizDriver<NodeLabel, EdgeLabel> extends DriverImpl<
 
 export class GraphVizBundleDriver extends GraphvizDriver<
   BundleNode,
-  BundleEdge
+  BundleEdge,
+  BundleOptions
 > {
   protected addNodeImpl(
     graph: Graph,
-    { cm }: ContextFlags,
+    { options: { cm } }: ContextFlags<BundleOptions>,
     id: string,
     node: BundleNode,
   ): undefined {
@@ -234,7 +242,7 @@ export class GraphVizBundleDriver extends GraphvizDriver<
 
   protected addEdgeImpl(
     graph: Graph,
-    flags: ContextFlags,
+    flags: ContextFlags<BundleOptions>,
     id: string,
     from: string,
     to: string,
@@ -248,7 +256,11 @@ export class GraphVizBundleDriver extends GraphvizDriver<
   }
 }
 
-export class GraphVizModelDriver extends GraphvizDriver<ModelNode, ModelEdge> {
+export class GraphVizModelDriver extends GraphvizDriver<
+  ModelNode,
+  ModelEdge,
+  ModelOptions
+> {
   readonly driverName: string
   constructor(public readonly compact: boolean) {
     super()
@@ -257,7 +269,7 @@ export class GraphVizModelDriver extends GraphvizDriver<ModelNode, ModelEdge> {
 
   protected addNodeImpl(
     graph: Graph,
-    flags: ContextFlags,
+    flags: ContextFlags<ModelOptions>,
     id: string,
     node: ModelNode,
   ): undefined {
@@ -269,11 +281,11 @@ export class GraphVizModelDriver extends GraphvizDriver<ModelNode, ModelEdge> {
       graph.nodes.push({
         name: id,
         attributes: {
-          label: flags.ns.apply(node.clz),
+          label: flags.options.ns.apply(node.clz),
           tooltip: node.clz,
 
           style: 'filled',
-          fillcolor: flags.cm.defaultColor,
+          fillcolor: flags.options.cm.defaultColor,
         },
       })
       return
@@ -287,7 +299,7 @@ export class GraphVizModelDriver extends GraphvizDriver<ModelNode, ModelEdge> {
 
   #makeBundleNodes(
     graph: Graph,
-    { ns, cm }: ContextFlags,
+    { options: { ns, cm } }: ContextFlags<ModelOptions>,
     id: string,
     node: ModelNode & { type: 'class' },
   ): void {
@@ -352,7 +364,7 @@ export class GraphVizModelDriver extends GraphvizDriver<ModelNode, ModelEdge> {
 
   #makeFieldNodes(
     graph: Graph,
-    { ns, cm }: ContextFlags,
+    { options: { ns, cm } }: ContextFlags<ModelOptions>,
     id: string,
     node: ModelNode & { type: 'literal' },
   ): void {
@@ -421,7 +433,7 @@ export class GraphVizModelDriver extends GraphvizDriver<ModelNode, ModelEdge> {
 
   protected addEdgeImpl(
     graph: Graph,
-    { ns }: ContextFlags,
+    { options: { ns } }: ContextFlags<ModelOptions>,
     id: string,
     from: string,
     to: string,
@@ -438,7 +450,11 @@ export class GraphVizModelDriver extends GraphvizDriver<ModelNode, ModelEdge> {
   }
 }
 
-export class GraphVizRDFDriver extends GraphvizDriver<RDFNode, RDFEdge> {
+export class GraphVizRDFDriver extends GraphvizDriver<
+  RDFNode,
+  RDFEdge,
+  RDFOptions
+> {
   static readonly colors: Record<RDFNode['termType'], string> = {
     BlankNode: 'yellow',
     Literal: 'blue',
@@ -450,7 +466,7 @@ export class GraphVizRDFDriver extends GraphvizDriver<RDFNode, RDFEdge> {
 
   protected addNodeImpl(
     graph: Graph,
-    flags: ContextFlags,
+    flags: ContextFlags<RDFOptions>,
     id: string,
     node: RDFNode,
   ): undefined {
@@ -466,7 +482,7 @@ export class GraphVizRDFDriver extends GraphvizDriver<RDFNode, RDFEdge> {
         attributes.tooltip = node.id
         break
       case 'NamedNode':
-        attributes.label = flags.ns.apply(node.uri)
+        attributes.label = flags.options.ns.apply(node.uri)
         attributes.tooltip = node.uri
         break
       case 'Literal':
@@ -497,7 +513,7 @@ export class GraphVizRDFDriver extends GraphvizDriver<RDFNode, RDFEdge> {
 
   protected addEdgeImpl(
     graph: Graph,
-    { ns }: ContextFlags,
+    { options: { ns } }: ContextFlags<RDFOptions>,
     id: string,
     from: string,
     to: string,

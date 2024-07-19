@@ -8,6 +8,7 @@ import ModelGraphBuilder from '../src/lib/graph/builders/model'
 import Deduplication from '../src/app/inspector/state/state/deduplication'
 import { GraphVizModelDriver } from '../src/lib/drivers/impl/graphviz'
 import { type ContextFlags } from '../src/lib/drivers/impl'
+import { type ModelOptions } from '../src/lib/graph/builders/model/types'
 
 // Usage: node node_modules/vite-node/vite-node.mjs ./scripts/render-model-graphviz.ts -p pathbuilder
 
@@ -40,10 +41,9 @@ async function main(): Promise<void> {
 
   // load the driver and setup flags to use
   const driver = new GraphVizModelDriver(false)
-  const flags: ContextFlags = {
-    ns,
-    cm,
-    definitelyAcyclic: false,
+  const flags: ContextFlags<ModelOptions> = {
+    options: { ns, cm },
+    definitelyAcyclic: graph.definitelyAcyclic,
     layout: driver.supportedLayouts[0],
     initialSize: { width: 1000, height: 1000 },
   }

@@ -5,9 +5,13 @@ import {
   type PredicateType,
   type SubjectType,
 } from 'rdflib/lib/types'
+import { type NamespaceMap } from '../../pathbuilder/namespace'
 
 export type RDFNode = SubjectType | ObjectType
 export type RDFEdge = PredicateType
+export interface RDFOptions {
+  ns: NamespaceMap
+}
 
 export default class RDFGraphBuilder extends GraphBuilder<RDFNode, RDFEdge> {
   readonly #store: Store

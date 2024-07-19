@@ -9,13 +9,18 @@ import {
 import Sigma from 'sigma'
 import Graph from 'graphology'
 import { type Settings } from 'sigma/dist/declarations/src/settings'
-import { type BundleEdge, type BundleNode } from '../../graph/builders/bundle'
+import {
+  type BundleOptions,
+  type BundleEdge,
+  type BundleNode,
+} from '../../graph/builders/bundle'
 import FA2Layout from 'graphology-layout-forceatlas2/worker'
 import { inferSettings } from 'graphology-layout-forceatlas2'
 import circular from 'graphology-layout/circular'
 import circlepack from 'graphology-layout/circlepack'
 import { modelNodeLabel } from '../../graph/builders/model/dedup'
 import {
+  type ModelOptions,
   type ModelEdge,
   type ModelNode,
 } from '../../graph/builders/model/types'
@@ -25,21 +30,22 @@ interface SigmaMount {
   sigma: Sigma
 }
 
-abstract class SigmaDriver<NodeLabel, EdgeLabel> extends DriverImpl<
+abstract class SigmaDriver<NodeLabel, EdgeLabel, Options> extends DriverImpl<
   NodeLabel,
   EdgeLabel,
+  Options,
   Graph,
   SigmaMount
 > {
   protected abstract addNodeImpl(
     graph: Graph,
-    flags: ContextFlags,
+    flags: ContextFlags<Options>,
     id: string,
     node: NodeLabel,
   ): Promise<undefined>
   protected abstract addEdgeImpl(
     graph: Graph,
-    flags: ContextFlags,
+    flags: ContextFlags<Options>,
     id: string,
     from: string,
     to: string,
@@ -68,7 +74,7 @@ abstract class SigmaDriver<NodeLabel, EdgeLabel> extends DriverImpl<
 
   protected mountImpl(
     graph: Graph,
-    { container, layout }: MountFlags,
+    { container, layout }: MountFlags<Options>,
   ): SigmaMount {
     let onStop: (() => void) | undefined
     switch (layout === defaultLayout ? 'force2atlas' : layout) {
@@ -102,7 +108,7 @@ abstract class SigmaDriver<NodeLabel, EdgeLabel> extends DriverImpl<
   protected resizeMountImpl(
     sigma: SigmaMount,
     graph: Graph,
-    flags: MountFlags,
+    flags: MountFlags<Options>,
     { width, height }: Size,
   ): undefined {
     sigma.sigma.resize()
@@ -118,18 +124,22 @@ abstract class SigmaDriver<NodeLabel, EdgeLabel> extends DriverImpl<
   readonly supportedExportFormats = []
   protected async exportImpl(
     graph: Graph,
-    flags: ContextFlags,
+    flags: ContextFlags<Options>,
     format: string,
-    mount?: { mount: SigmaMount; flags: MountFlags },
+    mount?: { mount: SigmaMount; flags: MountFlags<Options> },
   ): Promise<Blob> {
     throw ErrorUnsupported
   }
 }
 
-export class SigmaBundleDriver extends SigmaDriver<BundleNode, BundleEdge> {
+export class SigmaBundleDriver extends SigmaDriver<
+  BundleNode,
+  BundleEdge,
+  BundleOptions
+> {
   protected async addNodeImpl(
     graph: Graph,
-    { cm }: ContextFlags,
+    { options: { cm } }: ContextFlags<BundleOptions>,
     id: string,
     node: BundleNode,
   ): Promise<undefined> {
@@ -154,7 +164,7 @@ export class SigmaBundleDriver extends SigmaDriver<BundleNode, BundleEdge> {
 
   protected async addEdgeImpl(
     graph: Graph,
-    flags: ContextFlags,
+    flags: ContextFlags<BundleOptions>,
     id: string,
     from: string,
     to: string,
@@ -182,10 +192,14 @@ export class SigmaBundleDriver extends SigmaDriver<BundleNode, BundleEdge> {
   }
 }
 
-export class SigmaModelDriver extends SigmaDriver<ModelNode, ModelEdge> {
+export class SigmaModelDriver extends SigmaDriver<
+  ModelNode,
+  ModelEdge,
+  ModelOptions
+> {
   protected async addNodeImpl(
     graph: Graph,
-    { ns, cm }: ContextFlags,
+    { options: { ns, cm } }: ContextFlags<ModelOptions>,
     id: string,
     node: ModelNode,
   ): Promise<undefined> {
@@ -221,7 +235,7 @@ export class SigmaModelDriver extends SigmaDriver<ModelNode, ModelEdge> {
 
   protected async addEdgeImpl(
     graph: Graph,
-    { ns }: ContextFlags,
+    flags: ContextFlags<ModelOptions>,
     id: string,
     from: string,
     to: string,

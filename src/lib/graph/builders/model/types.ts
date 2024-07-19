@@ -1,3 +1,5 @@
+import type ColorMap from '../../../pathbuilder/annotations/colormap'
+import { type NamespaceMap } from '../../../pathbuilder/namespace'
 import { type Bundle, type Field } from '../../../pathbuilder/pathtree'
 import type ImmutableSet from '../../../utils/immutable-set'
 
@@ -36,4 +38,9 @@ interface DataModelEdge {
   type: 'data'
   property: string
   // TODO: render the relevant fields
+}
+
+export interface ModelOptions {
+  ns: NamespaceMap
+  cm: ColorMap
 }

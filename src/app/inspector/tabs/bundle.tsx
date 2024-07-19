@@ -4,6 +4,7 @@ import GraphDisplay, {
   ExportControl,
 } from '../../../components/graph-display'
 import BundleGraphBuilder, {
+  type BundleOptions,
   type BundleEdge,
   type BundleNode,
 } from '../../../lib/graph/builders/bundle'
@@ -21,7 +22,8 @@ export default class BundleGraphView extends Component<IReducerProps> {
     return await builder.build()
   }
 
-  readonly #displayRef = createRef<GraphDisplay<BundleNode, BundleEdge>>()
+  readonly #displayRef =
+    createRef<GraphDisplay<BundleNode, BundleEdge, BundleOptions>>()
 
   render(): ComponentChildren {
     const {
@@ -41,8 +43,7 @@ export default class BundleGraphView extends Component<IReducerProps> {
         driver={bundleGraphRenderer}
         builderKey={`${pathbuilderVersion}-${selectionVersion}-${colorVersion}`}
         makeGraph={this.#builder}
-        ns={ns}
-        cm={cm}
+        options={{ ns, cm }}
         layout={bundleGraphLayout}
         panel={this.#renderPanel}
       />
@@ -58,7 +59,7 @@ export default class BundleGraphView extends Component<IReducerProps> {
   }
 
   readonly #renderPanel = (
-    driver: Driver<BundleNode, BundleEdge> | null,
+    driver: Driver<BundleNode, BundleEdge, BundleOptions> | null,
   ): ComponentChildren => {
     const {
       state: { bundleGraphLayout },

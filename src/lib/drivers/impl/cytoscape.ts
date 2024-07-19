@@ -1,6 +1,6 @@
 import {
   type Core,
-  type CytoscapeOptions,
+  type CytoscapeOptions as _Options,
   type ElementDefinition,
 } from 'cytoscape'
 import {
@@ -11,9 +11,14 @@ import {
   type Size,
   defaultLayout,
 } from '.'
-import { type BundleEdge, type BundleNode } from '../../graph/builders/bundle'
+import {
+  type BundleOptions,
+  type BundleEdge,
+  type BundleNode,
+} from '../../graph/builders/bundle'
 import { LazyValue } from '../../utils/once'
 import {
+  type ModelOptions,
   type ModelEdge,
   type ModelNode,
 } from '../../graph/builders/model/types'
@@ -41,23 +46,22 @@ const Cytoscape = new LazyValue(async () => {
 
 type Elements = ElementDefinition[]
 type CytoscapeCore = Core
-type Options = Omit<CytoscapeOptions, 'container' | 'elements'>
+type CytoscapeOptions = Omit<_Options, 'container' | 'elements'>
 
-abstract class CytoscapeDriver<NodeLabel, EdgeLabel> extends DriverImpl<
+abstract class CytoscapeDriver<
   NodeLabel,
   EdgeLabel,
-  Elements,
-  CytoscapeCore
-> {
+  Options,
+> extends DriverImpl<NodeLabel, EdgeLabel, Options, Elements, CytoscapeCore> {
   protected abstract addNodeImpl(
     elements: Elements,
-    flags: ContextFlags,
+    flags: ContextFlags<Options>,
     id: string,
     node: NodeLabel,
   ): Promise<undefined>
   protected abstract addEdgeImpl(
     elements: Elements,
-    flags: ContextFlags,
+    flags: ContextFlags<Options>,
     id: string,
     from: string,
     to: string,
@@ -76,11 +80,10 @@ abstract class CytoscapeDriver<NodeLabel, EdgeLabel> extends DriverImpl<
     'fcose',
     'cola',
   ]
-
   protected layoutOptions(
     layout: string,
     definitelyAcyclic: boolean,
-  ): Options['layout'] {
+  ): CytoscapeOptions['layout'] {
     const maxSimulationTime = 365 * 24 * 60 * 60 * 1000 // 1 year
     switch (
       layout === defaultLayout ? (definitelyAcyclic ? 'dagre' : 'cola') : layout
@@ -107,7 +110,10 @@ abstract class CytoscapeDriver<NodeLabel, EdgeLabel> extends DriverImpl<
     }
   }
 
-  protected options(layout: string, definitelyAcyclic: boolean): Options {
+  protected options(
+    layout: string,
+    definitelyAcyclic: boolean,
+  ): CytoscapeOptions {
     return {
       style: [
         {
@@ -175,7 +181,7 @@ abstract class CytoscapeDriver<NodeLabel, EdgeLabel> extends DriverImpl<
 
   protected mountImpl(
     elements: Elements,
-    { container, layout, definitelyAcyclic }: MountFlags,
+    { container, layout, definitelyAcyclic }: MountFlags<Options>,
   ): CytoscapeCore {
     const options = this.options(layout, definitelyAcyclic)
     return Cytoscape.value({
@@ -188,7 +194,7 @@ abstract class CytoscapeDriver<NodeLabel, EdgeLabel> extends DriverImpl<
   protected resizeMountImpl(
     c: CytoscapeCore,
     elements: Elements,
-    flags: MountFlags,
+    flags: MountFlags<Options>,
     { width, height }: Size,
   ): undefined {
     // automatically resized ?
@@ -202,18 +208,22 @@ abstract class CytoscapeDriver<NodeLabel, EdgeLabel> extends DriverImpl<
   readonly supportedExportFormats = []
   protected async exportImpl(
     elements: Elements,
-    flags: ContextFlags,
+    flags: ContextFlags<Options>,
     format: string,
-    mount?: { mount: CytoscapeCore; flags: MountFlags },
+    mount?: { mount: CytoscapeCore; flags: MountFlags<Options> },
   ): Promise<Blob> {
     throw ErrorUnsupported
   }
 }
 
-export class CytoBundleDriver extends CytoscapeDriver<BundleNode, BundleEdge> {
+export class CytoBundleDriver extends CytoscapeDriver<
+  BundleNode,
+  BundleEdge,
+  BundleOptions
+> {
   protected async addNodeImpl(
     elements: Elements,
-    { cm }: ContextFlags,
+    { options: { cm } }: ContextFlags<BundleOptions>,
     id: string,
     node: BundleNode,
   ): Promise<undefined> {
@@ -234,7 +244,7 @@ export class CytoBundleDriver extends CytoscapeDriver<BundleNode, BundleEdge> {
 
   protected async addEdgeImpl(
     elements: Elements,
-    flags: ContextFlags,
+    flags: ContextFlags<BundleOptions>,
     id: string,
     from: string,
     to: string,
@@ -254,10 +264,14 @@ export class CytoBundleDriver extends CytoscapeDriver<BundleNode, BundleEdge> {
   }
 }
 
-export class CytoModelDriver extends CytoscapeDriver<ModelNode, ModelEdge> {
+export class CytoModelDriver extends CytoscapeDriver<
+  ModelNode,
+  ModelEdge,
+  ModelOptions
+> {
   protected async addNodeImpl(
     elements: Elements,
-    { ns, cm }: ContextFlags,
+    { options: { ns, cm } }: ContextFlags<ModelOptions>,
     id: string,
     node: ModelNode,
   ): Promise<undefined> {
@@ -280,7 +294,7 @@ export class CytoModelDriver extends CytoscapeDriver<ModelNode, ModelEdge> {
 
   protected async addEdgeImpl(
     elements: Elements,
-    { ns }: ContextFlags,
+    { options: { ns } }: ContextFlags<ModelOptions>,
     id: string,
     from: string,
     to: string,

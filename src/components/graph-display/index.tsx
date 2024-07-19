@@ -13,45 +13,51 @@ import * as styles from './index.module.css'
 import { classes } from '../../lib/utils/classes'
 import { Operation } from '../../lib/utils/operation'
 import type Driver from '../../lib/drivers/impl'
-import { type NamespaceMap } from '../../lib/pathbuilder/namespace'
-import type ColorMap from '../../lib/pathbuilder/annotations/colormap'
 import ValueSelector from '../selector'
 import ErrorDisplay from '../error'
 
-interface GraphProps<NodeLabel, EdgeLabel> {
-  loader: DriverLoader<NodeLabel, EdgeLabel>
+interface GraphProps<NodeLabel, EdgeLabel, Options> {
+  loader: DriverLoader<NodeLabel, EdgeLabel, Options>
   driver: string
 
   builderKey: string
   makeGraph: () => Promise<Graph<NodeLabel, EdgeLabel>>
 
-  ns: NamespaceMap
-  cm: ColorMap
+  options: Options
   layout: string
 
   panel?:
     | ComponentChildren
-    | ((driver: Driver<NodeLabel, EdgeLabel> | null) => ComponentChildren)
+    | ((
+        driver: Driver<NodeLabel, EdgeLabel, Options> | null,
+      ) => ComponentChildren)
 }
 
-interface GraphState<NodeLabel, EdgeLabel> {
+interface GraphState<NodeLabel, EdgeLabel, Options> {
   open: boolean
 
   graph?: Graph<NodeLabel, EdgeLabel>
   graphError?: any
 
-  driver: Driver<NodeLabel, EdgeLabel> | null
+  driver: Driver<NodeLabel, EdgeLabel, Options> | null
 }
 
-export default class GraphDisplay<NodeLabel, EdgeLabel> extends Component<
-  GraphProps<NodeLabel, EdgeLabel>,
-  GraphState<NodeLabel, EdgeLabel>
+export default class GraphDisplay<
+  NodeLabel,
+  EdgeLabel,
+  Options,
+> extends Component<
+  GraphProps<NodeLabel, EdgeLabel, Options>,
+  GraphState<NodeLabel, EdgeLabel, Options>
 > {
-  state: GraphState<NodeLabel, EdgeLabel> = { open: false, driver: null }
+  state: GraphState<NodeLabel, EdgeLabel, Options> = {
+    open: false,
+    driver: null,
+  }
 
   protected makeRenderer(): {
     name: string
-    loader: DriverLoader<NodeLabel, EdgeLabel>
+    loader: DriverLoader<NodeLabel, EdgeLabel, Options>
   } {
     return { name: this.props.driver, loader: this.props.loader }
   }
@@ -91,7 +97,7 @@ export default class GraphDisplay<NodeLabel, EdgeLabel> extends Component<
     this.setState(({ open }) => ({ open: !open }))
   }
 
-  readonly #kernelRef = createRef<Kernel<NodeLabel, EdgeLabel>>()
+  readonly #kernelRef = createRef<Kernel<NodeLabel, EdgeLabel, Options>>()
 
   componentDidMount(): void {
     void this.#buildGraphModel()
@@ -161,7 +167,9 @@ export default class GraphDisplay<NodeLabel, EdgeLabel> extends Component<
     )
   }
 
-  readonly #driverRef = (driver: Driver<NodeLabel, EdgeLabel> | null): void => {
+  readonly #driverRef = (
+    driver: Driver<NodeLabel, EdgeLabel, Options> | null,
+  ): void => {
     this.setState({ driver })
   }
 
@@ -178,13 +186,12 @@ export default class GraphDisplay<NodeLabel, EdgeLabel> extends Component<
 
     const { name, loader } = this.makeRenderer()
 
-    const { ns, cm, layout } = this.props
+    const { options, layout } = this.props
     return (
       <Kernel
         ref={this.#kernelRef}
         graph={graph}
-        ns={ns}
-        cm={cm}
+        options={options}
         loader={loader}
         driver={name}
         layout={layout}
@@ -197,9 +204,9 @@ export default class GraphDisplay<NodeLabel, EdgeLabel> extends Component<
 /**
  * A control to pick which driver to control.
  */
-export class DriverControl<NodeLabel, EdgeLabel> extends Component<{
+export class DriverControl<NodeLabel, EdgeLabel, Options> extends Component<{
   driverNames: string[]
-  driver: Driver<NodeLabel, EdgeLabel> | null
+  driver: Driver<NodeLabel, EdgeLabel, Options> | null
 
   currentLayout?: string
 
@@ -244,9 +251,9 @@ export class DriverControl<NodeLabel, EdgeLabel> extends Component<{
   }
 }
 
-export class ExportControl<NodeLabel, EdgeLabel> extends Component<{
-  driver: Driver<NodeLabel, EdgeLabel> | null
-  display: GraphDisplay<NodeLabel, EdgeLabel> | null
+export class ExportControl<NodeLabel, EdgeLabel, Options> extends Component<{
+  driver: Driver<NodeLabel, EdgeLabel, Options> | null
+  display: GraphDisplay<NodeLabel, EdgeLabel, Options> | null
 }> {
   readonly #handleExport = (format: string, event: Event): void => {
     event.preventDefault()

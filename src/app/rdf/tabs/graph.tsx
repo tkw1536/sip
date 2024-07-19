@@ -4,8 +4,8 @@ import GraphDisplay, {
   DriverControl,
   ExportControl,
 } from '../../../components/graph-display'
-import ColorMap from '../../../lib/pathbuilder/annotations/colormap'
 import RDFGraphBuilder, {
+  type RDFOptions,
   type RDFEdge,
   type RDFNode,
 } from '../../../lib/graph/builders/rdf'
@@ -13,8 +13,6 @@ import { setRDFDriver, setRDFLayout } from '../state/reducers/rdf'
 import type Graph from '../../../lib/graph'
 import type Driver from '../../../lib/drivers/impl'
 import { triples } from '../../../lib/drivers/collection'
-
-const BLANK_COLORMAP = ColorMap.empty()
 
 export default class GraphTab extends Component<RReducerProps> {
   readonly buildGraph = async (): Promise<Graph<RDFNode, RDFEdge>> => {
@@ -30,7 +28,7 @@ export default class GraphTab extends Component<RReducerProps> {
     this.props.apply(setRDFLayout(value))
   }
 
-  readonly #displayRef = createRef<GraphDisplay<RDFNode, RDFEdge>>()
+  readonly #displayRef = createRef<GraphDisplay<RDFNode, RDFEdge, RDFOptions>>()
 
   render(): ComponentChildren {
     const { rdfGraphLayout, rdfGraphDriver, ns, namespaceVersion } =
@@ -43,8 +41,7 @@ export default class GraphTab extends Component<RReducerProps> {
         driver={rdfGraphDriver}
         builderKey={namespaceVersion.toString()}
         makeGraph={this.buildGraph}
-        ns={ns}
-        cm={BLANK_COLORMAP}
+        options={{ ns }}
         layout={rdfGraphLayout}
         panel={this.#renderPanel}
       />
@@ -52,7 +49,7 @@ export default class GraphTab extends Component<RReducerProps> {
   }
 
   readonly #renderPanel = (
-    driver: Driver<RDFNode, RDFEdge> | null,
+    driver: Driver<RDFNode, RDFEdge, RDFOptions> | null,
   ): ComponentChildren => {
     const {
       state: { rdfGraphLayout },

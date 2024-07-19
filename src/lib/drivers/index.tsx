@@ -1,10 +1,8 @@
 import { Component, type ComponentChild, type Ref, createRef } from 'preact'
 import type Graph from '../graph'
-import { type NamespaceMap } from '../pathbuilder/namespace'
 import * as styles from './index.module.css'
 import { Operation } from '../utils/operation'
 import type Driver from './impl'
-import type ColorMap from '../pathbuilder/annotations/colormap'
 import ErrorDisplay from '../../components/error'
 import { type ContextFlags, type MountFlags, type Size } from './impl'
 import Spinner from '../../components/spinner'
@@ -12,16 +10,15 @@ import Spinner from '../../components/spinner'
 type _context = unknown
 type _mount = unknown
 
-interface KernelProps<NodeLabel, EdgeLabel> {
+interface KernelProps<NodeLabel, EdgeLabel, Options> {
   graph: Graph<NodeLabel, EdgeLabel>
   layout: string
-  ns: NamespaceMap
-  cm: ColorMap
+  options: Options
 
-  loader: DriverLoader<NodeLabel, EdgeLabel>
+  loader: DriverLoader<NodeLabel, EdgeLabel, Options>
   driver: string
 
-  driverRef?: Ref<Driver<NodeLabel, EdgeLabel>>
+  driverRef?: Ref<Driver<NodeLabel, EdgeLabel, Options>>
 }
 
 interface KernelState {
@@ -30,15 +27,15 @@ interface KernelState {
   driverLoading: boolean
 }
 
-export interface DriverLoader<NodeLabel, EdgeLabel> {
-  get: (name: string) => Promise<Driver<NodeLabel, EdgeLabel>>
+export interface DriverLoader<NodeLabel, EdgeLabel, Options> {
+  get: (name: string) => Promise<Driver<NodeLabel, EdgeLabel, Options>>
 }
 
 /**
  * Displays a driver on the page
  */
-export default class Kernel<NodeLabel, EdgeLabel> extends Component<
-  KernelProps<NodeLabel, EdgeLabel>,
+export default class Kernel<NodeLabel, EdgeLabel, Options> extends Component<
+  KernelProps<NodeLabel, EdgeLabel, Options>,
   KernelState
 > {
   static readonly #errorAborted = new Error('aborted')
@@ -47,8 +44,8 @@ export default class Kernel<NodeLabel, EdgeLabel> extends Component<
   #mod: {
     mount: _mount
     ctx: _context
-    flags: MountFlags
-    driver: Driver<NodeLabel, EdgeLabel>
+    flags: MountFlags<Options>
+    driver: Driver<NodeLabel, EdgeLabel, Options>
   } | null = null
 
   #mountDriver(): void {
@@ -62,18 +59,24 @@ export default class Kernel<NodeLabel, EdgeLabel> extends Component<
       return
     }
 
-    const { graph, layout, driver: name, loader, driverRef } = this.props
+    const {
+      graph,
+      layout,
+      options,
+      driver: name,
+      loader,
+      driverRef,
+    } = this.props
 
-    const ctxFlags: ContextFlags = Object.freeze({
-      ns: this.props.ns,
-      cm: this.props.cm,
+    const ctxFlags: ContextFlags<Options> = Object.freeze({
+      options,
       definitelyAcyclic: this.props.graph.definitelyAcyclic,
 
       layout,
       initialSize: size,
     })
 
-    const flags: MountFlags = Object.freeze({
+    const flags: MountFlags<Options> = Object.freeze({
       container,
       currentSize: size,
       ...ctxFlags,
@@ -130,10 +133,10 @@ export default class Kernel<NodeLabel, EdgeLabel> extends Component<
   async #loadContext(
     ticket: () => boolean,
     graph: Graph<NodeLabel, EdgeLabel>,
-    loader: DriverLoader<NodeLabel, EdgeLabel>,
+    loader: DriverLoader<NodeLabel, EdgeLabel, Options>,
     name: string,
-    ctxFlags: ContextFlags,
-  ): Promise<{ ctx: _context; driver: Driver<NodeLabel, EdgeLabel> }> {
+    ctxFlags: ContextFlags<Options>,
+  ): Promise<{ ctx: _context; driver: Driver<NodeLabel, EdgeLabel, Options> }> {
     // load the driver
     const driver = await loader.get(name)
     const ctx = await driver.makeContext(ctxFlags, graph, ticket)

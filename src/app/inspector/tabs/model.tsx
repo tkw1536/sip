@@ -18,6 +18,7 @@ import {
 import { WithID } from '../../../components/wrapper'
 import type Graph from '../../../lib/graph'
 import {
+  type ModelOptions,
   type ModelEdge,
   type ModelNode,
 } from '../../../lib/graph/builders/model/types'
@@ -54,7 +55,8 @@ export default WithID<IReducerProps>(
       this.props.apply(setModelLayout(value))
     }
 
-    readonly #displayRef = createRef<GraphDisplay<ModelNode, ModelEdge>>()
+    readonly #displayRef =
+      createRef<GraphDisplay<ModelNode, ModelEdge, ModelOptions>>()
 
     render(): ComponentChildren {
       const {
@@ -75,8 +77,7 @@ export default WithID<IReducerProps>(
           driver={modelGraphRenderer}
           builderKey={`${pathbuilderVersion}-${selectionVersion}-${optionVersion}-${colorVersion}`}
           makeGraph={this.#builder}
-          ns={ns}
-          cm={cm}
+          options={{ ns, cm }}
           layout={modelGraphLayout}
           panel={this.#renderPanel}
         />
@@ -84,7 +85,7 @@ export default WithID<IReducerProps>(
     }
 
     readonly #renderPanel = (
-      driver: Driver<ModelNode, ModelEdge> | null,
+      driver: Driver<ModelNode, ModelEdge, ModelOptions> | null,
     ): ComponentChildren => {
       const {
         state: { modelDeduplication: deduplication, modelGraphLayout },

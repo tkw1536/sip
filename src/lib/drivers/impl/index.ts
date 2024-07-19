@@ -1,5 +1,3 @@
-import type ColorMap from '../../pathbuilder/annotations/colormap'
-import { type NamespaceMap } from '../../pathbuilder/namespace'
 import type Graph from '../../graph'
 import { IDPool } from '../../utils/id-pool'
 
@@ -10,28 +8,26 @@ export interface Size {
   height: number
 }
 
-export type ContextFlags = Readonly<{
-  ns: NamespaceMap
-  cm: ColorMap
-  definitelyAcyclic: boolean
-
+export type ContextFlags<Options> = Readonly<{
+  options: Options
   layout: string
+  definitelyAcyclic: boolean
   initialSize: Size
 }>
 
-export type MountFlags = Readonly<
+export type MountFlags<Options> = Readonly<
   {
     container: HTMLElement
     layout: string
     currentSize: Size
-  } & ContextFlags
+  } & ContextFlags<Options>
 >
 
 type _context = unknown
 type _mount = unknown
 
 /** driver renders a single instance on a page */
-export default interface Driver<NodeLabel, EdgeLabel> {
+export default interface Driver<NodeLabel, EdgeLabel, Options> {
   readonly driverName: string
 
   /**
@@ -47,7 +43,7 @@ export default interface Driver<NodeLabel, EdgeLabel> {
    * @param ticket Used for cancellation. Returns false if the result is known to be discarded. In this case makeContext may chose to throw {@link ErrorAborted}.
    */
   makeContext: (
-    flags: ContextFlags,
+    flags: ContextFlags<Options>,
     graph: Graph<NodeLabel, EdgeLabel>,
     ticket: () => boolean,
   ) => Promise<_context>
@@ -59,19 +55,19 @@ export default interface Driver<NodeLabel, EdgeLabel> {
    *
    * @param ctx The context returned from {@link context}
    */
-  mount: (ctx: _context, flags: MountFlags) => _mount
+  mount: (ctx: _context, flags: MountFlags<Options>) => _mount
 
   resizeMount: (
     mount: _mount,
     ctx: _context,
-    flags: MountFlags,
+    flags: MountFlags<Options>,
     size: Size,
   ) => _mount | null | undefined
 
   /**
    * Removes a mount from the page in the browser environment
    */
-  unmount: (mount: _mount, ctx: _context, flags: MountFlags) => void
+  unmount: (mount: _mount, ctx: _context, flags: MountFlags<Options>) => void
 
   readonly supportedExportFormats: string[]
 
@@ -86,9 +82,9 @@ export default interface Driver<NodeLabel, EdgeLabel> {
    */
   export: (
     ctx: _context,
-    flags: ContextFlags,
+    flags: ContextFlags<Options>,
     format: string,
-    mount?: { mount: _mount; flags: MountFlags },
+    mount?: { mount: _mount; flags: MountFlags<Options> },
   ) => Promise<Blob>
 }
 
@@ -102,15 +98,16 @@ export const ErrorUnsupported = new Error('Driver: Not supported')
 export abstract class DriverImpl<
   NodeLabel,
   EdgeLabel,
+  Options,
   Context,
   Mount,
   HotContext = Context,
-> implements Driver<NodeLabel, EdgeLabel>
+> implements Driver<NodeLabel, EdgeLabel, Options>
 {
   abstract readonly driverName: string
 
   async makeContext(
-    flags: ContextFlags,
+    flags: ContextFlags<Options>,
     graph: Graph<NodeLabel, EdgeLabel>,
     ticket: () => boolean,
   ): Promise<Context> {
@@ -145,18 +142,20 @@ export abstract class DriverImpl<
     // return the context
     return ctx
   }
-  protected abstract newContextImpl(flags: ContextFlags): Promise<HotContext>
+  protected abstract newContextImpl(
+    flags: ContextFlags<Options>,
+  ): Promise<HotContext>
 
   protected abstract addNodeImpl(
     ctx: HotContext,
-    flags: ContextFlags,
+    flags: ContextFlags<Options>,
     id: string,
     node: NodeLabel,
   ): Promise<HotContext | null | undefined> | null | undefined
 
   protected abstract addEdgeImpl(
     ctx: HotContext,
-    flags: ContextFlags,
+    flags: ContextFlags<Options>,
     id: string,
     from: string,
     to: string,
@@ -165,20 +164,20 @@ export abstract class DriverImpl<
 
   protected abstract finalizeContextImpl(
     ctx: HotContext,
-    flags: ContextFlags,
+    flags: ContextFlags<Options>,
   ): Promise<Context>
 
   abstract readonly supportedLayouts: string[]
 
-  mount(ctx: _context, flags: MountFlags): _mount {
+  mount(ctx: _context, flags: MountFlags<Options>): _mount {
     return this.mountImpl(ctx as Context, flags)
   }
-  protected abstract mountImpl(ctx: Context, flags: MountFlags): Mount
+  protected abstract mountImpl(ctx: Context, flags: MountFlags<Options>): Mount
 
   resizeMount(
     mount: _mount,
     ctx: _context,
-    flags: MountFlags,
+    flags: MountFlags<Options>,
     size: Size,
   ): _mount | null | undefined {
     return this.resizeMountImpl(mount as Mount, ctx as Context, flags, size)
@@ -186,38 +185,38 @@ export abstract class DriverImpl<
   protected abstract resizeMountImpl(
     mount: Mount,
     ctx: Context,
-    flags: MountFlags,
+    flags: MountFlags<Options>,
     size: Size,
   ): Mount | null | undefined
 
-  unmount(mount: _mount, ctx: _context, flags: MountFlags): void {
+  unmount(mount: _mount, ctx: _context, flags: MountFlags<Options>): void {
     this.unmountImpl(mount as Mount, ctx as Context, flags)
   }
   protected abstract unmountImpl(
     mount: Mount,
     ctx: Context,
-    flags: MountFlags,
+    flags: MountFlags<Options>,
   ): void
 
   abstract readonly supportedExportFormats: string[]
 
   async export(
     ctx: _context,
-    flags: ContextFlags,
+    flags: ContextFlags<Options>,
     format: string,
-    mount?: { mount: _mount; flags: MountFlags },
+    mount?: { mount: _mount; flags: MountFlags<Options> },
   ): Promise<Blob> {
     return await this.exportImpl(
       ctx as Context,
       flags,
       format,
-      mount as { mount: Mount; flags: MountFlags } | undefined,
+      mount as { mount: Mount; flags: MountFlags<Options> } | undefined,
     )
   }
   protected abstract exportImpl(
     ctx: Context,
-    flags: ContextFlags,
+    flags: ContextFlags<Options>,
     format: string,
-    mount?: { mount: Mount; flags: MountFlags },
+    mount?: { mount: Mount; flags: MountFlags<Options> },
   ): Promise<Blob>
 }
