@@ -48,9 +48,9 @@ async function main(): Promise<void> {
     initialSize: { width: 1000, height: 1000 },
   }
 
-  // finally create the blob
-  const ctx = await driver.makeContext(flags, graph, () => true)
-  const blob = await driver.export(ctx, flags, 'svg', undefined)
+  // initialize and create blob
+  await driver.initialize(flags, graph, () => true)
+  const blob = await driver.export(flags, 'svg')
 
   // write the actual blob to the console
   process.stdout.write(await blob.text())

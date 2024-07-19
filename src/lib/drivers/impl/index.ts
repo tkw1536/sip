@@ -23,9 +23,6 @@ export type MountFlags<Options> = Readonly<
   } & ContextFlags<Options>
 >
 
-type _context = unknown
-type _mount = unknown
-
 export type DriverClass<NodeLabel, EdgeLabel, Options> = new () => Driver<
   NodeLabel,
   EdgeLabel,
@@ -37,43 +34,32 @@ export default interface Driver<NodeLabel, EdgeLabel, Options> {
   readonly driverName: string
 
   /**
-   * Creates and initializes a context for the given graph.
-   * It should perform potentially expensive computations in the background (e.g. using a webworker)
-   * And return the context once finished.
+   * Creates and initializes this instance of the driver for the given graph.
+   * It should perform potentially expensive computations in the background (e.g. using a webworker).
    *
-   * The result of makeContext might be discarded if by the time it returns a different backend was requested.
-   * For this reason it should clean up any running background jobs before returning.
+   * Afterwards this instance may or may not be {@link mount}ed onto the page.
+   * For this reason initialize should automatically remove any background jobs.
    *
    * @param flags Flags for the context to create
    * @param graph The graph to be rendered
    * @param ticket Used for cancellation. Returns false if the result is known to be discarded. In this case makeContext may chose to throw {@link ErrorAborted}.
    */
-  makeContext: (
+  initialize: (
     flags: ContextFlags<Options>,
     graph: Graph<NodeLabel, EdgeLabel>,
     ticket: () => boolean,
-  ) => Promise<_context>
+  ) => Promise<void>
 
   readonly supportedLayouts: string[]
 
-  /**
-   * Mount mounts the context onto a page in a browser environment.
-   *
-   * @param ctx The context returned from {@link context}
-   */
-  mount: (ctx: _context, flags: MountFlags<Options>) => _mount
+  /** mounts this instance onto the page */
+  mount: (flags: MountFlags<Options>) => void
 
-  resizeMount: (
-    mount: _mount,
-    ctx: _context,
-    flags: MountFlags<Options>,
-    size: Size,
-  ) => _mount | null | undefined
+  /** resizes this instance which is already {@link mount}ed onto the page */
+  resize: (flags: MountFlags<Options>, size: Size) => void
 
-  /**
-   * Removes a mount from the page in the browser environment
-   */
-  unmount: (mount: _mount, ctx: _context, flags: MountFlags<Options>) => void
+  /** unmounts the {@link mount}ed instance from the page */
+  unmount: (flags: MountFlags<Options>) => void
 
   readonly supportedExportFormats: string[]
 
@@ -81,16 +67,15 @@ export default interface Driver<NodeLabel, EdgeLabel, Options> {
    * Exports the rendered image into a blob.
    *
    * Export may be run in a browser context or a non-browser context.
-   * @param ctx Context returned from {@link makeContext} to be rendered into a blob
+   * @param ctx Context returned from {@link initialize} to be rendered into a blob
    * @param flags Flags used to create the context
    * @param format Format to be exported in. One of {@link supportedExportFormats}.
-   * @param mount Mounted object on the page, if any.
+   * @param mount Options used for mounting on the page.
    */
   export: (
-    ctx: _context,
     flags: ContextFlags<Options>,
     format: string,
-    mount?: { mount: _mount; flags: MountFlags<Options> },
+    mount?: MountFlags<Options>,
   ) => Promise<Blob>
 }
 
@@ -112,11 +97,18 @@ export abstract class DriverImpl<
 {
   abstract readonly driverName: string
 
-  async makeContext(
+  #context: Context | null = null
+  #mount: Mount | null = null
+
+  async initialize(
     flags: ContextFlags<Options>,
     graph: Graph<NodeLabel, EdgeLabel>,
     ticket: () => boolean,
-  ): Promise<Context> {
+  ): Promise<void> {
+    if (this.#context !== null || this.#mount !== null) {
+      throw new Error('Driver error: initialize called out of order')
+    }
+
     const ids = new IDPool()
     if (!ticket()) throw ErrorAborted
 
@@ -145,8 +137,7 @@ export abstract class DriverImpl<
     const ctx = await this.finalizeContextImpl(hCtx, flags)
     if (!ticket()) throw ErrorAborted
 
-    // return the context
-    return ctx
+    this.#context = ctx
   }
   protected abstract newContextImpl(
     flags: ContextFlags<Options>,
@@ -175,18 +166,23 @@ export abstract class DriverImpl<
 
   abstract readonly supportedLayouts: string[]
 
-  mount(ctx: _context, flags: MountFlags<Options>): _mount {
-    return this.mountImpl(ctx as Context, flags)
+  mount(flags: MountFlags<Options>): void {
+    if (this.#context === null || this.#mount !== null) {
+      throw new Error('Driver error: mount called out of order')
+    }
+
+    this.#mount = this.mountImpl(this.#context, flags)
   }
   protected abstract mountImpl(ctx: Context, flags: MountFlags<Options>): Mount
 
-  resizeMount(
-    mount: _mount,
-    ctx: _context,
-    flags: MountFlags<Options>,
-    size: Size,
-  ): _mount | null | undefined {
-    return this.resizeMountImpl(mount as Mount, ctx as Context, flags, size)
+  resize(flags: MountFlags<Options>, size: Size): void {
+    if (this.#context === null || this.#mount === null) {
+      throw new Error('Driver error: resize called out of order')
+    }
+
+    this.#mount =
+      this.resizeMountImpl(this.#mount, this.#context, flags, size) ??
+      this.#mount
   }
   protected abstract resizeMountImpl(
     mount: Mount,
@@ -195,8 +191,12 @@ export abstract class DriverImpl<
     size: Size,
   ): Mount | null | undefined
 
-  unmount(mount: _mount, ctx: _context, flags: MountFlags<Options>): void {
-    this.unmountImpl(mount as Mount, ctx as Context, flags)
+  unmount(flags: MountFlags<Options>): void {
+    if (this.#context === null || this.#mount === null) {
+      throw new Error('Driver error: unmount called out of order')
+    }
+    this.unmountImpl(this.#mount, this.#context, flags)
+    this.#mount = null
   }
   protected abstract unmountImpl(
     mount: Mount,
@@ -207,17 +207,21 @@ export abstract class DriverImpl<
   abstract readonly supportedExportFormats: string[]
 
   async export(
-    ctx: _context,
     flags: ContextFlags<Options>,
     format: string,
-    mount?: { mount: _mount; flags: MountFlags<Options> },
+    mount?: MountFlags<Options>,
   ): Promise<Blob> {
-    return await this.exportImpl(
-      ctx as Context,
-      flags,
-      format,
-      mount as { mount: Mount; flags: MountFlags<Options> } | undefined,
-    )
+    if (this.#context === null) {
+      throw new Error('Driver error: export called out of order')
+    }
+    let options: { mount: Mount; flags: MountFlags<Options> } | undefined
+    if (typeof mount !== 'undefined') {
+      if (this.#mount === null) {
+        throw new Error('Driver error: export called out of order')
+      }
+      options = { mount: this.#mount, flags: mount }
+    }
+    return await this.exportImpl(this.#context, flags, format, options)
   }
   protected abstract exportImpl(
     ctx: Context,

@@ -12,9 +12,6 @@ import {
 } from './impl'
 import Spinner from '../../components/spinner'
 
-type _context = unknown
-type _mount = unknown
-
 interface KernelProps<NodeLabel, EdgeLabel, Options> {
   graph: Graph<NodeLabel, EdgeLabel>
   layout: string
@@ -47,8 +44,6 @@ export default class Kernel<NodeLabel, EdgeLabel, Options> extends Component<
 
   state: KernelState = { driverLoading: false }
   #mod: {
-    mount: _mount
-    ctx: _context
     flags: MountFlags<Options>
     driver: Driver<NodeLabel, EdgeLabel, Options>
   } | null = null
@@ -92,7 +87,7 @@ export default class Kernel<NodeLabel, EdgeLabel, Options> extends Component<
 
     this.setState({ driverLoading: true, driverError: undefined }, () => {
       this.#loadContext(ticket, graph, loader, name, ctxFlags)
-        .then(async ({ driver, ctx }) => {
+        .then(async driver => {
           // await to set the new state
           await new Promise<void>((resolve, reject) => {
             this.setState(
@@ -116,8 +111,8 @@ export default class Kernel<NodeLabel, EdgeLabel, Options> extends Component<
             return
           }
 
-          const mount: _mount = driver.mount(ctx, flags)
-          this.#mod = { mount, ctx, flags, driver }
+          driver.mount(flags)
+          this.#mod = { flags, driver }
           this.#resizeMount()
 
           // update the ref
@@ -141,21 +136,19 @@ export default class Kernel<NodeLabel, EdgeLabel, Options> extends Component<
     loader: DriverLoader<NodeLabel, EdgeLabel, Options>,
     name: string,
     ctxFlags: ContextFlags<Options>,
-  ): Promise<{ ctx: _context; driver: Driver<NodeLabel, EdgeLabel, Options> }> {
+  ): Promise<Driver<NodeLabel, EdgeLabel, Options>> {
     const DriverClass = await loader.get(name)
     const driver = new DriverClass()
-    const ctx = await driver.makeContext(ctxFlags, graph, ticket)
 
-    return {
-      driver,
-      ctx,
-    }
+    await driver.initialize(ctxFlags, graph, ticket)
+
+    return driver
   }
 
   #unmountDriver(): void {
     if (this.#mod === null) return
 
-    this.#mod.driver.unmount(this.#mod.mount, this.#mod.ctx, this.#mod.flags)
+    this.#mod.driver.unmount(this.#mod.flags)
     this.#mod = null
     setRef(this.props.driverRef, null)
   }
@@ -165,16 +158,8 @@ export default class Kernel<NodeLabel, EdgeLabel, Options> extends Component<
     if (this.#mod == null || typeof size === 'undefined') return
 
     // call the resize function and store the new size
-    const next = this.#mod.driver.resizeMount(
-      this.#mod.mount,
-      this.#mod.ctx,
-      this.#mod.flags,
-      size,
-    )
+    this.#mod.driver.resize(this.#mod.flags, size)
     this.#mod.flags = Object.freeze({ ...this.#mod.flags, size })
-
-    // update the mounted instance (if applicable)
-    this.#mod.mount = next ?? this.#mod.mount
   }
 
   async exportBlob(format: string): Promise<Blob> {
@@ -185,10 +170,7 @@ export default class Kernel<NodeLabel, EdgeLabel, Options> extends Component<
       throw new Error('unsupported blob returned')
     }
 
-    return await driver.export(this.#mod.ctx, this.#mod.flags, format, {
-      mount: this.#mod.mount,
-      flags: this.#mod.flags,
-    })
+    return await driver.export(this.#mod.flags, format, this.#mod.flags)
   }
 
   /** remounts the current driver, resetting it to default */
