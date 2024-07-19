@@ -96,10 +96,7 @@ export abstract class DeduplicatingBuilder {
     node: Bundle | Field,
   ): NodeContext[] {
     // if the node isn't included do stuff
-    const included = this.#includesNode(node)
-    if (!included) {
-      return this.#buildOmittedNode(nodeContexts, node)
-    }
+    const omitted = !this.#includesNode(node)
 
     const { parent } = node
     const parentContext = parent !== null ? nodeContexts.get(parent) : undefined
@@ -116,6 +113,7 @@ export abstract class DeduplicatingBuilder {
       // find the context for the new element
       const newContextSpec = this.getConceptContext(
         element,
+        omitted,
         context,
         node,
         parent,
@@ -127,8 +125,8 @@ export abstract class DeduplicatingBuilder {
       // and store that we used this context
       contexts.push(context)
 
-      // if we're supposed to include the node
-      if (context === false) {
+      // if we're not supposed to draw it
+      if (context === false || omitted) {
         return
       }
 
@@ -181,7 +179,6 @@ export abstract class DeduplicatingBuilder {
       }
 
       // If we already have this node, don't add it again
-      // TODO: make this configurable?
       if (!this.tracker.add([sourceNode, targetNode, element.uri])) {
         continue
       }
@@ -230,12 +227,17 @@ export abstract class DeduplicatingBuilder {
         const parent = contexts[sourceConcept.conceptIndex] ?? false
 
         // get the context to draw the datatype in
-        const dtContextSpec = this.getDatatypeContext(dataElement, node, parent)
+        const dtContextSpec = this.getDatatypeContext(
+          dataElement,
+          omitted,
+          node,
+          parent,
+        )
         context = this.#resolveContextSpec(dtContextSpec)
         contexts.push(context)
 
         // no need to draw it
-        if (context === false) return
+        if (context === false || omitted) return
         const id = this.#makeID(context, 'data', dataElement.uri)
 
         // add the datatype node
@@ -266,7 +268,6 @@ export abstract class DeduplicatingBuilder {
         }
 
         // if we've already added the arrow, don't redraw
-        // TODO: Do we want this configurable?
         if (!this.tracker.add([sourceNode, targetNode])) {
           return
         }
@@ -295,6 +296,8 @@ export abstract class DeduplicatingBuilder {
         )
         return
       }
+
+      if (omitted) return
 
       // get the actual id of the node
       const conceptNode = nodes[concept]
@@ -342,36 +345,11 @@ export abstract class DeduplicatingBuilder {
     return contexts
   }
 
-  #buildOmittedNode(
-    nodeContexts: Map<PathTreeNode, NodeContext[]>,
-    node: Bundle | Field,
-  ): NodeContext[] {
-    const contexts: NodeContext[] = []
-
-    // TODO: Make this a virtual thing
-    const elements = Array.from(node.elements())
-    const parent = nodeContexts.get(node.parent) ?? []
-    elements.forEach(element => {
-      if (element.type !== 'concept') return
-      const { common } = element
-
-      if (common !== null && common < 0) {
-        const parentID = parent[element.conceptIndex]
-        if (typeof parentID !== 'undefined') {
-          contexts.push(parentID)
-          return
-        }
-      }
-
-      // create a new context
-      contexts.push(this.#newContext())
-    })
-    return contexts
-  }
   /**
    * Gets the {@link NodeContextSpec} to draw a concept node in.
    *
    * @param elem concept of path to draw
+   * @param omitted If true, the node is not actually included in the graph and only a context will be created.
    * @param previous the previous context that a node was drawn in
    * @param node the current {@link PathTreeNode} that this concept is being drawn for
    *
@@ -380,6 +358,7 @@ export abstract class DeduplicatingBuilder {
    */
   protected abstract getConceptContext(
     elem: ConceptPathElement,
+    omitted: boolean,
     previous: NodeContext,
     node: Bundle | Field,
     parent: NodeContext,
@@ -389,12 +368,14 @@ export abstract class DeduplicatingBuilder {
    * Gets the {@link NodeContextSpec} to draw a datatype node in.
    *
    * @param elem datatype element to draw
+   * @param omitted If true, the node is not actually included in the graph and only a context will be created.
    * @param node the field this datatype is attached to.
    *
    * @param parent function to return the context that the final context was drawn in
    */
   protected abstract getDatatypeContext(
     elem: PropertyPathElement & { role: 'datatype' },
+    omitted: boolean,
     node: Field,
     parent: NodeContext,
   ): NodeContextSpec

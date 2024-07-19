@@ -17,6 +17,7 @@ export default class NoneBuilder extends DeduplicatingBuilder {
   }
   protected getConceptContext(
     elem: ConceptPathElement,
+    omitted: boolean,
     previous: NodeContext,
     node: Bundle | Field,
     parent: NodeContext,
@@ -26,6 +27,7 @@ export default class NoneBuilder extends DeduplicatingBuilder {
 
   protected getDatatypeContext(
     elem: PropertyPathElement & { role: 'datatype' },
+    omitted: boolean,
     node: Field,
     parent: NodeContext,
   ): NodeContextSpec {
