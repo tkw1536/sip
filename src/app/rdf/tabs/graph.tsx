@@ -30,6 +30,11 @@ export default class GraphTab extends Component<RReducerProps> {
 
   readonly #displayRef = createRef<GraphDisplay<RDFNode, RDFEdge, RDFOptions>>()
 
+  readonly #handleResetDriver = (): void => {
+    const { current: display } = this.#displayRef
+    display?.remount()
+  }
+
   render(): ComponentChildren {
     const { rdfGraphLayout, rdfGraphDriver, ns, namespaceVersion } =
       this.props.state
@@ -63,6 +68,7 @@ export default class GraphTab extends Component<RReducerProps> {
           currentLayout={rdfGraphLayout}
           onChangeDriver={this.#handleChangeRDFRenderer}
           onChangeLayout={this.#handleChangeRDFLayout}
+          onResetDriver={this.#handleResetDriver}
         />
         <ExportControl driver={driver} display={this.#displayRef.current} />
       </>

@@ -57,6 +57,10 @@ export default class BundleGraphView extends Component<IReducerProps> {
   readonly #handleChangeBundleLayout = (value: string): void => {
     this.props.apply(setBundleLayout(value))
   }
+  readonly #handleResetDriver = (): void => {
+    const { current: display } = this.#displayRef
+    display?.remount()
+  }
 
   readonly #renderPanel = (
     driver: Driver<BundleNode, BundleEdge, BundleOptions> | null,
@@ -73,6 +77,7 @@ export default class BundleGraphView extends Component<IReducerProps> {
           currentLayout={bundleGraphLayout}
           onChangeDriver={this.#handleChangeBundleRenderer}
           onChangeLayout={this.#handleChangeBundleLayout}
+          onResetDriver={this.#handleResetDriver}
         />
         <ExportControl driver={driver} display={this.#displayRef.current} />
       </>

@@ -92,6 +92,13 @@ export default class GraphDisplay<
       })
   }
 
+  readonly remount = (): void => {
+    const { current: kernel } = this.#kernelRef
+    if (kernel === null) return
+
+    kernel.remountDriver()
+  }
+
   readonly #handleToggle = (evt: Event): void => {
     evt.preventDefault()
     this.setState(({ open }) => ({ open: !open }))
@@ -212,6 +219,7 @@ export class DriverControl<NodeLabel, EdgeLabel, Options> extends Component<{
 
   onChangeDriver: (driver: string) => void
   onChangeLayout: (layout: string) => void
+  onResetDriver: () => void
 }> {
   readonly #handleChangeDriver = (driver: string): void => {
     this.props.onChangeDriver(driver)
@@ -219,6 +227,11 @@ export class DriverControl<NodeLabel, EdgeLabel, Options> extends Component<{
 
   readonly #handleChangeLayout = (layout: string): void => {
     this.props.onChangeLayout(layout)
+  }
+
+  readonly #handleReset = (event: Event): void => {
+    event.preventDefault()
+    this.props.onResetDriver()
   }
 
   render(): ComponentChildren {
@@ -245,6 +258,10 @@ export class DriverControl<NodeLabel, EdgeLabel, Options> extends Component<{
             values={driver?.supportedLayouts}
             onInput={this.#handleChangeLayout}
           />
+          &nbsp;
+          <button onClick={this.#handleReset} disabled={driver === null}>
+            Reset
+          </button>
         </p>
       </Control>
     )

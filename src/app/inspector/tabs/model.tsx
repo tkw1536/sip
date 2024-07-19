@@ -54,6 +54,10 @@ export default WithID<IReducerProps>(
     readonly #handleChangeModelLayout = (value: string): void => {
       this.props.apply(setModelLayout(value))
     }
+    readonly #handleResetDriver = (): void => {
+      const { current: display } = this.#displayRef
+      display?.remount()
+    }
 
     readonly #displayRef =
       createRef<GraphDisplay<ModelNode, ModelEdge, ModelOptions>>()
@@ -100,6 +104,7 @@ export default WithID<IReducerProps>(
             currentLayout={modelGraphLayout}
             onChangeDriver={this.#handleChangeModelRenderer}
             onChangeLayout={this.#handleChangeModelLayout}
+            onResetDriver={this.#handleResetDriver}
           />
           <Control name='Deduplication'>
             <p>

@@ -142,7 +142,6 @@ export default class Kernel<NodeLabel, EdgeLabel, Options> extends Component<
     name: string,
     ctxFlags: ContextFlags<Options>,
   ): Promise<{ ctx: _context; driver: Driver<NodeLabel, EdgeLabel, Options> }> {
-    // load the driver
     const DriverClass = await loader.get(name)
     const driver = new DriverClass()
     const ctx = await driver.makeContext(ctxFlags, graph, ticket)
@@ -192,6 +191,12 @@ export default class Kernel<NodeLabel, EdgeLabel, Options> extends Component<
     })
   }
 
+  /** remounts the current driver, resetting it to default */
+  remountDriver(): void {
+    this.#unmountDriver()
+    this.#mountDriver()
+  }
+
   readonly #mount = new Operation()
   componentDidMount(): void {
     this.#createObserver()
@@ -207,8 +212,7 @@ export default class Kernel<NodeLabel, EdgeLabel, Options> extends Component<
 
     // if any of the critical properties changed => create a new driver
     if (this.#shouldRemount(previousProps, previousState)) {
-      this.#unmountDriver()
-      this.#mountDriver()
+      this.remountDriver()
       return
     }
 
