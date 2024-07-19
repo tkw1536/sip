@@ -256,7 +256,7 @@ export class GraphVizBundleDriver extends GraphvizDriver<
   }
 }
 
-export class GraphVizModelDriver extends GraphvizDriver<
+class GraphVizModelDriver extends GraphvizDriver<
   ModelNode,
   ModelEdge,
   ModelOptions
@@ -447,6 +447,18 @@ export class GraphVizModelDriver extends GraphvizDriver<
         tooltip: edge.property,
       },
     })
+  }
+}
+
+export class CompactGraphVizModelDriver extends GraphVizModelDriver {
+  constructor() {
+    super(true)
+  }
+}
+
+export class RegularGraphVizModelDriver extends GraphVizModelDriver {
+  constructor() {
+    super(false)
   }
 }
 

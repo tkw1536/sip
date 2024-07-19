@@ -26,6 +26,12 @@ export type MountFlags<Options> = Readonly<
 type _context = unknown
 type _mount = unknown
 
+export type DriverClass<NodeLabel, EdgeLabel, Options> = new () => Driver<
+  NodeLabel,
+  EdgeLabel,
+  Options
+>
+
 /** driver renders a single instance on a page */
 export default interface Driver<NodeLabel, EdgeLabel, Options> {
   readonly driverName: string

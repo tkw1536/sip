@@ -4,7 +4,12 @@ import * as styles from './index.module.css'
 import { Operation } from '../utils/operation'
 import type Driver from './impl'
 import ErrorDisplay from '../../components/error'
-import { type ContextFlags, type MountFlags, type Size } from './impl'
+import {
+  type DriverClass,
+  type ContextFlags,
+  type MountFlags,
+  type Size,
+} from './impl'
 import Spinner from '../../components/spinner'
 
 type _context = unknown
@@ -28,7 +33,7 @@ interface KernelState {
 }
 
 export interface DriverLoader<NodeLabel, EdgeLabel, Options> {
-  get: (name: string) => Promise<Driver<NodeLabel, EdgeLabel, Options>>
+  get: (name: string) => Promise<DriverClass<NodeLabel, EdgeLabel, Options>>
 }
 
 /**
@@ -138,7 +143,8 @@ export default class Kernel<NodeLabel, EdgeLabel, Options> extends Component<
     ctxFlags: ContextFlags<Options>,
   ): Promise<{ ctx: _context; driver: Driver<NodeLabel, EdgeLabel, Options> }> {
     // load the driver
-    const driver = await loader.get(name)
+    const DriverClass = await loader.get(name)
+    const driver = new DriverClass()
     const ctx = await driver.makeContext(ctxFlags, graph, ticket)
 
     return {
