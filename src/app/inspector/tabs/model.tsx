@@ -12,6 +12,7 @@ import GraphDisplay, {
 import { type IReducerProps } from '../state'
 import {
   setModelDeduplication,
+  setModelDisplay,
   setModelDriver,
   setModelLayout,
 } from '../state/reducers/model'
@@ -21,6 +22,7 @@ import {
   type ModelOptions,
   type ModelEdge,
   type ModelNode,
+  type ModelDisplay,
 } from '../../../lib/graph/builders/model/types'
 
 export default WithID<IReducerProps>(
@@ -51,6 +53,10 @@ export default WithID<IReducerProps>(
       this.props.apply(setModelDriver(value))
     }
 
+    readonly #handleChangeDisplay = (display: ModelDisplay): void => {
+      this.props.apply(setModelDisplay(display))
+    }
+
     readonly #handleChangeModelLayout = (value: string): void => {
       this.props.apply(setModelLayout(value))
     }
@@ -65,23 +71,26 @@ export default WithID<IReducerProps>(
     render(): ComponentChildren {
       const {
         modelGraphLayout,
-        modelGraphDriver: modelGraphRenderer,
+        modelDisplay: display,
+        modelGraphDriver,
         pathbuilderVersion,
         selectionVersion,
-        optionVersion,
+        modelGraphOptionVersion,
         colorVersion,
         ns,
         cm,
       } = this.props.state
 
+      const builderKey = `${pathbuilderVersion}-${selectionVersion}-${modelGraphOptionVersion}-${colorVersion}`
+
       return (
         <GraphDisplay
           ref={this.#displayRef}
           loader={models}
-          driver={modelGraphRenderer}
-          builderKey={`${pathbuilderVersion}-${selectionVersion}-${optionVersion}-${colorVersion}`}
+          driver={modelGraphDriver}
+          builderKey={builderKey}
           makeGraph={this.#builder}
-          options={{ ns, cm }}
+          options={{ ns, cm, display }}
           layout={modelGraphLayout}
           panel={this.#renderPanel}
         />
@@ -92,7 +101,11 @@ export default WithID<IReducerProps>(
       driver: Driver<ModelNode, ModelEdge, ModelOptions> | null,
     ): ComponentChildren => {
       const {
-        state: { modelDeduplication: deduplication, modelGraphLayout },
+        state: {
+          modelDeduplication: deduplication,
+          modelGraphLayout,
+          modelDisplay,
+        },
         id,
       } = this.props
 
@@ -105,6 +118,10 @@ export default WithID<IReducerProps>(
             onChangeDriver={this.#handleChangeModelRenderer}
             onChangeLayout={this.#handleChangeModelLayout}
             onResetDriver={this.#handleResetDriver}
+          />
+          <ModelGraphDisplayControl
+            display={modelDisplay}
+            onUpdate={this.#handleChangeDisplay}
           />
           <Control name='Deduplication'>
             <p>
@@ -136,6 +153,52 @@ export default WithID<IReducerProps>(
           </Control>
           <ExportControl driver={driver} display={this.#displayRef.current} />
         </>
+      )
+    }
+  },
+)
+
+interface ModelDisplayControlProps {
+  display: ModelDisplay
+  onUpdate: (display: ModelDisplay) => void
+}
+
+const ModelGraphDisplayControl = WithID<ModelDisplayControlProps>(
+  class ModelGraphDisplayControl extends Component<
+    ModelDisplayControlProps & { id: string }
+  > {
+    readonly #handleChangePropertyLabels = (
+      event: Event & { currentTarget: HTMLInputElement },
+    ): void => {
+      event.preventDefault()
+      const { checked } = event.currentTarget
+      const { display, onUpdate } = this.props
+
+      onUpdate({
+        ...display,
+        Components: {
+          ...display.Components,
+          PropertyLabels: checked,
+        },
+      })
+    }
+    render(): ComponentChildren {
+      const { display, id } = this.props
+      return (
+        <Control name='Display'>
+          <p>Certain components of the graph can be toggled on or off.</p>
+          <p>Changing this value will re-render the graph.</p>
+
+          <p>
+            <input
+              type='checkbox'
+              id={`${id}-property_labels`}
+              checked={display.Components.PropertyLabels}
+              onInput={this.#handleChangePropertyLabels}
+            ></input>
+            <label for={`${id}-property_labels`}>Property Labels</label>
+          </p>
+        </Control>
       )
     }
   },

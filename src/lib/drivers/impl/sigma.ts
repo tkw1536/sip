@@ -61,7 +61,9 @@ abstract class SigmaDriver<NodeLabel, EdgeLabel, Options> extends DriverImpl<
   ]
 
   protected settings(): Partial<Settings> {
-    return {}
+    return {
+      renderEdgeLabels: true,
+    }
   }
 
   protected async newContextImpl(): Promise<Graph> {
@@ -235,7 +237,14 @@ export class SigmaModelDriver extends SigmaDriver<
 
   protected async addEdgeImpl(
     graph: Graph,
-    flags: ContextFlags<ModelOptions>,
+    {
+      options: {
+        ns,
+        display: {
+          Components: { PropertyLabels },
+        },
+      },
+    }: ContextFlags<ModelOptions>,
     id: string,
     from: string,
     to: string,
@@ -246,6 +255,7 @@ export class SigmaModelDriver extends SigmaDriver<
         color: 'black',
         type: 'arrow',
         arrow: 'target',
+        label: ns.apply(edge.property),
         size: 5,
       })
       return
@@ -255,6 +265,7 @@ export class SigmaModelDriver extends SigmaDriver<
         color: 'black',
         type: 'arrow',
         arrow: 'target',
+        label: PropertyLabels ? ns.apply(edge.property) : undefined,
         size: 5,
       })
       return

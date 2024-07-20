@@ -43,4 +43,11 @@ interface DataModelEdge {
 export interface ModelOptions {
   ns: NamespaceMap
   cm: ColorMap
+  display: ModelDisplay
+}
+
+export interface ModelDisplay {
+  Components: {
+    PropertyLabels: boolean
+  }
 }

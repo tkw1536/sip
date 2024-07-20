@@ -433,19 +433,29 @@ class GraphVizModelDriver extends GraphvizDriver<
 
   protected addEdgeImpl(
     graph: Graph,
-    { options: { ns } }: ContextFlags<ModelOptions>,
+    {
+      options: {
+        ns,
+        display: {
+          Components: { PropertyLabels },
+        },
+      },
+    }: ContextFlags<ModelOptions>,
     id: string,
     from: string,
     to: string,
     edge: ModelEdge,
   ): undefined {
+    const hasLabel = edge.type === 'property' ? PropertyLabels : true
     graph.edges.push({
       head: to,
       tail: from,
-      attributes: {
-        label: ns.apply(edge.property),
-        tooltip: edge.property,
-      },
+      attributes: hasLabel
+        ? {
+            label: ns.apply(edge.property),
+            tooltip: edge.property,
+          }
+        : undefined,
     })
   }
 }

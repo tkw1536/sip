@@ -8,6 +8,7 @@ import {
 import type NodeSelection from '../../../lib/pathbuilder/annotations/selection'
 import type Deduplication from './state/deduplication'
 import { type Reducer, type ReducerProps } from '../../../lib/state_management'
+import { type ModelDisplay } from '../../../lib/graph/builders/model/types'
 
 export interface IState {
   activeTab: string // the active tab
@@ -32,8 +33,9 @@ export interface IState {
   selectionVersion: number
   selection: NodeSelection // the selection
 
-  optionVersion: number
+  modelGraphOptionVersion: number
   modelDeduplication: Deduplication
+  modelDisplay: ModelDisplay
 
   // renders for the graphs
   bundleGraphDriver: string

@@ -1,9 +1,8 @@
 import { type IReducer, type IState } from '..'
 import { bundles } from '../../../../lib/drivers/collection'
 import { defaultLayout } from '../../../../lib/drivers/impl'
-import { type PathTree } from '../../../../lib/pathbuilder/pathtree'
 
-export function newBundleDriver(tree: PathTree): string {
+export function newBundleDriver(): string {
   return bundles.defaultDriver
 }
 

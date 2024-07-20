@@ -1,11 +1,8 @@
 import { type IReducer, type IState } from '..'
-import {
-  type PathTree,
-  type PathTreeNode,
-} from '../../../../lib/pathbuilder/pathtree'
+import { type PathTreeNode } from '../../../../lib/pathbuilder/pathtree'
 import NodeSelection from '../../../../lib/pathbuilder/annotations/selection'
 
-export function newSelection(tree: PathTree): NodeSelection {
+export function newSelection(): NodeSelection {
   return NodeSelection.all()
 }
 

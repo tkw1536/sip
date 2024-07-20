@@ -5,7 +5,8 @@ import {
   type PathTree,
 } from '../../pathbuilder/pathtree'
 import type NodeSelection from '../../pathbuilder/annotations/selection'
-import { type ModelOptions } from './model/types'
+import { type NamespaceMap } from '../../pathbuilder/namespace'
+import type ColorMap from '../../pathbuilder/annotations/colormap'
 
 export type BundleNode =
   | {
@@ -27,7 +28,10 @@ export type BundleEdge =
       type: 'child_bundle'
     }
 
-export type BundleOptions = ModelOptions
+export interface BundleOptions {
+  ns: NamespaceMap
+  cm: ColorMap
+}
 
 export default class BundleGraphBuilder extends GraphBuilder<
   BundleNode,

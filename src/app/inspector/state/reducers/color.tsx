@@ -7,7 +7,7 @@ export { applyColorPreset as newColor } from '../state/preset'
 
 /** applies the given color preset to the given tree */
 export function applyColorPreset(preset: ColorPreset): IReducer {
-  return ({ colorVersion, cm, tree }: IState): Partial<IState> => ({
+  return ({ colorVersion, tree }: IState): Partial<IState> => ({
     cm: newColor(tree, preset),
     colorVersion: colorVersion + 1,
     cmLoadError: undefined,

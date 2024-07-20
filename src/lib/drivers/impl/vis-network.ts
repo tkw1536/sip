@@ -242,7 +242,14 @@ export class VisNetworkModelDriver extends VisNetworkDriver<
 
   protected async addEdgeImpl(
     dataset: Dataset,
-    { options: { ns } }: ContextFlags<ModelOptions>,
+    {
+      options: {
+        ns,
+        display: {
+          Components: { PropertyLabels },
+        },
+      },
+    }: ContextFlags<ModelOptions>,
     id: string,
     from: string,
     to: string,
@@ -264,7 +271,7 @@ export class VisNetworkModelDriver extends VisNetworkDriver<
         to,
         arrows: 'to',
 
-        label: ns.apply(edge.property),
+        label: PropertyLabels ? ns.apply(edge.property) : undefined,
       })
       return
     }

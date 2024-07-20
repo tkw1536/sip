@@ -6,8 +6,10 @@ import { PathTree } from '../../../../lib/pathbuilder/pathtree'
 import NodeSelection from '../../../../lib/pathbuilder/annotations/selection'
 import Deduplication from '../state/deduplication'
 import newInspectorState from './load'
+import { newModelDisplay } from './model'
 
 export function resetInspector(): IState {
+  const tree = new PathTree([])
   return {
     loadStage: false,
     activeTab: '',
@@ -16,7 +18,7 @@ export function resetInspector(): IState {
 
     pathbuilderVersion: -1,
     pathbuilder: new Pathbuilder([]),
-    tree: new PathTree([]),
+    tree,
     diagnostics: [],
 
     hideEqualParentPaths: false,
@@ -30,8 +32,9 @@ export function resetInspector(): IState {
     selectionVersion: -1,
     selection: NodeSelection.none(),
 
-    optionVersion: -1,
+    modelGraphOptionVersion: -1,
     modelDeduplication: Deduplication.None,
+    modelDisplay: newModelDisplay(),
 
     // renders for the graphs
     bundleGraphDriver: '',

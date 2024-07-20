@@ -6,7 +6,7 @@ import { ColorPreset } from '../state/preset'
 import { newBundleDriver } from './bundle'
 import { newCollapsed } from './collapse'
 import { newColor } from './color'
-import { newModelDeduplication, newModelDriver } from './model'
+import { newModelDeduplication, newModelDisplay, newModelDriver } from './model'
 import { newNamespaceMap } from './ns'
 import { newSelection } from './selection'
 import { newTabID } from './tab'
@@ -43,19 +43,20 @@ export default function newInspectorState(
     cm: newColor(tree, ColorPreset.BlueAndOrange),
 
     selectionVersion: 0,
-    selection: newSelection(tree),
+    selection: newSelection(),
 
-    optionVersion: 0,
-    modelDeduplication: newModelDeduplication(tree),
+    modelGraphOptionVersion: 0,
+    modelDeduplication: newModelDeduplication(),
+    modelDisplay: newModelDisplay(),
 
-    bundleGraphDriver: newBundleDriver(tree),
+    bundleGraphDriver: newBundleDriver(),
     bundleGraphLayout: defaultLayout,
 
-    modelGraphDriver: newModelDriver(tree),
+    modelGraphDriver: newModelDriver(),
     modelGraphLayout: defaultLayout,
 
-    collapsed: newCollapsed(tree),
+    collapsed: newCollapsed(),
 
-    activeTab: newTabID(tree),
+    activeTab: newTabID(),
   }
 }
