@@ -1,4 +1,9 @@
-import { Component, type ComponentType, type ComponentChildren } from 'preact'
+import {
+  Component,
+  type ComponentType,
+  type ComponentChildren,
+  type VNode,
+} from 'preact'
 import { Operation } from '../../lib/utils/operation'
 import * as styles from './index.module.css'
 import { Lazy as LazyImpl } from '../wrapper'
@@ -7,22 +12,19 @@ import { type PropsWithoutRef } from 'preact/compat'
 interface LoaderProps {
   message?: ComponentChildren
 }
-export default class Spinner extends Component<LoaderProps> {
-  render(): ComponentChildren {
-    const { message } = this.props
-    return (
-      <AvoidFlicker>
-        <div class={styles.loader}>
-          <div class={styles.logo} role='progressbar'>
-            <div />
-          </div>
-          {typeof message !== 'undefined' && (
-            <div class={styles.message}>{message}</div>
-          )}
+export default function Spinner({ message }: LoaderProps): VNode<any> {
+  return (
+    <AvoidFlicker>
+      <div class={styles.loader}>
+        <div class={styles.logo} role='progressbar'>
+          <div />
         </div>
-      </AvoidFlicker>
-    )
-  }
+        {typeof message !== 'undefined' && (
+          <div class={styles.message}>{message}</div>
+        )}
+      </div>
+    </AvoidFlicker>
+  )
 }
 
 /** Like {@link Lazy} except that it uses the default spinner component */

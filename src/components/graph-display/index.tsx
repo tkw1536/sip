@@ -3,6 +3,7 @@ import {
   type ComponentChild,
   type ComponentChildren,
   Fragment,
+  type JSX,
   createRef,
 } from 'preact'
 import download from '../../lib/utils/download'
@@ -310,16 +311,14 @@ export class ExportControl<NodeLabel, EdgeLabel, Options> extends Component<{
   }
 }
 
-export class Control extends Component<{
+export function Control(props: {
   name: string
   children?: ComponentChildren
-}> {
-  render(): ComponentChildren {
-    return (
-      <fieldset>
-        <legend>{this.props.name}</legend>
-        {this.props.children}
-      </fieldset>
-    )
-  }
+}): JSX.Element {
+  return (
+    <fieldset>
+      <legend>{props.name}</legend>
+      {props.children}
+    </fieldset>
+  )
 }

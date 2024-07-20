@@ -2,6 +2,7 @@
 
 import love from 'eslint-config-love'
 import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended'
+import react from 'eslint-plugin-react'
 
 const files = ['**/*.mjs', '**/*.js', '**/*.jsx', '**/*.ts', '**/*.tsx']
 const testFiles = [
@@ -28,4 +29,29 @@ export default [
     files: testFiles,
   },
   eslintPluginPrettierRecommended,
+  {
+    files: ['**/*.{js,jsx,mjs,cjs,ts,tsx}'],
+    plugins: {
+      react,
+    },
+    languageOptions: {
+      parserOptions: {
+        ecmaFeatures: {
+          jsx: true,
+        },
+      },
+    },
+    rules: {
+      'react/jsx-key': ['error'],
+      'react/no-unused-state': ['error'],
+      'react/prefer-stateless-function': ['error'],
+      'react/no-unsafe': ['error'],
+    },
+    settings: {
+      react: {
+        version: '16.0',
+        pragma: 'h',
+      },
+    },
+  },
 ]

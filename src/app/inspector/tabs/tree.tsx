@@ -1,4 +1,4 @@
-import { Component, type ComponentChild, Fragment, type VNode } from 'preact'
+import { Component, type ComponentChild, Fragment, type JSX } from 'preact'
 import { type NamespaceMap } from '../../../lib/pathbuilder/namespace'
 import {
   type Bundle,
@@ -368,32 +368,30 @@ class FieldRow extends Component<
   }
 }
 
-class Path extends Component<{
+function Path(props: {
   hideEqualParentPaths: boolean
   node: Bundle | Field
   ns: NamespaceMap
-}> {
-  render(): ComponentChild {
-    const { hideEqualParentPaths, node, ns } = this.props
-    const elements = Array.from(node.elements())
+}): JSX.Element {
+  const { hideEqualParentPaths, node, ns } = props
+  const elements = Array.from(node.elements())
 
-    return (
-      <>
-        {hideEqualParentPaths &&
-          elements.some(
-            ({ common }) => typeof common === 'number' && common < 0,
-          ) && <span class={classes(styles.path, styles.path_skip)} />}
-        {elements.map(element => (
-          <PathElement
-            element={element}
-            key={element.index}
-            hideCommon={hideEqualParentPaths}
-            ns={ns}
-          />
-        ))}
-      </>
-    )
-  }
+  return (
+    <>
+      {hideEqualParentPaths &&
+        elements.some(
+          ({ common }) => typeof common === 'number' && common < 0,
+        ) && <span class={classes(styles.path, styles.path_skip)} />}
+      {elements.map(element => (
+        <PathElement
+          element={element}
+          key={element.index}
+          hideCommon={hideEqualParentPaths}
+          ns={ns}
+        />
+      ))}
+    </>
+  )
 }
 
 function PathElement({
@@ -404,7 +402,7 @@ function PathElement({
   element: PathElementT
   hideCommon: boolean
   ns: NamespaceMap
-}): VNode<any> | null {
+}): JSX.Element | null {
   if (hideCommon && typeof element.common === 'number' && element.common < 0) {
     return null
   }

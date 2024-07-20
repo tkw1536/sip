@@ -1,4 +1,9 @@
-import { Component, type ComponentChild, type ComponentChildren } from 'preact'
+import {
+  Component,
+  type JSX,
+  type ComponentChild,
+  type ComponentChildren,
+} from 'preact'
 import DropArea from '../../../components/drop-area'
 import * as styles from './pathbuilder.module.css'
 import { type IReducerProps } from '../state'
@@ -12,14 +17,12 @@ import download from '../../../lib/utils/download'
 import { Type } from '../../../lib/utils/media'
 import Spinner from '../../../components/spinner'
 
-export default class PathbuilderTab extends Component<IReducerProps> {
-  render(): ComponentChildren {
-    return this.props.state.loadStage === true ? (
-      <InfoView {...this.props} />
-    ) : (
-      <WelcomeView {...this.props} />
-    )
-  }
+export default function PathbuilderTab(props: IReducerProps): JSX.Element {
+  return props.state.loadStage === true ? (
+    <InfoView {...props} />
+  ) : (
+    <WelcomeView {...props} />
+  )
 }
 
 class WelcomeView extends Component<IReducerProps> {

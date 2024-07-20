@@ -1,4 +1,9 @@
-import { Component, type ComponentChildren, type ErrorInfo } from 'preact'
+import {
+  Component,
+  type JSX,
+  type ComponentChildren,
+  type ErrorInfo,
+} from 'preact'
 import { Operation } from '../lib/utils/operation'
 import * as styles from './error.module.css'
 
@@ -9,37 +14,34 @@ interface State {
   error?: Error
   stack?: string
 }
-export default class ErrorDisplay extends Component<{ error: unknown }> {
-  render(): ComponentChildren {
-    const { error } = this.props
-    return (
-      <div className={styles.display}>
-        <ErrorDisplayAny error={error} />
-      </div>
-    )
-  }
+
+interface ErrorProps {
+  error?: unknown
+}
+export default function ErrorDisplay({ error }: ErrorProps): JSX.Element {
+  return (
+    <div className={styles.display}>
+      <ErrorDisplayAny error={error} />
+    </div>
+  )
 }
 
-class ErrorTitle extends Component<{ title: string; message: string }> {
-  render(): ComponentChildren {
-    const { title, message } = this.props
-    return (
-      <span class={classes(styles.line, styles.header)}>
-        <span class={styles.title}>{title}</span>
-        {message}
-      </span>
-    )
-  }
+function ErrorTitle(props: { title: string; message: string }): JSX.Element {
+  const { title, message } = props
+  return (
+    <span class={classes(styles.line, styles.header)}>
+      <span class={styles.title}>{title}</span>
+      {message}
+    </span>
+  )
 }
 
-class ErrorDisplayAny extends Component<{ error: unknown }> {
-  render(): ComponentChildren {
-    const { error } = this.props
-    if (!(error instanceof Error)) {
-      return <ErrorTitle title='error' message={String(error)} />
-    }
-    return <ErrorDisplayError error={error} />
+function ErrorDisplayAny(props: { error: unknown }): JSX.Element {
+  const { error } = props
+  if (!(error instanceof Error)) {
+    return <ErrorTitle title='error' message={String(error)} />
   }
+  return <ErrorDisplayError error={error} />
 }
 class ErrorDisplayError extends Component<{ error: Error }, State> {
   state: State = {}
