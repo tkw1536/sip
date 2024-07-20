@@ -173,21 +173,42 @@ function ModelGraphDisplayControl(
       <p>
         <ComponentCheckbox
           {...props}
-          control='FreeConceptLabels'
-          label='Free Concept Labels (those without bundles)'
+          value={props.display.Components.ConceptLabels}
+          set={(display, ConceptLabels) => ({
+            ...display,
+            Components: {
+              ...display.Components,
+              ConceptLabels,
+            },
+          })}
+          label='Concept Labels'
         />
       </p>
       <p>
         <ComponentCheckbox
           {...props}
-          control='PropertyLabels'
+          value={props.display.Components.PropertyLabels}
+          set={(display, PropertyLabels) => ({
+            ...display,
+            Components: {
+              ...display.Components,
+              PropertyLabels,
+            },
+          })}
           label='Property Labels'
         />
       </p>
       <p>
         <ComponentCheckbox
           {...props}
-          control='DatatypePropertyLabels'
+          value={props.display.Components.DatatypePropertyLabels}
+          set={(display, DatatypePropertyLabels) => ({
+            ...display,
+            Components: {
+              ...display.Components,
+              DatatypePropertyLabels,
+            },
+          })}
           label='Datatype Property Labels'
         />
       </p>
@@ -196,7 +217,8 @@ function ModelGraphDisplayControl(
 }
 
 interface ComponentCheckboxProps extends ModelDisplayControlProps {
-  control: keyof ModelDisplay['Components']
+  value: boolean
+  set: (display: ModelDisplay, checked: boolean) => ModelDisplay
   label: string
 }
 
@@ -209,24 +231,18 @@ const ComponentCheckbox = WithID<ComponentCheckboxProps>(
     ): void => {
       event.preventDefault()
       const { checked } = event.currentTarget
-      const { control, display, onUpdate } = this.props
+      const { set, display, onUpdate } = this.props
 
-      onUpdate({
-        ...display,
-        Components: {
-          ...display.Components,
-          [control]: checked,
-        },
-      })
+      onUpdate(set(display, checked))
     }
     render(): ComponentChildren {
-      const { control, display, id, label } = this.props
+      const { value, id, label } = this.props
       return (
         <>
           <input
             type='checkbox'
             id={id}
-            checked={display.Components[control]}
+            checked={value}
             onInput={this.#handleInput}
           ></input>
           <label for={id}>{label}</label>

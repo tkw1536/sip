@@ -90,8 +90,9 @@ export interface ModelOptions {
 }
 
 export interface ModelDisplay {
+  CompactBundles: boolean
   Components: {
-    FreeConceptLabels: boolean
+    ConceptLabels: boolean
     PropertyLabels: boolean
     DatatypePropertyLabels: boolean
   }

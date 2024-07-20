@@ -284,7 +284,7 @@ class GraphVizModelDriver extends GraphvizDriver<
         ns,
         cm,
         display: {
-          Components: { FreeConceptLabels: ConceptLabels },
+          Components: { ConceptLabels: ConceptLabels },
         },
       },
     } = flags

@@ -34,8 +34,9 @@ export function setModelDeduplication(dup: Deduplication): IReducer {
 
 export function newModelDisplay(): ModelDisplay {
   return {
+    CompactBundles: true,
     Components: {
-      FreeConceptLabels: true,
+      ConceptLabels: true,
       PropertyLabels: true,
       DatatypePropertyLabels: true,
     },

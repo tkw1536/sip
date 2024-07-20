@@ -278,7 +278,7 @@ export class CytoModelDriver extends CytoscapeDriver<
         ns,
         cm,
         display: {
-          Components: { FreeConceptLabels: ConceptLabels },
+          Components: { ConceptLabels: ConceptLabels },
         },
       },
     }: ContextFlags<ModelOptions>,
