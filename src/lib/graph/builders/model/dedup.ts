@@ -10,7 +10,12 @@ import {
 } from '../../../pathbuilder/pathtree'
 import ArrayTracker from '../../../utils/array-tracker'
 import ImmutableSet from '../../../utils/immutable-set'
-import { type ModelEdge, type ModelNode } from './types'
+import {
+  ConceptModelNode,
+  LiteralModelNode,
+  type ModelEdge,
+  type ModelNode,
+} from './types'
 
 export interface DedupOptions {
   include?: (node: PathTreeNode) => boolean
@@ -18,15 +23,15 @@ export interface DedupOptions {
 
 /** modelNodeLabel returns a simple label for a model node */
 export function modelNodeLabel(node: ModelNode, ns: NamespaceMap): string {
-  if (node.type === 'literal') {
+  if (node instanceof LiteralModelNode) {
     return Array.from(node.fields)
       .map(field => field.path.name)
       .join('\n\n')
   }
-  if (node.type === 'class' && node.bundles.size === 0) {
+  if (node instanceof ConceptModelNode && node.bundles.size === 0) {
     return ns.apply(node.clz)
   }
-  if (node.type === 'class' && node.bundles.size > 0) {
+  if (node instanceof ConceptModelNode && node.bundles.size > 0) {
     const names = Array.from(node.bundles)
       .map(bundle => 'Bundle ' + bundle.path.name)
       .join('\n\n')
@@ -137,12 +142,12 @@ export abstract class DeduplicatingBuilder {
         str,
         (label?: ModelNode | undefined): ModelNode => {
           return (
-            label ?? {
-              type: 'class',
-              clz: element.uri,
-              bundles: new ImmutableSet(),
-              fields: new ImmutableSet(),
-            }
+            label ??
+            new ConceptModelNode(
+              element.uri,
+              new ImmutableSet(),
+              new ImmutableSet(),
+            )
           )
         },
       )
@@ -244,14 +249,13 @@ export abstract class DeduplicatingBuilder {
         const targetNode = this.graph.addOrUpdateNode(
           id,
           (label?: ModelNode | undefined): ModelNode => {
-            if (label?.type === 'class') {
+            if (node instanceof ConceptModelNode) {
               throw new Error('never reached')
             }
 
-            return {
-              type: 'literal',
-              fields: (label?.fields ?? new ImmutableSet([])).add(node),
-            }
+            return new LiteralModelNode(
+              (label?.fields ?? new ImmutableSet([])).add(node),
+            )
           },
         )
 
@@ -281,7 +285,7 @@ export abstract class DeduplicatingBuilder {
     }
 
     const updateLastConcept = (
-      update: (node: ModelNode & { type: 'class' }) => ModelNode,
+      update: (node: ConceptModelNode) => ModelNode,
     ): void => {
       // the field is the last concept node
       const concept = elements
@@ -310,11 +314,7 @@ export abstract class DeduplicatingBuilder {
       }
 
       this.graph.addOrUpdateNode(conceptNode, label => {
-        if (typeof label === 'undefined') {
-          throw new Error('never reached')
-        }
-
-        if (label.type === 'literal') {
+        if (typeof label === 'undefined' || label instanceof LiteralModelNode) {
           throw new Error('never reached')
         }
 
@@ -324,22 +324,18 @@ export abstract class DeduplicatingBuilder {
 
     // draw the datatype property (if any)
     if (node instanceof Field && node.path.datatypeProperty === '') {
-      updateLastConcept(({ clz, bundles, fields, type }) => ({
-        clz,
-        bundles,
-        fields: fields.add(node),
-        type,
-      }))
+      updateLastConcept(
+        ({ clz, bundles, fields }) =>
+          new ConceptModelNode(clz, bundles, fields.add(node)),
+      )
     }
 
     // draw the bundle (if any)
     if (node instanceof Bundle) {
-      updateLastConcept(({ clz, bundles, fields, type }) => ({
-        clz,
-        bundles: bundles.add(node),
-        fields,
-        type,
-      }))
+      updateLastConcept(
+        ({ clz, bundles, fields }) =>
+          new ConceptModelNode(clz, bundles.add(node), fields),
+      )
     }
 
     return contexts

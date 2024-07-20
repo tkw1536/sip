@@ -6,22 +6,24 @@ import type ImmutableSet from '../../../utils/immutable-set'
 /** a node in the model graph */
 export type ModelNode = ConceptModelNode | LiteralModelNode
 
-interface ConceptModelNode {
-  /* represents a single class node */
-  type: 'class'
-  clz: string
+export class ConceptModelNode {
+  constructor(
+    /** class represented at this node */
+    public readonly clz: string,
 
-  /** bundles with a defining concept at this node */
-  bundles: ImmutableSet<Bundle>
+    /** bundles with a defining concept at this node */
+    public readonly bundles: ImmutableSet<Bundle>,
 
-  /** fields without a datatype property attached to this class node */
-  fields: ImmutableSet<Field>
+    /** fields without a datatype property attached to this node */
+    public readonly fields: ImmutableSet<Field>,
+  ) {}
 }
-interface LiteralModelNode {
-  type: 'literal'
 
-  /** fields with a datatype property attached to this literal node */
-  fields: ImmutableSet<Field>
+export class LiteralModelNode {
+  constructor(
+    /** fields with a datatype property attached to this literal node */
+    public readonly fields: ImmutableSet<Field>,
+  ) {}
 }
 
 export type ModelEdge = PropertyModelEdge | DataModelEdge

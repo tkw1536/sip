@@ -25,6 +25,8 @@ import {
   type ModelOptions,
   type ModelEdge,
   type ModelNode,
+  ConceptModelNode,
+  LiteralModelNode,
 } from '../../graph/builders/model/types'
 
 const Vis = new LazyValue(async () => await import('vis-network'))
@@ -216,7 +218,7 @@ export class VisNetworkModelDriver extends VisNetworkDriver<
     node: ModelNode,
   ): Promise<undefined> {
     const label = modelNodeLabel(node, ns)
-    if (node.type === 'literal') {
+    if (node instanceof LiteralModelNode) {
       dataset.addNode({
         id,
         label,
@@ -226,7 +228,7 @@ export class VisNetworkModelDriver extends VisNetworkDriver<
       })
       return
     }
-    if (node.type === 'class' && node.bundles.size === 0) {
+    if (node instanceof ConceptModelNode && node.bundles.size === 0) {
       dataset.addNode({
         id,
         label: ConceptLabels ? label : undefined,
@@ -237,7 +239,7 @@ export class VisNetworkModelDriver extends VisNetworkDriver<
       })
       return
     }
-    if (node.type === 'class' && node.bundles.size > 0) {
+    if (node instanceof ConceptModelNode && node.bundles.size > 0) {
       dataset.addNode({
         id,
         label,

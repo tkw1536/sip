@@ -27,6 +27,8 @@ import {
   type ModelOptions,
   type ModelEdge,
   type ModelNode,
+  LiteralModelNode,
+  ConceptModelNode,
 } from '../../../graph/builders/model/types'
 
 const spz = new LazyValue(
@@ -273,7 +275,7 @@ class GraphVizModelDriver extends GraphvizDriver<
     id: string,
     node: ModelNode,
   ): undefined {
-    if (node.type === 'literal') {
+    if (node instanceof LiteralModelNode) {
       this.#makeFieldNodes(graph, flags, id, node)
       return
     }
@@ -286,7 +288,7 @@ class GraphVizModelDriver extends GraphvizDriver<
         },
       },
     } = flags
-    if (node.type === 'class' && node.bundles.size === 0) {
+    if (node instanceof ConceptModelNode && node.bundles.size === 0) {
       graph.nodes.push({
         name: id,
         attributes: {
@@ -299,7 +301,7 @@ class GraphVizModelDriver extends GraphvizDriver<
       })
       return
     }
-    if (node.type === 'class' && node.bundles.size > 0) {
+    if (node instanceof ConceptModelNode && node.bundles.size > 0) {
       this.#makeBundleNodes(graph, flags, id, node)
       return
     }
@@ -310,7 +312,7 @@ class GraphVizModelDriver extends GraphvizDriver<
     graph: Graph,
     { options: { ns, cm } }: ContextFlags<ModelOptions>,
     id: string,
-    node: ModelNode & { type: 'class' },
+    node: ConceptModelNode,
   ): void {
     if (this.compact) {
       graph.nodes.push({
@@ -375,7 +377,7 @@ class GraphVizModelDriver extends GraphvizDriver<
     graph: Graph,
     { options: { ns, cm } }: ContextFlags<ModelOptions>,
     id: string,
-    node: ModelNode & { type: 'literal' },
+    node: LiteralModelNode,
   ): void {
     const label = modelNodeLabel(node, ns)
     if (this.compact) {

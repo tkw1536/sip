@@ -21,6 +21,8 @@ import {
   type ModelOptions,
   type ModelEdge,
   type ModelNode,
+  LiteralModelNode,
+  ConceptModelNode,
 } from '../../graph/builders/model/types'
 import { modelNodeLabel } from '../../graph/builders/model/dedup'
 
@@ -284,12 +286,12 @@ export class CytoModelDriver extends CytoscapeDriver<
     node: ModelNode,
   ): Promise<undefined> {
     const label = modelNodeLabel(node, ns)
-    if (node.type === 'literal') {
+    if (node instanceof LiteralModelNode) {
       const data = { id, label, color: cm.get(...node.fields) }
       elements.push({ data })
       return
     }
-    if (node.type === 'class' && node.bundles.size === 0) {
+    if (node instanceof ConceptModelNode && node.bundles.size === 0) {
       const data = {
         id,
         label: ConceptLabels ? label : undefined,
@@ -298,7 +300,7 @@ export class CytoModelDriver extends CytoscapeDriver<
       elements.push({ data })
       return
     }
-    if (node.type === 'class' && node.bundles.size > 0) {
+    if (node instanceof ConceptModelNode && node.bundles.size > 0) {
       const data = { id, label, color: cm.get(...node.bundles) }
       elements.push({ data })
     }

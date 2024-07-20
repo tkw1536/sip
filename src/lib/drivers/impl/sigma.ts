@@ -23,6 +23,8 @@ import {
   type ModelOptions,
   type ModelEdge,
   type ModelNode,
+  LiteralModelNode,
+  ConceptModelNode,
 } from '../../graph/builders/model/types'
 
 interface SigmaMount {
@@ -214,7 +216,7 @@ export class SigmaModelDriver extends SigmaDriver<
     node: ModelNode,
   ): Promise<undefined> {
     const label = modelNodeLabel(node, ns)
-    if (node.type === 'literal') {
+    if (node instanceof LiteralModelNode) {
       graph.addNode(id, {
         label,
 
@@ -223,7 +225,7 @@ export class SigmaModelDriver extends SigmaDriver<
       })
       return
     }
-    if (node.type === 'class' && node.bundles.size === 0) {
+    if (node instanceof ConceptModelNode && node.bundles.size === 0) {
       graph.addNode(id, {
         label: ConceptLabels ? label : undefined,
 
@@ -231,7 +233,7 @@ export class SigmaModelDriver extends SigmaDriver<
       })
       return
     }
-    if (node.type === 'class' && node.bundles.size > 0) {
+    if (node instanceof ConceptModelNode && node.bundles.size > 0) {
       graph.addNode(id, {
         label,
 
