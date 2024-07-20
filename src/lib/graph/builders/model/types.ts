@@ -48,6 +48,7 @@ export interface ModelOptions {
 
 export interface ModelDisplay {
   Components: {
+    FreeConceptLabels: boolean
     PropertyLabels: boolean
     DatatypePropertyLabels: boolean
   }

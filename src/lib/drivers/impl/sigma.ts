@@ -201,7 +201,15 @@ export class SigmaModelDriver extends SigmaDriver<
 > {
   protected async addNodeImpl(
     graph: Graph,
-    { options: { ns, cm } }: ContextFlags<ModelOptions>,
+    {
+      options: {
+        ns,
+        cm,
+        display: {
+          Components: { FreeConceptLabels: ConceptLabels },
+        },
+      },
+    }: ContextFlags<ModelOptions>,
     id: string,
     node: ModelNode,
   ): Promise<undefined> {
@@ -217,7 +225,7 @@ export class SigmaModelDriver extends SigmaDriver<
     }
     if (node.type === 'class' && node.bundles.size === 0) {
       graph.addNode(id, {
-        label,
+        label: ConceptLabels ? label : undefined,
 
         size: 10,
       })

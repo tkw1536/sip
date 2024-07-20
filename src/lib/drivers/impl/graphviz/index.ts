@@ -65,7 +65,7 @@ abstract class GraphvizDriver<NodeLabel, EdgeLabel, Options> extends DriverImpl<
       strict: false,
       directed: true,
       graphAttributes: { compound: true },
-      nodeAttributes: {},
+      nodeAttributes: { label: '""' },
       edgeAttributes: {},
       nodes: [],
       edges: [],
@@ -277,15 +277,24 @@ class GraphVizModelDriver extends GraphvizDriver<
       this.#makeFieldNodes(graph, flags, id, node)
       return
     }
+    const {
+      options: {
+        ns,
+        cm,
+        display: {
+          Components: { FreeConceptLabels: ConceptLabels },
+        },
+      },
+    } = flags
     if (node.type === 'class' && node.bundles.size === 0) {
       graph.nodes.push({
         name: id,
         attributes: {
-          label: flags.options.ns.apply(node.clz),
-          tooltip: node.clz,
+          label: ConceptLabels ? ns.apply(node.clz) : '',
+          tooltip: ConceptLabels ? node.clz : '',
 
           style: 'filled',
-          fillcolor: flags.options.cm.defaultColor,
+          fillcolor: cm.defaultColor,
         },
       })
       return

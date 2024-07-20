@@ -203,7 +203,15 @@ export class VisNetworkModelDriver extends VisNetworkDriver<
 > {
   protected async addNodeImpl(
     dataset: Dataset,
-    { options: { ns, cm } }: ContextFlags<ModelOptions>,
+    {
+      options: {
+        ns,
+        cm,
+        display: {
+          Components: { FreeConceptLabels: ConceptLabels },
+        },
+      },
+    }: ContextFlags<ModelOptions>,
     id: string,
     node: ModelNode,
   ): Promise<undefined> {
@@ -221,7 +229,7 @@ export class VisNetworkModelDriver extends VisNetworkDriver<
     if (node.type === 'class' && node.bundles.size === 0) {
       dataset.addNode({
         id,
-        label,
+        label: ConceptLabels ? label : undefined,
         color: {
           background: cm.defaultColor,
           border: 'black',

@@ -1,4 +1,4 @@
-import { Component, type ComponentChildren, createRef } from 'preact'
+import { Component, type ComponentChildren, createRef, type JSX } from 'preact'
 import ModelGraphBuilder from '../../../lib/graph/builders/model'
 import type Deduplication from '../state/state/deduplication'
 import { explanations, names, values } from '../state/state/deduplication'
@@ -162,69 +162,75 @@ interface ModelDisplayControlProps {
   display: ModelDisplay
   onUpdate: (display: ModelDisplay) => void
 }
+function ModelGraphDisplayControl(
+  props: ModelDisplayControlProps,
+): JSX.Element {
+  return (
+    <Control name='Display'>
+      <p>Certain components of the graph can be toggled on or off.</p>
+      <p>Changing this value will re-render the graph.</p>
 
-const ModelGraphDisplayControl = WithID<ModelDisplayControlProps>(
-  class ModelGraphDisplayControl extends Component<
-    ModelDisplayControlProps & { id: string }
+      <p>
+        <ComponentCheckbox
+          {...props}
+          control='FreeConceptLabels'
+          label='Free Concept Labels (those without bundles)'
+        />
+      </p>
+      <p>
+        <ComponentCheckbox
+          {...props}
+          control='PropertyLabels'
+          label='Property Labels'
+        />
+      </p>
+      <p>
+        <ComponentCheckbox
+          {...props}
+          control='DatatypePropertyLabels'
+          label='Datatype Property Labels'
+        />
+      </p>
+    </Control>
+  )
+}
+
+interface ComponentCheckboxProps extends ModelDisplayControlProps {
+  control: keyof ModelDisplay['Components']
+  label: string
+}
+
+const ComponentCheckbox = WithID<ComponentCheckboxProps>(
+  class ComponentCheckbox extends Component<
+    ComponentCheckboxProps & { id: string }
   > {
-    readonly #handleChangePropertyLabels = (
+    readonly #handleInput = (
       event: Event & { currentTarget: HTMLInputElement },
     ): void => {
       event.preventDefault()
       const { checked } = event.currentTarget
-      const { display, onUpdate } = this.props
+      const { control, display, onUpdate } = this.props
 
       onUpdate({
         ...display,
         Components: {
           ...display.Components,
-          PropertyLabels: checked,
-        },
-      })
-    }
-    readonly #handleChangeDatatypePropertyLabels = (
-      event: Event & { currentTarget: HTMLInputElement },
-    ): void => {
-      event.preventDefault()
-      const { checked } = event.currentTarget
-      const { display, onUpdate } = this.props
-
-      onUpdate({
-        ...display,
-        Components: {
-          ...display.Components,
-          DatatypePropertyLabels: checked,
+          [control]: checked,
         },
       })
     }
     render(): ComponentChildren {
-      const { display, id } = this.props
+      const { control, display, id, label } = this.props
       return (
-        <Control name='Display'>
-          <p>Certain components of the graph can be toggled on or off.</p>
-          <p>Changing this value will re-render the graph.</p>
-
-          <p>
-            <input
-              type='checkbox'
-              id={`${id}-property_labels`}
-              checked={display.Components.PropertyLabels}
-              onInput={this.#handleChangePropertyLabels}
-            ></input>
-            <label for={`${id}-property_labels`}>Property Labels</label>
-          </p>
-          <p>
-            <input
-              type='checkbox'
-              id={`${id}-datatype_property_labels`}
-              checked={display.Components.DatatypePropertyLabels}
-              onInput={this.#handleChangeDatatypePropertyLabels}
-            ></input>
-            <label for={`${id}-datatype_property_labels`}>
-              Datatype Property Labels
-            </label>
-          </p>
-        </Control>
+        <>
+          <input
+            type='checkbox'
+            id={id}
+            checked={display.Components[control]}
+            onInput={this.#handleInput}
+          ></input>
+          <label for={id}>{label}</label>
+        </>
       )
     }
   },

@@ -271,7 +271,15 @@ export class CytoModelDriver extends CytoscapeDriver<
 > {
   protected async addNodeImpl(
     elements: Elements,
-    { options: { ns, cm } }: ContextFlags<ModelOptions>,
+    {
+      options: {
+        ns,
+        cm,
+        display: {
+          Components: { FreeConceptLabels: ConceptLabels },
+        },
+      },
+    }: ContextFlags<ModelOptions>,
     id: string,
     node: ModelNode,
   ): Promise<undefined> {
@@ -282,7 +290,11 @@ export class CytoModelDriver extends CytoscapeDriver<
       return
     }
     if (node.type === 'class' && node.bundles.size === 0) {
-      const data = { id, label, color: 'black' }
+      const data = {
+        id,
+        label: ConceptLabels ? label : undefined,
+        color: 'black',
+      }
       elements.push({ data })
       return
     }
