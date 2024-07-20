@@ -246,7 +246,7 @@ export class VisNetworkModelDriver extends VisNetworkDriver<
       options: {
         ns,
         display: {
-          Components: { PropertyLabels },
+          Components: { PropertyLabels, DatatypePropertyLabels },
         },
       },
     }: ContextFlags<ModelOptions>,
@@ -255,27 +255,15 @@ export class VisNetworkModelDriver extends VisNetworkDriver<
     to: string,
     edge: ModelEdge,
   ): Promise<undefined> {
-    if (edge.type === 'data') {
-      dataset.addEdge({
-        from,
-        to,
-        arrows: 'to',
+    const labels =
+      edge.type === 'property' ? PropertyLabels : DatatypePropertyLabels
+    dataset.addEdge({
+      from,
+      to,
+      arrows: 'to',
 
-        label: ns.apply(edge.property),
-      })
-      return
-    }
-    if (edge.type === 'property') {
-      dataset.addEdge({
-        from,
-        to,
-        arrows: 'to',
-
-        label: PropertyLabels ? ns.apply(edge.property) : undefined,
-      })
-      return
-    }
-    throw new Error('never reached')
+      label: labels ? ns.apply(edge.property) : undefined,
+    })
   }
 }
 

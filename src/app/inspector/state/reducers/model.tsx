@@ -36,6 +36,7 @@ export function newModelDisplay(): ModelDisplay {
   return {
     Components: {
       PropertyLabels: true,
+      DatatypePropertyLabels: true,
     },
   }
 }

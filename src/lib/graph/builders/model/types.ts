@@ -49,5 +49,6 @@ export interface ModelOptions {
 export interface ModelDisplay {
   Components: {
     PropertyLabels: boolean
+    DatatypePropertyLabels: boolean
   }
 }

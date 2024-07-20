@@ -241,7 +241,7 @@ export class SigmaModelDriver extends SigmaDriver<
       options: {
         ns,
         display: {
-          Components: { PropertyLabels },
+          Components: { PropertyLabels, DatatypePropertyLabels },
         },
       },
     }: ContextFlags<ModelOptions>,
@@ -250,27 +250,15 @@ export class SigmaModelDriver extends SigmaDriver<
     to: string,
     edge: ModelEdge,
   ): Promise<undefined> {
-    if (edge.type === 'data') {
-      graph.addDirectedEdge(from, to, {
-        color: 'black',
-        type: 'arrow',
-        arrow: 'target',
-        label: ns.apply(edge.property),
-        size: 5,
-      })
-      return
-    }
-    if (edge.type === 'property') {
-      graph.addDirectedEdge(from, to, {
-        color: 'black',
-        type: 'arrow',
-        arrow: 'target',
-        label: PropertyLabels ? ns.apply(edge.property) : undefined,
-        size: 5,
-      })
-      return
-    }
-    throw new Error('never reached')
+    const labels =
+      edge.type === 'property' ? PropertyLabels : DatatypePropertyLabels
+    graph.addDirectedEdge(from, to, {
+      color: 'black',
+      type: 'arrow',
+      arrow: 'target',
+      label: labels ? ns.apply(edge.property) : undefined,
+      size: 5,
+    })
   }
 }
 

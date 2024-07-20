@@ -437,7 +437,7 @@ class GraphVizModelDriver extends GraphvizDriver<
       options: {
         ns,
         display: {
-          Components: { PropertyLabels },
+          Components: { PropertyLabels, DatatypePropertyLabels },
         },
       },
     }: ContextFlags<ModelOptions>,
@@ -446,7 +446,8 @@ class GraphVizModelDriver extends GraphvizDriver<
     to: string,
     edge: ModelEdge,
   ): undefined {
-    const hasLabel = edge.type === 'property' ? PropertyLabels : true
+    const hasLabel =
+      edge.type === 'property' ? PropertyLabels : DatatypePropertyLabels
     graph.edges.push({
       head: to,
       tail: from,

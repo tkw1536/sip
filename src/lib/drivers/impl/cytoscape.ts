@@ -298,7 +298,7 @@ export class CytoModelDriver extends CytoscapeDriver<
       options: {
         ns,
         display: {
-          Components: { PropertyLabels },
+          Components: { PropertyLabels, DatatypePropertyLabels },
         },
       },
     }: ContextFlags<ModelOptions>,
@@ -307,29 +307,16 @@ export class CytoModelDriver extends CytoscapeDriver<
     to: string,
     edge: ModelEdge,
   ): Promise<undefined> {
-    if (edge.type === 'data') {
-      const data = {
-        id,
-        source: from,
-        target: to,
-        label: ns.apply(edge.property),
-        color: 'black',
-      }
-      elements.push({ data })
-      return
+    const labels =
+      edge.type === 'property' ? PropertyLabels : DatatypePropertyLabels
+    const data = {
+      id,
+      source: from,
+      target: to,
+      label: labels ? ns.apply(edge.property) : undefined,
+      color: 'black',
     }
-    if (edge.type === 'property') {
-      const data = {
-        id,
-        source: from,
-        target: to,
-        label: PropertyLabels ? ns.apply(edge.property) : undefined,
-        color: 'black',
-      }
-      elements.push({ data })
-      return
-    }
-    throw new Error('never reached')
+    elements.push({ data })
   }
 }
 

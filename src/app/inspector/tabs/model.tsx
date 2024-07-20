@@ -182,6 +182,21 @@ const ModelGraphDisplayControl = WithID<ModelDisplayControlProps>(
         },
       })
     }
+    readonly #handleChangeDatatypePropertyLabels = (
+      event: Event & { currentTarget: HTMLInputElement },
+    ): void => {
+      event.preventDefault()
+      const { checked } = event.currentTarget
+      const { display, onUpdate } = this.props
+
+      onUpdate({
+        ...display,
+        Components: {
+          ...display.Components,
+          DatatypePropertyLabels: checked,
+        },
+      })
+    }
     render(): ComponentChildren {
       const { display, id } = this.props
       return (
@@ -197,6 +212,17 @@ const ModelGraphDisplayControl = WithID<ModelDisplayControlProps>(
               onInput={this.#handleChangePropertyLabels}
             ></input>
             <label for={`${id}-property_labels`}>Property Labels</label>
+          </p>
+          <p>
+            <input
+              type='checkbox'
+              id={`${id}-datatype_property_labels`}
+              checked={display.Components.DatatypePropertyLabels}
+              onInput={this.#handleChangeDatatypePropertyLabels}
+            ></input>
+            <label for={`${id}-datatype_property_labels`}>
+              Datatype Property Labels
+            </label>
           </p>
         </Control>
       )
