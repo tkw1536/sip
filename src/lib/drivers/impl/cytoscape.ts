@@ -308,26 +308,17 @@ export class CytoModelDriver extends CytoscapeDriver<
 
   protected async addEdgeImpl(
     elements: Elements,
-    {
-      options: {
-        ns,
-        display: {
-          Components: { PropertyLabels, DatatypePropertyLabels },
-        },
-      },
-    }: ContextFlags<ModelOptions>,
+    { options }: ContextFlags<ModelOptions>,
     id: string,
     from: string,
     to: string,
     edge: ModelEdge,
   ): Promise<undefined> {
-    const labels =
-      edge.type === 'property' ? PropertyLabels : DatatypePropertyLabels
     const data = {
       id,
       source: from,
       target: to,
-      label: labels ? ns.apply(edge.property) : undefined,
+      label: edge.label(options),
       color: 'black',
     }
     elements.push({ data })

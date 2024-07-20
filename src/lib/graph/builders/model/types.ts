@@ -28,18 +28,59 @@ export class LiteralModelNode {
 
 export type ModelEdge = PropertyModelEdge | DataModelEdge
 
-/** A property node between two class nodes */
-interface PropertyModelEdge {
-  type: 'property'
-  property: string
-  // TODO: render the relevant paths, and their indexes
+abstract class ModelEdgeCommon {
+  abstract label(options: ModelOptions): string | undefined
+  abstract tooltip(options: ModelOptions): string | undefined
 }
 
-/** An edge between a class node and a datatype node */
-interface DataModelEdge {
-  type: 'data'
-  property: string
-  // TODO: render the relevant fields
+export class PropertyModelEdge extends ModelEdgeCommon {
+  constructor(
+    /** the actual property */
+    public property: string,
+  ) {
+    super()
+  }
+
+  label({
+    ns,
+    display: {
+      Components: { PropertyLabels },
+    },
+  }: ModelOptions): string | undefined {
+    return PropertyLabels ? ns.apply(this.property) : undefined
+  }
+  tooltip({
+    display: {
+      Components: { PropertyLabels },
+    },
+  }: ModelOptions): string | undefined {
+    return PropertyLabels ? this.property : undefined
+  }
+}
+
+export class DataModelEdge extends ModelEdgeCommon {
+  constructor(
+    /** the actual property */
+    public property: string,
+  ) {
+    super()
+  }
+
+  label({
+    ns,
+    display: {
+      Components: { DatatypePropertyLabels },
+    },
+  }: ModelOptions): string | undefined {
+    return DatatypePropertyLabels ? ns.apply(this.property) : undefined
+  }
+  tooltip({
+    display: {
+      Components: { DatatypePropertyLabels },
+    },
+  }: ModelOptions): string | undefined {
+    return DatatypePropertyLabels ? this.property : undefined
+  }
 }
 
 export interface ModelOptions {

@@ -12,7 +12,9 @@ import ArrayTracker from '../../../utils/array-tracker'
 import ImmutableSet from '../../../utils/immutable-set'
 import {
   ConceptModelNode,
+  DataModelEdge,
   LiteralModelNode,
+  PropertyModelEdge,
   type ModelEdge,
   type ModelNode,
 } from './types'
@@ -189,10 +191,11 @@ export abstract class DeduplicatingBuilder {
       }
 
       // and add the edge
-      this.graph.addEdge(sourceNode, targetNode, {
-        type: 'property',
-        property: element.uri,
-      })
+      this.graph.addEdge(
+        sourceNode,
+        targetNode,
+        new PropertyModelEdge(element.uri),
+      )
     }
 
     // draw the datatype property (if any)
@@ -277,10 +280,11 @@ export abstract class DeduplicatingBuilder {
         }
 
         // draw the new edge
-        this.graph.addEdge(sourceNode, targetNode, {
-          type: 'data',
-          property: dataElement.uri,
-        })
+        this.graph.addEdge(
+          sourceNode,
+          targetNode,
+          new DataModelEdge(dataElement.uri),
+        )
       })()
     }
 

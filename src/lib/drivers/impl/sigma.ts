@@ -247,26 +247,17 @@ export class SigmaModelDriver extends SigmaDriver<
 
   protected async addEdgeImpl(
     graph: Graph,
-    {
-      options: {
-        ns,
-        display: {
-          Components: { PropertyLabels, DatatypePropertyLabels },
-        },
-      },
-    }: ContextFlags<ModelOptions>,
+    { options }: ContextFlags<ModelOptions>,
     id: string,
     from: string,
     to: string,
     edge: ModelEdge,
   ): Promise<undefined> {
-    const labels =
-      edge.type === 'property' ? PropertyLabels : DatatypePropertyLabels
     graph.addDirectedEdge(from, to, {
       color: 'black',
       type: 'arrow',
       arrow: 'target',
-      label: labels ? ns.apply(edge.property) : undefined,
+      label: edge.label(options),
       size: 5,
     })
   }

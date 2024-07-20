@@ -67,8 +67,8 @@ abstract class GraphvizDriver<NodeLabel, EdgeLabel, Options> extends DriverImpl<
       strict: false,
       directed: true,
       graphAttributes: { compound: true },
-      nodeAttributes: { label: '""' },
-      edgeAttributes: {},
+      nodeAttributes: { label: '""', tooltip: '' },
+      edgeAttributes: { label: '', tooltip: '' },
       nodes: [],
       edges: [],
       subgraphs: [],
@@ -444,30 +444,19 @@ class GraphVizModelDriver extends GraphvizDriver<
 
   protected addEdgeImpl(
     graph: Graph,
-    {
-      options: {
-        ns,
-        display: {
-          Components: { PropertyLabels, DatatypePropertyLabels },
-        },
-      },
-    }: ContextFlags<ModelOptions>,
+    { options }: ContextFlags<ModelOptions>,
     id: string,
     from: string,
     to: string,
     edge: ModelEdge,
   ): undefined {
-    const hasLabel =
-      edge.type === 'property' ? PropertyLabels : DatatypePropertyLabels
     graph.edges.push({
       head: to,
       tail: from,
-      attributes: hasLabel
-        ? {
-            label: ns.apply(edge.property),
-            tooltip: edge.property,
-          }
-        : undefined,
+      attributes: {
+        label: edge.label(options) ?? '',
+        tooltip: edge.tooltip(options) ?? '',
+      },
     })
   }
 }
