@@ -210,7 +210,7 @@ export class VisNetworkModelDriver extends VisNetworkDriver<
         ns,
         cm,
         display: {
-          Components: { ConceptLabels: ConceptLabels },
+          Components: { ConceptLabels },
         },
       },
     }: ContextFlags<ModelOptions>,

@@ -208,7 +208,7 @@ export class SigmaModelDriver extends SigmaDriver<
         ns,
         cm,
         display: {
-          Components: { ConceptLabels: ConceptLabels },
+          Components: { ConceptLabels },
         },
       },
     }: ContextFlags<ModelOptions>,
