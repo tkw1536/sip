@@ -1,0 +1,41 @@
+name: CI & Deploy
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Use Node.js 22.0
+      uses: actions/setup-node@v3
+      with:
+        node-version: 22.0
+
+    - name: Install Dependencies
+      run: |
+        yarn install
+    - name: Run Typechecker
+      run: |
+        yarn tsc
+    - name: Run Linter
+      run: |
+        yarn lint
+    - name: Run Spellchecker
+      run: |
+        yarn spellcheck
+    - name: Run Test
+      run: |
+        yarn test
+    - name: Run Build
+      run: |
+        yarn build
+    - name: Upload artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: pages
+        path: dist
