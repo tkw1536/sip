@@ -41,5 +41,6 @@ export function newStoreState(text: string, filename: string): RState {
 
     rdfGraphDriver: newRDFDriver(),
     rdfGraphLayout: defaultLayout,
+    rdfGraphSeed: null,
   }
 }

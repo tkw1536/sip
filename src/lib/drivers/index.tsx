@@ -15,6 +15,8 @@ interface KernelProps<NodeLabel, EdgeLabel, Options> {
   loader: DriverLoader<NodeLabel, EdgeLabel, Options>
   driver: string
 
+  seed: number | null
+
   driverRef?: Ref<Driver<NodeLabel, EdgeLabel, Options>>
 }
 
@@ -190,8 +192,7 @@ export default class Kernel<NodeLabel, EdgeLabel, Options> extends Component<
     )
     // if any of the critical properties changed => create a new driver
     if (remount) {
-      const controlSeed: number | null = null // TODO: get the controlled seed from somewhere
-      this.remountDriver(!keepSeed ? controlSeed : undefined)
+      this.remountDriver(!keepSeed ? this.props.seed : undefined)
       return
     }
 
@@ -209,6 +210,7 @@ export default class Kernel<NodeLabel, EdgeLabel, Options> extends Component<
     const theDriverUnchanged =
       previousProps.driver === this.props.driver &&
       previousProps.loader === this.props.loader
+    const theSeedUnchanged = previousProps.seed === this.props.seed
 
     const remount =
       // we didn't have a size before, but we do now
@@ -219,9 +221,11 @@ export default class Kernel<NodeLabel, EdgeLabel, Options> extends Component<
       // the graph changed
       previousProps.graph !== this.props.graph ||
       // the layout changed
-      previousProps.layout !== this.props.layout
+      previousProps.layout !== this.props.layout ||
+      // the seed changed
+      !theSeedUnchanged
 
-    return { remount, keepSeed: theDriverUnchanged }
+    return { remount, keepSeed: theDriverUnchanged && theSeedUnchanged }
   }
 
   #shouldResizeMount(

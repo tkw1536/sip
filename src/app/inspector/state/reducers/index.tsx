@@ -39,9 +39,11 @@ export function resetInspector(): IState {
     // renders for the graphs
     bundleGraphDriver: '',
     bundleGraphLayout: '',
+    bundleGraphSeed: null,
 
     modelGraphDriver: '',
     modelGraphLayout: '',
+    modelGraphSeed: null,
 
     collapsed: NodeSelection.none(),
   }

@@ -17,5 +17,6 @@ export function resetRDFInterface(): RState {
 
     rdfGraphDriver: newRDFDriver(),
     rdfGraphLayout: defaultLayout,
+    rdfGraphSeed: null,
   }
 }

@@ -38,3 +38,9 @@ export function setModelDisplay(display: ModelDisplay): IReducer {
     modelDisplay: display,
   })
 }
+
+export function setModelSeed(seed: number | null): IReducer {
+  return (): Partial<IState> => ({
+    modelGraphSeed: seed,
+  })
+}

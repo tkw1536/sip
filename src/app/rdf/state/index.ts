@@ -15,6 +15,7 @@ export interface RState {
 
   rdfGraphDriver: string
   rdfGraphLayout: string
+  rdfGraphSeed: number | null
 }
 
 export type RReducer = Reducer<RState>

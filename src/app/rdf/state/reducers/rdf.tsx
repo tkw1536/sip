@@ -18,3 +18,9 @@ export function setRDFLayout(layout: string): RReducer {
     rdfGraphLayout: layout,
   })
 }
+
+export function setRDFSeed(seed: number | null): RReducer {
+  return (): Partial<RState> => ({
+    rdfGraphSeed: seed,
+  })
+}

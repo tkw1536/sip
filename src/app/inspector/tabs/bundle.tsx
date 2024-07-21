@@ -11,7 +11,11 @@ import BundleGraphBuilder, {
 import { bundles } from '../../../lib/drivers/collection'
 import { type IReducerProps } from '../state'
 import type Driver from '../../../lib/drivers/impl'
-import { setBundleDriver, setBundleLayout } from '../state/reducers/bundle'
+import {
+  setBundleDriver,
+  setBundleLayout,
+  setBundleSeed,
+} from '../state/reducers/bundle'
 import type Graph from '../../../lib/graph'
 
 export default class BundleGraphView extends Component<IReducerProps> {
@@ -29,6 +33,7 @@ export default class BundleGraphView extends Component<IReducerProps> {
     const {
       bundleGraphLayout,
       bundleGraphDriver: bundleGraphRenderer,
+      bundleGraphSeed,
       pathbuilderVersion,
       selectionVersion,
       colorVersion,
@@ -41,6 +46,7 @@ export default class BundleGraphView extends Component<IReducerProps> {
         ref={this.#displayRef}
         loader={bundles}
         driver={bundleGraphRenderer}
+        seed={bundleGraphSeed}
         builderKey={`${pathbuilderVersion}-${selectionVersion}-${colorVersion}`}
         makeGraph={this.#builder}
         options={{ ns, cm }}
@@ -57,6 +63,9 @@ export default class BundleGraphView extends Component<IReducerProps> {
   readonly #handleChangeBundleLayout = (value: string): void => {
     this.props.apply(setBundleLayout(value))
   }
+  readonly #handleChangeBundleSeed = (seed: number | null): void => {
+    this.props.apply(setBundleSeed(seed))
+  }
   readonly #handleResetDriver = (): void => {
     const { current: display } = this.#displayRef
     display?.remount()
@@ -66,7 +75,7 @@ export default class BundleGraphView extends Component<IReducerProps> {
     driver: Driver<BundleNode, BundleEdge, BundleOptions> | null,
   ): ComponentChildren => {
     const {
-      state: { bundleGraphLayout },
+      state: { bundleGraphLayout, bundleGraphSeed },
     } = this.props
 
     return (
@@ -75,8 +84,10 @@ export default class BundleGraphView extends Component<IReducerProps> {
           driverNames={bundles.names}
           driver={driver}
           currentLayout={bundleGraphLayout}
+          seed={bundleGraphSeed}
           onChangeDriver={this.#handleChangeBundleRenderer}
           onChangeLayout={this.#handleChangeBundleLayout}
+          onChangeSeed={this.#handleChangeBundleSeed}
           onResetDriver={this.#handleResetDriver}
         />
         <ExportControl driver={driver} display={this.#displayRef.current} />

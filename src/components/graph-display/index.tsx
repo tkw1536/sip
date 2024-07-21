@@ -28,6 +28,7 @@ interface GraphProps<NodeLabel, EdgeLabel, Options> {
 
   options: Options
   layout: string
+  seed: number | null
 
   panel?:
     | ComponentChildren
@@ -196,13 +197,14 @@ export default class GraphDisplay<
 
     const { name, loader } = this.makeRenderer()
 
-    const { options, layout } = this.props
+    const { options, layout, seed } = this.props
     return (
       <Kernel
         ref={this.#kernelRef}
         graph={graph}
         options={options}
         loader={loader}
+        seed={seed}
         driver={name}
         layout={layout}
         driverRef={this.#driverRef}
@@ -222,7 +224,9 @@ export function DriverControl<NodeLabel, EdgeLabel, Options>(props: {
 
   onChangeDriver: (driver: string) => void
   onChangeLayout: (layout: string) => void
-  onChangeSeed?: (seed: number) => void
+
+  seed: number | null
+  onChangeSeed: (seed: number | null) => void
   onResetDriver: () => void
 }): JSX.Element {
   const {
@@ -232,10 +236,11 @@ export function DriverControl<NodeLabel, EdgeLabel, Options>(props: {
     onChangeDriver,
     onChangeLayout,
     onResetDriver,
+    onChangeSeed,
+    seed,
   } = props
 
   const id = useId()
-  const seed = driver?.seed
 
   return (
     <Control name='Renderer'>
@@ -247,6 +252,7 @@ export function DriverControl<NodeLabel, EdgeLabel, Options>(props: {
 
       <table>
         <tr>
+          <td></td>
           <td>
             <label for={`${id}-renderer`}>Renderer</label>:
           </td>
@@ -271,36 +277,89 @@ export function DriverControl<NodeLabel, EdgeLabel, Options>(props: {
               onInput={onChangeLayout}
             />
           </td>
-
-          <td>
-            <ActionButton
-              onClick={onResetDriver}
-              disabled={driver === null}
-              id={`${id}-reset`}
-            >
-              Reset
-            </ActionButton>
-          </td>
         </tr>
 
-        <tr>
-          <td>
-            <label for={`${id}-seed`}>Seed</label>:
-          </td>
-          <td>
-            <input
-              type='value'
-              readonly
-              value={seed?.toString() ?? ''}
-              id={`${id}-seed`}
-            ></input>
-          </td>
-
-          <td colSpan={3} />
-        </tr>
+        <SeedControls
+          id={`${id}-seed`}
+          driver={driver}
+          seed={seed}
+          onChangeSeed={onChangeSeed}
+          onResetDriver={onResetDriver}
+        />
       </table>
     </Control>
   )
+}
+
+class SeedControls<NodeLabel, EdgeLabel, Options> extends Component<
+  {
+    id: string
+
+    driver: Driver<NodeLabel, EdgeLabel, Options> | null
+
+    seed: number | null
+    onChangeSeed: (seed: number | null) => void
+    onResetDriver: () => void
+  },
+  { enabled: boolean; value: number }
+> {
+  static readonly #defaultValue = 0
+  readonly #handleChangeEnabled = (
+    event: Event & { currentTarget: HTMLInputElement },
+  ): void => {
+    this.props.onChangeSeed(
+      event.currentTarget.checked ? this.props.driver?.seed ?? 0 : null,
+    )
+  }
+  readonly #handleChangeValue = (
+    event: Event & { currentTarget: HTMLInputElement },
+  ): void => {
+    event.preventDefault()
+    const value = event.currentTarget.valueAsNumber
+    if (isNaN(value) || value < 0) {
+      return
+    }
+    this.props.onChangeSeed(value)
+  }
+  render(): ComponentChildren {
+    const { id, driver, seed, onResetDriver } = this.props
+
+    const enabled = seed !== null
+    const value = seed ?? driver?.seed ?? undefined
+
+    return (
+      <tr>
+        <td>
+          <input
+            type='checkbox'
+            checked={enabled}
+            onInput={this.#handleChangeEnabled}
+          ></input>
+        </td>
+        <td>
+          <label for={id}>Seed</label>:
+        </td>
+        <td>
+          <input
+            type='number'
+            id={id}
+            value={value}
+            disabled={!enabled}
+            onInput={this.#handleChangeValue}
+          ></input>
+        </td>
+        <td colspan={2}>
+          <ActionButton
+            onClick={onResetDriver}
+            disabled={driver === null}
+            id={`${id}-reset`}
+          >
+            Reset Graph
+          </ActionButton>
+        </td>
+      </tr>
+    )
+  }
 }
 
 interface ActionButtonProps extends HTMLAttributes<HTMLButtonElement> {

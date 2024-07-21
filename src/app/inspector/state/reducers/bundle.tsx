@@ -7,14 +7,20 @@ export function newBundleDriver(): string {
 }
 
 export function setBundleDriver(name: string): IReducer {
-  return ({ tree }: IState): Partial<IState> => ({
+  return (): Partial<IState> => ({
     bundleGraphDriver: name,
     bundleGraphLayout: defaultLayout,
   })
 }
 
 export function setBundleLayout(layout: string): IReducer {
-  return ({ tree }: IState): Partial<IState> => ({
+  return (): Partial<IState> => ({
     bundleGraphLayout: layout,
+  })
+}
+
+export function setBundleSeed(seed: number | null): IReducer {
+  return (): Partial<IState> => ({
+    bundleGraphSeed: seed,
   })
 }

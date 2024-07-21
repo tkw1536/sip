@@ -40,9 +40,11 @@ export interface IState {
   // renders for the graphs
   bundleGraphDriver: string
   bundleGraphLayout: string
+  bundleGraphSeed: number | null
 
   modelGraphDriver: string
   modelGraphLayout: string
+  modelGraphSeed: number | null
 
   collapsed: NodeSelection
 }

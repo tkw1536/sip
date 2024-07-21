@@ -9,7 +9,7 @@ import RDFGraphBuilder, {
   type RDFEdge,
   type RDFNode,
 } from '../../../lib/graph/builders/rdf'
-import { setRDFDriver, setRDFLayout } from '../state/reducers/rdf'
+import { setRDFDriver, setRDFLayout, setRDFSeed } from '../state/reducers/rdf'
 import type Graph from '../../../lib/graph'
 import type Driver from '../../../lib/drivers/impl'
 import { triples } from '../../../lib/drivers/collection'
@@ -28,6 +28,10 @@ export default class GraphTab extends Component<RReducerProps> {
     this.props.apply(setRDFLayout(value))
   }
 
+  readonly #handleChangeRDFSeed = (seed: number | null): void => {
+    this.props.apply(setRDFSeed(seed))
+  }
+
   readonly #displayRef = createRef<GraphDisplay<RDFNode, RDFEdge, RDFOptions>>()
 
   readonly #handleResetDriver = (): void => {
@@ -36,14 +40,20 @@ export default class GraphTab extends Component<RReducerProps> {
   }
 
   render(): ComponentChildren {
-    const { rdfGraphLayout, rdfGraphDriver, ns, namespaceVersion } =
-      this.props.state
+    const {
+      rdfGraphLayout,
+      rdfGraphDriver,
+      rdfGraphSeed,
+      ns,
+      namespaceVersion,
+    } = this.props.state
 
     return (
       <GraphDisplay
         ref={this.#displayRef}
         loader={triples}
         driver={rdfGraphDriver}
+        seed={rdfGraphSeed}
         builderKey={namespaceVersion.toString()}
         makeGraph={this.buildGraph}
         options={{ ns }}
@@ -57,7 +67,7 @@ export default class GraphTab extends Component<RReducerProps> {
     driver: Driver<RDFNode, RDFEdge, RDFOptions> | null,
   ): ComponentChildren => {
     const {
-      state: { rdfGraphLayout },
+      state: { rdfGraphLayout, rdfGraphSeed },
     } = this.props
 
     return (
@@ -65,9 +75,11 @@ export default class GraphTab extends Component<RReducerProps> {
         <DriverControl
           driverNames={triples.names}
           driver={driver}
+          seed={rdfGraphSeed}
           currentLayout={rdfGraphLayout}
           onChangeDriver={this.#handleChangeRDFRenderer}
           onChangeLayout={this.#handleChangeRDFLayout}
+          onChangeSeed={this.#handleChangeRDFSeed}
           onResetDriver={this.#handleResetDriver}
         />
         <ExportControl driver={driver} display={this.#displayRef.current} />

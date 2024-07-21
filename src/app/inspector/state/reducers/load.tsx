@@ -52,9 +52,11 @@ export default function newInspectorState(
 
     bundleGraphDriver: newBundleDriver(),
     bundleGraphLayout: defaultLayout,
+    bundleGraphSeed: null,
 
     modelGraphDriver: newModelDriver(),
     modelGraphLayout: defaultLayout,
+    modelGraphSeed: null,
 
     collapsed: newCollapsed(),
 
