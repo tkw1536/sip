@@ -1,5 +1,4 @@
 import type Graph from '../..'
-import { type NamespaceMap } from '../../../pathbuilder/namespace'
 import {
   Bundle,
   Field,
@@ -21,25 +20,6 @@ import {
 
 export interface DedupOptions {
   include?: (node: PathTreeNode) => boolean
-}
-
-/** modelNodeLabel returns a simple label for a model node */
-export function modelNodeLabel(node: ModelNode, ns: NamespaceMap): string {
-  if (node instanceof LiteralModelNode) {
-    return Array.from(node.fields)
-      .map(field => field.path.name)
-      .join('\n\n')
-  }
-  if (node instanceof ConceptModelNode && node.bundles.size === 0) {
-    return ns.apply(node.clz)
-  }
-  if (node instanceof ConceptModelNode && node.bundles.size > 0) {
-    const names = Array.from(node.bundles)
-      .map(bundle => 'Bundle ' + bundle.path.name)
-      .join('\n\n')
-    return ns.apply(node.clz) + '\n\n' + names
-  }
-  throw new Error('never reached')
 }
 
 /**

@@ -20,13 +20,13 @@ import {
 import * as styles from './vis-network.module.css'
 import { Type } from '../../utils/media'
 import { LazyValue } from '../../utils/once'
-import { modelNodeLabel } from '../../graph/builders/model/dedup'
 import {
   type ModelOptions,
   type ModelEdge,
   type ModelNode,
   ConceptModelNode,
   LiteralModelNode,
+  type Element,
 } from '../../graph/builders/model/types'
 
 const Vis = new LazyValue(async () => await import('vis-network'))
@@ -205,49 +205,94 @@ export class VisNetworkModelDriver extends VisNetworkDriver<
 > {
   protected async addNodeImpl(
     dataset: Dataset,
-    {
-      options: {
-        ns,
-        cm,
-        display: {
-          Components: { ConceptLabels },
-        },
-      },
-    }: ContextFlags<ModelOptions>,
+    { options }: ContextFlags<ModelOptions>,
     id: string,
     node: ModelNode,
   ): Promise<undefined> {
-    const label = modelNodeLabel(node, ns)
     if (node instanceof LiteralModelNode) {
-      dataset.addNode({
-        id,
-        label,
-
-        shape: 'box',
-        color: cm.getDefault(...node.fields),
-      })
+      this.#addLiteralNode(dataset, options, id, node)
       return
     }
-    if (node instanceof ConceptModelNode && node.bundles.size === 0) {
-      dataset.addNode({
-        id,
-        label: ConceptLabels ? label : undefined,
-        color: {
-          background: cm.defaultColor,
-          border: 'black',
-        },
-      })
-      return
-    }
-    if (node instanceof ConceptModelNode && node.bundles.size > 0) {
-      dataset.addNode({
-        id,
-        label,
-        color: cm.getDefault(...node.bundles),
-      })
+    if (node instanceof ConceptModelNode) {
+      this.#addConceptNode(dataset, options, id, node)
       return
     }
     throw new Error('never reached')
+  }
+
+  #addLiteralNode(
+    dataset: Dataset,
+    options: ModelOptions,
+    id: string,
+    node: LiteralModelNode,
+  ): void {
+    const element = node.render(id, options)
+
+    dataset.addNode({
+      id: element.id,
+      ...VisNetworkModelDriver.#nodeData(element),
+    })
+
+    if (typeof element.attached === 'undefined') {
+      return
+    }
+
+    element.attached.fields.forEach(({ node, edge }) => {
+      dataset.addNode({
+        id: node.id,
+        ...VisNetworkModelDriver.#nodeData(node),
+      })
+
+      dataset.addEdge({
+        from: element.id,
+        to: node.id,
+        ...VisNetworkModelDriver.#edgeData(edge),
+      })
+    })
+  }
+
+  #addConceptNode(
+    dataset: Dataset,
+    options: ModelOptions,
+    id: string,
+    node: ConceptModelNode,
+  ): void {
+    const element = node.render(id, options)
+
+    dataset.addNode({
+      id: element.id,
+      ...VisNetworkModelDriver.#nodeData(element),
+    })
+
+    if (typeof element.attached === 'undefined') {
+      return
+    }
+
+    element.attached.fields.forEach(({ node, edge }) => {
+      dataset.addNode({
+        id: node.id,
+        ...VisNetworkModelDriver.#nodeData(node),
+      })
+
+      dataset.addEdge({
+        from: element.id,
+        to: node.id,
+        ...VisNetworkModelDriver.#edgeData(edge),
+      })
+    })
+
+    element.attached.bundles.forEach(({ node, edge }) => {
+      dataset.addNode({
+        id: node.id,
+        ...VisNetworkModelDriver.#nodeData(node),
+      })
+
+      dataset.addEdge({
+        from: element.id,
+        to: node.id,
+        ...VisNetworkModelDriver.#edgeData(edge),
+      })
+    })
   }
 
   protected async addEdgeImpl(
@@ -259,14 +304,43 @@ export class VisNetworkModelDriver extends VisNetworkDriver<
     edge: ModelEdge,
   ): Promise<undefined> {
     const element = edge.render(id, options)
-
     dataset.addEdge({
       from,
       to,
+      ...VisNetworkModelDriver.#edgeData(element),
+    })
+  }
+
+  static readonly #defaultNodeColor = 'white'
+  static readonly #defaultEdgeColor = 'black'
+
+  static #nodeData(
+    element: Element,
+    extra?: VisCommon,
+  ): Omit<VisNode<string | number>, 'id'> {
+    return {
+      color: {
+        background: element.color ?? this.#defaultNodeColor,
+        border: this.#defaultEdgeColor,
+      },
+      label: element.label ?? undefined,
+
+      ...extra,
+    }
+  }
+
+  static #edgeData(
+    element: Element,
+    extra?: VisCommon,
+  ): Omit<VisEdge<string | number>, 'from' | 'to'> {
+    return {
+      color: element.color ?? this.#defaultEdgeColor,
+      label: element.label ?? undefined,
+
       arrows: 'to',
 
-      label: element.label ?? undefined,
-    })
+      ...(extra ?? {}),
+    }
   }
 }
 

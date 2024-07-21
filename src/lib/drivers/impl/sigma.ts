@@ -302,7 +302,7 @@ export class SigmaModelDriver extends SigmaDriver<
       color: element.color ?? this.#defaultNodeColor,
       label: element.label ?? undefined,
 
-      ...extra,
+      ...(extra ?? {}),
     }
   }
 
@@ -314,7 +314,7 @@ export class SigmaModelDriver extends SigmaDriver<
       type: 'arrow',
       arrow: 'target',
 
-      ...extra,
+      ...(extra ?? {}),
     }
   }
 }
