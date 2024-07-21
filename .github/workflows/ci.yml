@@ -3,6 +3,8 @@ name: CI & Deploy
 on:
   push:
     branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
 
 jobs:
   build:
@@ -15,7 +17,6 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: 22.2.0
-        yarn-version: '1.22.22'
 
     - name: Install Dependencies
       run: |
@@ -35,8 +36,3 @@ jobs:
     - name: Run Build
       run: |
         yarn build
-    - name: Upload artifact
-      uses: actions/upload-artifact@v2
-      with:
-        name: pages
-        path: dist
