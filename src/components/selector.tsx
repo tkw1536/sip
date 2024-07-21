@@ -1,6 +1,7 @@
 import { Component, type ComponentChild } from 'preact'
 
 interface ValueSelectorProps {
+  id?: string
   values?: string[]
   value?: string
   disabled?: boolean
@@ -36,19 +37,20 @@ export default class ValueSelector extends Component<
   }
 
   render(): ComponentChild {
-    const { value, values } = this.props
+    const { id, value, values } = this.props
     if (typeof values === 'undefined') {
       if (typeof value !== 'undefined') {
         return (
-          <select value={value} disabled>
+          <select id={id} value={value} disabled>
             <option>{value}</option>
           </select>
         )
       }
-      return <select disabled />
+      return <select id={id} disabled />
     }
     return (
       <select
+        id={id}
         value={value}
         disabled={this.disabled}
         onInput={this.#handleChange}

@@ -1,8 +1,9 @@
 import {
+  type ContextDetails,
   type ContextFlags,
   DriverImpl,
   ErrorUnsupported,
-  type MountFlags,
+  type MountInfo,
   type Size,
   defaultLayout,
 } from '.'
@@ -27,6 +28,7 @@ import {
   type Element,
 } from '../../graph/builders/model/labels'
 import { type Attributes } from 'graphology-types'
+import { prng } from '../../utils/prng'
 
 interface SigmaMount {
   beforeStop?: () => void
@@ -56,12 +58,7 @@ abstract class SigmaDriver<NodeLabel, EdgeLabel, Options> extends DriverImpl<
   ): Promise<undefined>
 
   readonly driverName = 'Sigma.js'
-  readonly supportedLayouts = [
-    defaultLayout,
-    'force2atlas',
-    'circular',
-    'circlepack',
-  ]
+  readonly layouts = [defaultLayout, 'force2atlas', 'circular', 'circlepack']
 
   protected settings(): Partial<Settings> {
     return {
@@ -78,8 +75,8 @@ abstract class SigmaDriver<NodeLabel, EdgeLabel, Options> extends DriverImpl<
   }
 
   protected mountImpl(
-    graph: Graph,
-    { container, layout }: MountFlags<Options>,
+    { context: graph, flags: { layout }, seed }: ContextDetails<Graph, Options>,
+    element: HTMLElement,
   ): SigmaMount {
     let onStop: (() => void) | undefined
     switch (layout === defaultLayout ? 'force2atlas' : layout) {
@@ -95,7 +92,7 @@ abstract class SigmaDriver<NodeLabel, EdgeLabel, Options> extends DriverImpl<
 
         break
       case 'circlepack':
-        circlepack.assign(graph)
+        circlepack.assign(graph, { rng: prng(seed) })
         break
       case 'circular': /* fallthrough */
       default:
@@ -105,35 +102,43 @@ abstract class SigmaDriver<NodeLabel, EdgeLabel, Options> extends DriverImpl<
 
     const settings = this.settings()
     return {
-      sigma: new Sigma(graph, container, settings),
+      sigma: new Sigma(graph, element, settings),
       beforeStop: onStop,
     }
   }
 
   protected resizeMountImpl(
-    sigma: SigmaMount,
-    graph: Graph,
-    flags: MountFlags<Options>,
+    details: ContextDetails<Graph, Options>,
+    { mount: sigma }: MountInfo<SigmaMount>,
     { width, height }: Size,
   ): undefined {
     sigma.sigma.resize()
   }
 
-  protected unmountImpl(sigma: SigmaMount, graph: Graph): void {
+  protected unmountImpl(
+    details: ContextDetails<Graph, Options>,
+    { mount: sigma }: MountInfo<SigmaMount>,
+  ): void {
     sigma.sigma.kill()
     if (typeof sigma.beforeStop === 'function') {
       sigma.beforeStop()
     }
   }
 
-  readonly supportedExportFormats = []
+  readonly exportFormats = []
   protected async exportImpl(
-    graph: Graph,
-    flags: ContextFlags<Options>,
+    details: ContextDetails<Graph, Options>,
+    info: MountInfo<SigmaMount> | null,
     format: string,
-    mount?: { mount: SigmaMount; flags: MountFlags<Options> },
   ): Promise<Blob> {
     throw ErrorUnsupported
+  }
+
+  protected getSeedImpl(
+    details: ContextDetails<Graph, Options>,
+    info: MountInfo<SigmaMount> | null,
+  ): number | null {
+    return details.seed
   }
 }
 
@@ -202,7 +207,6 @@ export class SigmaModelDriver extends SigmaDriver<
   ModelEdge,
   ModelOptions
 > {
-  static readonly #defaultColor = 'black'
   protected async addNodeImpl(
     graph: Graph,
     { options }: ContextFlags<ModelOptions>,

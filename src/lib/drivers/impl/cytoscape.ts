@@ -5,10 +5,11 @@ import {
   type ElementDefinition,
 } from 'cytoscape'
 import {
+  type ContextDetails,
   type ContextFlags,
   DriverImpl,
   ErrorUnsupported,
-  type MountFlags,
+  type MountInfo,
   type Size,
   defaultLayout,
 } from '.'
@@ -72,7 +73,7 @@ abstract class CytoscapeDriver<
   ): Promise<undefined>
 
   readonly driverName = 'Cytoscape'
-  readonly supportedLayouts = [
+  readonly layouts = [
     defaultLayout,
     'grid',
     'circle',
@@ -183,39 +184,49 @@ abstract class CytoscapeDriver<
   }
 
   protected mountImpl(
-    elements: Elements,
-    { container, layout, definitelyAcyclic }: MountFlags<Options>,
+    {
+      context: elements,
+      flags: { layout, definitelyAcyclic },
+    }: ContextDetails<Elements, Options>,
+    element: HTMLElement,
   ): CytoscapeCore {
     const options = this.options(layout, definitelyAcyclic)
     return Cytoscape.value({
-      container,
+      container: element,
       elements,
       ...options,
     })
   }
 
   protected resizeMountImpl(
-    c: CytoscapeCore,
-    elements: Elements,
-    flags: MountFlags<Options>,
-    { width, height }: Size,
+    details: ContextDetails<Elements, Options>,
+    { mount: c }: MountInfo<CytoscapeCore>,
+    size: Size,
   ): undefined {
     // automatically resized ?
     c.resize()
   }
 
-  protected unmountImpl(c: CytoscapeCore, elements: unknown): void {
+  protected unmountImpl(
+    details: ContextDetails<Elements, Options>,
+    { mount: c }: MountInfo<CytoscapeCore>,
+  ): void {
     c.destroy()
   }
 
-  readonly supportedExportFormats = []
+  readonly exportFormats = []
   protected async exportImpl(
-    elements: Elements,
-    flags: ContextFlags<Options>,
+    details: ContextDetails<Elements, Options>,
+    info: MountInfo<CytoscapeCore> | null,
     format: string,
-    mount?: { mount: CytoscapeCore; flags: MountFlags<Options> },
   ): Promise<Blob> {
     throw ErrorUnsupported
+  }
+  protected getSeedImpl(
+    details: ContextDetails<Elements, Options>,
+    info: MountInfo<CytoscapeCore> | null,
+  ): number | null {
+    return null // not supported
   }
 }
 

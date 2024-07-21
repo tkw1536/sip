@@ -1,8 +1,9 @@
 import {
+  type ContextDetails,
   type ContextFlags,
   DriverImpl,
   ErrorUnsupported,
-  type MountFlags,
+  type MountInfo,
   type Size,
   defaultLayout,
 } from '.'
@@ -52,15 +53,20 @@ abstract class VisNetworkDriver<
   ): Promise<undefined>
 
   readonly driverName = 'vis-network'
-  readonly supportedLayouts = [defaultLayout, 'hierarchical', 'force2atlas']
+  readonly layouts = [defaultLayout, 'hierarchical', 'force2atlas']
 
-  protected options(layout: string, definitelyAcyclic: boolean): VisOptions {
+  protected options(
+    seed: number,
+    layout: string,
+    definitelyAcyclic: boolean,
+  ): VisOptions {
     const hierarchical =
       layout === defaultLayout ? definitelyAcyclic : layout === 'hierarchical'
 
     return hierarchical
       ? {
           layout: {
+            randomSeed: seed,
             hierarchical: {
               direction: 'UD',
               sortMethod: 'directed',
@@ -74,6 +80,9 @@ abstract class VisNetworkDriver<
           },
         }
       : {
+          layout: {
+            randomSeed: seed,
+          },
           physics: {
             barnesHut: {
               springConstant: 0,
@@ -105,20 +114,23 @@ abstract class VisNetworkDriver<
   }
 
   protected mountImpl(
-    dataset: Dataset,
-    { container, layout, definitelyAcyclic }: MountFlags<Options>,
+    {
+      context: dataset,
+      flags: { layout, definitelyAcyclic },
+      seed,
+    }: ContextDetails<Dataset, Options>,
+    element: HTMLElement,
   ): Network {
-    container.classList.add(styles.container)
+    element.classList.add(styles.container)
 
-    const options = this.options(layout, definitelyAcyclic)
+    const options = this.options(seed, layout, definitelyAcyclic)
     options.autoResize = false
-    return new Vis.value.Network(container, dataset.toData(), options)
+    return new Vis.value.Network(element, dataset.toData(), options)
   }
 
   protected resizeMountImpl(
-    network: Network,
-    dataset: Dataset,
-    flags: MountFlags<Options>,
+    details: ContextDetails<Dataset, Options>,
+    { mount: network }: MountInfo<Network>,
     { width, height }: Size,
   ): undefined {
     network.setSize(`${width}px`, `${height}px`)
@@ -126,23 +138,36 @@ abstract class VisNetworkDriver<
   }
 
   protected unmountImpl(
-    network: Network,
-    dataset: Dataset,
-    { container }: MountFlags<Options>,
+    details: ContextDetails<Dataset, Options>,
+    { mount: network, element }: MountInfo<Network>,
   ): void {
-    container.classList.remove(styles.container)
+    element.classList.remove(styles.container)
     network.destroy()
   }
 
-  readonly supportedExportFormats = ['png']
+  readonly exportFormats = ['png']
   protected async exportImpl(
-    dataset: Dataset,
-    flags: ContextFlags<Options>,
+    { context: dataset }: ContextDetails<Dataset, Options>,
+    info: MountInfo<Network> | null,
     format: string,
-    mount?: { mount: Network; flags: MountFlags<Options> },
   ): Promise<Blob> {
-    if (typeof mount === 'undefined') throw ErrorUnsupported
-    return await dataset.drawNetworkClone(mount.mount, 1000, 1000, Type.PNG, 1)
+    if (info === null) throw ErrorUnsupported
+    return await dataset.drawNetworkClone(info.mount, 1000, 1000, Type.PNG, 1)
+  }
+
+  protected getSeedImpl(
+    details: ContextDetails<Dataset, Options>,
+    info: MountInfo<Network> | null,
+  ): number | null {
+    if (info === null) {
+      return null
+    }
+    const seed = info.mount.getSeed()
+    if (typeof seed === 'number') {
+      return seed
+    }
+
+    return null
   }
 }
 

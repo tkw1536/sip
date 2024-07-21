@@ -47,13 +47,14 @@ async function main(): Promise<void> {
   const flags: ContextFlags<ModelOptions> = {
     options: { ns, cm, display: newModelDisplay() },
     definitelyAcyclic: graph.definitelyAcyclic,
-    layout: driver.supportedLayouts[0],
-    initialSize: { width: 1000, height: 1000 },
+    layout: driver.layouts[0],
+    size: { width: 1000, height: 1000 },
+    seed: null,
   }
 
   // initialize and create blob
-  await driver.initialize(flags, graph, () => true)
-  const blob = await driver.export(flags, 'svg')
+  await driver.initialize(graph, flags, () => true)
+  const blob = await driver.export('svg')
 
   // write the actual blob to the console
   process.stdout.write(await blob.text())

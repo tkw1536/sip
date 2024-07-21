@@ -16,6 +16,8 @@ import { Operation } from '../../lib/utils/operation'
 import type Driver from '../../lib/drivers/impl'
 import ValueSelector from '../selector'
 import ErrorDisplay from '../error'
+import { useCallback, useId } from 'preact/hooks'
+import { type HTMLAttributes } from 'preact/compat'
 
 interface GraphProps<NodeLabel, EdgeLabel, Options> {
   loader: DriverLoader<NodeLabel, EdgeLabel, Options>
@@ -212,7 +214,7 @@ export default class GraphDisplay<
 /**
  * A control to pick which driver to control.
  */
-export class DriverControl<NodeLabel, EdgeLabel, Options> extends Component<{
+export function DriverControl<NodeLabel, EdgeLabel, Options>(props: {
   driverNames: string[]
   driver: Driver<NodeLabel, EdgeLabel, Options> | null
 
@@ -220,53 +222,101 @@ export class DriverControl<NodeLabel, EdgeLabel, Options> extends Component<{
 
   onChangeDriver: (driver: string) => void
   onChangeLayout: (layout: string) => void
+  onChangeSeed?: (seed: number) => void
   onResetDriver: () => void
-}> {
-  readonly #handleChangeDriver = (driver: string): void => {
-    this.props.onChangeDriver(driver)
-  }
+}): JSX.Element {
+  const {
+    driver,
+    driverNames,
+    currentLayout,
+    onChangeDriver,
+    onChangeLayout,
+    onResetDriver,
+  } = props
 
-  readonly #handleChangeLayout = (layout: string): void => {
-    this.props.onChangeLayout(layout)
-  }
+  const id = useId()
+  const seed = driver?.seed
 
-  readonly #handleReset = (event: Event): void => {
-    event.preventDefault()
-    this.props.onResetDriver()
-  }
+  return (
+    <Control name='Renderer'>
+      <p>
+        This graph can be shown using different renderers. Each renderer
+        supports different layouts.
+      </p>
+      <p>Changing either value will update the graph.</p>
 
-  render(): ComponentChildren {
-    const { driver, driverNames, currentLayout } = this.props
+      <table>
+        <tr>
+          <td>
+            <label for={`${id}-renderer`}>Renderer</label>:
+          </td>
+          <td>
+            <ValueSelector
+              id={`${id}-renderer`}
+              values={driverNames}
+              value={driver?.driverName}
+              onInput={onChangeDriver}
+            />
+          </td>
 
-    return (
-      <Control name='Renderer'>
-        <p>
-          This graph can be shown using different renderers. Each renderer
-          supports different layouts.
-        </p>
-        <p>Changing either value will update the graph.</p>
-        <p>
-          Renderer: &nbsp;
-          <ValueSelector
-            values={driverNames}
-            value={driver?.driverName}
-            onInput={this.#handleChangeDriver}
-          />
-          &nbsp; Layout: &nbsp;
-          <ValueSelector
-            disabled={driver === null}
-            value={currentLayout}
-            values={driver?.supportedLayouts}
-            onInput={this.#handleChangeLayout}
-          />
-          &nbsp;
-          <button onClick={this.#handleReset} disabled={driver === null}>
-            Reset
-          </button>
-        </p>
-      </Control>
-    )
-  }
+          <td>
+            <label for={`${id}-layout`}>Layout</label>:
+          </td>
+          <td>
+            <ValueSelector
+              id={`${id}-layout`}
+              disabled={driver === null}
+              value={currentLayout}
+              values={driver?.layouts}
+              onInput={onChangeLayout}
+            />
+          </td>
+
+          <td>
+            <ActionButton
+              onClick={onResetDriver}
+              disabled={driver === null}
+              id={`${id}-reset`}
+            >
+              Reset
+            </ActionButton>
+          </td>
+        </tr>
+
+        <tr>
+          <td>
+            <label for={`${id}-seed`}>Seed</label>:
+          </td>
+          <td>
+            <input
+              type='value'
+              readonly
+              value={seed?.toString() ?? ''}
+              id={`${id}-seed`}
+            ></input>
+          </td>
+
+          <td colSpan={3} />
+        </tr>
+      </table>
+    </Control>
+  )
+}
+
+interface ActionButtonProps extends HTMLAttributes<HTMLButtonElement> {
+  onClick?: () => void
+}
+function ActionButton(props: ActionButtonProps): JSX.Element {
+  const onClick = useCallback(
+    (event: Event) => {
+      event.preventDefault()
+      if (typeof props.onClick === 'function') {
+        props.onClick()
+      }
+    },
+    [props.onClick],
+  )
+  return <button {...props} onClick={onClick} />
 }
 
 export class ExportControl<NodeLabel, EdgeLabel, Options> extends Component<{
@@ -286,7 +336,7 @@ export class ExportControl<NodeLabel, EdgeLabel, Options> extends Component<{
 
   render(): ComponentChildren {
     // check that there are some export formats
-    const exportFormats = this.props.driver?.supportedExportFormats
+    const exportFormats = this.props.driver?.exportFormats
     if (typeof exportFormats === 'undefined' || exportFormats.length === 0) {
       return null
     }

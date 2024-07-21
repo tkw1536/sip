@@ -1,7 +1,8 @@
 import {
+  type ContextDetails,
   type ContextFlags,
   DriverImpl,
-  type MountFlags,
+  type MountInfo,
   type Size,
   defaultLayout,
 } from '..'
@@ -54,18 +55,21 @@ abstract class GraphvizDriver<NodeLabel, EdgeLabel, Options> extends DriverImpl<
   Graph
 > {
   readonly driverName: string = 'GraphViz'
-  readonly supportedLayouts = [defaultLayout, 'dot', 'fdp', 'circo', 'neato']
+  readonly layouts = [defaultLayout, 'dot', 'fdp', 'circo', 'neato']
   protected options({ layout }: ContextFlags<Options>): RenderOptions {
     const engine = layout === defaultLayout ? 'dot' : layout
     return { engine }
   }
 
-  protected async newContextImpl(): Promise<Graph> {
+  protected async newContextImpl(
+    flags: ContextFlags<Options>,
+    seed: number,
+  ): Promise<Graph> {
     return {
       name: '',
       strict: false,
       directed: true,
-      graphAttributes: { compound: true },
+      graphAttributes: { compound: true, start: seed },
       nodeAttributes: { label: '""', tooltip: '""' },
       edgeAttributes: { label: '""', tooltip: '""' },
       nodes: [],
@@ -158,19 +162,22 @@ abstract class GraphvizDriver<NodeLabel, EdgeLabel, Options> extends DriverImpl<
     })
   }
 
-  protected mountImpl(context: Context, flags: MountFlags<Options>): Mount {
+  protected mountImpl(
+    { context, flags: { size } }: ContextDetails<Context, Options>,
+    element: HTMLElement,
+  ): Mount {
     // mount the svg we have already rendered
-    flags.container.innerHTML = context.svg
+    element.innerHTML = context.svg
 
-    const svg = flags.container.querySelector('svg')
+    const svg = element.querySelector('svg')
     if (svg === null) {
       throw new Error('unable to mount svg element')
     }
 
     // create the svg element and add it to the container
-    svg.style.height = `${flags.currentSize.height}px`
-    svg.style.width = `${flags.currentSize.width}px`
-    flags.container.appendChild(svg)
+    svg.style.height = `${size.height}px`
+    svg.style.width = `${size.width}px`
+    element.appendChild(svg)
 
     // add zoom controls
     const zoom = spz.value(svg, {
@@ -183,9 +190,8 @@ abstract class GraphvizDriver<NodeLabel, EdgeLabel, Options> extends DriverImpl<
   }
 
   protected resizeMountImpl(
-    { svg, zoom }: Mount,
-    ctx: Context,
-    flags: MountFlags<Options>,
+    details: ContextDetails<Context, Options>,
+    { mount: { svg, zoom } }: MountInfo<Mount>,
     { width, height }: Size,
   ): undefined {
     svg.style.height = `${height}px`
@@ -195,18 +201,17 @@ abstract class GraphvizDriver<NodeLabel, EdgeLabel, Options> extends DriverImpl<
   }
 
   protected unmountImpl(
-    { svg, zoom }: Mount,
-    ctx: Context,
-    { container }: MountFlags<Options>,
+    details: ContextDetails<Context, Options>,
+    { mount: { svg, zoom }, element }: MountInfo<Mount>,
   ): void {
     zoom.destroy()
-    container.removeChild(svg)
+    element.removeChild(svg)
   }
 
-  readonly supportedExportFormats = ['svg', 'gv']
+  readonly exportFormats = ['svg', 'gv']
   protected async exportImpl(
-    { canon, svg }: Context,
-    flags: ContextFlags<Options>,
+    { context: { canon, svg } }: ContextDetails<Context, Options>,
+    info: MountInfo<Mount> | null,
     format: string,
   ): Promise<Blob> {
     switch (format) {
@@ -218,6 +223,20 @@ abstract class GraphvizDriver<NodeLabel, EdgeLabel, Options> extends DriverImpl<
       }
     }
     throw new Error('never reached')
+  }
+
+  protected getSeedImpl(
+    details: ContextDetails<Context, Options>,
+    info: MountInfo<Mount> | null,
+  ): number | null {
+    const attrs = details.context.graph.graphAttributes
+    if (Object.hasOwn(attrs, 'start')) {
+      const { start } = attrs
+      if (typeof start === 'number') {
+        return start
+      }
+    }
+    return null
   }
 }
 

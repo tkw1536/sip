@@ -4,12 +4,7 @@ import * as styles from './index.module.css'
 import { Operation } from '../utils/operation'
 import type Driver from './impl'
 import ErrorDisplay from '../../components/error'
-import {
-  type DriverClass,
-  type ContextFlags,
-  type MountFlags,
-  type Size,
-} from './impl'
+import { type DriverClass, type ContextFlags, type Size } from './impl'
 import Spinner from '../../components/spinner'
 
 interface KernelProps<NodeLabel, EdgeLabel, Options> {
@@ -44,11 +39,10 @@ export default class Kernel<NodeLabel, EdgeLabel, Options> extends Component<
 
   state: KernelState = { driverLoading: false }
   #mod: {
-    flags: MountFlags<Options>
     driver: Driver<NodeLabel, EdgeLabel, Options>
   } | null = null
 
-  #mountDriver(): void {
+  #mountDriver(seed: number | null): void {
     const { current: container } = this.#container
     const { size } = this.state
     if (
@@ -68,25 +62,20 @@ export default class Kernel<NodeLabel, EdgeLabel, Options> extends Component<
       driverRef,
     } = this.props
 
-    const ctxFlags: ContextFlags<Options> = Object.freeze({
+    const flags: ContextFlags<Options> = Object.freeze({
       options,
       definitelyAcyclic: this.props.graph.definitelyAcyclic,
 
       layout,
-      initialSize: size,
-    })
-
-    const flags: MountFlags<Options> = Object.freeze({
-      container,
-      currentSize: size,
-      ...ctxFlags,
+      size,
+      seed,
     })
 
     // create a ticket, and make the context
     const ticket = this.#mount.ticket()
 
     this.setState({ driverLoading: true, driverError: undefined }, () => {
-      this.#loadContext(ticket, graph, loader, name, ctxFlags)
+      this.#loadContext(ticket, graph, loader, name, flags)
         .then(async driver => {
           // await to set the new state
           await new Promise<void>((resolve, reject) => {
@@ -106,13 +95,13 @@ export default class Kernel<NodeLabel, EdgeLabel, Options> extends Component<
           })
 
           // check that we have a valid layout
-          if (!driver.supportedLayouts.includes(flags.layout)) {
+          if (!driver.layouts.includes(flags.layout)) {
             console.error('cannot mount: unsupported driver layout received')
             return
           }
 
-          driver.mount(flags)
-          this.#mod = { flags, driver }
+          driver.mount(container)
+          this.#mod = { driver }
           this.#resizeMount()
 
           // update the ref
@@ -140,17 +129,21 @@ export default class Kernel<NodeLabel, EdgeLabel, Options> extends Component<
     const DriverClass = await loader.get(name)
     const driver = new DriverClass()
 
-    await driver.initialize(ctxFlags, graph, ticket)
+    await driver.initialize(graph, ctxFlags, ticket)
 
     return driver
   }
 
-  #unmountDriver(): void {
-    if (this.#mod === null) return
+  #unmountDriver(): number | null {
+    if (this.#mod === null) return null
 
-    this.#mod.driver.unmount(this.#mod.flags)
+    const seed = this.#mod.driver.seed
+
+    this.#mod.driver.unmount()
     this.#mod = null
     setRef(this.props.driverRef, null)
+
+    return seed
   }
 
   #resizeMount(): void {
@@ -158,25 +151,24 @@ export default class Kernel<NodeLabel, EdgeLabel, Options> extends Component<
     if (this.#mod == null || typeof size === 'undefined') return
 
     // call the resize function and store the new size
-    this.#mod.driver.resize(this.#mod.flags, size)
-    this.#mod.flags = Object.freeze({ ...this.#mod.flags, size })
+    this.#mod.driver.resize(size)
   }
 
   async exportBlob(format: string): Promise<Blob> {
     if (this.#mod == null) throw new Error('instance not setup')
 
     const { driver } = this.#mod
-    if (!driver.supportedExportFormats.includes(format)) {
-      throw new Error('unsupported blob returned')
+    if (!driver.exportFormats.includes(format)) {
+      throw new Error('unsupported export format attempted')
     }
 
-    return await driver.export(this.#mod.flags, format, this.#mod.flags)
+    return await driver.export(format)
   }
 
   /** remounts the current driver, resetting it to default */
-  remountDriver(): void {
-    this.#unmountDriver()
-    this.#mountDriver()
+  remountDriver(forceSeed?: number | null): void {
+    const oldSeed = this.#unmountDriver()
+    this.#mountDriver(typeof forceSeed !== 'undefined' ? forceSeed : oldSeed)
   }
 
   readonly #mount = new Operation()
@@ -192,9 +184,14 @@ export default class Kernel<NodeLabel, EdgeLabel, Options> extends Component<
     const { current: container } = this.#container
     if (typeof size === 'undefined' || container === null) return
 
+    const { remount, keepSeed } = this.#shouldRemount(
+      previousProps,
+      previousState,
+    )
     // if any of the critical properties changed => create a new driver
-    if (this.#shouldRemount(previousProps, previousState)) {
-      this.remountDriver()
+    if (remount) {
+      const controlSeed: number | null = null // TODO: get the controlled seed from somewhere
+      this.remountDriver(!keepSeed ? controlSeed : undefined)
       return
     }
 
@@ -208,19 +205,23 @@ export default class Kernel<NodeLabel, EdgeLabel, Options> extends Component<
   #shouldRemount(
     previousProps: typeof this.props,
     previousState: typeof this.state,
-  ): boolean {
-    return (
+  ): { remount: boolean; keepSeed: boolean } {
+    const theDriverUnchanged =
+      previousProps.driver === this.props.driver &&
+      previousProps.loader === this.props.loader
+
+    const remount =
       // we didn't have a size before, but we do now
       (typeof previousState.size === 'undefined' &&
         typeof this.state.size !== 'undefined') ||
       // the driver or loader changed
-      previousProps.driver !== this.props.driver ||
-      previousProps.loader !== this.props.loader ||
+      !theDriverUnchanged ||
       // the graph changed
       previousProps.graph !== this.props.graph ||
       // the layout changed
       previousProps.layout !== this.props.layout
-    )
+
+    return { remount, keepSeed: theDriverUnchanged }
   }
 
   #shouldResizeMount(
