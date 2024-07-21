@@ -22,13 +22,13 @@ import {
   type RDFEdge,
   type RDFNode,
 } from '../../../graph/builders/rdf'
-import { modelNodeLabel } from '../../../graph/builders/model/dedup'
 import {
   type ModelOptions,
   type ModelEdge,
   type ModelNode,
   LiteralModelNode,
   ConceptModelNode,
+  type Element,
 } from '../../../graph/builders/model/types'
 
 const spz = new LazyValue(
@@ -269,68 +269,42 @@ class GraphVizModelDriver extends GraphvizDriver<
     this.driverName = compact ? 'GraphViz-compact' : 'GraphViz'
   }
 
-  static readonly #defaultColor = 'black'
+  static readonly #defaultEdgeColor = 'black'
+  static readonly #defaultNodeColor = 'white'
 
   protected addNodeImpl(
     graph: Graph,
-    flags: ContextFlags<ModelOptions>,
+    { options }: ContextFlags<ModelOptions>,
     id: string,
     node: ModelNode,
   ): undefined {
     if (node instanceof LiteralModelNode) {
-      this.#makeFieldNodes(graph, flags, id, node)
+      this.#addLiteralNode(graph, options, id, node)
       return
     }
-    const {
-      options: {
-        ns,
-        cm,
-        display: {
-          Components: { ConceptLabels },
-        },
-      },
-    } = flags
-    if (node instanceof ConceptModelNode && node.bundles.size === 0) {
-      graph.nodes.push({
-        name: id,
-        attributes: {
-          label: ConceptLabels ? ns.apply(node.clz) : '',
-          tooltip: ConceptLabels ? node.clz : '',
-
-          style: 'filled',
-          fillcolor: cm.defaultColor,
-        },
-      })
-      return
-    }
-    if (node instanceof ConceptModelNode && node.bundles.size > 0) {
-      this.#makeBundleNodes(graph, flags, id, node)
+    if (node instanceof ConceptModelNode) {
+      this.#addConceptNode(graph, options, id, node)
       return
     }
     throw new Error('never reached')
   }
 
-  #makeBundleNodes(
+  #addLiteralNode(
     graph: Graph,
-    { options: { ns, cm } }: ContextFlags<ModelOptions>,
+    options: ModelOptions,
     id: string,
-    node: ConceptModelNode,
+    node: LiteralModelNode,
   ): void {
-    if (this.compact) {
+    const element = node.render(id, options)
+    if (typeof element.attached === 'undefined') {
       graph.nodes.push({
-        name: id,
-        attributes: {
-          label: modelNodeLabel(node, ns),
-          tooltip: node.clz,
-
-          style: 'filled',
-          fillcolor: cm.getDefault(...node.bundles),
-        },
+        name: element.id,
+        attributes: GraphVizModelDriver.#attrs(element, 'node', {
+          shape: 'box',
+        }),
       })
       return
     }
-
-    const { clz, bundles } = node
 
     const sg: Subgraph = {
       name: `subgraph-${id}`,
@@ -343,57 +317,37 @@ class GraphVizModelDriver extends GraphvizDriver<
     }
 
     sg.nodes.push({
-      name: id,
-      attributes: {
-        label: ns.apply(clz),
-        tooltip: node.clz,
-
-        shape: 'box',
-      },
+      name: element.id,
+      attributes: GraphVizModelDriver.#attrs(element, 'node'),
     })
 
-    Array.from(bundles).forEach((bundle, idx) => {
-      const bundleID = `${id}-${idx}`
+    element.attached.fields.forEach(({ node, edge }) => {
       sg.nodes.push({
-        name: bundleID,
-        attributes: {
-          label: 'Bundle ' + bundle.path.name,
-          tooltip: bundle.path.id,
-
-          shape: 'box',
-          style: 'filled',
-          fillcolor: cm.getDefault(bundle),
-        },
+        name: node.id,
+        attributes: GraphVizModelDriver.#attrs(node, 'node', { shape: 'box' }),
       })
       sg.edges.push({
-        head: id,
-        tail: bundleID,
-        attributes: {},
+        head: element.id,
+        tail: node.id,
+
+        attributes: GraphVizModelDriver.#attrs(edge, 'edge'),
       })
     })
 
     graph.subgraphs.push(sg)
   }
 
-  #makeFieldNodes(
+  #addConceptNode(
     graph: Graph,
-    { options: { ns, cm } }: ContextFlags<ModelOptions>,
+    options: ModelOptions,
     id: string,
-    node: LiteralModelNode,
+    node: ConceptModelNode,
   ): void {
-    const label = modelNodeLabel(node, ns)
-    if (this.compact) {
+    const element = node.render(id, options)
+    if (typeof element.attached === 'undefined') {
       graph.nodes.push({
-        name: id,
-        attributes: {
-          label,
-          tooltip: Array.from(node.fields)
-            .map(f => f.path.id)
-            .join('\n'),
-
-          style: 'filled',
-          fillcolor: cm.getDefault(...node.fields), // TODO: make this custom
-        },
+        name: element.id,
+        attributes: GraphVizModelDriver.#attrs(element, 'node'),
       })
       return
     }
@@ -409,39 +363,63 @@ class GraphVizModelDriver extends GraphvizDriver<
     }
 
     sg.nodes.push({
-      name: id,
-      attributes: {
-        label: 'Literal',
-        tooltip: 'Literal',
-
-        shape: 'box',
-      },
+      name: element.id,
+      attributes: GraphVizModelDriver.#attrs(element, 'node'),
     })
 
-    Array.from(node.fields).forEach((field, idx) => {
-      const fieldID = `${id}-${idx}`
+    element.attached.fields.forEach(({ node, edge }) => {
       sg.nodes.push({
-        name: fieldID,
-        attributes: {
-          label: field.path.name,
-          tooltip: field.path.id,
-
-          style: 'filled',
-          fillcolor: cm.getDefault(field),
-        },
+        name: node.id,
+        attributes: GraphVizModelDriver.#attrs(node, 'node', {
+          shape: 'box',
+        }),
       })
       sg.edges.push({
-        head: fieldID,
-        tail: id,
+        head: element.id,
+        tail: node.id,
 
-        attributes: {
-          label: field.path.informativeFieldType ?? '',
-          tooltip: field.path.informativeFieldType ?? '',
-        },
+        attributes: GraphVizModelDriver.#attrs(edge, 'edge'),
+      })
+    })
+
+    element.attached.bundles.forEach(({ node, edge }) => {
+      sg.nodes.push({
+        name: node.id,
+        attributes: GraphVizModelDriver.#attrs(node, 'node', {
+          shape: 'box',
+        }),
+      })
+      sg.edges.push({
+        head: element.id,
+        tail: node.id,
+
+        attributes: GraphVizModelDriver.#attrs(edge, 'edge'),
       })
     })
 
     graph.subgraphs.push(sg)
+  }
+
+  static #attrs(
+    display: Element,
+    type: 'node' | 'edge',
+    extra?: Attributes,
+  ): Attributes {
+    const typeAttrs: Attributes =
+      type === 'node'
+        ? {
+            style: 'filled',
+            fillcolor: display.color ?? this.#defaultNodeColor,
+          }
+        : {
+            color: display.color ?? this.#defaultEdgeColor,
+          }
+    return {
+      label: display.label ?? '',
+      tooltip: display.tooltip ?? '',
+      ...typeAttrs,
+      ...(extra ?? {}),
+    }
   }
 
   protected addEdgeImpl(
@@ -456,11 +434,7 @@ class GraphVizModelDriver extends GraphvizDriver<
     graph.edges.push({
       head: to,
       tail: from,
-      attributes: {
-        label: element.label ?? '',
-        tooltip: element.label ?? '',
-        color: element.color ?? GraphVizModelDriver.#defaultColor,
-      },
+      attributes: GraphVizModelDriver.#attrs(element, 'edge'),
     })
   }
 }

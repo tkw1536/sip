@@ -4,7 +4,7 @@ import { type Bundle, type Field } from '../../../pathbuilder/pathtree'
 import type ImmutableSet from '../../../utils/immutable-set'
 
 /** An element contains all information required for rendering */
-interface Element {
+export interface Element {
   id: string
   label: string | null
   tooltip: string | null
@@ -34,24 +34,22 @@ export class ConceptModelNode {
   public render(
     id: string,
     options: ModelOptions,
-  ): {
-    element: Element
+  ): Element & {
     attached?: {
       bundles: AttachedElement[]
       fields: AttachedElement[]
     }
   } {
     if (!options.display.ComplexConceptNodes) {
-      const element = this.#renderSimple(id, options)
-      return { element }
+      return this.#renderSimple(id, options)
     }
 
     const { element, bundles, fields } = this.#renderComplex(id, options)
     if (bundles.length === 0 && fields.length === 0) {
-      return { element }
+      return element
     }
 
-    return { element, attached: { fields, bundles } }
+    return { ...element, attached: { fields, bundles } }
   }
 
   #renderSimple(id: string, options: ModelOptions): Element {
@@ -150,19 +148,17 @@ export class LiteralModelNode {
   public render(
     id: string,
     options: ModelOptions,
-  ): {
-    element: Element
+  ): Element & {
     attached?: {
       fields: AttachedElement[]
     }
   } {
     if (!options.display.ComplexLiteralNodes) {
-      const element = this.#renderSimple(id, options)
-      return { element }
+      return this.#renderSimple(id, options)
     }
 
     const { element, fields } = this.#renderComplex(id, options)
-    return { element, attached: { fields } }
+    return { ...element, attached: { fields } }
   }
 
   #renderSimple(id: string, options: ModelOptions): Element {
