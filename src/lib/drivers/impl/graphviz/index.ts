@@ -269,6 +269,8 @@ class GraphVizModelDriver extends GraphvizDriver<
     this.driverName = compact ? 'GraphViz-compact' : 'GraphViz'
   }
 
+  static readonly #defaultColor = 'black'
+
   protected addNodeImpl(
     graph: Graph,
     flags: ContextFlags<ModelOptions>,
@@ -450,12 +452,14 @@ class GraphVizModelDriver extends GraphvizDriver<
     to: string,
     edge: ModelEdge,
   ): undefined {
+    const element = edge.render(id, options)
     graph.edges.push({
       head: to,
       tail: from,
       attributes: {
-        label: edge.label(options) ?? '',
-        tooltip: edge.tooltip(options) ?? '',
+        label: element.label ?? '',
+        tooltip: element.label ?? '',
+        color: element.color ?? GraphVizModelDriver.#defaultColor,
       },
     })
   }

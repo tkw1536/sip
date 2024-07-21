@@ -258,12 +258,14 @@ export class VisNetworkModelDriver extends VisNetworkDriver<
     to: string,
     edge: ModelEdge,
   ): Promise<undefined> {
+    const element = edge.render(id, options)
+
     dataset.addEdge({
       from,
       to,
       arrows: 'to',
 
-      label: edge.label(options),
+      label: element.label ?? undefined,
     })
   }
 }

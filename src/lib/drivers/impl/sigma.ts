@@ -201,6 +201,7 @@ export class SigmaModelDriver extends SigmaDriver<
   ModelEdge,
   ModelOptions
 > {
+  static readonly #defaultColor = 'black'
   protected async addNodeImpl(
     graph: Graph,
     {
@@ -253,11 +254,13 @@ export class SigmaModelDriver extends SigmaDriver<
     to: string,
     edge: ModelEdge,
   ): Promise<undefined> {
+    const element = edge.render(id, options)
+
     graph.addDirectedEdge(from, to, {
       color: 'black',
       type: 'arrow',
       arrow: 'target',
-      label: edge.label(options),
+      label: element.label ?? undefined,
       size: 5,
     })
   }

@@ -271,6 +271,8 @@ export class CytoModelDriver extends CytoscapeDriver<
   ModelEdge,
   ModelOptions
 > {
+  static readonly #defaultColor = 'black'
+
   protected async addNodeImpl(
     elements: Elements,
     {
@@ -314,12 +316,13 @@ export class CytoModelDriver extends CytoscapeDriver<
     to: string,
     edge: ModelEdge,
   ): Promise<undefined> {
+    const element = edge.render(id, options)
     const data = {
-      id,
+      id: element.id,
       source: from,
       target: to,
-      label: edge.label(options),
-      color: 'black',
+      label: element.label ?? undefined,
+      color: element.color ?? CytoModelDriver.#defaultColor,
     }
     elements.push({ data })
   }
