@@ -293,8 +293,8 @@ export class VisNetworkModelDriver extends VisNetworkDriver<
       })
 
       dataset.addEdge({
-        from: element.id,
-        to: node.id,
+        from: node.id,
+        to: element.id,
         ...VisNetworkModelDriver.#edgeData(edge),
       })
     })
@@ -324,8 +324,8 @@ export class VisNetworkModelDriver extends VisNetworkDriver<
       })
 
       dataset.addEdge({
-        from: element.id,
-        to: node.id,
+        from: node.id,
+        to: element.id,
         ...VisNetworkModelDriver.#edgeData(edge),
       })
     })
@@ -337,8 +337,8 @@ export class VisNetworkModelDriver extends VisNetworkDriver<
       })
 
       dataset.addEdge({
-        from: element.id,
-        to: node.id,
+        from: node.id,
+        to: element.id,
         ...VisNetworkModelDriver.#edgeData(edge),
       })
     })

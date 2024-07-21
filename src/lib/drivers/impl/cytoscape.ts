@@ -208,6 +208,7 @@ abstract class CytoscapeDriver<
     const l =
       typeof layoutOptions !== 'undefined' ? c.layout(layoutOptions) : undefined
 
+    // spellchecker:words layoutstart layoutstop
     c.on('layoutstart', () => {
       refs.animating(true)
     })
@@ -263,7 +264,6 @@ abstract class CytoscapeDriver<
     details: ContextDetails<Elements, Options>,
     { mount: { c, l }, refs }: MountInfo<CytoMount>,
   ): void {
-    console.log('got l', l)
     l?.stop()
     c.stop(true)
   }
@@ -369,8 +369,8 @@ export class CytoModelDriver extends CytoscapeDriver<
       elements.push({
         data: {
           id: edge.id,
-          source: element.id,
-          target: node.id,
+          source: node.id,
+          target: element.id,
           ...CytoModelDriver.#edgeData(edge),
         },
       })
@@ -407,8 +407,8 @@ export class CytoModelDriver extends CytoscapeDriver<
       elements.push({
         data: {
           id: edge.id,
-          source: element.id,
-          target: node.id,
+          source: node.id,
+          target: element.id,
           ...CytoModelDriver.#edgeData(edge),
         },
       })
@@ -425,8 +425,8 @@ export class CytoModelDriver extends CytoscapeDriver<
       elements.push({
         data: {
           id: edge.id,
-          source: element.id,
-          target: node.id,
+          source: node.id,
+          target: element.id,
           ...CytoModelDriver.#edgeData(edge),
         },
       })

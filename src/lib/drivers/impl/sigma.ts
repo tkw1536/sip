@@ -277,8 +277,8 @@ export class SigmaModelDriver extends SigmaDriver<
     element.attached.fields.forEach(({ node, edge }) => {
       graph.addNode(node.id, SigmaModelDriver.#nodeData(node, { size: 10 }))
       graph.addDirectedEdge(
-        element.id,
         node.id,
+        element.id,
         SigmaModelDriver.#edgeData(edge, { size: 5 }),
       )
     })
@@ -301,8 +301,8 @@ export class SigmaModelDriver extends SigmaDriver<
     element.attached.fields.forEach(({ node, edge }) => {
       graph.addNode(node.id, SigmaModelDriver.#nodeData(node, { size: 10 }))
       graph.addDirectedEdge(
-        element.id,
         node.id,
+        element.id,
         SigmaModelDriver.#edgeData(edge, { size: 5 }),
       )
     })
@@ -310,8 +310,8 @@ export class SigmaModelDriver extends SigmaDriver<
     element.attached.bundles.forEach(({ node, edge }) => {
       graph.addNode(node.id, SigmaModelDriver.#nodeData(node, { size: 10 }))
       graph.addDirectedEdge(
-        element.id,
         node.id,
+        element.id,
         SigmaModelDriver.#edgeData(edge, { size: 5 }),
       )
     })
