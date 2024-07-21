@@ -197,12 +197,12 @@ function ModelGraphDisplayControl(
       <p>
         <ComponentCheckbox
           {...props}
-          value={props.display.Components.BundleLabels}
+          value={props.display.Labels.Bundle}
           set={(display, BundleLabels) => ({
             ...display,
-            Components: {
-              ...display.Components,
-              BundleLabels,
+            Labels: {
+              ...display.Labels,
+              Bundle: BundleLabels,
             },
           })}
           label='Bundle Labels'
@@ -210,12 +210,12 @@ function ModelGraphDisplayControl(
         <br />
         <ComponentCheckbox
           {...props}
-          value={props.display.Components.ConceptFieldLabels}
+          value={props.display.Labels.ConceptField}
           set={(display, ConceptFieldLabels) => ({
             ...display,
-            Components: {
-              ...display.Components,
-              ConceptFieldLabels,
+            Labels: {
+              ...display.Labels,
+              ConceptField: ConceptFieldLabels,
             },
           })}
           label='Field Labels'
@@ -223,12 +223,12 @@ function ModelGraphDisplayControl(
         <br />
         <ComponentCheckbox
           {...props}
-          value={props.display.Components.ConceptFieldTypes}
+          value={props.display.Labels.ConceptFieldType}
           set={(display, ConceptFieldTypes) => ({
             ...display,
-            Components: {
-              ...display.Components,
-              ConceptFieldTypes,
+            Labels: {
+              ...display.Labels,
+              ConceptFieldType: ConceptFieldTypes,
             },
           })}
           label='Field Types'
@@ -238,12 +238,12 @@ function ModelGraphDisplayControl(
       <p>
         <ComponentCheckbox
           {...props}
-          value={props.display.Components.ConceptLabels}
+          value={props.display.Labels.Concept}
           set={(display, ConceptLabels) => ({
             ...display,
-            Components: {
-              ...display.Components,
-              ConceptLabels,
+            Labels: {
+              ...display.Labels,
+              Concept: ConceptLabels,
             },
           })}
           label='Concept Labels'
@@ -251,12 +251,12 @@ function ModelGraphDisplayControl(
         <br />
         <ComponentCheckbox
           {...props}
-          value={props.display.Components.PropertyLabels}
+          value={props.display.Labels.Property}
           set={(display, PropertyLabels) => ({
             ...display,
-            Components: {
-              ...display.Components,
-              PropertyLabels,
+            Labels: {
+              ...display.Labels,
+              Property: PropertyLabels,
             },
           })}
           label='Property Labels'
@@ -266,12 +266,12 @@ function ModelGraphDisplayControl(
       <p>
         <ComponentCheckbox
           {...props}
-          value={props.display.Components.DatatypeFieldTypes}
+          value={props.display.Labels.DatatypeFieldType}
           set={(display, DatatypeFieldTypes) => ({
             ...display,
-            Components: {
-              ...display.Components,
-              DatatypeFieldTypes,
+            Labels: {
+              ...display.Labels,
+              DatatypeFieldType: DatatypeFieldTypes,
             },
           })}
           label='Datatype Field Types'
@@ -279,12 +279,12 @@ function ModelGraphDisplayControl(
         <br />
         <ComponentCheckbox
           {...props}
-          value={props.display.Components.DatatypeFieldLabels}
+          value={props.display.Labels.DatatypeField}
           set={(display, DatatypeFieldLabels) => ({
             ...display,
-            Components: {
-              ...display.Components,
-              DatatypeFieldLabels,
+            Labels: {
+              ...display.Labels,
+              DatatypeField: DatatypeFieldLabels,
             },
           })}
           label='Datatype Field Labels'
@@ -292,12 +292,12 @@ function ModelGraphDisplayControl(
         <br />
         <ComponentCheckbox
           {...props}
-          value={props.display.Components.DatatypePropertyLabels}
+          value={props.display.Labels.DatatypeProperty}
           set={(display, DatatypePropertyLabels) => ({
             ...display,
-            Components: {
-              ...display.Components,
-              DatatypePropertyLabels,
+            Labels: {
+              ...display.Labels,
+              DatatypeProperty: DatatypePropertyLabels,
             },
           })}
           label='Datatype Property Labels'
@@ -311,7 +311,6 @@ interface ComponentCheckboxProps extends ModelDisplayControlProps {
   value: boolean
   set: (display: ModelDisplay, checked: boolean) => ModelDisplay
   label: string
-  children?: ComponentChildren
 }
 
 const ComponentCheckbox = WithID<ComponentCheckboxProps>(
@@ -328,7 +327,7 @@ const ComponentCheckbox = WithID<ComponentCheckboxProps>(
       onUpdate(set(display, checked))
     }
     render(): ComponentChildren {
-      const { children, value, id, label } = this.props
+      const { value, id, label } = this.props
       return (
         <>
           <input
@@ -338,9 +337,7 @@ const ComponentCheckbox = WithID<ComponentCheckboxProps>(
             onInput={this.#handleInput}
           ></input>
           <label for={id}>
-            <em>{label}.</em>
-            {` `}
-            {children}
+            <em>{label}</em>
           </label>
         </>
       )

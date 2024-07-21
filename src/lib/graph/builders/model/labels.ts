@@ -56,19 +56,19 @@ export class ConceptModelNode {
     const labelParts: string[] = []
     const tooltipParts: string[] = []
 
-    if (options.display.Components.ConceptLabels) {
+    if (options.display.Labels.Concept) {
       labelParts.push(options.ns.apply(this.clz))
       tooltipParts.push(this.clz)
     }
 
-    if (options.display.Components.BundleLabels) {
+    if (options.display.Labels.Bundle) {
       this.bundles.forEach(bundle => {
         labelParts.push('Bundle ' + bundle.path.name)
         tooltipParts.push('Bundle ' + bundle.path.id)
       })
     }
 
-    if (options.display.Components.ConceptFieldLabels) {
+    if (options.display.Labels.ConceptField) {
       this.fields.forEach(field => {
         labelParts.push('Field ' + field.path.name)
         tooltipParts.push('Field ' + field.path.id)
@@ -93,15 +93,16 @@ export class ConceptModelNode {
   } {
     const element = {
       id,
-      label: options.display.Components.ConceptLabels
-        ? options.ns.apply(this.clz)
-        : null,
-      tooltip: options.display.Components.ConceptLabels ? this.clz : null,
+      label: options.display.Labels.Concept ? options.ns.apply(this.clz) : null,
+      tooltip: options.display.Labels.Concept ? this.clz : null,
       color: null,
     }
 
-    const { BundleLabels, ConceptFieldLabels, ConceptFieldTypes } =
-      options.display.Components
+    const {
+      Bundle: BundleLabels,
+      ConceptField: ConceptFieldLabels,
+      ConceptFieldType: ConceptFieldTypes,
+    } = options.display.Labels
 
     const bundles = Array.from(this.bundles).map((bundle, idx) => {
       const bundleID = `${id}-bundle-${idx}`
@@ -169,7 +170,7 @@ export class LiteralModelNode {
   }
 
   #renderSimple(id: string, options: ModelOptions): Element {
-    const label = options.display.Components.DatatypeFieldLabels
+    const label = options.display.Labels.DatatypeField
       ? Array.from(this.fields)
           .map(field => field.path.name)
           .join('\n\n')
@@ -191,7 +192,10 @@ export class LiteralModelNode {
     fields: AttachedElement[]
   } {
     const {
-      Components: { DatatypeFieldLabels, DatatypeFieldTypes },
+      Labels: {
+        DatatypeField: DatatypeFieldLabels,
+        DatatypeFieldType: DatatypeFieldTypes,
+      },
     } = options.display
     return {
       element: {
@@ -233,10 +237,10 @@ export class PropertyModelEdge {
   render(id: string, options: ModelOptions): Element {
     return {
       id,
-      label: options.display.Components.PropertyLabels
+      label: options.display.Labels.Property
         ? options.ns.apply(this.property)
         : null,
-      tooltip: options.display.Components.PropertyLabels ? this.property : null,
+      tooltip: options.display.Labels.Property ? this.property : null,
       color: null,
     }
   }
@@ -251,12 +255,10 @@ export class DataModelEdge {
   render(id: string, options: ModelOptions): Element {
     return {
       id,
-      label: options.display.Components.DatatypePropertyLabels
+      label: options.display.Labels.DatatypeProperty
         ? options.ns.apply(this.property)
         : null,
-      tooltip: options.display.Components.DatatypePropertyLabels
-        ? this.property
-        : null,
+      tooltip: options.display.Labels.DatatypeProperty ? this.property : null,
       color: null,
     }
   }
@@ -271,17 +273,17 @@ export interface ModelOptions {
 export interface ModelDisplay {
   ComplexConceptNodes: boolean
   ComplexLiteralNodes: boolean
-  Components: {
-    ConceptLabels: boolean
-    PropertyLabels: boolean
+  Labels: {
+    Concept: boolean
+    Property: boolean
 
-    BundleLabels: boolean
-    ConceptFieldLabels: boolean
-    ConceptFieldTypes: boolean
+    Bundle: boolean
+    ConceptField: boolean
+    ConceptFieldType: boolean
 
-    DatatypeFieldTypes: boolean
-    DatatypeFieldLabels: boolean
-    DatatypePropertyLabels: boolean
+    DatatypeFieldType: boolean
+    DatatypeField: boolean
+    DatatypeProperty: boolean
   }
 }
 
@@ -289,17 +291,17 @@ export function newModelDisplay(): ModelDisplay {
   return {
     ComplexConceptNodes: true,
     ComplexLiteralNodes: true,
-    Components: {
-      ConceptLabels: true,
-      PropertyLabels: true,
+    Labels: {
+      Concept: true,
+      Property: true,
 
-      BundleLabels: true,
-      ConceptFieldLabels: true,
-      ConceptFieldTypes: true,
+      Bundle: true,
+      ConceptField: true,
+      ConceptFieldType: true,
 
-      DatatypeFieldTypes: true,
-      DatatypeFieldLabels: true,
-      DatatypePropertyLabels: true,
+      DatatypeFieldType: true,
+      DatatypeField: true,
+      DatatypeProperty: true,
     },
   }
 }
