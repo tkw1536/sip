@@ -1,8 +1,8 @@
 import { Component, type ComponentChild, Fragment, type JSX } from 'preact'
 import { type NamespaceMap } from '../../../lib/pathbuilder/namespace'
 import {
-  type Bundle,
-  type Field,
+  Bundle,
+  Field,
   type PathElement as PathElementT,
 } from '../../../lib/pathbuilder/pathtree'
 import * as styles from './tree.module.css'
@@ -12,6 +12,7 @@ import { type IReducerProps } from '../state'
 import {
   selectAll,
   selectNone,
+  selectPredicate,
   updateSelection,
 } from '../state/reducers/selection'
 import {
@@ -38,6 +39,16 @@ export default class TreeTab extends Component<IReducerProps> {
   readonly #handleSelectNone = (evt: Event): void => {
     evt.preventDefault()
     this.props.apply(selectNone())
+  }
+
+  readonly #handleSelectOnlyBundles = (evt: Event): void => {
+    evt.preventDefault()
+    this.props.apply(selectPredicate(x => x instanceof Bundle))
+  }
+
+  readonly #handleSelectOnlyFields = (evt: Event): void => {
+    evt.preventDefault()
+    this.props.apply(selectPredicate(x => x instanceof Field))
   }
 
   readonly #handleExpandAll = (evt: Event): void => {
@@ -146,7 +157,12 @@ export default class TreeTab extends Component<IReducerProps> {
               <td colSpan={6}>
                 Select: &nbsp;
                 <button onClick={this.#handleSelectAll}>All</button> &nbsp;
-                <button onClick={this.#handleSelectNone}>None</button>
+                <button onClick={this.#handleSelectNone}>None</button> &nbsp;
+                <button onClick={this.#handleSelectOnlyBundles}>
+                  Bundles
+                </button>{' '}
+                &nbsp;
+                <button onClick={this.#handleSelectOnlyFields}>Fields</button>
               </td>
             </tr>
             <tr>

@@ -48,6 +48,11 @@ export default class NodeSelection {
     return Array.isArray(values) && values.every(v => typeof v === 'string')
   }
 
+  /** returns a new NodeSelection that selects only the provides elements */
+  static these(elements: Iterable<string>): NodeSelection {
+    return new NodeSelection(false, elements)
+  }
+
   /** parses a colormap from json */
   static fromJSON(data: any): NodeSelection | null {
     if (!this.#isValidNodeSelection(data)) {

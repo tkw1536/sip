@@ -31,3 +31,18 @@ export function selectNone(): IReducer {
     selectionVersion: selectionVersion + 1,
   })
 }
+
+/** selects none of the item */
+export function selectPredicate(
+  predicate: (node: PathTreeNode) => boolean,
+): IReducer {
+  return ({ tree, selectionVersion }: IState): Partial<IState> => ({
+    selection: NodeSelection.these(
+      Array.from(tree.walk())
+        .filter(predicate)
+        .map(node => node.path?.id)
+        .filter(x => typeof x === 'string'),
+    ),
+    selectionVersion: selectionVersion + 1,
+  })
+}
