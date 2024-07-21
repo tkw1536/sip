@@ -73,6 +73,7 @@ export default class BundleGraphView extends Component<IReducerProps> {
 
   readonly #renderPanel = (
     driver: Driver<BundleNode, BundleEdge, BundleOptions> | null,
+    animating: boolean | null,
   ): ComponentChildren => {
     const {
       state: { bundleGraphLayout, bundleGraphSeed },
@@ -89,6 +90,7 @@ export default class BundleGraphView extends Component<IReducerProps> {
           onChangeLayout={this.#handleChangeBundleLayout}
           onChangeSeed={this.#handleChangeBundleSeed}
           onResetDriver={this.#handleResetDriver}
+          animating={animating}
         />
         <ExportControl driver={driver} display={this.#displayRef.current} />
       </>

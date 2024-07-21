@@ -3,6 +3,7 @@ import {
   type Core,
   type CytoscapeOptions as _Options,
   type ElementDefinition,
+  type Layouts,
 } from 'cytoscape'
 import {
   type ContextDetails,
@@ -10,6 +11,7 @@ import {
   DriverImpl,
   ErrorUnsupported,
   type MountInfo,
+  type Refs,
   type Size,
   defaultLayout,
 } from '.'
@@ -49,14 +51,17 @@ const Cytoscape = new LazyValue(async () => {
 })
 
 type Elements = ElementDefinition[]
-type CytoscapeCore = Core
+interface CytoMount {
+  c: Core
+  l: Layouts | undefined
+}
 type CytoscapeOptions = Omit<_Options, 'container' | 'elements'>
 
 abstract class CytoscapeDriver<
   NodeLabel,
   EdgeLabel,
   Options,
-> extends DriverImpl<NodeLabel, EdgeLabel, Options, Elements, CytoscapeCore> {
+> extends DriverImpl<NodeLabel, EdgeLabel, Options, Elements, CytoMount> {
   protected abstract addNodeImpl(
     elements: Elements,
     flags: ContextFlags<Options>,
@@ -189,18 +194,36 @@ abstract class CytoscapeDriver<
       flags: { layout, definitelyAcyclic },
     }: ContextDetails<Elements, Options>,
     element: HTMLElement,
-  ): CytoscapeCore {
+    refs: Refs,
+  ): CytoMount {
     const options = this.options(layout, definitelyAcyclic)
-    return Cytoscape.value({
+
+    const c = Cytoscape.value({
       container: element,
       elements,
       ...options,
     })
+
+    const { layout: layoutOptions } = options
+    const l =
+      typeof layoutOptions !== 'undefined' ? c.layout(layoutOptions) : undefined
+
+    c.on('layoutstart', () => {
+      refs.animating(true)
+    })
+    c.on('layoutstop', () => {
+      refs.animating(false)
+    })
+    if (typeof l !== 'undefined') {
+      l.start()
+    }
+
+    return { c, l }
   }
 
   protected resizeMountImpl(
     details: ContextDetails<Elements, Options>,
-    { mount: c }: MountInfo<CytoscapeCore>,
+    { mount: { c, l } }: MountInfo<CytoMount>,
     size: Size,
   ): undefined {
     // automatically resized ?
@@ -209,7 +232,7 @@ abstract class CytoscapeDriver<
 
   protected unmountImpl(
     details: ContextDetails<Elements, Options>,
-    { mount: c }: MountInfo<CytoscapeCore>,
+    { mount: { c } }: MountInfo<CytoMount>,
   ): void {
     c.destroy()
   }
@@ -217,16 +240,32 @@ abstract class CytoscapeDriver<
   readonly exportFormats = []
   protected async exportImpl(
     details: ContextDetails<Elements, Options>,
-    info: MountInfo<CytoscapeCore> | null,
+    info: MountInfo<CytoMount> | null,
     format: string,
   ): Promise<Blob> {
     throw ErrorUnsupported
   }
   protected getSeedImpl(
     details: ContextDetails<Elements, Options>,
-    info: MountInfo<CytoscapeCore> | null,
+    info: MountInfo<CytoMount> | null,
   ): number | null {
     return null // not supported
+  }
+
+  protected startSimulationImpl(
+    details: ContextDetails<Elements, Options>,
+    { mount: { c, l } }: MountInfo<CytoMount>,
+  ): void {
+    l?.start()
+  }
+
+  protected stopSimulationImpl(
+    details: ContextDetails<Elements, Options>,
+    { mount: { c, l }, refs }: MountInfo<CytoMount>,
+  ): void {
+    console.log('got l', l)
+    l?.stop()
+    c.stop(true)
   }
 }
 

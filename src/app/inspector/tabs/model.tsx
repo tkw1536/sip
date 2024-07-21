@@ -106,6 +106,7 @@ export default WithID<IReducerProps>(
 
     readonly #renderPanel = (
       driver: Driver<ModelNode, ModelEdge, ModelOptions> | null,
+      animating: boolean | null,
     ): ComponentChildren => {
       const {
         state: {
@@ -128,6 +129,7 @@ export default WithID<IReducerProps>(
             onChangeLayout={this.#handleChangeModelLayout}
             onChangeSeed={this.#handleChangeModelSeed}
             onResetDriver={this.#handleResetDriver}
+            animating={animating}
           />
           <ModelGraphDisplayControl
             display={modelDisplay}

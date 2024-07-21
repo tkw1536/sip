@@ -18,6 +18,7 @@ interface KernelProps<NodeLabel, EdgeLabel, Options> {
   seed: number | null
 
   driverRef?: Ref<Driver<NodeLabel, EdgeLabel, Options>>
+  animatingRef?: Ref<boolean>
 }
 
 interface KernelState {
@@ -103,7 +104,11 @@ export default class Kernel<NodeLabel, EdgeLabel, Options> extends Component<
             return
           }
 
-          driver.mount(container)
+          driver.mount(container, {
+            animating: (animating): void => {
+              setRef(this.props.animatingRef, animating)
+            },
+          })
           this.#mod = { driver }
           this.#resizeMount()
 
@@ -143,6 +148,7 @@ export default class Kernel<NodeLabel, EdgeLabel, Options> extends Component<
     this.#mod.driver.unmount()
     this.#mod = null
     setRef(this.props.driverRef, null)
+    setRef(this.props.animatingRef, null)
   }
 
   #resizeMount(): void {

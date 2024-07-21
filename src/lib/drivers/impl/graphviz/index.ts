@@ -238,6 +238,16 @@ abstract class GraphvizDriver<NodeLabel, EdgeLabel, Options> extends DriverImpl<
     }
     return null
   }
+
+  protected startSimulationImpl(
+    details: ContextDetails<Context, Options>,
+    info: MountInfo<Mount>,
+  ): void {}
+
+  protected stopSimulationImpl(
+    details: ContextDetails<Context, Options>,
+    info: MountInfo<Mount>,
+  ): void {}
 }
 
 export class GraphVizBundleDriver extends GraphvizDriver<

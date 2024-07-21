@@ -22,6 +22,11 @@ export type DriverClass<NodeLabel, EdgeLabel, Options> = new () => Driver<
   Options
 >
 
+export interface Refs {
+  /** indicates if the driver is currently animating a simulation */
+  animating: (animating: boolean | null) => void
+}
+
 /** driver renders a single instance on a page */
 export default interface Driver<NodeLabel, EdgeLabel, Options> {
   readonly driverName: string
@@ -50,13 +55,16 @@ export default interface Driver<NodeLabel, EdgeLabel, Options> {
   readonly layouts: string[]
 
   /** mounts this instance onto the page */
-  mount: (element: HTMLElement) => void
+  mount: (element: HTMLElement, refs: Refs) => void
 
   /** resizes this instance which is already {@link mount}ed onto the page */
   resize: (size: Size) => void
 
   /** unmounts the {@link mount}ed instance from the page */
   unmount: () => void
+
+  startAnimation: () => void
+  stopAnimation: () => void
 
   /** list of formats allowed as an argument to {@link export} */
   readonly exportFormats: string[]
@@ -93,6 +101,9 @@ export interface MountInfo<Mount> {
 
   /** the element this instance is mounted to */
   element: HTMLElement
+
+  /** refs set by this driver */
+  refs: Refs
 
   /** the current size of this mount */
   size: Size
@@ -200,7 +211,7 @@ export abstract class DriverImpl<
 
   abstract readonly layouts: string[]
 
-  mount(element: HTMLElement): void {
+  mount(element: HTMLElement, refs: Refs): void {
     if (this.#context === null || this.#mount !== null) {
       throw new Error('Driver error: mount called out of order')
     }
@@ -210,8 +221,9 @@ export abstract class DriverImpl<
     } = this.#context
 
     this.#mount = {
-      mount: this.mountImpl(this.#context, element),
+      mount: this.mountImpl(this.#context, element, refs),
       element,
+      refs,
       size,
     }
 
@@ -220,6 +232,7 @@ export abstract class DriverImpl<
   protected abstract mountImpl(
     details: ContextDetails<Context, Options>,
     element: HTMLElement,
+    refs: Refs,
   ): Mount
 
   resize(size: Size): void {
@@ -227,10 +240,11 @@ export abstract class DriverImpl<
       throw new Error('Driver error: resize called out of order')
     }
 
-    const { mount, element } = this.#mount
+    const { mount, element, refs } = this.#mount
     this.#mount = {
       mount: this.resizeMountImpl(this.#context, this.#mount, size) ?? mount,
       element,
+      refs,
       size,
     }
   }
@@ -267,4 +281,29 @@ export abstract class DriverImpl<
     info: MountInfo<Mount> | null,
     format: string,
   ): Promise<Blob>
+
+  startAnimation = (): void => {
+    if (this.#context === null || this.#mount === null) {
+      throw new Error('Driver error: startSimulation called out of order')
+    }
+
+    this.startSimulationImpl(this.#context, this.#mount)
+  }
+  protected abstract startSimulationImpl(
+    details: ContextDetails<Context, Options>,
+    info: MountInfo<Mount> | null,
+  ): void
+
+  stopAnimation = (): void => {
+    if (this.#context === null || this.#mount === null) {
+      throw new Error('Driver error: startSimulation called out of order')
+    }
+
+    this.stopSimulationImpl(this.#context, this.#mount)
+  }
+
+  protected abstract stopSimulationImpl(
+    details: ContextDetails<Context, Options>,
+    info: MountInfo<Mount> | null,
+  ): void
 }

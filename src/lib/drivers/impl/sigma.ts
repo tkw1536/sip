@@ -4,6 +4,7 @@ import {
   DriverImpl,
   ErrorUnsupported,
   type MountInfo,
+  type Refs,
   type Size,
   defaultLayout,
 } from '.'
@@ -31,7 +32,7 @@ import { type Attributes } from 'graphology-types'
 import { prng } from '../../utils/prng'
 
 interface SigmaMount {
-  beforeStop?: () => void
+  stopLayout?: () => void
   sigma: Sigma
 }
 
@@ -77,8 +78,9 @@ abstract class SigmaDriver<NodeLabel, EdgeLabel, Options> extends DriverImpl<
   protected mountImpl(
     { context: graph, flags: { layout }, seed }: ContextDetails<Graph, Options>,
     element: HTMLElement,
+    refs: Refs,
   ): SigmaMount {
-    let onStop: (() => void) | undefined
+    let stopLayout: (() => void) | undefined
     switch (layout === defaultLayout ? 'force2atlas' : layout) {
       case 'force2atlas':
         {
@@ -86,8 +88,27 @@ abstract class SigmaDriver<NodeLabel, EdgeLabel, Options> extends DriverImpl<
           const layout = new FA2Layout(graph, {
             settings: inferSettings(graph),
           })
+
           layout.start()
-          onStop = layout.kill.bind(layout)
+
+          // poll if the layout is still animating
+          refs.animating(true)
+          const interval = setInterval(() => {
+            if (layout.isRunning()) {
+              return
+            }
+
+            clearInterval(interval)
+            refs.animating(null)
+          }, 500)
+
+          stopLayout = () => {
+            // notify that we're no longer animating
+            clearInterval(interval)
+            refs.animating(null)
+
+            layout.kill()
+          }
         }
 
         break
@@ -103,7 +124,7 @@ abstract class SigmaDriver<NodeLabel, EdgeLabel, Options> extends DriverImpl<
     const settings = this.settings()
     return {
       sigma: new Sigma(graph, element, settings),
-      beforeStop: onStop,
+      stopLayout,
     }
   }
 
@@ -120,8 +141,8 @@ abstract class SigmaDriver<NodeLabel, EdgeLabel, Options> extends DriverImpl<
     { mount: sigma }: MountInfo<SigmaMount>,
   ): void {
     sigma.sigma.kill()
-    if (typeof sigma.beforeStop === 'function') {
-      sigma.beforeStop()
+    if (typeof sigma.stopLayout === 'function') {
+      sigma.stopLayout()
     }
   }
 
@@ -139,6 +160,21 @@ abstract class SigmaDriver<NodeLabel, EdgeLabel, Options> extends DriverImpl<
     info: MountInfo<SigmaMount> | null,
   ): number | null {
     return details.seed
+  }
+
+  protected startSimulationImpl(
+    details: ContextDetails<Graph, Options>,
+    info: MountInfo<SigmaMount>,
+  ): void {}
+
+  protected stopSimulationImpl(
+    details: ContextDetails<Graph, Options>,
+    info: MountInfo<SigmaMount>,
+  ): void {
+    const { stopLayout } = info.mount
+    if (typeof stopLayout === 'function') {
+      stopLayout()
+    }
   }
 }
 

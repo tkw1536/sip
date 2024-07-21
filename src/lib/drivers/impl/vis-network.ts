@@ -4,6 +4,7 @@ import {
   DriverImpl,
   ErrorUnsupported,
   type MountInfo,
+  type Refs,
   type Size,
   defaultLayout,
 } from '.'
@@ -120,12 +121,21 @@ abstract class VisNetworkDriver<
       seed,
     }: ContextDetails<Dataset, Options>,
     element: HTMLElement,
+    refs: Refs,
   ): Network {
     element.classList.add(styles.container)
 
     const options = this.options(seed, layout, definitelyAcyclic)
     options.autoResize = false
-    return new Vis.value.Network(element, dataset.toData(), options)
+
+    const network = new Vis.value.Network(element, dataset.toData(), options)
+    network.on('startStabilizing', () => {
+      refs.animating(true)
+    })
+    network.on('stabilized', () => {
+      refs.animating(false)
+    })
+    return network
   }
 
   protected resizeMountImpl(
@@ -168,6 +178,20 @@ abstract class VisNetworkDriver<
     }
 
     return null
+  }
+
+  protected startSimulationImpl(
+    details: ContextDetails<Dataset, Options>,
+    { mount: network, refs }: MountInfo<Network>,
+  ): void {
+    network.startSimulation()
+  }
+
+  protected stopSimulationImpl(
+    details: ContextDetails<Dataset, Options>,
+    { mount: network, refs }: MountInfo<Network>,
+  ): void {
+    network.stopSimulation()
   }
 }
 

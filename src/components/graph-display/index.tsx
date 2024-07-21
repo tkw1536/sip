@@ -34,6 +34,7 @@ interface GraphProps<NodeLabel, EdgeLabel, Options> {
     | ComponentChildren
     | ((
         driver: Driver<NodeLabel, EdgeLabel, Options> | null,
+        animating: boolean | null,
       ) => ComponentChildren)
 }
 
@@ -44,6 +45,7 @@ interface GraphState<NodeLabel, EdgeLabel, Options> {
   graphError?: any
 
   driver: Driver<NodeLabel, EdgeLabel, Options> | null
+  animating: boolean | null
 }
 
 export default class GraphDisplay<
@@ -57,6 +59,7 @@ export default class GraphDisplay<
   state: GraphState<NodeLabel, EdgeLabel, Options> = {
     open: false,
     driver: null,
+    animating: null,
   }
 
   protected makeRenderer(): {
@@ -72,9 +75,9 @@ export default class GraphDisplay<
 
   protected renderPanel(): ComponentChildren {
     const { panel } = this.props
-    const { driver } = this.state
+    const { driver, animating } = this.state
     if (typeof panel === 'function') {
-      return panel(driver)
+      return panel(driver, animating)
     }
     return panel
   }
@@ -184,6 +187,10 @@ export default class GraphDisplay<
     this.setState({ driver })
   }
 
+  readonly #animatingRef = (animating: boolean | null): void => {
+    this.setState({ animating })
+  }
+
   #renderMain(): ComponentChild {
     const { graph, graphError } = this.state
 
@@ -208,6 +215,7 @@ export default class GraphDisplay<
         driver={name}
         layout={layout}
         driverRef={this.#driverRef}
+        animatingRef={this.#animatingRef}
       />
     )
   }
@@ -228,9 +236,12 @@ export function DriverControl<NodeLabel, EdgeLabel, Options>(props: {
   seed: number | null
   onChangeSeed: (seed: number | null) => void
   onResetDriver: () => void
+
+  animating: boolean | null
 }): JSX.Element {
   const {
     driver,
+    animating,
     driverNames,
     currentLayout,
     onChangeDriver,
@@ -289,16 +300,67 @@ export function DriverControl<NodeLabel, EdgeLabel, Options>(props: {
             </td>
           </tr>
 
-          <SeedControls
-            id={`${id}-seed`}
-            driver={driver}
-            seed={seed}
-            onChangeSeed={onChangeSeed}
-          />
+          <tr>
+            <SeedControls
+              id={`${id}-seed`}
+              driver={driver}
+              seed={seed}
+              onChangeSeed={onChangeSeed}
+            />
+          </tr>
+
+          <tr>
+            <SimulationControls animating={animating} driver={driver} />
+          </tr>
         </tbody>
       </table>
     </Control>
   )
+}
+
+class SimulationControls<NodeLabel, EdgeLabel, Options> extends Component<{
+  driver: Driver<NodeLabel, EdgeLabel, Options> | null
+  animating: boolean | null
+}> {
+  readonly #handleStart = (): void => {
+    const { animating, driver } = this.props
+    if (animating !== false || driver === null) {
+      return
+    }
+    driver.startAnimation()
+  }
+  readonly #handleStop = (): void => {
+    const { animating, driver } = this.props
+    if (animating !== true || driver === null) {
+      return
+    }
+    driver.stopAnimation()
+  }
+  render(): ComponentChildren {
+    const { animating } = this.props
+
+    return (
+      <>
+        <td>Animation:</td>
+        <td>
+          <ActionButton
+            disabled={animating !== false}
+            onClick={this.#handleStart}
+          >
+            Start
+          </ActionButton>
+          <ActionButton
+            disabled={animating !== true}
+            onClick={this.#handleStop}
+          >
+            Stop
+          </ActionButton>
+        </td>
+
+        <td colSpan={3}></td>
+      </>
+    )
+  }
 }
 
 class SeedControls<NodeLabel, EdgeLabel, Options> extends Component<
@@ -336,7 +398,7 @@ class SeedControls<NodeLabel, EdgeLabel, Options> extends Component<
     const value = seed ?? driver?.seed ?? undefined
 
     return (
-      <tr>
+      <>
         <td>
           <label for={id}>Seed</label>:
         </td>
@@ -358,7 +420,7 @@ class SeedControls<NodeLabel, EdgeLabel, Options> extends Component<
         </td>
         <td>Set Seed</td>
         <td></td>
-      </tr>
+      </>
     )
   }
 }

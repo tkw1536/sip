@@ -65,6 +65,7 @@ export default class GraphTab extends Component<RReducerProps> {
 
   readonly #renderPanel = (
     driver: Driver<RDFNode, RDFEdge, RDFOptions> | null,
+    animating: boolean | null,
   ): ComponentChildren => {
     const {
       state: { rdfGraphLayout, rdfGraphSeed },
@@ -81,6 +82,7 @@ export default class GraphTab extends Component<RReducerProps> {
           onChangeLayout={this.#handleChangeRDFLayout}
           onChangeSeed={this.#handleChangeRDFSeed}
           onResetDriver={this.#handleResetDriver}
+          animating={animating}
         />
         <ExportControl driver={driver} display={this.#displayRef.current} />
       </>
