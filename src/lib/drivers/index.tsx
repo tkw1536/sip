@@ -44,7 +44,7 @@ export default class Kernel<NodeLabel, EdgeLabel, Options> extends Component<
     driver: Driver<NodeLabel, EdgeLabel, Options>
   } | null = null
 
-  #mountDriver(seed: number | null): void {
+  #mountDriver(): void {
     const { current: container } = this.#container
     const { size } = this.state
     if (
@@ -62,6 +62,7 @@ export default class Kernel<NodeLabel, EdgeLabel, Options> extends Component<
       driver: name,
       loader,
       driverRef,
+      seed,
     } = this.props
 
     const flags: ContextFlags<Options> = Object.freeze({
@@ -136,16 +137,12 @@ export default class Kernel<NodeLabel, EdgeLabel, Options> extends Component<
     return driver
   }
 
-  #unmountDriver(): number | null {
-    if (this.#mod === null) return null
-
-    const seed = this.#mod.driver.seed
+  #unmountDriver(): void {
+    if (this.#mod === null) return
 
     this.#mod.driver.unmount()
     this.#mod = null
     setRef(this.props.driverRef, null)
-
-    return seed
   }
 
   #resizeMount(): void {
@@ -168,9 +165,9 @@ export default class Kernel<NodeLabel, EdgeLabel, Options> extends Component<
   }
 
   /** remounts the current driver, resetting it to default */
-  remountDriver(forceSeed?: number | null): void {
-    const oldSeed = this.#unmountDriver()
-    this.#mountDriver(typeof forceSeed !== 'undefined' ? forceSeed : oldSeed)
+  remountDriver(): void {
+    this.#unmountDriver()
+    this.#mountDriver()
   }
 
   readonly #mount = new Operation()
@@ -186,13 +183,9 @@ export default class Kernel<NodeLabel, EdgeLabel, Options> extends Component<
     const { current: container } = this.#container
     if (typeof size === 'undefined' || container === null) return
 
-    const { remount, keepSeed } = this.#shouldRemount(
-      previousProps,
-      previousState,
-    )
     // if any of the critical properties changed => create a new driver
-    if (remount) {
-      this.remountDriver(!keepSeed ? this.props.seed : undefined)
+    if (this.#shouldRemount(previousProps, previousState)) {
+      this.remountDriver()
       return
     }
 
@@ -206,26 +199,23 @@ export default class Kernel<NodeLabel, EdgeLabel, Options> extends Component<
   #shouldRemount(
     previousProps: typeof this.props,
     previousState: typeof this.state,
-  ): { remount: boolean; keepSeed: boolean } {
-    const theDriverUnchanged =
-      previousProps.driver === this.props.driver &&
-      previousProps.loader === this.props.loader
-    const theSeedUnchanged = previousProps.seed === this.props.seed
-
-    const remount =
+  ): boolean {
+    return (
       // we didn't have a size before, but we do now
       (typeof previousState.size === 'undefined' &&
         typeof this.state.size !== 'undefined') ||
       // the driver or loader changed
-      !theDriverUnchanged ||
+      !(
+        previousProps.driver === this.props.driver &&
+        previousProps.loader === this.props.loader
+      ) ||
       // the graph changed
       previousProps.graph !== this.props.graph ||
       // the layout changed
       previousProps.layout !== this.props.layout ||
       // the seed changed
-      !theSeedUnchanged
-
-    return { remount, keepSeed: theDriverUnchanged && theSeedUnchanged }
+      previousProps.seed !== this.props.seed
+    )
   }
 
   #shouldResizeMount(

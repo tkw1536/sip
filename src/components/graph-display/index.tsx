@@ -245,47 +245,57 @@ export function DriverControl<NodeLabel, EdgeLabel, Options>(props: {
   return (
     <Control name='Renderer'>
       <p>
-        This graph can be shown using different renderers. Each renderer
-        supports different layouts.
+        Show the graph using different renderers and layouts. Changing any value
+        automatically re-renders the graph.
       </p>
-      <p>Changing either value will update the graph.</p>
+
+      <p>
+        <ActionButton
+          onClick={onResetDriver}
+          disabled={driver === null}
+          id={`${id}-reset`}
+        >
+          Force Re-Render
+        </ActionButton>
+      </p>
 
       <table>
-        <tr>
-          <td></td>
-          <td>
-            <label for={`${id}-renderer`}>Renderer</label>:
-          </td>
-          <td>
-            <ValueSelector
-              id={`${id}-renderer`}
-              values={driverNames}
-              value={driver?.driverName}
-              onInput={onChangeDriver}
-            />
-          </td>
+        <tbody>
+          <tr>
+            <td>
+              <label for={`${id}-renderer`}>Renderer</label>:
+            </td>
+            <td>
+              <ValueSelector
+                id={`${id}-renderer`}
+                values={driverNames}
+                value={driver?.driverName}
+                onInput={onChangeDriver}
+              />
+            </td>
 
-          <td>
-            <label for={`${id}-layout`}>Layout</label>:
-          </td>
-          <td>
-            <ValueSelector
-              id={`${id}-layout`}
-              disabled={driver === null}
-              value={currentLayout}
-              values={driver?.layouts}
-              onInput={onChangeLayout}
-            />
-          </td>
-        </tr>
+            <td></td>
+            <td>
+              <label for={`${id}-layout`}>Layout</label>:
+            </td>
+            <td>
+              <ValueSelector
+                id={`${id}-layout`}
+                disabled={driver === null}
+                value={currentLayout}
+                values={driver?.layouts}
+                onInput={onChangeLayout}
+              />
+            </td>
+          </tr>
 
-        <SeedControls
-          id={`${id}-seed`}
-          driver={driver}
-          seed={seed}
-          onChangeSeed={onChangeSeed}
-          onResetDriver={onResetDriver}
-        />
+          <SeedControls
+            id={`${id}-seed`}
+            driver={driver}
+            seed={seed}
+            onChangeSeed={onChangeSeed}
+          />
+        </tbody>
       </table>
     </Control>
   )
@@ -299,11 +309,9 @@ class SeedControls<NodeLabel, EdgeLabel, Options> extends Component<
 
     seed: number | null
     onChangeSeed: (seed: number | null) => void
-    onResetDriver: () => void
   },
   { enabled: boolean; value: number }
 > {
-  static readonly #defaultValue = 0
   readonly #handleChangeEnabled = (
     event: Event & { currentTarget: HTMLInputElement },
   ): void => {
@@ -322,20 +330,13 @@ class SeedControls<NodeLabel, EdgeLabel, Options> extends Component<
     this.props.onChangeSeed(value)
   }
   render(): ComponentChildren {
-    const { id, driver, seed, onResetDriver } = this.props
+    const { id, driver, seed } = this.props
 
     const enabled = seed !== null
     const value = seed ?? driver?.seed ?? undefined
 
     return (
       <tr>
-        <td>
-          <input
-            type='checkbox'
-            checked={enabled}
-            onInput={this.#handleChangeEnabled}
-          ></input>
-        </td>
         <td>
           <label for={id}>Seed</label>:
         </td>
@@ -348,15 +349,15 @@ class SeedControls<NodeLabel, EdgeLabel, Options> extends Component<
             onInput={this.#handleChangeValue}
           ></input>
         </td>
-        <td colspan={2}>
-          <ActionButton
-            onClick={onResetDriver}
-            disabled={driver === null}
-            id={`${id}-reset`}
-          >
-            Reset Graph
-          </ActionButton>
+        <td>
+          <input
+            type='checkbox'
+            checked={enabled}
+            onInput={this.#handleChangeEnabled}
+          ></input>
         </td>
+        <td>Set Seed</td>
+        <td></td>
       </tr>
     )
   }

@@ -180,162 +180,164 @@ function ModelGraphDisplayControl(
       <p>Changing this value will re-render the graph.</p>
 
       <table>
-        <tr>
-          <td>
-            <ComponentCheckbox
-              {...props}
-              value={props.display.ComplexConceptNodes}
-              set={(display, ComplexConceptNodes) => ({
-                ...display,
-                ComplexConceptNodes,
-              })}
-              label='Complex Concept Nodes'
-            />
-          </td>
-          <td>
-            <ComponentCheckbox
-              {...props}
-              value={props.display.ComplexLiteralNodes}
-              set={(display, ComplexLiteralNodes) => ({
-                ...display,
-                ComplexLiteralNodes,
-              })}
-              label='Complex Literal Nodes'
-            />
-          </td>
-        </tr>
-        <tr>
-          <td colSpan={2}>
-            Disabling these will render appropriate bundle and field labels
-            directly at the respective nodes.
-          </td>
-        </tr>
+        <tbody>
+          <tr>
+            <td>
+              <ComponentCheckbox
+                {...props}
+                value={props.display.ComplexConceptNodes}
+                set={(display, ComplexConceptNodes) => ({
+                  ...display,
+                  ComplexConceptNodes,
+                })}
+                label='Complex Concept Nodes'
+              />
+            </td>
+            <td>
+              <ComponentCheckbox
+                {...props}
+                value={props.display.ComplexLiteralNodes}
+                set={(display, ComplexLiteralNodes) => ({
+                  ...display,
+                  ComplexLiteralNodes,
+                })}
+                label='Complex Literal Nodes'
+              />
+            </td>
+          </tr>
+          <tr>
+            <td colSpan={2}>
+              Disabling these will render appropriate bundle and field labels
+              directly at the respective nodes.
+            </td>
+          </tr>
 
-        <tr>
-          <td colSpan={2}>
-            <br />
-          </td>
-        </tr>
+          <tr>
+            <td colSpan={2}>
+              <br />
+            </td>
+          </tr>
 
-        <tr>
-          <td>
-            <ComponentCheckbox
-              {...props}
-              value={props.display.Labels.Property}
-              set={(display, PropertyLabels) => ({
-                ...display,
-                Labels: {
-                  ...display.Labels,
-                  Property: PropertyLabels,
-                },
-              })}
-              label='Property Labels'
-            />
-            <br />
-            <ComponentCheckbox
-              {...props}
-              value={props.display.Labels.ConceptField}
-              set={(display, ConceptFieldLabels) => ({
-                ...display,
-                Labels: {
-                  ...display.Labels,
-                  ConceptField: ConceptFieldLabels,
-                },
-              })}
-              label='Field Labels'
-            />
-            <br />
-            <ComponentCheckbox
-              {...props}
-              value={props.display.Labels.ConceptFieldType}
-              set={(display, ConceptFieldTypes) => ({
-                ...display,
-                Labels: {
-                  ...display.Labels,
-                  ConceptFieldType: ConceptFieldTypes,
-                },
-              })}
-              label='Field Types'
-            />
-          </td>
+          <tr>
+            <td>
+              <ComponentCheckbox
+                {...props}
+                value={props.display.Labels.Property}
+                set={(display, PropertyLabels) => ({
+                  ...display,
+                  Labels: {
+                    ...display.Labels,
+                    Property: PropertyLabels,
+                  },
+                })}
+                label='Property Labels'
+              />
+              <br />
+              <ComponentCheckbox
+                {...props}
+                value={props.display.Labels.ConceptField}
+                set={(display, ConceptFieldLabels) => ({
+                  ...display,
+                  Labels: {
+                    ...display.Labels,
+                    ConceptField: ConceptFieldLabels,
+                  },
+                })}
+                label='Field Labels'
+              />
+              <br />
+              <ComponentCheckbox
+                {...props}
+                value={props.display.Labels.ConceptFieldType}
+                set={(display, ConceptFieldTypes) => ({
+                  ...display,
+                  Labels: {
+                    ...display.Labels,
+                    ConceptFieldType: ConceptFieldTypes,
+                  },
+                })}
+                label='Field Types'
+              />
+            </td>
 
-          <td>
-            <ComponentCheckbox
-              {...props}
-              value={props.display.Labels.DatatypeProperty}
-              set={(display, DatatypePropertyLabels) => ({
-                ...display,
-                Labels: {
-                  ...display.Labels,
-                  DatatypeProperty: DatatypePropertyLabels,
-                },
-              })}
-              label='Datatype Property Labels'
-            />
-            <br />
-            <ComponentCheckbox
-              {...props}
-              value={props.display.Labels.DatatypeField}
-              set={(display, DatatypeFieldLabels) => ({
-                ...display,
-                Labels: {
-                  ...display.Labels,
-                  DatatypeField: DatatypeFieldLabels,
-                },
-              })}
-              label='Datatype Field Labels'
-            />
-            <br />
-            <ComponentCheckbox
-              {...props}
-              value={props.display.Labels.DatatypeFieldType}
-              set={(display, DatatypeFieldTypes) => ({
-                ...display,
-                Labels: {
-                  ...display.Labels,
-                  DatatypeFieldType: DatatypeFieldTypes,
-                },
-              })}
-              label='Datatype Field Types'
-            />
-          </td>
-        </tr>
+            <td>
+              <ComponentCheckbox
+                {...props}
+                value={props.display.Labels.DatatypeProperty}
+                set={(display, DatatypePropertyLabels) => ({
+                  ...display,
+                  Labels: {
+                    ...display.Labels,
+                    DatatypeProperty: DatatypePropertyLabels,
+                  },
+                })}
+                label='Datatype Property Labels'
+              />
+              <br />
+              <ComponentCheckbox
+                {...props}
+                value={props.display.Labels.DatatypeField}
+                set={(display, DatatypeFieldLabels) => ({
+                  ...display,
+                  Labels: {
+                    ...display.Labels,
+                    DatatypeField: DatatypeFieldLabels,
+                  },
+                })}
+                label='Datatype Field Labels'
+              />
+              <br />
+              <ComponentCheckbox
+                {...props}
+                value={props.display.Labels.DatatypeFieldType}
+                set={(display, DatatypeFieldTypes) => ({
+                  ...display,
+                  Labels: {
+                    ...display.Labels,
+                    DatatypeFieldType: DatatypeFieldTypes,
+                  },
+                })}
+                label='Datatype Field Types'
+              />
+            </td>
+          </tr>
 
-        <tr>
-          <td colSpan={2}>
-            <br />
-          </td>
-        </tr>
+          <tr>
+            <td colSpan={2}>
+              <br />
+            </td>
+          </tr>
 
-        <tr>
-          <td colSpan={2}>
-            <ComponentCheckbox
-              {...props}
-              value={props.display.Labels.Concept}
-              set={(display, ConceptLabels) => ({
-                ...display,
-                Labels: {
-                  ...display.Labels,
-                  Concept: ConceptLabels,
-                },
-              })}
-              label='Concept Labels'
-            />
-            <br />
-            <ComponentCheckbox
-              {...props}
-              value={props.display.Labels.Bundle}
-              set={(display, BundleLabels) => ({
-                ...display,
-                Labels: {
-                  ...display.Labels,
-                  Bundle: BundleLabels,
-                },
-              })}
-              label='Bundle Labels'
-            />
-          </td>
-        </tr>
+          <tr>
+            <td colSpan={2}>
+              <ComponentCheckbox
+                {...props}
+                value={props.display.Labels.Concept}
+                set={(display, ConceptLabels) => ({
+                  ...display,
+                  Labels: {
+                    ...display.Labels,
+                    Concept: ConceptLabels,
+                  },
+                })}
+                label='Concept Labels'
+              />
+              <br />
+              <ComponentCheckbox
+                {...props}
+                value={props.display.Labels.Bundle}
+                set={(display, BundleLabels) => ({
+                  ...display,
+                  Labels: {
+                    ...display.Labels,
+                    Bundle: BundleLabels,
+                  },
+                })}
+                label='Bundle Labels'
+              />
+            </td>
+          </tr>
+        </tbody>
       </table>
     </Control>
   )
