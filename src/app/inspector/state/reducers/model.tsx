@@ -34,7 +34,8 @@ export function setModelDeduplication(dup: Deduplication): IReducer {
 
 export function newModelDisplay(): ModelDisplay {
   return {
-    CompactBundles: true,
+    ComplexConceptNodes: true,
+    ComplexLiteralNodes: true,
     Components: {
       ConceptLabels: true,
       PropertyLabels: true,

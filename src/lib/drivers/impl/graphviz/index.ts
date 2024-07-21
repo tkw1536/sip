@@ -220,7 +220,7 @@ export class GraphVizBundleDriver extends GraphvizDriver<
           tooltip: path.id,
 
           style: 'filled',
-          fillcolor: cm.get(node.bundle),
+          fillcolor: cm.getDefault(node.bundle),
         },
       })
       return
@@ -234,7 +234,7 @@ export class GraphVizBundleDriver extends GraphvizDriver<
           tooltip: path.id,
 
           style: 'filled',
-          fillcolor: cm.get(node.field),
+          fillcolor: cm.getDefault(node.field),
         },
       })
       return
@@ -324,7 +324,7 @@ class GraphVizModelDriver extends GraphvizDriver<
           tooltip: node.clz,
 
           style: 'filled',
-          fillcolor: cm.get(...node.bundles),
+          fillcolor: cm.getDefault(...node.bundles),
         },
       })
       return
@@ -362,7 +362,7 @@ class GraphVizModelDriver extends GraphvizDriver<
 
           shape: 'box',
           style: 'filled',
-          fillcolor: cm.get(bundle),
+          fillcolor: cm.getDefault(bundle),
         },
       })
       sg.edges.push({
@@ -392,7 +392,7 @@ class GraphVizModelDriver extends GraphvizDriver<
             .join('\n'),
 
           style: 'filled',
-          fillcolor: cm.get(...node.fields), // TODO: make this custom
+          fillcolor: cm.getDefault(...node.fields), // TODO: make this custom
         },
       })
       return
@@ -427,7 +427,7 @@ class GraphVizModelDriver extends GraphvizDriver<
           tooltip: field.path.id,
 
           style: 'filled',
-          fillcolor: cm.get(field),
+          fillcolor: cm.getDefault(field),
         },
       })
       sg.edges.push({

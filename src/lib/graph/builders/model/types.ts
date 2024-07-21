@@ -41,7 +41,103 @@ export class ConceptModelNode {
       fields: AttachedElement[]
     }
   } {
-    throw new Error('not implemented')
+    if (!options.display.ComplexConceptNodes) {
+      const element = this.#renderSimple(id, options)
+      return { element }
+    }
+
+    const { element, bundles, fields } = this.#renderComplex(id, options)
+    if (bundles.length === 0 && fields.length === 0) {
+      return { element }
+    }
+
+    return { element, attached: { fields, bundles } }
+  }
+
+  #renderSimple(id: string, options: ModelOptions): Element {
+    const labelParts: string[] = []
+    const tooltipParts: string[] = []
+
+    if (options.display.Components.ConceptLabels) {
+      labelParts.push(options.ns.apply(this.clz))
+      tooltipParts.push(this.clz)
+    }
+
+    this.bundles.forEach(bundle => {
+      labelParts.push('Bundle ' + bundle.path.name)
+      tooltipParts.push('Bundle ' + bundle.path.id)
+    })
+
+    this.fields.forEach(field => {
+      labelParts.push('Field ' + field.path.name)
+      tooltipParts.push('Field ' + field.path.id)
+    })
+
+    return {
+      id,
+      label: labelParts.length > 0 ? labelParts.join('\n\n') : null,
+      tooltip: tooltipParts.length > 0 ? tooltipParts.join('\n\n') : null,
+      color: options.cm.get(...this.fields, ...this.bundles),
+    }
+  }
+
+  #renderComplex(
+    id: string,
+    options: ModelOptions,
+  ): {
+    element: Element
+    bundles: AttachedElement[]
+    fields: AttachedElement[]
+  } {
+    const element = {
+      id,
+      label: options.display.Components.ConceptLabels
+        ? options.ns.apply(this.clz)
+        : null,
+      tooltip: options.display.Components.ConceptLabels ? this.clz : null,
+      color: null,
+    }
+
+    const bundles = Array.from(this.bundles).map((bundle, idx) => {
+      const bundleID = `${id}-bundle-${idx}`
+      const color = options.cm.get(bundle)
+      return {
+        node: {
+          id: bundleID + '-node',
+          label: bundle.path.name,
+          tooltip: bundle.path.id,
+          color,
+        },
+        edge: {
+          id: bundleID + '-edge',
+          label: null,
+          tooltip: null,
+          color,
+        },
+      }
+    })
+
+    const fields = Array.from(this.fields).map((field, idx) => {
+      const fieldID = `${id}-field-${idx}`
+      const color = options.cm.get(field)
+
+      return {
+        node: {
+          id: fieldID + '-node',
+          label: 'Field ' + field.path.name,
+          tooltip: field.path.id,
+          color,
+        },
+        edge: {
+          id: fieldID + '-edge',
+          label: field.path.informativeFieldType,
+          tooltip: field.path.fieldType,
+          color,
+        },
+      }
+    })
+
+    return { element, bundles, fields }
   }
 }
 
@@ -60,7 +156,61 @@ export class LiteralModelNode {
       fields: AttachedElement[]
     }
   } {
-    throw new Error('not implemented')
+    if (!options.display.ComplexLiteralNodes) {
+      const element = this.#renderSimple(id, options)
+      return { element }
+    }
+
+    const { element, fields } = this.#renderComplex(id, options)
+    return { element, attached: { fields } }
+  }
+
+  #renderSimple(id: string, options: ModelOptions): Element {
+    const label = Array.from(this.fields)
+      .map(field => field.path.name)
+      .join('\n\n')
+
+    return {
+      id,
+      label,
+      tooltip: null,
+      color: options.cm.get(...this.fields),
+    }
+  }
+
+  #renderComplex(
+    id: string,
+    options: ModelOptions,
+  ): {
+    element: Element
+    fields: AttachedElement[]
+  } {
+    return {
+      element: {
+        id,
+        label: null,
+        tooltip: null,
+        color: null,
+      },
+      fields: Array.from(this.fields).map((field, idx) => {
+        const fieldID = `${id}-field-${idx}`
+        const color = options.cm.get(field)
+        return {
+          node: {
+            id: fieldID + '-node',
+            label: field.path.name,
+            tooltip: field.path.id,
+            color,
+          },
+          edge: {
+            id: fieldID + '-edge',
+            label: field.path.informativeFieldType,
+            tooltip: field.path.fieldType,
+            color,
+          },
+        }
+      }),
+    }
   }
 }
 
@@ -111,7 +261,8 @@ export interface ModelOptions {
 }
 
 export interface ModelDisplay {
-  CompactBundles: boolean
+  ComplexConceptNodes: boolean
+  ComplexLiteralNodes: boolean
   Components: {
     ConceptLabels: boolean
     PropertyLabels: boolean

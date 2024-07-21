@@ -231,13 +231,13 @@ export class CytoBundleDriver extends CytoscapeDriver<
   ): Promise<undefined> {
     if (node.type === 'bundle') {
       const label = 'Bundle\n' + node.bundle.path.name
-      const data = { id, label, color: cm.get(node.bundle) }
+      const data = { id, label, color: cm.getDefault(node.bundle) }
       elements.push({ data })
       return
     }
     if (node.type === 'field') {
       const label = node.field.path.name
-      const data = { id, label, color: cm.get(node.field) }
+      const data = { id, label, color: cm.getDefault(node.field) }
       elements.push({ data })
       return
     }
@@ -289,7 +289,7 @@ export class CytoModelDriver extends CytoscapeDriver<
   ): Promise<undefined> {
     const label = modelNodeLabel(node, ns)
     if (node instanceof LiteralModelNode) {
-      const data = { id, label, color: cm.get(...node.fields) }
+      const data = { id, label, color: cm.getDefault(...node.fields) }
       elements.push({ data })
       return
     }
@@ -303,7 +303,7 @@ export class CytoModelDriver extends CytoscapeDriver<
       return
     }
     if (node instanceof ConceptModelNode && node.bundles.size > 0) {
-      const data = { id, label, color: cm.get(...node.bundles) }
+      const data = { id, label, color: cm.getDefault(...node.bundles) }
       elements.push({ data })
     }
   }

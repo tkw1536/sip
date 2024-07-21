@@ -161,7 +161,7 @@ export class VisNetworkBundleDriver extends VisNetworkDriver<
       dataset.addNode({
         id,
         label: 'Bundle\n' + node.bundle.path.name,
-        color: cm.get(node.bundle),
+        color: cm.getDefault(node.bundle),
         level: node.level,
       })
       return
@@ -170,7 +170,7 @@ export class VisNetworkBundleDriver extends VisNetworkDriver<
       dataset.addNode({
         id,
         label: node.field.path.name,
-        color: cm.get(node.field),
+        color: cm.getDefault(node.field),
         level: node.level,
       })
       return
@@ -224,7 +224,7 @@ export class VisNetworkModelDriver extends VisNetworkDriver<
         label,
 
         shape: 'box',
-        color: cm.get(...node.fields),
+        color: cm.getDefault(...node.fields),
       })
       return
     }
@@ -243,7 +243,7 @@ export class VisNetworkModelDriver extends VisNetworkDriver<
       dataset.addNode({
         id,
         label,
-        color: cm.get(...node.bundles),
+        color: cm.getDefault(...node.bundles),
       })
       return
     }

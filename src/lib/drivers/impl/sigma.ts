@@ -150,7 +150,7 @@ export class SigmaBundleDriver extends SigmaDriver<
     if (node.type === 'bundle') {
       graph.addNode(id, {
         label: 'Bundle\n' + node.bundle.path.name,
-        color: cm.get(node.bundle),
+        color: cm.getDefault(node.bundle),
         size: 20,
       })
       return
@@ -158,7 +158,7 @@ export class SigmaBundleDriver extends SigmaDriver<
     if (node.type === 'field') {
       graph.addNode(id, {
         label: node.field.path.name,
-        color: cm.get(node.field),
+        color: cm.getDefault(node.field),
         size: 10,
       })
       return
@@ -221,7 +221,7 @@ export class SigmaModelDriver extends SigmaDriver<
       graph.addNode(id, {
         label,
 
-        color: cm.get(...node.fields),
+        color: cm.getDefault(...node.fields),
         size: 10,
       })
       return
@@ -238,7 +238,7 @@ export class SigmaModelDriver extends SigmaDriver<
       graph.addNode(id, {
         label,
 
-        color: cm.get(...node.bundles),
+        color: cm.getDefault(...node.bundles),
         size: 10,
       })
       return

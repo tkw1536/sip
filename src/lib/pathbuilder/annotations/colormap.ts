@@ -92,18 +92,22 @@ export default class ColorMap {
     }
   }
 
+  public getDefault(...nodes: PathTreeNode[]): string {
+    return this.get(...nodes) ?? this.defaultColor
+  }
+
   /** gets the color of the node with the lowest depth and valid id */
-  public get(...nodes: PathTreeNode[]): string {
+  public get(...nodes: PathTreeNode[]): string | null {
     const node = nodes
       .sort(PathTreeNode.compare.bind(PathTreeNode))
       .find(node => typeof node.path?.id === 'string')
-    return this.#colors.get(node?.path?.id ?? '') ?? this.defaultColor
+    return this.#colors.get(node?.path?.id ?? '') ?? null
   }
 
   public set(node: PathTreeNode, color: string): ColorMap {
     const nColor = ColorMap.parseColor(color) ?? ColorMap.globalDefault
 
-    const value = this.get(node)
+    const value = this.getDefault(node)
     if (value === nColor) {
       return this
     }

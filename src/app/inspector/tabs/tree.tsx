@@ -257,7 +257,7 @@ class BundleRows extends Component<
             />
             <input
               type='color'
-              value={cm.get(bundle)}
+              value={cm.getDefault(bundle)}
               onInput={this.#handleColorChange}
             />
           </td>
@@ -346,7 +346,7 @@ class FieldRow extends Component<
           />
           <input
             type='color'
-            value={cm.get(field)}
+            value={cm.getDefault(field)}
             onInput={this.#handleColorChange}
           />
         </td>
