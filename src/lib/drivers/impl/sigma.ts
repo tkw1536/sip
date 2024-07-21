@@ -18,14 +18,15 @@ import FA2Layout from 'graphology-layout-forceatlas2/worker'
 import { inferSettings } from 'graphology-layout-forceatlas2'
 import circular from 'graphology-layout/circular'
 import circlepack from 'graphology-layout/circlepack'
-import { modelNodeLabel } from '../../graph/builders/model/dedup'
 import {
   type ModelOptions,
   type ModelEdge,
   type ModelNode,
   LiteralModelNode,
   ConceptModelNode,
+  type Element,
 } from '../../graph/builders/model/types'
+import { type Attributes } from 'graphology-types'
 
 interface SigmaMount {
   beforeStop?: () => void
@@ -204,46 +205,76 @@ export class SigmaModelDriver extends SigmaDriver<
   static readonly #defaultColor = 'black'
   protected async addNodeImpl(
     graph: Graph,
-    {
-      options: {
-        ns,
-        cm,
-        display: {
-          Components: { ConceptLabels },
-        },
-      },
-    }: ContextFlags<ModelOptions>,
+    { options }: ContextFlags<ModelOptions>,
     id: string,
     node: ModelNode,
   ): Promise<undefined> {
-    const label = modelNodeLabel(node, ns)
     if (node instanceof LiteralModelNode) {
-      graph.addNode(id, {
-        label,
-
-        color: cm.getDefault(...node.fields),
-        size: 10,
-      })
+      this.#addLiteralNode(graph, options, id, node)
       return
     }
-    if (node instanceof ConceptModelNode && node.bundles.size === 0) {
-      graph.addNode(id, {
-        label: ConceptLabels ? label : undefined,
-
-        size: 10,
-      })
-      return
-    }
-    if (node instanceof ConceptModelNode && node.bundles.size > 0) {
-      graph.addNode(id, {
-        label,
-
-        color: cm.getDefault(...node.bundles),
-        size: 10,
-      })
+    if (node instanceof ConceptModelNode) {
+      this.#addConceptNode(graph, options, id, node)
       return
     }
     throw new Error('never reached')
+  }
+
+  #addLiteralNode(
+    graph: Graph,
+    options: ModelOptions,
+    id: string,
+    node: LiteralModelNode,
+  ): void {
+    const element = node.render(id, options)
+
+    graph.addNode(element.id, SigmaModelDriver.#nodeData(element, { size: 10 }))
+
+    if (typeof element.attached === 'undefined') {
+      return
+    }
+
+    element.attached.fields.forEach(({ node, edge }) => {
+      graph.addNode(node.id, SigmaModelDriver.#nodeData(node, { size: 10 }))
+      graph.addDirectedEdge(
+        element.id,
+        node.id,
+        SigmaModelDriver.#edgeData(edge, { size: 5 }),
+      )
+    })
+  }
+
+  #addConceptNode(
+    graph: Graph,
+    options: ModelOptions,
+    id: string,
+    node: ConceptModelNode,
+  ): void {
+    const element = node.render(id, options)
+
+    graph.addNode(element.id, SigmaModelDriver.#nodeData(element, { size: 10 }))
+
+    if (typeof element.attached === 'undefined') {
+      return
+    }
+
+    element.attached.fields.forEach(({ node, edge }) => {
+      graph.addNode(node.id, SigmaModelDriver.#nodeData(node, { size: 10 }))
+      graph.addDirectedEdge(
+        element.id,
+        node.id,
+        SigmaModelDriver.#edgeData(edge, { size: 5 }),
+      )
+    })
+
+    element.attached.bundles.forEach(({ node, edge }) => {
+      graph.addNode(node.id, SigmaModelDriver.#nodeData(node, { size: 10 }))
+      graph.addDirectedEdge(
+        element.id,
+        node.id,
+        SigmaModelDriver.#edgeData(edge, { size: 5 }),
+      )
+    })
   }
 
   protected async addEdgeImpl(
@@ -256,13 +287,35 @@ export class SigmaModelDriver extends SigmaDriver<
   ): Promise<undefined> {
     const element = edge.render(id, options)
 
-    graph.addDirectedEdge(from, to, {
-      color: 'black',
+    graph.addDirectedEdge(
+      from,
+      to,
+      SigmaModelDriver.#edgeData(element, { size: 5 }),
+    )
+  }
+
+  static readonly #defaultEdgeColor = 'black'
+  static readonly #defaultNodeColor = 'black'
+
+  static #nodeData(element: Element, extra?: Attributes): Attributes {
+    return {
+      color: element.color ?? this.#defaultNodeColor,
+      label: element.label ?? undefined,
+
+      ...extra,
+    }
+  }
+
+  static #edgeData(element: Element, extra?: Attributes): Attributes {
+    return {
+      color: element.color ?? this.#defaultEdgeColor,
+      label: element.label ?? undefined,
+
       type: 'arrow',
       arrow: 'target',
-      label: element.label ?? undefined,
-      size: 5,
-    })
+
+      ...extra,
+    }
   }
 }
 
