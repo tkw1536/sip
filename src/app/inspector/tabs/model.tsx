@@ -173,6 +173,34 @@ function ModelGraphDisplayControl(
       <p>
         <ComponentCheckbox
           {...props}
+          value={props.display.ComplexConceptNodes}
+          set={(display, ComplexConceptNodes) => ({
+            ...display,
+            ComplexConceptNodes,
+          })}
+          label='Complex Concept Nodes'
+        >
+          If disabled, don't draw separate nodes for bundles and figures related
+          to a concept.
+        </ComponentCheckbox>
+      </p>
+      <p>
+        <ComponentCheckbox
+          {...props}
+          value={props.display.ComplexLiteralNodes}
+          set={(display, ComplexLiteralNodes) => ({
+            ...display,
+            ComplexLiteralNodes,
+          })}
+          label='Complex Literal Nodes'
+        >
+          If disabled, don't draw separate nodes for fields related to a
+          literal.
+        </ComponentCheckbox>
+      </p>
+      <p>
+        <ComponentCheckbox
+          {...props}
           value={props.display.Components.ConceptLabels}
           set={(display, ConceptLabels) => ({
             ...display,
@@ -220,6 +248,7 @@ interface ComponentCheckboxProps extends ModelDisplayControlProps {
   value: boolean
   set: (display: ModelDisplay, checked: boolean) => ModelDisplay
   label: string
+  children?: ComponentChildren
 }
 
 const ComponentCheckbox = WithID<ComponentCheckboxProps>(
@@ -236,7 +265,7 @@ const ComponentCheckbox = WithID<ComponentCheckboxProps>(
       onUpdate(set(display, checked))
     }
     render(): ComponentChildren {
-      const { value, id, label } = this.props
+      const { children, value, id, label } = this.props
       return (
         <>
           <input
@@ -245,7 +274,11 @@ const ComponentCheckbox = WithID<ComponentCheckboxProps>(
             checked={value}
             onInput={this.#handleInput}
           ></input>
-          <label for={id}>{label}</label>
+          <label for={id}>
+            <em>{label}.</em>
+            {` `}
+            {children}
+          </label>
         </>
       )
     }

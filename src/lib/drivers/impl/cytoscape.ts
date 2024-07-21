@@ -1,3 +1,4 @@
+import type cytoscape from 'cytoscape'
 import {
   type Core,
   type CytoscapeOptions as _Options,
@@ -23,8 +24,8 @@ import {
   type ModelNode,
   LiteralModelNode,
   ConceptModelNode,
+  type Element,
 } from '../../graph/builders/model/types'
-import { modelNodeLabel } from '../../graph/builders/model/dedup'
 
 const Cytoscape = new LazyValue(async () => {
   const cytoscape = (await import('cytoscape')).default
@@ -271,41 +272,115 @@ export class CytoModelDriver extends CytoscapeDriver<
   ModelEdge,
   ModelOptions
 > {
-  static readonly #defaultColor = 'black'
-
   protected async addNodeImpl(
     elements: Elements,
-    {
-      options: {
-        ns,
-        cm,
-        display: {
-          Components: { ConceptLabels },
-        },
-      },
-    }: ContextFlags<ModelOptions>,
+    { options }: ContextFlags<ModelOptions>,
     id: string,
     node: ModelNode,
   ): Promise<undefined> {
-    const label = modelNodeLabel(node, ns)
     if (node instanceof LiteralModelNode) {
-      const data = { id, label, color: cm.getDefault(...node.fields) }
-      elements.push({ data })
+      this.#addLiteralNode(elements, options, id, node)
       return
     }
-    if (node instanceof ConceptModelNode && node.bundles.size === 0) {
-      const data = {
-        id,
-        label: ConceptLabels ? label : undefined,
-        color: 'black',
-      }
-      elements.push({ data })
+    if (node instanceof ConceptModelNode) {
+      this.#addConceptNode(elements, options, id, node)
       return
     }
-    if (node instanceof ConceptModelNode && node.bundles.size > 0) {
-      const data = { id, label, color: cm.getDefault(...node.bundles) }
-      elements.push({ data })
+    throw new Error('never reached')
+  }
+
+  #addLiteralNode(
+    elements: Elements,
+    options: ModelOptions,
+    id: string,
+    node: LiteralModelNode,
+  ): void {
+    const element = node.render(id, options)
+
+    elements.push({
+      data: {
+        id: element.id,
+        ...CytoModelDriver.#nodeData(element),
+      },
+    })
+
+    if (typeof element.attached === 'undefined') {
+      return
     }
+
+    element.attached.fields.forEach(({ node, edge }) => {
+      elements.push({
+        data: {
+          id: node.id,
+          ...CytoModelDriver.#nodeData(node),
+        },
+      })
+
+      elements.push({
+        data: {
+          id: edge.id,
+          source: element.id,
+          target: node.id,
+          ...CytoModelDriver.#edgeData(edge),
+        },
+      })
+    })
+  }
+
+  #addConceptNode(
+    elements: Elements,
+    options: ModelOptions,
+    id: string,
+    node: ConceptModelNode,
+  ): void {
+    const element = node.render(id, options)
+
+    elements.push({
+      data: {
+        id: element.id,
+        ...CytoModelDriver.#nodeData(element),
+      },
+    })
+
+    if (typeof element.attached === 'undefined') {
+      return
+    }
+
+    element.attached.fields.forEach(({ node, edge }) => {
+      elements.push({
+        data: {
+          id: node.id,
+          ...CytoModelDriver.#nodeData(node),
+        },
+      })
+
+      elements.push({
+        data: {
+          id: edge.id,
+          source: element.id,
+          target: node.id,
+          ...CytoModelDriver.#edgeData(edge),
+        },
+      })
+    })
+
+    element.attached.bundles.forEach(({ node, edge }) => {
+      elements.push({
+        data: {
+          id: node.id,
+          ...CytoModelDriver.#nodeData(node),
+        },
+      })
+
+      elements.push({
+        data: {
+          id: edge.id,
+          source: element.id,
+          target: node.id,
+          ...CytoModelDriver.#edgeData(edge),
+        },
+      })
+    })
   }
 
   protected async addEdgeImpl(
@@ -321,10 +396,28 @@ export class CytoModelDriver extends CytoscapeDriver<
       id: element.id,
       source: from,
       target: to,
-      label: element.label ?? undefined,
-      color: element.color ?? CytoModelDriver.#defaultColor,
+      ...CytoModelDriver.#edgeData(element),
     }
     elements.push({ data })
+  }
+
+  static readonly #defaultEdgeColor = 'black'
+  static readonly #defaultNodeColor = 'black'
+
+  static #nodeData(element: Element): Omit<cytoscape.NodeDataDefinition, 'id'> {
+    return {
+      label: element.label ?? '',
+      color: element.color ?? CytoModelDriver.#defaultNodeColor,
+    }
+  }
+
+  static #edgeData(
+    element: Element,
+  ): Omit<cytoscape.EdgeDataDefinition, 'id' | 'source' | 'target'> {
+    return {
+      label: element.label ?? '',
+      color: element.color ?? CytoModelDriver.#defaultEdgeColor,
+    }
   }
 }
 

@@ -258,19 +258,40 @@ export class GraphVizBundleDriver extends GraphvizDriver<
   }
 }
 
-class GraphVizModelDriver extends GraphvizDriver<
+export class GraphVizModelDriver extends GraphvizDriver<
   ModelNode,
   ModelEdge,
   ModelOptions
 > {
-  readonly driverName: string
-  constructor(public readonly compact: boolean) {
-    super()
-    this.driverName = compact ? 'GraphViz-compact' : 'GraphViz'
-  }
+  readonly driverName: string = 'GraphViz'
 
   static readonly #defaultEdgeColor = 'black'
   static readonly #defaultNodeColor = 'white'
+
+  static #nodeData(display: Element, extra?: Attributes): Attributes {
+    const typeAttrs = {
+      style: 'filled',
+      fillcolor: display.color ?? this.#defaultNodeColor,
+    }
+    return {
+      label: display.label ?? '',
+      tooltip: display.tooltip ?? '',
+      ...typeAttrs,
+      ...(extra ?? {}),
+    }
+  }
+
+  static #edgeData(display: Element, extra?: Attributes): Attributes {
+    const typeAttrs = {
+      color: display.color ?? this.#defaultEdgeColor,
+    }
+    return {
+      label: display.label ?? '',
+      tooltip: display.tooltip ?? '',
+      ...typeAttrs,
+      ...(extra ?? {}),
+    }
+  }
 
   protected addNodeImpl(
     graph: Graph,
@@ -299,7 +320,7 @@ class GraphVizModelDriver extends GraphvizDriver<
     if (typeof element.attached === 'undefined') {
       graph.nodes.push({
         name: element.id,
-        attributes: GraphVizModelDriver.#attrs(element, 'node', {
+        attributes: GraphVizModelDriver.#nodeData(element, {
           shape: 'box',
         }),
       })
@@ -318,19 +339,21 @@ class GraphVizModelDriver extends GraphvizDriver<
 
     sg.nodes.push({
       name: element.id,
-      attributes: GraphVizModelDriver.#attrs(element, 'node'),
+      attributes: GraphVizModelDriver.#nodeData(element),
     })
 
     element.attached.fields.forEach(({ node, edge }) => {
       sg.nodes.push({
         name: node.id,
-        attributes: GraphVizModelDriver.#attrs(node, 'node', { shape: 'box' }),
+        attributes: GraphVizModelDriver.#nodeData(node, {
+          shape: 'box',
+        }),
       })
       sg.edges.push({
         head: element.id,
         tail: node.id,
 
-        attributes: GraphVizModelDriver.#attrs(edge, 'edge'),
+        attributes: GraphVizModelDriver.#edgeData(edge),
       })
     })
 
@@ -347,7 +370,7 @@ class GraphVizModelDriver extends GraphvizDriver<
     if (typeof element.attached === 'undefined') {
       graph.nodes.push({
         name: element.id,
-        attributes: GraphVizModelDriver.#attrs(element, 'node'),
+        attributes: GraphVizModelDriver.#nodeData(element),
       })
       return
     }
@@ -364,28 +387,13 @@ class GraphVizModelDriver extends GraphvizDriver<
 
     sg.nodes.push({
       name: element.id,
-      attributes: GraphVizModelDriver.#attrs(element, 'node'),
-    })
-
-    element.attached.fields.forEach(({ node, edge }) => {
-      sg.nodes.push({
-        name: node.id,
-        attributes: GraphVizModelDriver.#attrs(node, 'node', {
-          shape: 'box',
-        }),
-      })
-      sg.edges.push({
-        head: element.id,
-        tail: node.id,
-
-        attributes: GraphVizModelDriver.#attrs(edge, 'edge'),
-      })
+      attributes: GraphVizModelDriver.#nodeData(element),
     })
 
     element.attached.bundles.forEach(({ node, edge }) => {
       sg.nodes.push({
         name: node.id,
-        attributes: GraphVizModelDriver.#attrs(node, 'node', {
+        attributes: GraphVizModelDriver.#nodeData(node, {
           shape: 'box',
         }),
       })
@@ -393,33 +401,26 @@ class GraphVizModelDriver extends GraphvizDriver<
         head: element.id,
         tail: node.id,
 
-        attributes: GraphVizModelDriver.#attrs(edge, 'edge'),
+        attributes: GraphVizModelDriver.#nodeData(edge),
+      })
+    })
+
+    element.attached.fields.forEach(({ node, edge }) => {
+      sg.nodes.push({
+        name: node.id,
+        attributes: GraphVizModelDriver.#nodeData(node, {
+          shape: 'box',
+        }),
+      })
+      sg.edges.push({
+        head: element.id,
+        tail: node.id,
+
+        attributes: GraphVizModelDriver.#edgeData(edge),
       })
     })
 
     graph.subgraphs.push(sg)
-  }
-
-  static #attrs(
-    display: Element,
-    type: 'node' | 'edge',
-    extra?: Attributes,
-  ): Attributes {
-    const typeAttrs: Attributes =
-      type === 'node'
-        ? {
-            style: 'filled',
-            fillcolor: display.color ?? this.#defaultNodeColor,
-          }
-        : {
-            color: display.color ?? this.#defaultEdgeColor,
-          }
-    return {
-      label: display.label ?? '',
-      tooltip: display.tooltip ?? '',
-      ...typeAttrs,
-      ...(extra ?? {}),
-    }
   }
 
   protected addEdgeImpl(
@@ -434,20 +435,8 @@ class GraphVizModelDriver extends GraphvizDriver<
     graph.edges.push({
       head: to,
       tail: from,
-      attributes: GraphVizModelDriver.#attrs(element, 'edge'),
+      attributes: GraphVizModelDriver.#edgeData(element),
     })
-  }
-}
-
-export class CompactGraphVizModelDriver extends GraphVizModelDriver {
-  constructor() {
-    super(true)
-  }
-}
-
-export class RegularGraphVizModelDriver extends GraphVizModelDriver {
-  constructor() {
-    super(false)
   }
 }
 

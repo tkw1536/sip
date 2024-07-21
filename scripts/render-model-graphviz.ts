@@ -6,7 +6,7 @@ import { NamespaceMap } from '../src/lib/pathbuilder/namespace'
 import ColorMap from '../src/lib/pathbuilder/annotations/colormap'
 import ModelGraphBuilder from '../src/lib/graph/builders/model'
 import Deduplication from '../src/app/inspector/state/state/deduplication'
-import { RegularGraphVizModelDriver } from '../src/lib/drivers/impl/graphviz'
+import { GraphVizModelDriver } from '../src/lib/drivers/impl/graphviz'
 import { type ContextFlags } from '../src/lib/drivers/impl'
 import { type ModelOptions } from '../src/lib/graph/builders/model/types'
 import { newModelDisplay } from '../src/app/inspector/state/reducers/model'
@@ -41,7 +41,7 @@ async function main(): Promise<void> {
   }).build()
 
   // load the driver and setup flags to use
-  const driver = new RegularGraphVizModelDriver()
+  const driver = new GraphVizModelDriver()
   const flags: ContextFlags<ModelOptions> = {
     options: { ns, cm, display: newModelDisplay() },
     definitelyAcyclic: graph.definitelyAcyclic,

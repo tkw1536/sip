@@ -122,7 +122,7 @@ export class ConceptModelNode {
       return {
         node: {
           id: fieldID + '-node',
-          label: 'Field ' + field.path.name,
+          label: field.path.name,
           tooltip: field.path.id,
           color,
         },

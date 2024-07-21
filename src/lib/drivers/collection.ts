@@ -72,12 +72,7 @@ export const models = new DriverCollection<ModelNode, ModelEdge, ModelOptions>(
   [
     'GraphViz',
     async () =>
-      await import('./impl/graphviz').then(m => m.RegularGraphVizModelDriver),
-  ],
-  [
-    'GraphViz-compact',
-    async () =>
-      await import('./impl/graphviz').then(m => m.CompactGraphVizModelDriver),
+      await import('./impl/graphviz').then(m => m.GraphVizModelDriver),
   ],
   [
     'vis-network',
