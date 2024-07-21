@@ -21,7 +21,8 @@
         "prefresh",
         "vitest",
         "rdflib",
-        "dedup"
+        "dedup",
+        "typechecker"
     ],
     "ignorePaths": ["package.json", "node_modules/**", "dist/**", "**/*.svg", "**/*.xml"],
     // flagWords - list of words to be always considered incorrect
