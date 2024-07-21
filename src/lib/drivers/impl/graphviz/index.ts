@@ -14,7 +14,6 @@ import { type RenderOptions } from '@viz-js/viz'
 import { Type } from '../../../utils/media'
 import { type GraphVizRequest, type GraphVizResponse } from './impl'
 import { LazyValue } from '../../../utils/once'
-
 // lazy import svg-pan-zoom (so that we can skip loading it in server-side mode)
 import { type default as SvgPanZoom } from 'svg-pan-zoom'
 import {
@@ -67,8 +66,8 @@ abstract class GraphvizDriver<NodeLabel, EdgeLabel, Options> extends DriverImpl<
       strict: false,
       directed: true,
       graphAttributes: { compound: true },
-      nodeAttributes: { label: '""', tooltip: '' },
-      edgeAttributes: { label: '', tooltip: '' },
+      nodeAttributes: { label: '""', tooltip: '""' },
+      edgeAttributes: { label: '""', tooltip: '""' },
       nodes: [],
       edges: [],
       subgraphs: [],
@@ -98,8 +97,29 @@ abstract class GraphvizDriver<NodeLabel, EdgeLabel, Options> extends DriverImpl<
     return {
       graph,
       canon,
-      svg,
+      svg: await GraphvizDriver.#removeTitleHack(svg),
     }
+  }
+
+  static async #removeTitleHack(svg: string): Promise<string> {
+    const { DOMParser, XMLSerializer } = await import('@xmldom/xmldom')
+    const doc = new DOMParser().parseFromString(svg, 'image/svg+xml')
+
+    const nodes: Node[] = [doc.documentElement]
+    while (nodes.length > 0) {
+      const node = nodes.shift()
+      if (typeof node === 'undefined') {
+        break
+      }
+      if (node.nodeType === node.ELEMENT_NODE && node.nodeName === 'title') {
+        node.parentNode?.removeChild(node)
+        continue
+      }
+
+      nodes.push(...Array.from(node.childNodes ?? []))
+    }
+
+    return new XMLSerializer().serializeToString(doc)
   }
 
   /** callWorker spawns GraphViz in a background and has it render */
@@ -141,6 +161,7 @@ abstract class GraphvizDriver<NodeLabel, EdgeLabel, Options> extends DriverImpl<
   protected mountImpl(context: Context, flags: MountFlags<Options>): Mount {
     // mount the svg we have already rendered
     flags.container.innerHTML = context.svg
+
     const svg = flags.container.querySelector('svg')
     if (svg === null) {
       throw new Error('unable to mount svg element')
@@ -253,7 +274,10 @@ export class GraphVizBundleDriver extends GraphvizDriver<
     graph.edges.push({
       tail: from,
       head: to,
-      attributes: {},
+      attributes: {
+        label: '',
+        tooltip: '',
+      },
     })
   }
 }
@@ -528,12 +552,12 @@ interface Graph extends Subgraph {
   directed: boolean
 }
 
-interface Node {
+interface GVNode {
   name: string
   attributes: Attributes
 }
 
-interface Edge {
+interface GVEdge {
   tail: string
   head: string
   attributes?: Attributes
@@ -544,8 +568,8 @@ interface Subgraph {
   graphAttributes: Attributes
   nodeAttributes: Attributes
   edgeAttributes: Attributes
-  nodes: Node[]
-  edges: Edge[]
+  nodes: GVNode[]
+  edges: GVEdge[]
   subgraphs: Subgraph[]
 }
 
