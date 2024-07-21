@@ -5,6 +5,8 @@ import { setActiveTab } from './state/reducers/tab'
 import Tabs, { Label, Tab } from '../../components/tabs'
 import StateManager from '../../lib/state_management'
 import { LazyLoaded } from '../../components/spinner'
+import { closeModal } from './state/reducers/rdf'
+import Banner from '../../components/layout/banner'
 
 const RDFTab = LazyLoaded(async () => (await import('./tabs/rdf')).default)
 const MapTab = LazyLoaded(async () => (await import('./tabs/map')).default)
@@ -13,7 +15,7 @@ const DocsTab = LazyLoaded(async () => (await import('./tabs/docs')).default)
 const AboutTab = LazyLoaded(async () => (await import('./tabs/about')).default)
 
 export class App extends Component<Record<never, never>, RState> {
-  state: RState = resetRDFInterface()
+  state: RState = resetRDFInterface(true)
 
   readonly #manager = new StateManager<RState>(this.setState.bind(this))
 
@@ -31,33 +33,40 @@ class RDFViewer extends Component<RReducerProps> {
     this.props.apply(setActiveTab(key))
   }
 
+  readonly #handleBannerClose = (): void => {
+    this.props.apply(closeModal())
+  }
+
   render(): ComponentChild {
     const { apply, state } = this.props
     const props: RReducerProps = { apply, state }
     const loaded = state.loadStage === true
 
     return (
-      <Tabs onChangeTab={this.#handleChangeTab} active={state.activeTab}>
-        <Label>
-          <b>RDF Viewer</b>
-        </Label>
+      <>
+        {state.showModal && <Banner onClose={this.#handleBannerClose} />}
+        <Tabs onChangeTab={this.#handleChangeTab} active={state.activeTab}>
+          <Label>
+            <b>RDF Viewer</b>
+          </Label>
 
-        <Tab title='RDF File' id=''>
-          <RDFTab {...props} />
-        </Tab>
-        <Tab title='Graph' disabled={!loaded} id='graph'>
-          <GraphTab {...props} />
-        </Tab>
-        <Tab title='Namespace Map &#9881;&#65039;' disabled={!loaded} id='ns'>
-          <MapTab {...props} />
-        </Tab>
-        <Tab title='Docs' id='docs'>
-          <DocsTab />
-        </Tab>
-        <Tab title='About' id='about'>
-          <AboutTab />
-        </Tab>
-      </Tabs>
+          <Tab title='RDF File' id=''>
+            <RDFTab {...props} />
+          </Tab>
+          <Tab title='Graph' disabled={!loaded} id='graph'>
+            <GraphTab {...props} />
+          </Tab>
+          <Tab title='Namespace Map &#9881;&#65039;' disabled={!loaded} id='ns'>
+            <MapTab {...props} />
+          </Tab>
+          <Tab title='Docs' id='docs'>
+            <DocsTab />
+          </Tab>
+          <Tab title='About' id='about'>
+            <AboutTab />
+          </Tab>
+        </Tabs>
+      </>
     )
   }
 }

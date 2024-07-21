@@ -104,7 +104,7 @@ class WelcomeView extends Component<IReducerProps> {
 class InfoView extends Component<IReducerProps> {
   readonly #handleClosePathbuilder = (evt: Event): void => {
     evt.preventDefault()
-    this.props.apply(resetInspector)
+    this.props.apply(resetInspector(false))
   }
 
   readonly #handleExport = (evt: MouseEvent): void => {

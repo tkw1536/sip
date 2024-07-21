@@ -24,3 +24,7 @@ export function setRDFSeed(seed: number | null): RReducer {
     rdfGraphSeed: seed,
   })
 }
+
+export function closeModal(): RReducer {
+  return { showModal: false }
+}

@@ -8,9 +8,11 @@ import Deduplication from '../state/deduplication'
 import newInspectorState from './load'
 import { newModelDisplay } from '../../../../lib/graph/builders/model/labels'
 
-export function resetInspector(): IState {
+export function resetInspector(showModal: boolean): IState {
   const tree = new PathTree([])
   return {
+    showModal,
+
     loadStage: false,
     activeTab: '',
 
@@ -64,4 +66,8 @@ export function loadPathbuilder(file: File): IReducer {
       }
     }
   }
+}
+
+export function closeModal(): IReducer {
+  return { showModal: false }
 }

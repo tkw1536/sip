@@ -5,12 +5,24 @@ import Markup from 'preact-markup'
 import { classes } from '../lib/utils/classes'
 
 type MarkupProps = ComponentProps<typeof Markup>
-type HTMLProps = Omit<MarkupProps, 'type' | 'markup'> & { html: string }
-
-export default function HTML({ html, ...rest }: HTMLProps): VNode<any> {
-  return (
-    <div class={classes(styles.container)}>
-      <Markup markup={html} type='html' {...rest} />
-    </div>
+type HTMLProps = Omit<MarkupProps, 'type' | 'markup'> & { html: string } & {
+  noContainer?: boolean
+}
+export default function HTML({
+  html,
+  noContainer,
+  ...rest
+}: HTMLProps): VNode<any> {
+  const markup = (
+    <Markup
+      markup={html}
+      type='html'
+      {...rest}
+      wrap={noContainer ?? false ? false : undefined}
+    />
   )
+  if (noContainer ?? false) {
+    return markup
+  }
+  return <div class={classes(styles.container)}>{markup}</div>
 }

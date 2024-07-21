@@ -26,6 +26,7 @@ export default function newInspectorState(
   })
 
   return {
+    showModal: false,
     loadStage: true,
 
     pathbuilder,

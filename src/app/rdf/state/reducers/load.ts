@@ -31,6 +31,7 @@ export function newStoreState(text: string, filename: string): RState {
   parse(text, store, base, format)
 
   return {
+    showModal: false,
     activeTab: newTabID(),
     loadStage: true,
     filename,

@@ -9,7 +9,23 @@ export default function Layout(props: {
     <>
       <main class={classes(styles.main)}>{props.children}</main>
       <footer class={classes(styles.footer)}>
-        &copy; Tom Wiesing 2024. All rights reserved.
+        &copy; Tom Wiesing. All rights reserved. {` `}
+        <a
+          href={'https://inform.everyone.wtf'}
+          target='_blank'
+          rel='noopener noreferrer'
+        >
+          Imprint & Privacy Policy
+        </a>
+        . {` `}
+        <a
+          href={'https://github.com/tkw1536/sip'}
+          target='_blank'
+          rel='noopener noreferrer'
+        >
+          Source Code
+        </a>
+        .
       </footer>
     </>
   )

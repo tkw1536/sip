@@ -21,7 +21,8 @@ For a more thorough introduction to to those topics please refer to the WissKI D
 
 The SIP project is entirely open source and it's source code can be found on GitHub [^4]. 
 
-**Even though you may inspect the source code to your heart's content, SIP (currently) does not have a license. This means that you may not publicly perform, create derivative works of or distribute this code (except for what is explicitly permitted by Section 5 of GitHub terms of service). In particular you are not granted a license to use this code to create visualizations of your own pathbuilders.**
+
+**Even though you may inspect the source code to your heart's content, SIP (currently) does not have a license. This means that you may not publicly perform, create derivative works of or distribute this code . In particular you are not granted a license to use this code to create visualizations of your own pathbuilders.**
 
 This app makes use of several JavaScript libraries. Some of these require that attribution is given to their authors. You can look at these notices below.
 
@@ -107,4 +108,4 @@ Contains this document.
 [^1]: https://wiss-ki.eu/
 [^2]: A future version of SIP may allow editing of Pathbuilders; in such a case this document will be updated.
 [^3]: https://wiss-ki.eu/documentation
-[^4]: not yet available
+[^4]: https://github.com/tkw1536/sip

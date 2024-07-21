@@ -3,9 +3,9 @@ import { Operation } from '../utils/operation'
 /**
  * A function that updates a state object
  */
-export type Reducer<State> = (
-  state: State,
-) => Partial<State> | Promise<Partial<State> | null> | null
+export type Reducer<State> =
+  | Partial<State>
+  | ((state: State) => Partial<State> | Promise<Partial<State> | null> | null)
 
 /**
  * Props supplied to a context
@@ -79,7 +79,10 @@ export default class StateManager<State> {
           if (!ticket()) return null
 
           // if we got an actual value, apply it now!
-          const reduced = reducer(state)
+          const reduced =
+            typeof reducer === 'function'
+              ? (reducer as (state: State) => Partial<State>)(state)
+              : reducer
           if (!(reduced instanceof Promise)) {
             return reduced
           }

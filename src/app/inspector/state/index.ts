@@ -11,6 +11,7 @@ import { type Reducer, type ReducerProps } from '../../../lib/state_management'
 import { type ModelDisplay } from '../../../lib/graph/builders/model/labels'
 
 export interface IState {
+  showModal: boolean
   activeTab: string // the active tab
 
   loadStage: false | 'loading' | true | { error: unknown } // boolean indicating if file has been loaded, string for error

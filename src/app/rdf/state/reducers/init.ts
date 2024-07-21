@@ -4,8 +4,9 @@ import { newRDFDriver } from './rdf'
 import { defaultLayout } from '../../../../lib/drivers/impl'
 import { NamespaceMap } from '../../../../lib/pathbuilder/namespace'
 
-export function resetRDFInterface(): RState {
+export function resetRDFInterface(showModal: boolean): RState {
   return {
+    showModal,
     activeTab: '', // the active tab
 
     loadStage: false, // boolean indicating if file has been loaded, string for error

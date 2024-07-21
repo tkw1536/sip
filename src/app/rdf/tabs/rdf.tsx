@@ -58,7 +58,7 @@ class WelcomeView extends Component<RReducerProps> {
 class InfoView extends Component<RReducerProps> {
   readonly #handleClose = (evt: Event): void => {
     evt.preventDefault()
-    this.props.apply(resetRDFInterface)
+    this.props.apply(resetRDFInterface(false))
   }
 
   get filename(): string {
