@@ -7,7 +7,7 @@ import {
   type ModelOptions,
   type ModelEdge,
   type ModelNode,
-} from '../graph/builders/model/types'
+} from '../graph/builders/model/labels'
 import {
   type RDFOptions,
   type RDFEdge,

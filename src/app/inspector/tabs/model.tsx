@@ -23,7 +23,7 @@ import {
   type ModelEdge,
   type ModelNode,
   type ModelDisplay,
-} from '../../../lib/graph/builders/model/types'
+} from '../../../lib/graph/builders/model/labels'
 
 export default WithID<IReducerProps>(
   class ModelGraphView extends Component<IReducerProps & { id: string }> {
@@ -167,7 +167,6 @@ function ModelGraphDisplayControl(
 ): JSX.Element {
   return (
     <Control name='Display'>
-      <p>Certain components of the graph can be toggled on or off.</p>
       <p>Changing this value will re-render the graph.</p>
 
       <p>
@@ -179,12 +178,8 @@ function ModelGraphDisplayControl(
             ComplexConceptNodes,
           })}
           label='Complex Concept Nodes'
-        >
-          If disabled, don't draw separate nodes for bundles and figures related
-          to a concept.
-        </ComponentCheckbox>
-      </p>
-      <p>
+        />
+        <br />
         <ComponentCheckbox
           {...props}
           value={props.display.ComplexLiteralNodes}
@@ -193,11 +188,53 @@ function ModelGraphDisplayControl(
             ComplexLiteralNodes,
           })}
           label='Complex Literal Nodes'
-        >
-          If disabled, don't draw separate nodes for fields related to a
-          literal.
-        </ComponentCheckbox>
+        />
+        <br />
+        Disabling these will render appropriate bundle and field labels directly
+        at the respective nodes.
       </p>
+
+      <p>
+        <ComponentCheckbox
+          {...props}
+          value={props.display.Components.BundleLabels}
+          set={(display, BundleLabels) => ({
+            ...display,
+            Components: {
+              ...display.Components,
+              BundleLabels,
+            },
+          })}
+          label='Bundle Labels'
+        />
+        <br />
+        <ComponentCheckbox
+          {...props}
+          value={props.display.Components.ConceptFieldLabels}
+          set={(display, ConceptFieldLabels) => ({
+            ...display,
+            Components: {
+              ...display.Components,
+              ConceptFieldLabels,
+            },
+          })}
+          label='Field Labels'
+        />
+        <br />
+        <ComponentCheckbox
+          {...props}
+          value={props.display.Components.ConceptFieldTypes}
+          set={(display, ConceptFieldTypes) => ({
+            ...display,
+            Components: {
+              ...display.Components,
+              ConceptFieldTypes,
+            },
+          })}
+          label='Field Types'
+        />
+      </p>
+
       <p>
         <ComponentCheckbox
           {...props}
@@ -211,8 +248,7 @@ function ModelGraphDisplayControl(
           })}
           label='Concept Labels'
         />
-      </p>
-      <p>
+        <br />
         <ComponentCheckbox
           {...props}
           value={props.display.Components.PropertyLabels}
@@ -226,7 +262,34 @@ function ModelGraphDisplayControl(
           label='Property Labels'
         />
       </p>
+
       <p>
+        <ComponentCheckbox
+          {...props}
+          value={props.display.Components.DatatypeFieldTypes}
+          set={(display, DatatypeFieldTypes) => ({
+            ...display,
+            Components: {
+              ...display.Components,
+              DatatypeFieldTypes,
+            },
+          })}
+          label='Datatype Field Types'
+        />
+        <br />
+        <ComponentCheckbox
+          {...props}
+          value={props.display.Components.DatatypeFieldLabels}
+          set={(display, DatatypeFieldLabels) => ({
+            ...display,
+            Components: {
+              ...display.Components,
+              DatatypeFieldLabels,
+            },
+          })}
+          label='Datatype Field Labels'
+        />
+        <br />
         <ComponentCheckbox
           {...props}
           value={props.display.Components.DatatypePropertyLabels}

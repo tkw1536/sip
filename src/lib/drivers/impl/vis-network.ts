@@ -27,7 +27,7 @@ import {
   ConceptModelNode,
   LiteralModelNode,
   type Element,
-} from '../../graph/builders/model/types'
+} from '../../graph/builders/model/labels'
 
 const Vis = new LazyValue(async () => await import('vis-network'))
 

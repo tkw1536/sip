@@ -6,7 +6,7 @@ import { PathTree } from '../../../../lib/pathbuilder/pathtree'
 import NodeSelection from '../../../../lib/pathbuilder/annotations/selection'
 import Deduplication from '../state/deduplication'
 import newInspectorState from './load'
-import { newModelDisplay } from './model'
+import { newModelDisplay } from '../../../../lib/graph/builders/model/labels'
 
 export function resetInspector(): IState {
   const tree = new PathTree([])

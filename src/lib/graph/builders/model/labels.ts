@@ -61,15 +61,19 @@ export class ConceptModelNode {
       tooltipParts.push(this.clz)
     }
 
-    this.bundles.forEach(bundle => {
-      labelParts.push('Bundle ' + bundle.path.name)
-      tooltipParts.push('Bundle ' + bundle.path.id)
-    })
+    if (options.display.Components.BundleLabels) {
+      this.bundles.forEach(bundle => {
+        labelParts.push('Bundle ' + bundle.path.name)
+        tooltipParts.push('Bundle ' + bundle.path.id)
+      })
+    }
 
-    this.fields.forEach(field => {
-      labelParts.push('Field ' + field.path.name)
-      tooltipParts.push('Field ' + field.path.id)
-    })
+    if (options.display.Components.ConceptFieldLabels) {
+      this.fields.forEach(field => {
+        labelParts.push('Field ' + field.path.name)
+        tooltipParts.push('Field ' + field.path.id)
+      })
+    }
 
     return {
       id,
@@ -96,14 +100,17 @@ export class ConceptModelNode {
       color: null,
     }
 
+    const { BundleLabels, ConceptFieldLabels, ConceptFieldTypes } =
+      options.display.Components
+
     const bundles = Array.from(this.bundles).map((bundle, idx) => {
       const bundleID = `${id}-bundle-${idx}`
       const color = options.cm.get(bundle)
       return {
         node: {
           id: bundleID + '-node',
-          label: bundle.path.name,
-          tooltip: bundle.path.id,
+          label: BundleLabels ? bundle.path.name : null,
+          tooltip: BundleLabels ? bundle.path.id : null,
           color,
         },
         edge: {
@@ -122,14 +129,14 @@ export class ConceptModelNode {
       return {
         node: {
           id: fieldID + '-node',
-          label: field.path.name,
-          tooltip: field.path.id,
+          label: ConceptFieldLabels ? field.path.name : null,
+          tooltip: ConceptFieldLabels ? field.path.id : null,
           color,
         },
         edge: {
           id: fieldID + '-edge',
-          label: field.path.informativeFieldType,
-          tooltip: field.path.fieldType,
+          label: ConceptFieldTypes ? field.path.informativeFieldType : null,
+          tooltip: ConceptFieldTypes ? field.path.fieldType : null,
           color,
         },
       }
@@ -162,9 +169,11 @@ export class LiteralModelNode {
   }
 
   #renderSimple(id: string, options: ModelOptions): Element {
-    const label = Array.from(this.fields)
-      .map(field => field.path.name)
-      .join('\n\n')
+    const label = options.display.Components.DatatypeFieldLabels
+      ? Array.from(this.fields)
+          .map(field => field.path.name)
+          .join('\n\n')
+      : null
 
     return {
       id,
@@ -181,6 +190,9 @@ export class LiteralModelNode {
     element: Element
     fields: AttachedElement[]
   } {
+    const {
+      Components: { DatatypeFieldLabels, DatatypeFieldTypes },
+    } = options.display
     return {
       element: {
         id,
@@ -194,14 +206,14 @@ export class LiteralModelNode {
         return {
           node: {
             id: fieldID + '-node',
-            label: field.path.name,
-            tooltip: field.path.id,
+            label: DatatypeFieldLabels ? field.path.name : null,
+            tooltip: DatatypeFieldLabels ? field.path.id : null,
             color,
           },
           edge: {
             id: fieldID + '-edge',
-            label: field.path.informativeFieldType,
-            tooltip: field.path.fieldType,
+            label: DatatypeFieldTypes ? field.path.informativeFieldType : null,
+            tooltip: DatatypeFieldTypes ? field.path.fieldType : null,
             color,
           },
         }
@@ -262,6 +274,32 @@ export interface ModelDisplay {
   Components: {
     ConceptLabels: boolean
     PropertyLabels: boolean
+
+    BundleLabels: boolean
+    ConceptFieldLabels: boolean
+    ConceptFieldTypes: boolean
+
+    DatatypeFieldTypes: boolean
+    DatatypeFieldLabels: boolean
     DatatypePropertyLabels: boolean
+  }
+}
+
+export function newModelDisplay(): ModelDisplay {
+  return {
+    ComplexConceptNodes: true,
+    ComplexLiteralNodes: true,
+    Components: {
+      ConceptLabels: true,
+      PropertyLabels: true,
+
+      BundleLabels: true,
+      ConceptFieldLabels: true,
+      ConceptFieldTypes: true,
+
+      DatatypeFieldTypes: true,
+      DatatypeFieldLabels: true,
+      DatatypePropertyLabels: true,
+    },
   }
 }

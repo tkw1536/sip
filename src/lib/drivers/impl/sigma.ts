@@ -25,7 +25,7 @@ import {
   LiteralModelNode,
   ConceptModelNode,
   type Element,
-} from '../../graph/builders/model/types'
+} from '../../graph/builders/model/labels'
 import { type Attributes } from 'graphology-types'
 
 interface SigmaMount {

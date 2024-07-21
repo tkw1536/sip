@@ -25,7 +25,7 @@ import {
   LiteralModelNode,
   ConceptModelNode,
   type Element,
-} from '../../graph/builders/model/types'
+} from '../../graph/builders/model/labels'
 
 const Cytoscape = new LazyValue(async () => {
   const cytoscape = (await import('cytoscape')).default

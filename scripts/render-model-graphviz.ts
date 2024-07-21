@@ -8,8 +8,10 @@ import ModelGraphBuilder from '../src/lib/graph/builders/model'
 import Deduplication from '../src/app/inspector/state/state/deduplication'
 import { GraphVizModelDriver } from '../src/lib/drivers/impl/graphviz'
 import { type ContextFlags } from '../src/lib/drivers/impl'
-import { type ModelOptions } from '../src/lib/graph/builders/model/types'
-import { newModelDisplay } from '../src/app/inspector/state/reducers/model'
+import {
+  newModelDisplay,
+  type ModelOptions,
+} from '../src/lib/graph/builders/model/labels'
 
 // Usage: node node_modules/vite-node/vite-node.mjs ./scripts/render-model-graphviz.ts -p pathbuilder
 

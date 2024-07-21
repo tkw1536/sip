@@ -29,7 +29,7 @@ import {
   LiteralModelNode,
   ConceptModelNode,
   type Element,
-} from '../../../graph/builders/model/types'
+} from '../../../graph/builders/model/labels'
 
 const spz = new LazyValue(
   async () => await import('svg-pan-zoom').then(spz => spz.default),

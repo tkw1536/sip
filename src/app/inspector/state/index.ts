@@ -8,7 +8,7 @@ import {
 import type NodeSelection from '../../../lib/pathbuilder/annotations/selection'
 import type Deduplication from './state/deduplication'
 import { type Reducer, type ReducerProps } from '../../../lib/state_management'
-import { type ModelDisplay } from '../../../lib/graph/builders/model/types'
+import { type ModelDisplay } from '../../../lib/graph/builders/model/labels'
 
 export interface IState {
   activeTab: string // the active tab

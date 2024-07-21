@@ -1,7 +1,7 @@
 import { type IReducer, type IState } from '..'
 import { models } from '../../../../lib/drivers/collection'
 import { defaultLayout } from '../../../../lib/drivers/impl'
-import { type ModelDisplay } from '../../../../lib/graph/builders/model/types'
+import { type ModelDisplay } from '../../../../lib/graph/builders/model/labels'
 import Deduplication from '../state/deduplication'
 
 export function newModelDriver(): string {
@@ -30,18 +30,6 @@ export function setModelDeduplication(dup: Deduplication): IReducer {
     modelGraphOptionVersion: modelGraphOptionVersion + 1,
     modelDeduplication: dup,
   })
-}
-
-export function newModelDisplay(): ModelDisplay {
-  return {
-    ComplexConceptNodes: true,
-    ComplexLiteralNodes: true,
-    Components: {
-      ConceptLabels: true,
-      PropertyLabels: true,
-      DatatypePropertyLabels: true,
-    },
-  }
 }
 
 export function setModelDisplay(display: ModelDisplay): IReducer {

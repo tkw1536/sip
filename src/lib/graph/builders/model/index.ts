@@ -6,7 +6,7 @@ import BundleBuilder from './dedup_bundle'
 import FullBuilder from './dedup_full'
 import NoneBuilder from './dedup_none'
 import ParentsBuilder from './dedup_parents'
-import { type ModelEdge, type ModelNode } from './types'
+import { type ModelEdge, type ModelNode } from './labels'
 
 export type Options = DedupOptions & {
   deduplication?: Deduplication

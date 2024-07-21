@@ -16,7 +16,7 @@ import {
   PropertyModelEdge,
   type ModelEdge,
   type ModelNode,
-} from './types'
+} from './labels'
 
 export interface DedupOptions {
   include?: (node: PathTreeNode) => boolean
