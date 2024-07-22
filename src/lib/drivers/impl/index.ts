@@ -178,7 +178,7 @@ export abstract class DriverImpl<
     flags: ContextFlags<Options>,
     id: string,
     node: NodeLabel,
-  ): Promise<HotContext | null | undefined> | null | undefined
+  ): Promise<HotContext | void> | void
 
   protected abstract addEdgeImpl(
     ctx: HotContext,
@@ -187,7 +187,7 @@ export abstract class DriverImpl<
     from: string,
     to: string,
     edge: EdgeLabel,
-  ): Promise<HotContext | null | undefined> | null | undefined
+  ): Promise<HotContext | void> | void
 
   protected abstract finalizeContextImpl(
     ctx: HotContext,
@@ -252,7 +252,7 @@ export abstract class DriverImpl<
     details: ContextDetails<Context, Options>,
     info: MountInfo<Mount> | null,
     size: Size,
-  ): Mount | null | undefined
+  ): Mount | void
 
   unmount(): void {
     if (this.#context === null || this.#mount === null) {

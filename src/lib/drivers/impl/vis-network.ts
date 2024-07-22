@@ -19,7 +19,6 @@ import {
   type BundleEdge,
   type BundleNode,
 } from '../../graph/builders/bundle'
-import * as styles from './vis-network.module.css'
 import { Type } from '../../utils/media'
 import { LazyValue } from '../../utils/once'
 import {
@@ -123,8 +122,6 @@ abstract class VisNetworkDriver<
     element: HTMLElement,
     refs: Refs,
   ): Network {
-    element.classList.add(styles.container)
-
     const options = this.options(seed, layout, definitelyAcyclic)
     options.autoResize = false
 
@@ -142,7 +139,7 @@ abstract class VisNetworkDriver<
     details: ContextDetails<Dataset, Options>,
     { mount: network }: MountInfo<Network>,
     { width, height }: Size,
-  ): undefined {
+  ): void {
     network.setSize(`${width}px`, `${height}px`)
     network.redraw()
   }
@@ -151,7 +148,6 @@ abstract class VisNetworkDriver<
     details: ContextDetails<Dataset, Options>,
     { mount: network, element }: MountInfo<Network>,
   ): void {
-    element.classList.remove(styles.container)
     network.destroy()
   }
 

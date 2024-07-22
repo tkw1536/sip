@@ -224,11 +224,10 @@ abstract class CytoscapeDriver<
 
   protected resizeMountImpl(
     details: ContextDetails<Elements, Options>,
-    { mount: { c, l } }: MountInfo<CytoMount>,
+    info: MountInfo<CytoMount>,
     size: Size,
-  ): undefined {
-    // automatically resized ?
-    c.resize()
+  ): void {
+    /* automatically resized */
   }
 
   protected unmountImpl(

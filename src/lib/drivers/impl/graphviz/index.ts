@@ -193,7 +193,7 @@ abstract class GraphvizDriver<NodeLabel, EdgeLabel, Options> extends DriverImpl<
     details: ContextDetails<Context, Options>,
     { mount: { svg, zoom } }: MountInfo<Mount>,
     { width, height }: Size,
-  ): undefined {
+  ): void {
     svg.style.height = `${height}px`
     svg.style.width = `${width}px`
     zoom.resize()
@@ -260,7 +260,7 @@ export class GraphVizBundleDriver extends GraphvizDriver<
     { options: { cm } }: ContextFlags<BundleOptions>,
     id: string,
     node: BundleNode,
-  ): undefined {
+  ): void {
     if (node.type === 'bundle') {
       const path = node.bundle.path
       graph.nodes.push({
@@ -299,7 +299,7 @@ export class GraphVizBundleDriver extends GraphvizDriver<
     from: string,
     to: string,
     edge: BundleEdge,
-  ): undefined {
+  ): void {
     graph.edges.push({
       tail: from,
       head: to,
@@ -351,7 +351,7 @@ export class GraphVizModelDriver extends GraphvizDriver<
     { options }: ContextFlags<ModelOptions>,
     id: string,
     node: ModelNode,
-  ): undefined {
+  ): void {
     if (node instanceof LiteralModelNode) {
       this.#addLiteralNode(graph, options, id, node)
       return
@@ -483,7 +483,7 @@ export class GraphVizModelDriver extends GraphvizDriver<
     from: string,
     to: string,
     edge: ModelEdge,
-  ): undefined {
+  ): void {
     const element = edge.render(id, options)
     graph.edges.push({
       head: to,
@@ -512,7 +512,7 @@ export class GraphVizRDFDriver extends GraphvizDriver<
     flags: ContextFlags<RDFOptions>,
     id: string,
     node: RDFNode,
-  ): undefined {
+  ): void {
     const attributes: Attributes = {
       shape: 'ellipse',
       style: 'filled',
@@ -561,7 +561,7 @@ export class GraphVizRDFDriver extends GraphvizDriver<
     from: string,
     to: string,
     edge: RDFEdge,
-  ): undefined {
+  ): void {
     const attributes =
       edge.termType === 'NamedNode'
         ? { label: ns.apply(edge.uri), tooltip: edge.uri }

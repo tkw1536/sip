@@ -130,10 +130,10 @@ abstract class SigmaDriver<NodeLabel, EdgeLabel, Options> extends DriverImpl<
 
   protected resizeMountImpl(
     details: ContextDetails<Graph, Options>,
-    { mount: sigma }: MountInfo<SigmaMount>,
-    { width, height }: Size,
-  ): undefined {
-    sigma.sigma.resize()
+    info: MountInfo<SigmaMount>,
+    size: Size,
+  ): void {
+    /* automatically resized */
   }
 
   protected unmountImpl(
