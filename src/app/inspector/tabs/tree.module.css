@@ -6,35 +6,94 @@ tr.hidden {
     display: none;
 }
 
-span.path {
+span.path, span.display_path {
     display: block;
     font-family: monospace;
+    color: var(--path-color);
+    --arrow-color: black;
 }
 
-span.display_path {
-    font-family: monospace;
-}
 
-span.path_class, span.path_predicate {
-    color: black;
+
+/** colors for each of the different types */
+span.path_concept {
+    --path-color: #ffb31c;
+}
+span.path_predicate {
+    --path-color: black;
 }
 
 span.path_shared, span.path_skip {
-    color: gray;
+    --path-color: gray;
+    --arrow-color: gray;
 }
 
-span.path_skip::before {
-    font-family: monospace;
-    content: '…';
-}
-
-span.path:not(:last-child)::after {
-    content: " →";
-}
 span.path_disambiguation {
-    color: red;
+    --path-color: red;
 }
 
 span.path_datatype {
-    color: blue;
+    --path-color: blue;
+}
+
+span.path:first-child:before {
+    opacity: 0;
+}
+
+span.path::before {
+    color: var(--arrow-color);
+    content: "→";
+    font-weight: bold;
+    margin: 1em;
+}
+
+
+/* display the type after the element */
+span.path::after, span.display_path::after {
+    padding: .1em;
+
+    display: inline-block;
+    width: 1em;
+    line-height: 1em;
+    height: 1em;
+
+    margin-left: .5em;
+}
+
+span.path_concept::after,
+span.path_predicate::after,
+span.path_datatype::after {
+    background: var(--path-color);
+    border-radius: .5em;
+    color: white;
+    text-align: center;
+    vertical-align: center;
+
+    font-family: inherit;
+    opacity: 0;
+}
+
+span.path_concept:hover::after,
+span.path_predicate:hover::after,
+span.path_datatype:hover::after {
+    opacity: 1;
+}
+
+/** text for each of the types */
+span.path_concept::after {
+    content: "C";
+}
+
+span.path_predicate::after {
+    content: "P"
+}
+
+span.path_datatype::after {
+    content: "D"
+}
+
+span.path_skip::after {
+    margin-left: 0px;
+    content: '…';
+    width: inherit;
 }

@@ -1,4 +1,10 @@
-import { Component, type ComponentChild, Fragment, type JSX } from 'preact'
+import {
+  Component,
+  type ComponentChild,
+  type ComponentChildren,
+  Fragment,
+  type JSX,
+} from 'preact'
 import { type NamespaceMap } from '../../../lib/pathbuilder/namespace'
 import {
   Bundle,
@@ -29,6 +35,7 @@ import DropArea from '../../../components/drop-area'
 import download from '../../../lib/utils/download'
 import { Type } from '../../../lib/utils/media'
 import { setHideEqualParentPaths } from '../state/reducers/tree'
+import { Panel } from '../../../components/layout/panel'
 
 export default class TreeTab extends Component<IReducerProps> {
   readonly #handleSelectAll = (evt: Event): void => {
@@ -84,63 +91,9 @@ export default class TreeTab extends Component<IReducerProps> {
   }
 
   render(): ComponentChild {
-    const { tree, cmLoadError, hideEqualParentPaths } = this.props.state
+    const { tree } = this.props.state
     return (
-      <>
-        <p>
-          This page displays the pathbuilder as a hierarchical structure. It is
-          similar to the WissKI Interface, except read-only.
-        </p>
-        <p>
-          Class URIs are shown in{' '}
-          <span class={classes(styles.display_path, styles.path_class)}>
-            black
-          </span>
-          . <br />
-          Predicate URIs are also shown in{' '}
-          <span class={classes(styles.display_path, styles.path_predicate)}>
-            black
-          </span>
-          . <br />
-          Disambiguation URIs are shown in{' '}
-          <span
-            class={classes(styles.display_path, styles.path_disambiguation)}
-          >
-            red
-          </span>
-          . <br />
-          Datatype Property URIs are shown in{' '}
-          <span class={classes(styles.display_path, styles.path_datatype)}>
-            blue
-          </span>
-          . <br />
-          <input
-            id='hide-parent-paths'
-            type='checkbox'
-            checked={hideEqualParentPaths}
-            onInput={this.#handleHideEqualParentPaths}
-          />
-          <label for='hide-parent-paths'>
-            Path URIs shared with their parents are shown in{' '}
-            <span class={classes(styles.display_path, styles.path_shared)}>
-              gray
-            </span>
-            . Check to collapse them into a single ellipses.
-          </label>
-        </p>
-        <p>
-          The checkboxes here are used to include the paths in the graph
-          displays. Use the shift key to update the all child values
-          recursively.
-        </p>
-        <p>
-          The color boxes are used to change the color of the fields in the
-          graph displays. If a single node includes multiple colors, the color
-          of the most important item will be used. Parent-paths are more
-          important than sub-paths; if two paths are of the same priority the
-          one higher in the list of paths is used.
-        </p>
-
+      <Panel panel={this.#renderPanel()} margin={5}>
         <table class={styles.table}>
           <thead>
             <tr>
@@ -153,55 +106,6 @@ export default class TreeTab extends Component<IReducerProps> {
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td colSpan={6}>
-                Select: &nbsp;
-                <button onClick={this.#handleSelectAll}>All</button> &nbsp;
-                <button onClick={this.#handleSelectNone}>None</button> &nbsp;
-                <button onClick={this.#handleSelectOnlyBundles}>
-                  Bundles
-                </button>{' '}
-                &nbsp;
-                <button onClick={this.#handleSelectOnlyFields}>Fields</button>
-              </td>
-            </tr>
-            <tr>
-              <td colSpan={6}>
-                Color Map: &nbsp;
-                {colorPresets.map(preset => (
-                  <Fragment key={preset}>
-                    <button
-                      onClick={this.#handleColorPreset.bind(this, preset)}
-                    >
-                      {preset}
-                    </button>
-                    &nbsp;
-                  </Fragment>
-                ))}
-                &nbsp;|&nbsp;
-                <button onClick={this.#handleColorMapExport}>Export</button>
-                <DropArea
-                  types={[Type.JSON]}
-                  onDropFile={this.#handleColorMapImport}
-                  compact
-                >
-                  Import
-                </DropArea>
-                {typeof cmLoadError === 'string' && (
-                  <small>
-                    &nbsp;
-                    {cmLoadError}
-                  </small>
-                )}
-              </td>
-            </tr>
-            <tr>
-              <td colSpan={6}>
-                <button onClick={this.#handleCollapseAll}>Collapse All</button>{' '}
-                &nbsp;
-                <button onClick={this.#handleExpandAll}>Expand All</button>
-              </td>
-            </tr>
             {Array.from(tree.children()).map(b => (
               <BundleRows
                 {...this.props}
@@ -213,6 +117,142 @@ export default class TreeTab extends Component<IReducerProps> {
             ))}
           </tbody>
         </table>
+      </Panel>
+    )
+  }
+
+  #renderPanel(): ComponentChildren {
+    const { hideEqualParentPaths, cmLoadError } = this.props.state
+    return (
+      <>
+        <fieldset>
+          <legend>Overview</legend>
+          <p>
+            This page displays the pathbuilder as a hierarchical structure. It
+            is similar to the WissKI Interface, except read-only.
+          </p>
+
+          <p>
+            <button onClick={this.#handleCollapseAll}>Collapse All</button>
+            {` `}
+            <button onClick={this.#handleExpandAll}>Expand All</button>
+          </p>
+
+          <p>
+            <span class={classes(styles.display_path, styles.path_concept)}>
+              Concept
+            </span>
+            <span
+              class={classes(
+                styles.display_path,
+                styles.path_concept,
+                styles.path_shared,
+              )}
+            >
+              Concept (shared with parent)
+            </span>
+            <span
+              class={classes(
+                styles.display_path,
+                styles.path_concept,
+                styles.path_disambiguation,
+              )}
+            >
+              Disambiguated Concept
+            </span>
+            <span class={classes(styles.display_path, styles.path_predicate)}>
+              Predicate
+            </span>
+            <span
+              class={classes(
+                styles.display_path,
+                styles.path_shared,
+                styles.path_predicate,
+              )}
+            >
+              Predicate (shared with parent)
+            </span>
+            <span class={classes(styles.display_path, styles.path_datatype)}>
+              Datatype Property
+            </span>
+          </p>
+          <p>
+            <input
+              id='hide-parent-paths'
+              type='checkbox'
+              checked={hideEqualParentPaths}
+              onInput={this.#handleHideEqualParentPaths}
+            />
+            <label for='hide-parent-paths'>
+              Collapse shared paths into ellipses
+            </label>
+          </p>
+        </fieldset>
+        <fieldset>
+          <legend>Selection</legend>
+
+          <p>
+            The checkboxes here are used to include the paths in the graph
+            displays. Use the shift key to update the all child values
+            recursively.
+          </p>
+
+          <p>
+            <button onClick={this.#handleSelectAll}>Select All</button>
+            {` `}
+            <button onClick={this.#handleSelectNone}>Select None</button>
+            {` `}
+            <button onClick={this.#handleSelectOnlyBundles}>
+              Select Bundles
+            </button>
+            {` `}
+            <button onClick={this.#handleSelectOnlyFields}>
+              Select Fields
+            </button>
+          </p>
+        </fieldset>
+        <br />
+        <fieldset>
+          <legend>Color Map</legend>
+
+          <p>
+            The color boxes are used to change the color of the fields in the
+            graph displays. If a single node includes multiple colors, the color
+            of the most important item will be used. Parent-paths are more
+            important than sub-paths; if two paths are of the same priority the
+            one higher in the list of paths is used.
+          </p>
+
+          <p>
+            {colorPresets.map(preset => (
+              <Fragment key={preset}>
+                <button onClick={this.#handleColorPreset.bind(this, preset)}>
+                  {preset}
+                </button>
+                {` `}
+              </Fragment>
+            ))}
+          </p>
+
+          <p>
+            <button onClick={this.#handleColorMapExport}>Export</button>
+            {` `}
+            <DropArea
+              types={[Type.JSON]}
+              onDropFile={this.#handleColorMapImport}
+              compact
+            >
+              Import
+            </DropArea>
+            {` `}
+            {typeof cmLoadError === 'string' && (
+              <small>
+                &nbsp;
+                {cmLoadError}
+              </small>
+            )}
+          </p>
+        </fieldset>
       </>
     )
   }
@@ -392,12 +432,15 @@ function Path(props: {
   const { hideEqualParentPaths, node, ns } = props
   const elements = Array.from(node.elements())
 
+  const hasCommonElement = elements.some(
+    ({ common }) => typeof common === 'number' && common < 0,
+  )
+
   return (
     <>
-      {hideEqualParentPaths &&
-        elements.some(
-          ({ common }) => typeof common === 'number' && common < 0,
-        ) && <span class={classes(styles.path, styles.path_skip)} />}
+      {hideEqualParentPaths && hasCommonElement && (
+        <span class={classes(styles.path, styles.path_skip)} />
+      )}
       {elements.map(element => (
         <PathElement
           element={element}
@@ -427,7 +470,7 @@ function PathElement({
     <span
       class={classes(
         styles.path,
-        styles[`path_${elementClass(element)}`],
+        ...elementClass(element).map(clz => styles[clz]),
         (element.common ?? 0) < 0 && styles.path_shared,
       )}
     >
@@ -436,18 +479,17 @@ function PathElement({
   )
 }
 
-function elementClass(
-  element: PathElementT,
-): 'datatype' | 'disambiguation' | 'class' | 'predicate' {
+function elementClass(element: PathElementT): string[] {
   if (element.type === 'concept') {
-    if (element.disambiguation === 0) return 'disambiguation'
-    return 'class'
+    if (element.disambiguation === 0)
+      return ['path_concept', 'path_disambiguation']
+    return ['path_concept']
   }
   if (element.type === 'property') {
     if (element.role === 'datatype') {
-      return 'datatype'
+      return ['path_datatype']
     }
-    return 'predicate'
+    return ['path_predicate']
   }
   throw new Error('never reached')
 }
