@@ -1,0 +1,91 @@
+/** setup a panel with a */
+.panel {
+    display: flex;
+
+    width: 100%;
+    height: 100%;
+
+    /* default panel settings */
+    --panel-width: 500px;
+    --panel-margin: 0px;
+    --panel-transition-time: 0.5s;
+}
+
+.main {
+    flex: 1;
+}
+
+.sidebar {
+    box-sizing: border-box;
+    width: var(--panel-width);
+}
+
+.main, .sidebar {
+    overflow: scroll;
+}
+
+
+/* move main element */
+.main {
+    transition: margin-left var(--panel-transition-time) linear; 
+}
+
+.open .main {
+    margin-left: 0px;
+}
+
+.closed .main {
+    margin-left: calc(-1 * var(--panel-width));
+}
+
+/* move sidebar and handle to the lhs */
+.sidebar, .handle {
+    transition: transform var(--panel-transition-time) linear; 
+}
+
+.open .sidebar, .open .handle {
+    transform: translateX(0px)
+}
+
+.closed .sidebar, .closed .handle {
+    transform: translateX(calc(-1 * var(--panel-width)))
+}
+
+/** handle styling **/
+.handle {
+    /** it is a buttony-button */
+    appearance: none;
+    cursor: pointer;
+    text-decoration: none;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    
+    /** align the text */
+    display: inline-block;
+    text-align: center;
+    vertical-align: middle;
+
+    /** make nice borders */
+    padding: 7px;
+    border-radius: 7px;
+    margin-right: var(--panel-margin);
+
+    /* colors */
+    border: 0;
+    background-color: lightgray;
+}
+
+.handle:hover, .handle:active {
+  background-color: darkgray;
+}
+
+
+/** set text for the handle **/
+.open .handle::before {
+    content: "<<"
+}
+/** set text for the handle **/
+.closed .handle::before {
+    content: ">>"
+}

@@ -10,14 +10,13 @@ import download from '../../lib/utils/download'
 import Kernel, { type DriverLoader } from '../../lib/drivers'
 import type Graph from '../../lib/graph'
 
-import * as styles from './index.module.css'
-import { classes } from '../../lib/utils/classes'
 import { Operation } from '../../lib/utils/operation'
 import type Driver from '../../lib/drivers/impl'
 import ValueSelector from '../selector'
 import ErrorDisplay from '../error'
 import { useCallback, useId } from 'preact/hooks'
 import { type HTMLAttributes } from 'preact/compat'
+import { Panel } from '../layout/panel'
 
 interface GraphProps<NodeLabel, EdgeLabel, Options> {
   loader: DriverLoader<NodeLabel, EdgeLabel, Options>
@@ -106,9 +105,8 @@ export default class GraphDisplay<
     kernel.remountDriver()
   }
 
-  readonly #handleToggle = (evt: Event): void => {
-    evt.preventDefault()
-    this.setState(({ open }) => ({ open: !open }))
+  readonly #setOpen = (open: boolean): void => {
+    this.setState({ open })
   }
 
   readonly #kernelRef = createRef<Kernel<NodeLabel, EdgeLabel, Options>>()
@@ -164,17 +162,9 @@ export default class GraphDisplay<
 
     const { open } = this.state
     return (
-      <div class={styles.wrapper}>
-        <div
-          class={classes(styles.options, open ? styles.open : styles.closed)}
-        >
-          {panel}
-        </div>
-        <button class={styles.handle} onClick={this.#handleToggle}>
-          {open ? '<<' : '>>'}
-        </button>
-        <div class={styles.main}>{main}</div>
-      </div>
+      <Panel panel={panel} open={open} setOpen={this.#setOpen}>
+        {main}
+      </Panel>
     )
   }
 
