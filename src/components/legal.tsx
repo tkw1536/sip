@@ -1,4 +1,4 @@
-import { type VNode } from 'preact' // prettier-ignore
+import { type VNode } from 'preact'
 import generateDisclaimer from '../../macros/disclaimer' with { type: 'macro' }
 
 const disclaimer = generateDisclaimer()

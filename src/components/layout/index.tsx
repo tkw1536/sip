@@ -1,6 +1,9 @@
 import { type JSX, type ComponentChildren } from 'preact'
 import { classes } from '../../lib/utils/classes'
 import * as styles from './index.module.css'
+import getVersionInfo from '../../../macros/version' with { type: 'macro' }
+
+const version = getVersionInfo()
 
 export default function Layout(props: {
   children: ComponentChildren
@@ -25,7 +28,10 @@ export default function Layout(props: {
         >
           Source Code
         </a>
-        .
+        .{` `}
+        <code>
+          {version.version} / {version.git} / {version.compileTime}
+        </code>
       </footer>
     </>
   )
