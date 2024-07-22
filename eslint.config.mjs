@@ -20,6 +20,12 @@ export default [
     ...love,
     files,
   },
+  {
+    rules: {
+      '@typescript-eslint/no-invalid-void-type': ['off'],
+    },
+    files,
+  },
   // test overrides
   {
     rules: {

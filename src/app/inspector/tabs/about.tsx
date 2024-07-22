@@ -2,8 +2,9 @@ import { type JSX } from 'preact'
 import { LegalDisclaimer } from '../../../components/legal'
 
 import HTML from '../../../components/html'
+import markdownDocument from '../../../../macros/markdown' with { type: 'macro' }
 
-const html = import.meta.compileTime<string>('../../../../macros/docs/inspector.ts') // prettier-ignore
+const html = markdownDocument('inspector.md')
 
 export default function DocsTab(): JSX.Element {
   return (

@@ -1,6 +1,4 @@
 // eslint-disable-next-line @typescript-eslint/triple-slash-reference
-/// <reference types="vite-plugin-compile-time/client" />
-// eslint-disable-next-line @typescript-eslint/triple-slash-reference
 /// <reference types="vite/client" />
 declare module '*.module.css' {
   const classes: Record<string, string>
@@ -29,5 +27,9 @@ declare module 'cytoscape-avsdf' {
 }
 
 declare module 'preact/debug' {}
+
+declare interface MacroContext {
+  invalidateOnFileChange: (filePath: string) => void
+}
 
 // spellchecker:words avsdf fcose dagre

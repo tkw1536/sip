@@ -2,11 +2,11 @@
 /// <reference types="vitest" />
 import prefresh from '@prefresh/vite'
 import { defineConfig } from 'vite'
-import compileTime from 'vite-plugin-compile-time'
+import macros from 'unplugin-parcel-macros'
 import { resolve } from 'path'
 
 export default defineConfig({
-  plugins: [prefresh(), compileTime()],
+  plugins: [prefresh(), macros.vite()],
   worker: {
     format: 'es',
   },

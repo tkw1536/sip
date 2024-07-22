@@ -1,6 +1,7 @@
-import { type VNode } from 'preact'
+import { type VNode } from 'preact' // prettier-ignore
+import generateDisclaimer from '../../macros/disclaimer' with { type: 'macro' }
 
-const disclaimer = import.meta.compileTime<string>('../../macros/disclaimer.ts') // prettier-ignore
+const disclaimer = generateDisclaimer()
 
 export default function Legal(): VNode<any> {
   return (

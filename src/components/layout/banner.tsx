@@ -2,7 +2,9 @@ import { type JSX } from 'preact'
 import { useEffect, useRef } from 'preact/hooks'
 import HTML from '../html'
 import * as styles from './banner.module.css'
-const html = import.meta.compileTime<string>('../../../macros/docs/banner.ts') // prettier-ignore
+import markdownDocument from '../../../macros/markdown' with { type: 'macro' }
+
+const bannerHTML = markdownDocument('banner.md')
 
 interface ModalProps {
   onClose: (event: Event) => void
@@ -20,7 +22,7 @@ export default function Banner({ onClose }: ModalProps): JSX.Element {
   return (
     <dialog ref={modalRef} onClose={onClose} class={styles.banner}>
       <form method='dialog'>
-        <HTML html={html} trim={false} noContainer />
+        <HTML html={bannerHTML} trim={false} noContainer />
         <div>
           <button type='submit'>I Understand And Wish To Continue</button>
         </div>
