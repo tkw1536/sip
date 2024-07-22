@@ -44,5 +44,6 @@
 }
 
 .panel.selected {
+    overflow-y: scroll;
     display: block;
 }

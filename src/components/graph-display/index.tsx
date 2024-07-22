@@ -166,10 +166,7 @@ export default class GraphDisplay<
     return (
       <div class={styles.wrapper}>
         <div
-          class={classes(
-            styles.options,
-            open ? styles.optionsOpen : styles.optionsClosed,
-          )}
+          class={classes(styles.options, open ? styles.open : styles.closed)}
         >
           {panel}
         </div>

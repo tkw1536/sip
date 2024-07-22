@@ -18,10 +18,11 @@
     box-sizing: border-box;
 }
 
-.optionsOpen {
+.options.open {
+    overflow-y: scroll;
     width: 500px;
 }
 
-.optionsClosed {
+.options.closed {
     display: none;
 }

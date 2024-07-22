@@ -17,6 +17,7 @@ header, footer {
 }
 
 main {
+  overflow-y: scroll;
   flex: 1 auto;
 }
 
