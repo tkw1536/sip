@@ -2,8 +2,7 @@ import { Component, type ComponentChildren, type VNode } from 'preact'
 import { type RReducerProps } from '../state'
 import { loadRDF, setStoreLoading } from '../state/reducers/load'
 import Spinner from '../../../components/spinner'
-import * as styles from './rdf.module.css'
-import DropArea from '../../../components/drop-area'
+import { StyledDropArea } from '../../../components/drop-area'
 import ErrorDisplay from '../../../components/error'
 import { resetRDFInterface } from '../state/reducers/init'
 
@@ -34,14 +33,9 @@ class WelcomeView extends Component<RReducerProps> {
           All processing happens on-device, meaning the server host can not
           access any data contained within your statements.
         </p>
-        <DropArea
-          class={styles.dropZone}
-          activeValidClass={styles.valid}
-          activeInvalidClass={styles.invalid}
-          onDropFile={this.#handleLoadPathbuilder}
-        >
+        <StyledDropArea onDropFile={this.#handleLoadPathbuilder}>
           Click or drag an <code>RDF/XML</code> file here
-        </DropArea>
+        </StyledDropArea>
         {typeof loadStage === 'object' && loadStage.error instanceof Error && (
           <>
             <p>

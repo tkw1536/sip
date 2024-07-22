@@ -1,5 +1,12 @@
-import { Component, type ComponentChild, type VNode, createRef } from 'preact'
+import {
+  Component,
+  type ComponentChild,
+  type JSX,
+  type VNode,
+  createRef,
+} from 'preact'
 import { classes } from '../lib/utils/classes'
+import * as styles from './drop-area.module.css'
 
 interface DropAreaProps {
   onDropFile: (...files: File[]) => void
@@ -156,4 +163,20 @@ export default class DropArea extends Component<DropAreaProps> {
       </>
     )
   }
+}
+
+export function StyledDropArea(
+  props: Omit<
+    DropAreaProps,
+    'class' | 'activeValidClass' | 'activeInvalidClass' | 'passiveClass'
+  >,
+): JSX.Element {
+  return (
+    <DropArea
+      {...props}
+      class={styles.area}
+      activeValidClass={styles.valid}
+      activeInvalidClass={styles.invalid}
+    />
+  )
 }

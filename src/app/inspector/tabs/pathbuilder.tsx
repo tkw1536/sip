@@ -4,8 +4,7 @@ import {
   type ComponentChild,
   type ComponentChildren,
 } from 'preact'
-import DropArea from '../../../components/drop-area'
-import * as styles from './pathbuilder.module.css'
+import { StyledDropArea } from '../../../components/drop-area'
 import { type IReducerProps } from '../state'
 import {
   loadPathbuilder,
@@ -37,8 +36,8 @@ class WelcomeView extends Component<IReducerProps> {
       case active && !valid:
         return (
           <>
-            Invalid
-            <em>Pathbuilder</em>: Must be a<b>xml</b> file
+            Invalid{` `}
+            <em>Pathbuilder</em>: Must be a <b>xml</b> file
           </>
         )
       default:
@@ -79,15 +78,12 @@ class WelcomeView extends Component<IReducerProps> {
           All processing happens on-device, meaning the server host can not
           access any data contained within your pathbuilder.
         </p>
-        <DropArea
-          class={styles.dropZone}
-          activeValidClass={styles.valid}
-          activeInvalidClass={styles.invalid}
+        <StyledDropArea
           onDropFile={this.#handleLoadPathbuilder}
           types={[Type.XML]}
         >
           {this.#dragContent}
-        </DropArea>
+        </StyledDropArea>
         {typeof loadStage === 'object' && loadStage.error instanceof Error && (
           <>
             <p>
