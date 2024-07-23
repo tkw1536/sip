@@ -1,12 +1,12 @@
 import {
-  Component,
+  type JSX,
   toChildArray,
   type ComponentChildren,
   type VNode,
 } from 'preact'
 import * as styles from './tabs.module.css'
-import { WithID } from './wrapper'
 import { classes } from '../lib/utils/classes'
+import { useCallback, useId, useMemo } from 'preact/hooks'
 
 interface TabProps {
   title: string
@@ -14,19 +14,15 @@ interface TabProps {
   disabled?: boolean
   children: ComponentChildren
 }
-export class Tab extends Component<TabProps> {
-  render(): ComponentChildren {
-    return this.props.children
-  }
+export function Tab(props: TabProps): JSX.Element {
+  return <>{props.children}</>
 }
 
 interface LabelProps {
   children?: ComponentChildren
 }
-export class Label extends Component<LabelProps> {
-  render(): ComponentChildren {
-    return this.props.children
-  }
+export function Label(props: LabelProps): JSX.Element {
+  return <>{props.children}</>
 }
 
 type TabChild = ({ type: 'label' } & LabelProps) | ({ type: 'tab' } & TabProps)
@@ -34,21 +30,18 @@ type TabChild = ({ type: 'label' } & LabelProps) | ({ type: 'tab' } & TabProps)
 interface TabsProps {
   active: string
   onChangeTab: (id: string) => void
+  children: ComponentChildren
 }
-export default class Tabs extends Component<TabsProps> {
-  /** getChildren returns an array of VNode<any> children */
-  static #getChildren(children: ComponentChildren): Array<VNode<any>> {
-    return toChildArray(children).filter(
-      (child): child is VNode<any> =>
-        child !== null &&
-        typeof child === 'object' &&
-        Object.prototype.hasOwnProperty.call(child, 'type') &&
-        typeof child.type !== 'undefined',
-    )
-  }
-
-  get children(): TabChild[] {
-    return Tabs.#getChildren(this.props.children)
+export default function Tabs(props: TabsProps): JSX.Element {
+  const children = useMemo((): TabChild[] => {
+    return toChildArray(props.children)
+      .filter(
+        (child): child is VNode<any> =>
+          child !== null &&
+          typeof child === 'object' &&
+          Object.prototype.hasOwnProperty.call(child, 'type') &&
+          typeof child.type !== 'undefined',
+      )
       .map(c => {
         if (c.type === Tab) {
           return { type: 'tab', ...c.props }
@@ -59,112 +52,117 @@ export default class Tabs extends Component<TabsProps> {
         return null
       })
       .filter(c => c !== null)
-  }
+  }, [props.children])
 
-  render(): ComponentChildren {
-    const { active, onChangeTab } = this.props
-    return (
-      <TabInterface active={active} onChangeTab={onChangeTab}>
-        {this.children}
-      </TabInterface>
-    )
-  }
+  const { active, onChangeTab } = props
+  return (
+    <TabInterface active={active} onChangeTab={onChangeTab}>
+      {children}
+    </TabInterface>
+  )
 }
 
-type TabInterfaceProps = { children: TabChild[]; id: string } & TabsProps
+type TabInterfaceProps = { children: TabChild[] } & TabsProps
 
-const TabInterface = WithID<TabInterfaceProps>(
-  class TabInterface extends Component<TabInterfaceProps> {
-    readonly #handleTabChange = (id: string, event: MouseEvent): void => {
+function findTab(
+  id: string,
+  children: TabInterfaceProps['children'],
+): TabProps | null {
+  return (
+    children.find((child): child is TabChild & { type: 'tab' } => {
+      return child.type === 'tab' && id === child.id
+    }) ?? null
+  )
+}
+
+export function TabInterface(props: TabInterfaceProps): JSX.Element {
+  const { active, children } = props
+
+  const handleTabClick = useCallback(
+    (event: MouseEvent & { currentTarget: HTMLLIElement }): void => {
       event.preventDefault()
 
-      const tab = this.#findTab(id)
+      const { id } = event.currentTarget.dataset
+      if (typeof id !== 'string') return
+
+      const tab = findTab(id, props.children)
       if (tab === null || (tab.disabled ?? false)) return
-      this.props.onChangeTab(id)
-    }
 
-    readonly #findTab = (id: string): TabProps | null => {
-      const candidate = this.props.children.find(
-        (child): child is TabChild & { type: 'tab' } => {
-          return child.type === 'tab' && id === child.id
-        },
-      )
-      return candidate ?? null
-    }
+      props.onChangeTab(id)
+    },
+    [props.children, props.onChangeTab],
+  )
 
-    render(): ComponentChildren {
-      const { active, children } = this.props
+  const id = useId()
 
-      return (
-        <div class={styles.container}>
-          <ul role='tablist' class={styles.list}>
-            {children.map((child, index) => {
-              if (child.type === 'label') {
-                return (
-                  <li key={index} class={styles.label}>
-                    <Label {...child} />
-                  </li>
-                )
-              }
-
-              const { disabled, title, id } = child
-              const selected = id === active
-              const clz = classes(
-                styles.tab,
-                (disabled ?? false) && styles.disabled,
-                selected && styles.selected,
-              )
-              const handleClick = this.#handleTabChange.bind(this, id)
-
-              const tabID = `${id}-tab-${index}`
-              const panelID = `${id}-panel-${index}`
-
-              return (
-                <li
-                  role='tab'
-                  onClick={handleClick}
-                  id={tabID}
-                  tabindex={0}
-                  key={index}
-                  aria-selected={selected}
-                  aria-disabled={disabled}
-                  class={clz}
-                  aria-controls={panelID}
-                >
-                  {title}
-                </li>
-              )
-            })}
-          </ul>
-
-          {children.map((child, index) => {
-            if (child.type === 'label') return null
-
-            const { disabled, children, id } = child
-
-            const selected = id === active
-            const visible = selected && !(disabled ?? false)
-
-            const clz = classes(styles.panel, visible && styles.selected)
-            const childNodes = visible ? children : null
-
-            const tabID = `${id}-tab-${index}`
-            const panelID = `${id}-panel-${index}`
-
+  return (
+    <div class={styles.container}>
+      <ul role='tablist' class={styles.list}>
+        {children.map((child, index) => {
+          if (child.type === 'label') {
             return (
-              <div
-                role='tabpanel'
-                key={index}
-                id={panelID}
-                aria-labelledby={tabID}
-                class={clz}
-              >
-                {childNodes}
-              </div>
+              <li key={index} class={styles.label}>
+                <Label {...child} />
+              </li>
             )
-          })}
-        </div>
-      )
-    }
-  },
-)
+          }
+
+          const { disabled, title, id: childID } = child
+          const selected = childID === active
+          const clz = classes(
+            styles.tab,
+            (disabled ?? false) && styles.disabled,
+            selected && styles.selected,
+          )
+
+          const tabID = `${id}-${childID}-tab-${index}`
+          const panelID = `${id}-${childID}-panel-${index}`
+
+          return (
+            <li
+              role='tab'
+              data-id={childID}
+              onClick={handleTabClick}
+              id={tabID}
+              tabindex={0}
+              key={index}
+              aria-selected={selected}
+              aria-disabled={disabled}
+              class={clz}
+              aria-controls={panelID}
+            >
+              {title}
+            </li>
+          )
+        })}
+      </ul>
+
+      {children.map((child, index) => {
+        if (child.type === 'label') return null
+
+        const { disabled, children, id: childID } = child
+
+        const selected = childID === active
+        const visible = selected && !(disabled ?? false)
+
+        const clz = classes(styles.panel, visible && styles.selected)
+        const childNodes = visible ? children : null
+
+        const tabID = `${id}-${childID}-tab-${index}`
+        const panelID = `${id}-${childID}-panel-${index}`
+
+        return (
+          <div
+            role='tabpanel'
+            key={index}
+            id={panelID}
+            aria-labelledby={tabID}
+            class={clz}
+          >
+            {childNodes}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
