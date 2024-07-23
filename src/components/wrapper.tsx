@@ -9,7 +9,6 @@ import {
   forwardRef,
   type PropsWithoutRef,
 } from 'preact/compat'
-import { LazyValue } from '../lib/utils/once'
 import ErrorDisplay from './error'
 
 type PropsWithoutID<T> = PropsWithoutRef<Omit<T, 'id'>>
@@ -39,7 +38,6 @@ export function Lazy<P>(
   fallback?: VNode<any> | null,
   fallbackDelay?: number,
 ): ComponentType<PropsWithoutRef<P>> {
-  const module = new LazyValue(loader)
   const shouldHideFallbackByDefault =
     typeof fallbackDelay === 'number' && fallbackDelay > 0
 
@@ -53,7 +51,7 @@ export function Lazy<P>(
       useEffect(() => {
         let mounted = true
 
-        module.lazyValue.then(
+        loader().then(
           Component => {
             if (!mounted) return
             wrapper.displayName = `Lazy(${getDisplayName(Component)})`
@@ -68,7 +66,7 @@ export function Lazy<P>(
         return () => {
           mounted = false
         }
-      }, [])
+      }, [loader])
 
       const [hideFallback, setHideFallback] = useState(
         shouldHideFallbackByDefault,

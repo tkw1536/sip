@@ -61,7 +61,7 @@ function ControlledPanel(props: ConPanelProps): JSX.Element {
       event.preventDefault()
       setOpen(!open)
     },
-    [open],
+    [open, setOpen],
   )
 
   const style = {
