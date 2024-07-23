@@ -1,4 +1,4 @@
-import { type IReducer, type IState } from '..'
+import { type IReducer, type IState } from '.'
 import { bundles } from '../../../../lib/drivers/collection'
 import { defaultLayout } from '../../../../lib/drivers/impl'
 

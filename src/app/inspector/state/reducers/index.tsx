@@ -1,12 +1,55 @@
-import { type IReducer, type IState } from '..'
 import ColorMap from '../../../../lib/pathbuilder/annotations/colormap'
 import { NamespaceMap } from '../../../../lib/pathbuilder/namespace'
 import { Pathbuilder } from '../../../../lib/pathbuilder/pathbuilder'
-import { PathTree } from '../../../../lib/pathbuilder/pathtree'
+import { type Diagnostic, PathTree } from '../../../../lib/pathbuilder/pathtree'
 import NodeSelection from '../../../../lib/pathbuilder/annotations/selection'
 import Deduplication from '../state/deduplication'
 import newInspectorState from './load'
-import { newModelDisplay } from '../../../../lib/graph/builders/model/labels'
+import {
+  type ModelDisplay,
+  newModelDisplay,
+} from '../../../../lib/graph/builders/model/labels'
+import { type Reducer } from '../../../../lib/state_management'
+
+export interface IState {
+  showModal: boolean
+  activeTab: string // the active tab
+
+  loadStage: false | 'loading' | true | { error: unknown } // boolean indicating if file has been loaded, string for error
+  filename: string
+
+  pathbuilderVersion: number
+  pathbuilder: Pathbuilder
+  tree: PathTree
+  diagnostics: Diagnostic[]
+
+  hideEqualParentPaths: boolean
+
+  namespaceVersion: number
+  ns: NamespaceMap
+
+  colorVersion: number
+  cm: ColorMap
+  cmLoadError?: string
+
+  selectionVersion: number
+  selection: NodeSelection // the selection
+
+  modelGraphOptionVersion: number
+  modelDeduplication: Deduplication
+  modelDisplay: ModelDisplay
+
+  // renders for the graphs
+  bundleGraphDriver: string
+  bundleGraphLayout: string
+  bundleGraphSeed: number | null
+
+  modelGraphDriver: string
+  modelGraphLayout: string
+  modelGraphSeed: number | null
+
+  collapsed: NodeSelection
+}
 
 export function resetInspector(showModal: boolean): IState {
   const tree = new PathTree([])
@@ -71,3 +114,5 @@ export function loadPathbuilder(file: File): IReducer {
 export function closeModal(): IReducer {
   return { showModal: false }
 }
+
+export type IReducer = Reducer<IState>

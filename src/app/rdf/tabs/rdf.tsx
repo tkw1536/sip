@@ -1,76 +1,79 @@
-import { Component, type ComponentChildren, type VNode } from 'preact'
-import { type RReducerProps } from '../state'
+import { type JSX } from 'preact'
 import { loadRDF, setStoreLoading } from '../state/reducers/load'
 import Spinner from '../../../components/spinner'
 import { StyledDropArea } from '../../../components/drop-area'
 import ErrorDisplay from '../../../components/error'
 import { resetRDFInterface } from '../state/reducers/init'
+import { useRDFStore } from '../state'
+import { useCallback } from 'preact/hooks'
 
-export default function RDFTab(props: RReducerProps): VNode<any> {
-  if (props.state.loadStage === true) {
-    return <InfoView {...props} />
+export default function RDFTab(): JSX.Element {
+  const loadState = useRDFStore(s => s.loadStage)
+  if (loadState === true) {
+    return <InfoView />
   } else {
-    return <WelcomeView {...props} />
+    return <WelcomeView />
   }
 }
 
-class WelcomeView extends Component<RReducerProps> {
-  readonly #handleLoadPathbuilder = (file: File): void => {
-    this.props.apply([setStoreLoading, loadRDF(file)])
+function WelcomeView(): JSX.Element {
+  const apply = useRDFStore(s => s.apply)
+  const loadStage = useRDFStore(s => s.loadStage)
+
+  const handleLoadPathbuilder = useCallback(
+    (file: File) => {
+      apply([setStoreLoading, loadRDF(file)])
+    },
+    [apply, setStoreLoading, loadRDF],
+  )
+
+  if (loadStage === 'loading') {
+    return <Spinner message='Loading RDF' />
   }
 
-  render(): ComponentChildren {
-    const { loadStage } = this.props.state
-
-    if (loadStage === 'loading') {
-      return <Spinner message='Loading RDF' />
-    }
-
-    return (
-      <>
-        <p>This tool provides an interface for visualizing rdf files.</p>
-        <p>
-          All processing happens on-device, meaning the server host can not
-          access any data contained within your statements.
-        </p>
-        <StyledDropArea onDropFile={this.#handleLoadPathbuilder}>
-          Click or drag an <code>RDF/XML</code> file here
-        </StyledDropArea>
-        {typeof loadStage === 'object' && loadStage.error instanceof Error && (
-          <>
-            <p>
-              <b>Unable to load rdf: </b>
-            </p>
-            <ErrorDisplay error={loadStage.error} />
-          </>
-        )}
-      </>
-    )
-  }
+  return (
+    <>
+      <p>This tool provides an interface for visualizing rdf files.</p>
+      <p>
+        All processing happens on-device, meaning the server host can not access
+        any data contained within your statements.
+      </p>
+      <StyledDropArea onDropFile={handleLoadPathbuilder}>
+        Click or drag an <code>RDF/XML</code> file here
+      </StyledDropArea>
+      {typeof loadStage === 'object' && loadStage.error instanceof Error && (
+        <>
+          <p>
+            <b>Unable to load rdf: </b>
+          </p>
+          <ErrorDisplay error={loadStage.error} />
+        </>
+      )}
+    </>
+  )
 }
 
-class InfoView extends Component<RReducerProps> {
-  readonly #handleClose = (evt: Event): void => {
-    evt.preventDefault()
-    this.props.apply(resetRDFInterface(false))
-  }
+function InfoView(): JSX.Element {
+  const apply = useRDFStore(s => s.apply)
+  const filename = useRDFStore(s => s.filename)
 
-  get filename(): string {
-    const { filename } = this.props.state
-    return filename !== '' ? filename : 'statements.rdf'
-  }
+  const handleClose = useCallback(
+    (evt: Event): void => {
+      evt.preventDefault()
+      apply(resetRDFInterface(false))
+    },
+    [apply, resetRDFInterface],
+  )
 
-  render(): ComponentChildren {
-    return (
-      <>
-        <p>
-          RDF <code>{this.filename}</code> successfully loaded.
-        </p>
-        <p>
-          You can also <button onClick={this.#handleClose}>Close</button> this
-          file.
-        </p>
-      </>
-    )
-  }
+  const theFilename = filename !== '' ? filename : 'statements.rdf'
+  return (
+    <>
+      <p>
+        RDF <code>{theFilename}</code> successfully loaded.
+      </p>
+      <p>
+        You can also <button onClick={handleClose}>Close</button> this file.
+      </p>
+    </>
+  )
 }

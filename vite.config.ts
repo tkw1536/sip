@@ -10,6 +10,13 @@ export default defineConfig({
   worker: {
     format: 'es',
   },
+  resolve: {
+    alias: {
+      'react-dom/test-utils': 'preact/test-utils',
+      'react-dom': 'preact/compat',
+      'react': 'preact/compat',
+    },
+  },
   build: {
     rollupOptions: {
       input: {

@@ -1,10 +1,9 @@
 import { Fragment, type JSX } from 'preact'
 import Spinner from '../../../components/spinner'
-import { type IReducerProps } from '../state'
 import { Panel } from '../../../components/layout/panel'
 import { useState } from 'preact/hooks'
 
-export default function DebugTab(props: IReducerProps): JSX.Element {
+export default function DebugTab(): JSX.Element {
   const panel = []
   for (let i = 0; i < 100; i++) {
     panel.push(

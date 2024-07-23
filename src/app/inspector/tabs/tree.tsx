@@ -1,10 +1,4 @@
-import {
-  Component,
-  type ComponentChild,
-  type ComponentChildren,
-  Fragment,
-  type JSX,
-} from 'preact'
+import { Fragment, type JSX } from 'preact'
 import { type NamespaceMap } from '../../../lib/pathbuilder/namespace'
 import {
   Bundle,
@@ -14,7 +8,7 @@ import {
 import * as styles from './tree.module.css'
 import { classes } from '../../../lib/utils/classes'
 import { type ColorPreset, colorPresets } from '../state/state/preset'
-import { type IReducerProps } from '../state'
+import { useInspectorStore } from '../state'
 import {
   selectAll,
   selectNone,
@@ -36,392 +30,430 @@ import download from '../../../lib/utils/download'
 import { Type } from '../../../lib/utils/media'
 import { setHideEqualParentPaths } from '../state/reducers/tree'
 import { Panel } from '../../../components/layout/panel'
+import { useCallback, useMemo, useRef } from 'preact/hooks'
 
-export default class TreeTab extends Component<IReducerProps> {
-  readonly #handleSelectAll = (evt: Event): void => {
-    evt.preventDefault()
-    this.props.apply(selectAll())
-  }
+export default function TreeTab(): JSX.Element {
+  const tree = useInspectorStore(s => s.tree)
+  const children = useMemo(() => Array.from(tree.children()), [tree])
 
-  readonly #handleSelectNone = (evt: Event): void => {
-    evt.preventDefault()
-    this.props.apply(selectNone())
-  }
+  return (
+    <Panel panel={<TreeTabPanel />} margin={5}>
+      <table class={styles.table}>
+        <thead>
+          <tr>
+            <th />
+            <th>Title</th>
+            <th>ID</th>
+            <th>Path</th>
+            <th>Field Type</th>
+            <th>Cardinality</th>
+          </tr>
+        </thead>
+        <tbody>
+          {children.map(b => (
+            <BundleRows visible bundle={b} level={0} key={b.path.id} />
+          ))}
+        </tbody>
+      </table>
+    </Panel>
+  )
+}
 
-  readonly #handleSelectOnlyBundles = (evt: Event): void => {
-    evt.preventDefault()
-    this.props.apply(selectPredicate(x => x instanceof Bundle))
-  }
+function TreeTabPanel(): JSX.Element {
+  const apply = useInspectorStore(s => s.apply)
+  const cm = useInspectorStore(s => s.cm)
+  const hideEqualParentPaths = useInspectorStore(s => s.hideEqualParentPaths)
+  const cmLoadError = useInspectorStore(s => s.cmLoadError)
 
-  readonly #handleSelectOnlyFields = (evt: Event): void => {
-    evt.preventDefault()
-    this.props.apply(selectPredicate(x => x instanceof Field))
-  }
+  const handleSelectAll = useCallback(
+    (evt: Event): void => {
+      evt.preventDefault()
+      apply(selectAll())
+    },
+    [apply, selectAll],
+  )
 
-  readonly #handleExpandAll = (evt: Event): void => {
-    evt.preventDefault()
-    this.props.apply(expandAll())
-  }
+  const handleSelectNone = useCallback(
+    (evt: Event): void => {
+      evt.preventDefault()
+      apply(selectNone())
+    },
+    [apply, selectNone],
+  )
 
-  readonly #handleCollapseAll = (evt: Event): void => {
-    evt.preventDefault()
-    this.props.apply(collapseAll())
-  }
+  const handleSelectOnlyBundles = useCallback(
+    (evt: Event): void => {
+      evt.preventDefault()
+      apply(selectPredicate(x => x instanceof Bundle))
+    },
+    [apply, selectPredicate],
+  )
 
-  readonly #handleColorPreset = (preset: ColorPreset, evt: Event): void => {
-    evt.preventDefault()
-    this.props.apply(applyColorPreset(preset))
-  }
+  const handleSelectOnlyFields = useCallback(
+    (evt: Event): void => {
+      evt.preventDefault()
+      apply(selectPredicate(x => x instanceof Field))
+    },
+    [apply, selectPredicate],
+  )
 
-  readonly #handleColorMapExport = (evt: Event): void => {
-    const data = JSON.stringify(this.props.state.cm.toJSON(), null, 2)
-    const blob = new Blob([data], { type: Type.JSON })
-    download(blob, 'colors.json', 'json')
-  }
+  const handleExpandAll = useCallback(
+    (evt: Event): void => {
+      evt.preventDefault()
+      apply(expandAll())
+    },
+    [apply, expandAll],
+  )
 
-  readonly #handleColorMapImport = (file: File): void => {
-    this.props.apply(loadColorMap(file))
-  }
+  const handleCollapseAll = useCallback(
+    (evt: Event): void => {
+      evt.preventDefault()
+      apply(collapseAll())
+    },
+    [apply, collapseAll],
+  )
 
-  readonly #handleHideEqualParentPaths = (
-    event: Event & { currentTarget: HTMLInputElement },
-  ): void => {
-    event.preventDefault()
-    this.props.apply(setHideEqualParentPaths(event.currentTarget.checked))
-  }
+  const handleColorPreset = useCallback(
+    (evt: Event & { currentTarget: HTMLButtonElement }): void => {
+      evt.preventDefault()
+      const { preset } = evt.currentTarget.dataset
+      if (typeof preset !== 'string') return
 
-  render(): ComponentChild {
-    const { tree } = this.props.state
-    return (
-      <Panel panel={this.#renderPanel()} margin={5}>
-        <table class={styles.table}>
-          <thead>
-            <tr>
-              <th />
-              <th>Title</th>
-              <th>ID</th>
-              <th>Path</th>
-              <th>Field Type</th>
-              <th>Cardinality</th>
-            </tr>
-          </thead>
-          <tbody>
-            {Array.from(tree.children()).map(b => (
-              <BundleRows
-                {...this.props}
-                visible
-                bundle={b}
-                level={0}
-                key={b.path.id}
-              />
-            ))}
-          </tbody>
-        </table>
-      </Panel>
-    )
-  }
+      apply(applyColorPreset(preset as ColorPreset))
+    },
+    [apply, applyColorPreset],
+  )
 
-  #renderPanel(): ComponentChildren {
-    const { hideEqualParentPaths, cmLoadError } = this.props.state
-    return (
-      <>
-        <fieldset>
-          <legend>Overview</legend>
-          <p>
-            This page displays the pathbuilder as a hierarchical structure. It
-            is similar to the WissKI Interface, except read-only.
-          </p>
+  const handleColorMapExport = useCallback(
+    (evt: Event): void => {
+      const data = JSON.stringify(cm.toJSON(), null, 2)
+      const blob = new Blob([data], { type: Type.JSON })
+      download(blob, 'colors.json', 'json')
+    },
+    [cm, download],
+  )
 
-          <p>
-            <button onClick={this.#handleCollapseAll}>Collapse All</button>
-            {` `}
-            <button onClick={this.#handleExpandAll}>Expand All</button>
-          </p>
+  const handleColorMapImport = useCallback(
+    (file: File): void => {
+      apply(loadColorMap(file))
+    },
+    [apply, loadColorMap],
+  )
 
-          <p>
-            <span class={classes(styles.display_path, styles.path_concept)}>
-              Concept
-            </span>
-            <span
-              class={classes(
-                styles.display_path,
-                styles.path_concept,
-                styles.path_shared,
-              )}
-            >
-              Concept (shared with parent)
-            </span>
-            <span
-              class={classes(
-                styles.display_path,
-                styles.path_concept,
-                styles.path_disambiguation,
-              )}
-            >
-              Disambiguated Concept
-            </span>
-            <span class={classes(styles.display_path, styles.path_predicate)}>
-              Predicate
-            </span>
-            <span
-              class={classes(
-                styles.display_path,
-                styles.path_shared,
-                styles.path_predicate,
-              )}
-            >
-              Predicate (shared with parent)
-            </span>
-            <span class={classes(styles.display_path, styles.path_datatype)}>
-              Datatype Property
-            </span>
-          </p>
-          <p>
-            <input
-              id='hide-parent-paths'
-              type='checkbox'
-              checked={hideEqualParentPaths}
-              onInput={this.#handleHideEqualParentPaths}
-            />
-            <label for='hide-parent-paths'>
-              Collapse shared paths into ellipses
-            </label>
-          </p>
-        </fieldset>
-        <fieldset>
-          <legend>Selection</legend>
+  const handleHideEqualParentPaths = useCallback(
+    (event: Event & { currentTarget: HTMLInputElement }): void => {
+      event.preventDefault()
+      apply(setHideEqualParentPaths(event.currentTarget.checked))
+    },
+    [apply, setHideEqualParentPaths],
+  )
 
-          <p>
-            The checkboxes here are used to include the paths in the graph
-            displays. Use the shift key to update the all child values
-            recursively.
-          </p>
+  return (
+    <>
+      <fieldset>
+        <legend>Overview</legend>
+        <p>
+          This page displays the pathbuilder as a hierarchical structure. It is
+          similar to the WissKI Interface, except read-only.
+        </p>
 
-          <p>
-            <button onClick={this.#handleSelectAll}>Select All</button>
-            {` `}
-            <button onClick={this.#handleSelectNone}>Select None</button>
-            {` `}
-            <button onClick={this.#handleSelectOnlyBundles}>
-              Select Bundles
-            </button>
-            {` `}
-            <button onClick={this.#handleSelectOnlyFields}>
-              Select Fields
-            </button>
-          </p>
-        </fieldset>
-        <br />
-        <fieldset>
-          <legend>Color Map</legend>
+        <p>
+          <button onClick={handleCollapseAll}>Collapse All</button>
+          {` `}
+          <button onClick={handleExpandAll}>Expand All</button>
+        </p>
 
-          <p>
-            The color boxes are used to change the color of the fields in the
-            graph displays. If a single node includes multiple colors, the color
-            of the most important item will be used. Parent-paths are more
-            important than sub-paths; if two paths are of the same priority the
-            one higher in the list of paths is used.
-          </p>
-
-          <p>
-            {colorPresets.map(preset => (
-              <Fragment key={preset}>
-                <button onClick={this.#handleColorPreset.bind(this, preset)}>
-                  {preset}
-                </button>
-                {` `}
-              </Fragment>
-            ))}
-          </p>
-
-          <p>
-            <button onClick={this.#handleColorMapExport}>Export</button>
-            {` `}
-            <DropArea
-              types={[Type.JSON]}
-              onDropFile={this.#handleColorMapImport}
-              compact
-            >
-              Import
-            </DropArea>
-            {` `}
-            {typeof cmLoadError === 'string' && (
-              <small>
-                &nbsp;
-                {cmLoadError}
-              </small>
+        <p>
+          <span class={classes(styles.display_path, styles.path_concept)}>
+            Concept
+          </span>
+          <span
+            class={classes(
+              styles.display_path,
+              styles.path_concept,
+              styles.path_shared,
             )}
-          </p>
-        </fieldset>
-      </>
-    )
-  }
+          >
+            Concept (shared with parent)
+          </span>
+          <span
+            class={classes(
+              styles.display_path,
+              styles.path_concept,
+              styles.path_disambiguation,
+            )}
+          >
+            Disambiguated Concept
+          </span>
+          <span class={classes(styles.display_path, styles.path_predicate)}>
+            Predicate
+          </span>
+          <span
+            class={classes(
+              styles.display_path,
+              styles.path_shared,
+              styles.path_predicate,
+            )}
+          >
+            Predicate (shared with parent)
+          </span>
+          <span class={classes(styles.display_path, styles.path_datatype)}>
+            Datatype Property
+          </span>
+        </p>
+        <p>
+          <input
+            id='hide-parent-paths'
+            type='checkbox'
+            checked={hideEqualParentPaths}
+            onInput={handleHideEqualParentPaths}
+          />
+          <label for='hide-parent-paths'>
+            Collapse shared paths into ellipses
+          </label>
+        </p>
+      </fieldset>
+      <fieldset>
+        <legend>Selection</legend>
+
+        <p>
+          The checkboxes here are used to include the paths in the graph
+          displays. Use the shift key to update the all child values
+          recursively.
+        </p>
+
+        <p>
+          <button onClick={handleSelectAll}>Select All</button>
+          {` `}
+          <button onClick={handleSelectNone}>Select None</button>
+          {` `}
+          <button onClick={handleSelectOnlyBundles}>Select Bundles</button>
+          {` `}
+          <button onClick={handleSelectOnlyFields}>Select Fields</button>
+        </p>
+      </fieldset>
+      <br />
+      <fieldset>
+        <legend>Color Map</legend>
+
+        <p>
+          The color boxes are used to change the color of the fields in the
+          graph displays. If a single node includes multiple colors, the color
+          of the most important item will be used. Parent-paths are more
+          important than sub-paths; if two paths are of the same priority the
+          one higher in the list of paths is used.
+        </p>
+
+        <p>
+          {colorPresets.map(preset => (
+            <Fragment key={preset}>
+              <button data-preset={preset} onClick={handleColorPreset}>
+                {preset}
+              </button>
+              {` `}
+            </Fragment>
+          ))}
+        </p>
+
+        <p>
+          <button onClick={handleColorMapExport}>Export</button>
+          {` `}
+          <DropArea
+            types={[Type.JSON]}
+            onDropFile={handleColorMapImport}
+            compact
+          >
+            Import
+          </DropArea>
+          {` `}
+          {typeof cmLoadError === 'string' && (
+            <small>
+              &nbsp;
+              {cmLoadError}
+            </small>
+          )}
+        </p>
+      </fieldset>
+    </>
+  )
 }
 
 const INDENT_PER_LEVEL = 50
 
-class BundleRows extends Component<
-  IReducerProps & { bundle: Bundle; level: number; visible: boolean }
-> {
-  readonly #handleClick = (evt: Event): void => {
-    evt.preventDefault()
+function BundleRows(props: {
+  bundle: Bundle
+  level: number
+  visible: boolean
+}): JSX.Element {
+  const apply = useInspectorStore(s => s.apply)
+  const cm = useInspectorStore(s => s.cm)
+  const ns = useInspectorStore(s => s.ns)
+  const selection = useInspectorStore(s => s.selection)
+  const collapsed = useInspectorStore(s => s.collapsed)
+  const hideEqualParentPaths = useInspectorStore(s => s.hideEqualParentPaths)
 
-    this.props.apply(collapseNode(this.props.bundle))
-  }
+  const handleClick = useCallback(
+    (evt: Event): void => {
+      evt.preventDefault()
 
-  #shiftHeld = false
-  readonly #handleKeydown = (evt: MouseEvent): void => {
-    this.#shiftHeld = evt.shiftKey
-  }
+      apply(collapseNode(props.bundle))
+    },
+    [apply, collapseNode, props.bundle],
+  )
 
-  readonly #handleSelectionChange = (
-    evt: Event & { currentTarget: HTMLInputElement },
-  ): void => {
-    evt.preventDefault()
+  const shiftHeld = useRef(false)
 
-    const { bundle } = this.props
+  const handleKeydown = useCallback(
+    (evt: MouseEvent): void => {
+      shiftHeld.current = evt.shiftKey
+    },
+    [shiftHeld],
+  )
 
-    const keys = this.#shiftHeld ? Array.from(bundle.walk()) : [bundle]
-    const value = evt.currentTarget.checked
+  const handleSelectionChange = useCallback(
+    (evt: Event & { currentTarget: HTMLInputElement }): void => {
+      evt.preventDefault()
 
-    this.props.apply(updateSelection(keys.map(k => [k, value])))
-  }
+      const { bundle } = props
+      const { current: shift } = shiftHeld
 
-  readonly #handleColorChange = (
-    evt: Event & { currentTarget: HTMLInputElement },
-  ): void => {
-    const { bundle } = this.props
-    this.props.apply(setColor(bundle, evt.currentTarget.value))
-  }
+      const keys = shift ? Array.from(bundle.walk()) : [bundle]
+      const value = evt.currentTarget.checked
 
-  render(): ComponentChild {
-    const { bundle, level, visible, state, apply } = this.props
-    const { ns, cm, selection, collapsed, hideEqualParentPaths } = state
-    const props: IReducerProps = { state, apply }
+      apply(updateSelection(keys.map(k => [k, value])))
+    },
+    [props.bundle, shiftHeld, apply, updateSelection],
+  )
 
-    const path = bundle.path
-    const expanded = !collapsed.includes(bundle)
-    return (
-      <>
-        <tr class={!visible ? styles.hidden : ''}>
-          <td>
-            <input
-              type='checkbox'
-              checked={selection.includes(bundle)}
-              onClick={this.#handleKeydown}
-              onInput={this.#handleSelectionChange}
-            />
-            <input
-              type='color'
-              value={cm.getDefault(bundle)}
-              onInput={this.#handleColorChange}
-            />
-          </td>
-          <td style={{ paddingLeft: INDENT_PER_LEVEL * level }}>
-            <button
-              onClick={this.#handleClick}
-              aria-role='toggle'
-              disabled={bundle.childCount === 0}
-            >
-              {expanded ? '∨' : '>'}
-            </button>
-            &nbsp;
-            {path.name}
-          </td>
-          <td>
-            <code>{path.id}</code>
-          </td>
-          <td>
-            <Path
-              hideEqualParentPaths={hideEqualParentPaths}
-              node={bundle}
-              ns={ns}
-            />
-          </td>
-          <td />
-          <td>{path.cardinality > 0 ? path.cardinality : 'unlimited'}</td>
-        </tr>
+  const handleColorChange = useCallback(
+    (evt: Event & { currentTarget: HTMLInputElement }): void => {
+      apply(setColor(props.bundle, evt.currentTarget.value))
+    },
+    [apply, setColor, props.bundle],
+  )
 
-        {Array.from(bundle.fields()).map(field => (
-          <FieldRow
-            {...props}
-            visible={visible && expanded}
-            level={level + 1}
-            field={field}
-            key={field.path.id}
-          />
-        ))}
-        {Array.from(bundle.bundles()).map(bundle => (
-          <BundleRows
-            {...props}
-            visible={visible && expanded}
-            level={level + 1}
-            bundle={bundle}
-            key={bundle.path.id}
-          />
-        ))}
-      </>
-    )
-  }
-}
+  const { bundle, level, visible } = props
+  const path = bundle.path
+  const expanded = !collapsed.includes(bundle)
 
-class FieldRow extends Component<
-  IReducerProps & { field: Field; level: number; visible: boolean }
-> {
-  readonly #handleSelectionChange = (
-    evt: Event & { currentTarget: HTMLInputElement },
-  ): void => {
-    this.props.apply(
-      updateSelection([[this.props.field, evt.currentTarget.checked]]),
-    )
-  }
-
-  readonly #handleColorChange = (
-    evt: Event & { currentTarget: HTMLInputElement },
-  ): void => {
-    const { field } = this.props
-    this.props.apply(setColor(field, evt.currentTarget.value))
-  }
-
-  render(): ComponentChild {
-    const {
-      state: { ns, cm, selection, hideEqualParentPaths },
-      field,
-      level,
-      visible,
-    } = this.props
-
-    const path = field.path
-    return (
+  return (
+    <>
       <tr class={!visible ? styles.hidden : ''}>
         <td>
           <input
             type='checkbox'
-            checked={selection.includes(field)}
-            onInput={this.#handleSelectionChange}
+            checked={selection.includes(bundle)}
+            onClick={handleKeydown}
+            onInput={handleSelectionChange}
           />
           <input
             type='color'
-            value={cm.getDefault(field)}
-            onInput={this.#handleColorChange}
+            value={cm.getDefault(bundle)}
+            onInput={handleColorChange}
           />
         </td>
-        <td style={{ paddingLeft: INDENT_PER_LEVEL * level }}>{path.name}</td>
+        <td style={{ paddingLeft: INDENT_PER_LEVEL * level }}>
+          <button
+            onClick={handleClick}
+            aria-role='toggle'
+            disabled={bundle.childCount === 0}
+          >
+            {expanded ? '∨' : '>'}
+          </button>
+          &nbsp;
+          {path.name}
+        </td>
         <td>
           <code>{path.id}</code>
         </td>
         <td>
           <Path
             hideEqualParentPaths={hideEqualParentPaths}
-            node={field}
+            node={bundle}
             ns={ns}
           />
         </td>
-        <td>{path.informativeFieldType}</td>
+        <td />
         <td>{path.cardinality > 0 ? path.cardinality : 'unlimited'}</td>
       </tr>
-    )
-  }
+
+      {Array.from(bundle.fields()).map(field => (
+        <FieldRow
+          visible={visible && expanded}
+          level={level + 1}
+          field={field}
+          key={field.path.id}
+        />
+      ))}
+      {Array.from(bundle.bundles()).map(bundle => (
+        <BundleRows
+          visible={visible && expanded}
+          level={level + 1}
+          bundle={bundle}
+          key={bundle.path.id}
+        />
+      ))}
+    </>
+  )
+}
+
+function FieldRow(props: {
+  field: Field
+  level: number
+  visible: boolean
+}): JSX.Element {
+  const apply = useInspectorStore(s => s.apply)
+  const cm = useInspectorStore(s => s.cm)
+  const ns = useInspectorStore(s => s.ns)
+  const selection = useInspectorStore(s => s.selection)
+  const hideEqualParentPaths = useInspectorStore(s => s.hideEqualParentPaths)
+
+  const handleSelectionChange = useCallback(
+    (evt: Event & { currentTarget: HTMLInputElement }): void => {
+      apply(updateSelection([[props.field, evt.currentTarget.checked]]))
+    },
+    [apply, updateSelection, props.field],
+  )
+
+  const handleColorChange = useCallback(
+    (evt: Event & { currentTarget: HTMLInputElement }): void => {
+      apply(setColor(props.field, evt.currentTarget.value))
+    },
+    [apply, props.field, setColor],
+  )
+
+  const { field, level, visible } = props
+  const { path } = field
+
+  return (
+    <tr class={!visible ? styles.hidden : ''}>
+      <td>
+        <input
+          type='checkbox'
+          checked={selection.includes(field)}
+          onInput={handleSelectionChange}
+        />
+        <input
+          type='color'
+          value={cm.getDefault(field)}
+          onInput={handleColorChange}
+        />
+      </td>
+      <td style={{ paddingLeft: INDENT_PER_LEVEL * level }}>{path.name}</td>
+      <td>
+        <code>{path.id}</code>
+      </td>
+      <td>
+        <Path
+          hideEqualParentPaths={hideEqualParentPaths}
+          node={field}
+          ns={ns}
+        />
+      </td>
+      <td>{path.informativeFieldType}</td>
+      <td>{path.cardinality > 0 ? path.cardinality : 'unlimited'}</td>
+    </tr>
+  )
 }
 
 function Path(props: {

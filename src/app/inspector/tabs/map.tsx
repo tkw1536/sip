@@ -1,20 +1,24 @@
 import { type JSX } from 'preact'
-import { type IReducerProps } from '../state'
 import { resetNamespaceMap, setNamespaceMap } from '../state/reducers/ns'
 import { type NamespaceMap } from '../../../lib/pathbuilder/namespace'
 import NamespaceEditor from '../../../components/namespace-editor'
 import { useCallback } from 'preact/hooks'
+import { useInspectorStore } from '../state'
 
-export default function MapTab(props: IReducerProps): JSX.Element {
+export default function MapTab(): JSX.Element {
+  const apply = useInspectorStore(s => s.apply)
+  const ns = useInspectorStore(s => s.ns)
+  const namespaceVersion = useInspectorStore(s => s.namespaceVersion)
+
   const handleReset = useCallback((): void => {
-    props.apply(resetNamespaceMap())
-  }, [props.apply, resetNamespaceMap])
+    apply(resetNamespaceMap())
+  }, [apply, resetNamespaceMap])
 
   const handleNewMap = useCallback(
     (ns: NamespaceMap): void => {
-      props.apply(setNamespaceMap(ns))
+      apply(setNamespaceMap(ns))
     },
-    [props.apply, setNamespaceMap],
+    [apply, setNamespaceMap],
   )
 
   return (
@@ -29,8 +33,8 @@ export default function MapTab(props: IReducerProps): JSX.Element {
         editing abbreviations.
       </p>
       <NamespaceEditor
-        ns={props.state.ns}
-        nsKey={props.state.namespaceVersion}
+        ns={ns}
+        nsKey={namespaceVersion}
         onReset={handleReset}
         onUpdate={handleNewMap}
       />

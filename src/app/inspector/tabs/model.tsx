@@ -9,7 +9,6 @@ import GraphDisplay, {
   DriverControl,
   ExportControl,
 } from '../../../components/graph-display'
-import { type IReducerProps } from '../state'
 import {
   setModelDeduplication,
   setModelDisplay,
@@ -26,8 +25,23 @@ import {
   type ModelAttachmentKey,
 } from '../../../lib/graph/builders/model/labels'
 import { useCallback, useId, useMemo, useRef } from 'preact/hooks'
+import { useInspectorStore } from '../state'
 
-export default function ModelGraphView(props: IReducerProps): JSX.Element {
+export default function ModelGraphView(): JSX.Element {
+  const tree = useInspectorStore(s => s.tree)
+  const selection = useInspectorStore(s => s.selection)
+  const deduplication = useInspectorStore(s => s.modelDeduplication)
+  const pathbuilderVersion = useInspectorStore(s => s.pathbuilderVersion)
+  const selectionVersion = useInspectorStore(s => s.selectionVersion)
+  const optionVersion = useInspectorStore(s => s.modelGraphOptionVersion)
+  const colorVersion = useInspectorStore(s => s.colorVersion)
+  const driver = useInspectorStore(s => s.modelGraphDriver)
+  const seed = useInspectorStore(s => s.modelGraphSeed)
+  const layout = useInspectorStore(s => s.modelGraphLayout)
+  const ns = useInspectorStore(s => s.ns)
+  const cm = useInspectorStore(s => s.cm)
+  const display = useInspectorStore(s => s.modelDisplay)
+
   const displayRef =
     useRef<
       GraphDisplay<ModelNode, ModelEdge, ModelOptions, ModelAttachmentKey>
@@ -35,35 +49,15 @@ export default function ModelGraphView(props: IReducerProps): JSX.Element {
 
   const builder = useMemo(() => {
     return async (): Promise<Graph<ModelNode, ModelEdge>> => {
-      const { tree, selection, modelDeduplication: deduplication } = props.state
-
       const builder = new ModelGraphBuilder(tree, {
         include: selection.includes.bind(selection),
         deduplication,
       })
       return await builder.build()
     }
-  }, [
-    props.state.tree,
-    props.state.selection,
-    props.state.modelDeduplication,
-    ModelGraphBuilder,
-  ])
+  }, [ModelGraphBuilder, tree, selection, deduplication])
 
-  const {
-    modelGraphLayout,
-    modelDisplay: display,
-    modelGraphDriver,
-    modelGraphSeed,
-    pathbuilderVersion,
-    selectionVersion,
-    modelGraphOptionVersion,
-    colorVersion,
-    ns,
-    cm,
-  } = props.state
-
-  const builderKey = `${pathbuilderVersion}-${selectionVersion}-${modelGraphOptionVersion}-${colorVersion}`
+  const builderKey = `${pathbuilderVersion}-${selectionVersion}-${optionVersion}-${colorVersion}`
 
   const renderPanel = useMemo(() => {
     return (
@@ -72,14 +66,15 @@ export default function ModelGraphView(props: IReducerProps): JSX.Element {
     ) => {
       return (
         <ModelGraphPanel
-          {...props}
           displayRef={displayRef}
           driver={driver}
           animating={animating}
         />
       )
     }
-  }, [ModelGraphPanel, props, displayRef])
+  }, [ModelGraphPanel, displayRef])
+
+  const options = useMemo(() => ({ ns, cm, display }), [ns, cm, display])
 
   return (
     <GraphDisplay
@@ -87,16 +82,16 @@ export default function ModelGraphView(props: IReducerProps): JSX.Element {
       loader={models}
       builderKey={builderKey}
       makeGraph={builder}
-      driver={modelGraphDriver}
-      seed={modelGraphSeed}
-      options={{ ns, cm, display }}
-      layout={modelGraphLayout}
+      driver={driver}
+      seed={seed}
+      options={options}
+      layout={layout}
       panel={renderPanel}
     />
   )
 }
 
-interface ModelGraphPanelProps extends IReducerProps {
+interface ModelGraphPanelProps {
   driver: Driver<ModelNode, ModelEdge, ModelOptions, ModelAttachmentKey> | null
   animating: boolean | null
   displayRef: RefObject<
@@ -104,56 +99,52 @@ interface ModelGraphPanelProps extends IReducerProps {
   >
 }
 function ModelGraphPanel(props: ModelGraphPanelProps): JSX.Element {
+  const apply = useInspectorStore(s => s.apply)
+  const seed = useInspectorStore(s => s.modelGraphSeed)
+  const layout = useInspectorStore(s => s.modelGraphLayout)
+  const deduplication = useInspectorStore(s => s.modelDeduplication)
+  const display = useInspectorStore(s => s.modelDisplay)
+
   const id = useId()
-  const {
-    driver,
-    animating,
-    displayRef,
-    state: {
-      modelDeduplication: deduplication,
-      modelGraphLayout,
-      modelDisplay,
-      modelGraphSeed,
-    },
-  } = props
+  const { driver, animating, displayRef } = props
 
   const handleChangeMode = useCallback(
     (evt: Event): void => {
-      props.apply(
+      apply(
         setModelDeduplication(
           (evt.target as HTMLInputElement).value as Deduplication,
         ),
       )
     },
-    [props.apply, setModelDeduplication],
+    [apply, setModelDeduplication],
   )
 
   const handleChangeModelRenderer = useCallback(
     (value: string): void => {
-      props.apply(setModelDriver(value))
+      apply(setModelDriver(value))
     },
-    [props.apply, setModelDriver],
+    [apply, setModelDriver],
   )
 
   const handleChangeDisplay = useCallback(
     (display: ModelDisplay): void => {
-      props.apply(setModelDisplay(display))
+      apply(setModelDisplay(display))
     },
-    [props.apply, setModelDisplay],
+    [apply, setModelDisplay],
   )
 
   const handleChangeModelLayout = useCallback(
     (value: string): void => {
-      props.apply(setModelLayout(value))
+      apply(setModelLayout(value))
     },
-    [props.apply, setModelLayout],
+    [apply, setModelLayout],
   )
 
   const handleChangeModelSeed = useCallback(
     (seed: number | null): void => {
-      props.apply(setModelSeed(seed))
+      apply(setModelSeed(seed))
     },
-    [props.apply, setModelSeed],
+    [apply, setModelSeed],
   )
 
   const handleResetDriver = useCallback((): void => {
@@ -166,8 +157,8 @@ function ModelGraphPanel(props: ModelGraphPanelProps): JSX.Element {
       <DriverControl
         driverNames={models.names}
         driver={driver}
-        currentLayout={modelGraphLayout}
-        seed={modelGraphSeed}
+        currentLayout={layout}
+        seed={seed}
         onChangeDriver={handleChangeModelRenderer}
         onChangeLayout={handleChangeModelLayout}
         onChangeSeed={handleChangeModelSeed}
@@ -175,7 +166,7 @@ function ModelGraphPanel(props: ModelGraphPanelProps): JSX.Element {
         animating={animating}
       />
       <ModelGraphDisplayControl
-        display={modelDisplay}
+        display={display}
         onUpdate={handleChangeDisplay}
       />
       <Control name='Deduplication'>

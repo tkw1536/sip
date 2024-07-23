@@ -1,4 +1,4 @@
-import { type RState } from '..'
+import { type RState } from '.'
 import { Store } from 'rdflib'
 import { newRDFDriver } from './rdf'
 import { defaultLayout } from '../../../../lib/drivers/impl'

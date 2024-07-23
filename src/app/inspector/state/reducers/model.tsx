@@ -1,4 +1,4 @@
-import { type IReducer, type IState } from '..'
+import { type IReducer, type IState } from '.'
 import { models } from '../../../../lib/drivers/collection'
 import { defaultLayout } from '../../../../lib/drivers/impl'
 import { type ModelDisplay } from '../../../../lib/graph/builders/model/labels'

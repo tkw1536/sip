@@ -1,4 +1,4 @@
-import { type IReducer, type IState } from '..'
+import { type IReducer, type IState } from '.'
 
 export { applyColorPreset as newColor } from '../state/preset'
 

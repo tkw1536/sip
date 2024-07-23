@@ -1,7 +1,7 @@
 import { render } from 'preact'
 import { ErrorBoundary } from '../../components/error'
 import Layout from '../../components/layout'
-import { App } from '.'
+import RDFViewerApp from '.'
 
 function main(): void {
   const root = document.getElementById('root')
@@ -12,7 +12,7 @@ function main(): void {
   render(
     <ErrorBoundary>
       <Layout>
-        <App />
+        <RDFViewerApp />
       </Layout>
     </ErrorBoundary>,
     root,

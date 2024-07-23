@@ -1,5 +1,5 @@
 import { type Store } from 'rdflib'
-import { type RReducer, type RState } from '..'
+import { type RReducer, type RState } from '.'
 import { NamespaceMap } from '../../../../lib/pathbuilder/namespace'
 
 export function newNamespaceMap(store: Store): NamespaceMap {
@@ -10,19 +10,6 @@ export function newNamespaceMap(store: Store): NamespaceMap {
       return 0
     },
   )
-
-  /*
-  const uris = new Set<string>()
-  const addTerm = (term: Term): void => {
-    if (term.termType === 'NamedNode') return
-    uris.add(term.value)
-  }
-  store.statements.forEach(value => {
-    addTerm(value.subject)
-    addTerm(value.predicate)
-    addTerm(value.object)
-  })
-  */
 
   return NamespaceMap.fromMap(specials)
 }

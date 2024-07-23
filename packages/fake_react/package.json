@@ -1,0 +1,8 @@
+{
+  "name": "react",
+  "version": "18.0.0",
+  "description": "This is a fake react package to avoid peer dependency warnings",
+  "main": "index.js",
+  "license": "CC0",
+  "private": true
+}

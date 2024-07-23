@@ -1,4 +1,4 @@
-import { type RState, type RReducer } from '..'
+import { type RState, type RReducer } from '.'
 
 export function newTabID(): string {
   return ''

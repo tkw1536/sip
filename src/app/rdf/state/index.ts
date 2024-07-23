@@ -1,23 +1,10 @@
-import { type Reducer, type ReducerProps } from '../../../lib/state_management'
-import { type Store } from 'rdflib'
-import { type NamespaceMap } from '../../../lib/pathbuilder/namespace'
+import { withApply } from '../../../lib/state_management'
 
-export interface RState {
-  showModal: boolean
-  activeTab: string // the active tab
+import { create } from 'zustand'
+import { resetRDFInterface } from './reducers/init'
+import { type RState } from './reducers'
+export type { RState } from './reducers'
 
-  loadStage: false | 'loading' | true | { error: unknown } // boolean indicating if file has been loaded, string for error
-  filename: string
-
-  store: Store
-
-  ns: NamespaceMap
-  namespaceVersion: number
-
-  rdfGraphDriver: string
-  rdfGraphLayout: string
-  rdfGraphSeed: number | null
-}
-
-export type RReducer = Reducer<RState>
-export type RReducerProps = ReducerProps<RState>
+export const useRDFStore = create(
+  withApply<RState>(() => resetRDFInterface(true)),
+)

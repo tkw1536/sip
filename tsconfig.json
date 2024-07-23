@@ -17,8 +17,12 @@
     "experimentalDecorators": true,
     "noEmit": true,
 
-    // HACK HACK HACK
-    // This is needed because the 'preact-markup' module is broken.
+    "paths": {
+      "react": ["./node_modules/preact/compat/"],
+      "react/jsx-runtime": ["./node_modules/preact/jsx-runtime"],
+      "react-dom": ["./node_modules/preact/compat/"],
+      "react-dom/*": ["./node_modules/preact/compat/*"]
+    },
     "skipLibCheck": true
   },
   

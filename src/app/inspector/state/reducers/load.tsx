@@ -1,4 +1,4 @@
-import { type IState } from '..'
+import { type IState } from '.'
 import { defaultLayout } from '../../../../lib/drivers/impl'
 import { newModelDisplay } from '../../../../lib/graph/builders/model/labels'
 import { type Pathbuilder } from '../../../../lib/pathbuilder/pathbuilder'

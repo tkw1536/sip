@@ -1,5 +1,4 @@
-import { Component, type ComponentChildren, createRef } from 'preact'
-import { type RReducerProps } from '../state'
+import { type JSX, type RefObject } from 'preact'
 import GraphDisplay, {
   DriverControl,
   ExportControl,
@@ -13,80 +12,119 @@ import { setRDFDriver, setRDFLayout, setRDFSeed } from '../state/reducers/rdf'
 import type Graph from '../../../lib/graph'
 import type Driver from '../../../lib/drivers/impl'
 import { triples } from '../../../lib/drivers/collection'
+import { useRDFStore } from '../state'
+import { useCallback, useMemo, useRef } from 'preact/hooks'
 
-export default class GraphTab extends Component<RReducerProps> {
-  readonly buildGraph = async (): Promise<Graph<RDFNode, RDFEdge>> => {
-    const builder = new RDFGraphBuilder(this.props.state.store)
-    return await builder.build()
-  }
+export default function GraphTab(): JSX.Element {
+  const store = useRDFStore(s => s.store)
 
-  readonly #handleChangeRDFRenderer = (value: string): void => {
-    this.props.apply(setRDFDriver(value))
-  }
+  const rdfGraphLayout = useRDFStore(s => s.rdfGraphLayout)
+  const rdfGraphDriver = useRDFStore(s => s.rdfGraphDriver)
+  const rdfGraphSeed = useRDFStore(s => s.rdfGraphSeed)
+  const ns = useRDFStore(s => s.ns)
+  const namespaceVersion = useRDFStore(s => s.namespaceVersion)
 
-  readonly #handleChangeRDFLayout = (value: string): void => {
-    this.props.apply(setRDFLayout(value))
-  }
+  const makeGraph = useMemo(
+    () => async (): Promise<Graph<RDFNode, RDFEdge>> => {
+      const builder = new RDFGraphBuilder(store)
+      return await builder.build()
+    },
+    [RDFGraphBuilder, store],
+  )
 
-  readonly #handleChangeRDFSeed = (seed: number | null): void => {
-    this.props.apply(setRDFSeed(seed))
-  }
+  const displayRef =
+    useRef<GraphDisplay<RDFNode, RDFEdge, RDFOptions, never>>(null)
 
-  readonly #displayRef =
-    createRef<GraphDisplay<RDFNode, RDFEdge, RDFOptions, never>>()
-
-  readonly #handleResetDriver = (): void => {
-    const { current: display } = this.#displayRef
-    display?.remount()
-  }
-
-  render(): ComponentChildren {
-    const {
-      rdfGraphLayout,
-      rdfGraphDriver,
-      rdfGraphSeed,
-      ns,
-      namespaceVersion,
-    } = this.props.state
-
-    return (
-      <GraphDisplay
-        ref={this.#displayRef}
-        loader={triples}
-        driver={rdfGraphDriver}
-        seed={rdfGraphSeed}
-        builderKey={namespaceVersion.toString()}
-        makeGraph={this.buildGraph}
-        options={{ ns }}
-        layout={rdfGraphLayout}
-        panel={this.#renderPanel}
+  const panel = useCallback(
+    (
+      driver: GraphTabPanelProps['driver'],
+      animating: GraphTabPanelProps['animating'],
+    ) => (
+      <GraphTabPanel
+        driver={driver}
+        animating={animating}
+        displayRef={displayRef}
       />
-    )
-  }
+    ),
+    [GraphTabPanel, displayRef],
+  )
+  return (
+    <GraphDisplay
+      ref={displayRef}
+      loader={triples}
+      driver={rdfGraphDriver}
+      seed={rdfGraphSeed}
+      builderKey={namespaceVersion.toString()}
+      makeGraph={makeGraph}
+      options={{ ns }}
+      layout={rdfGraphLayout}
+      panel={panel}
+    />
+  )
+}
 
+interface GraphTabPanelProps {
+  animating: boolean
+  driver: Driver<RDFNode, RDFEdge, RDFOptions, never> | null
+  displayRef: RefObject<GraphDisplay<RDFNode, RDFEdge, RDFOptions, never>>
+}
+
+function GraphTabPanel(props: GraphTabPanelProps): JSX.Element {
+  const apply = useRDFStore(s => s.apply)
+
+  const rdfGraphSeed = useRDFStore(s => s.rdfGraphSeed)
+  const rdfGraphLayout = useRDFStore(s => s.rdfGraphLayout)
+
+  const { driver, animating, displayRef } = props
+
+  const handleChangeRDFDriver = useCallback(
+    (driver: string): void => {
+      apply(setRDFDriver(driver))
+    },
+    [apply, setRDFDriver],
+  )
+
+  const handleChangeRDFLayout = useCallback(
+    (value: string): void => {
+      apply(setRDFLayout(value))
+    },
+    [apply, setRDFLayout],
+  )
+
+  const handleResetDriver = useCallback((): void => {
+    displayRef.current?.remount()
+  }, [displayRef.current])
+
+  const handleChangeRDFSeed = useCallback(
+    (seed: number | null): void => {
+      apply(setRDFSeed(seed))
+    },
+    [apply, setRDFSeed],
+  )
+
+  return (
+    <>
+      <DriverControl
+        driverNames={triples.names}
+        driver={driver}
+        seed={rdfGraphSeed}
+        currentLayout={rdfGraphLayout}
+        onChangeDriver={handleChangeRDFDriver}
+        onChangeLayout={handleChangeRDFLayout}
+        onChangeSeed={handleChangeRDFSeed}
+        onResetDriver={handleResetDriver}
+        animating={animating}
+      />
+      <ExportControl driver={driver} display={displayRef.current} />
+    </>
+  )
+}
+/*
   readonly #renderPanel = (
     driver: Driver<RDFNode, RDFEdge, RDFOptions, never> | null,
     animating: boolean | null,
   ): ComponentChildren => {
-    const {
-      state: { rdfGraphLayout, rdfGraphSeed },
-    } = this.props
-
-    return (
-      <>
-        <DriverControl
-          driverNames={triples.names}
-          driver={driver}
-          seed={rdfGraphSeed}
-          currentLayout={rdfGraphLayout}
-          onChangeDriver={this.#handleChangeRDFRenderer}
-          onChangeLayout={this.#handleChangeRDFLayout}
-          onChangeSeed={this.#handleChangeRDFSeed}
-          onResetDriver={this.#handleResetDriver}
-          animating={animating}
-        />
-        <ExportControl driver={driver} display={this.#displayRef.current} />
-      </>
-    )
+    
   }
 }
+*/

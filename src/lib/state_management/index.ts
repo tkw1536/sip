@@ -1,110 +1,110 @@
 import { Operation } from '../utils/operation'
 
-/**
- * A function that updates a state object
- */
-export type Reducer<State> =
-  | Partial<State>
-  | ((state: State) => Partial<State> | Promise<Partial<State> | null> | null)
+export function withApply<T>(
+  factory: (
+    setState: SetState<Omit<T, 'apply'>>,
+    getState: GetState<Omit<T, 'apply'>>,
+  ) => Omit<T, 'apply'>,
+): (
+  setState: SetState<WithApplyT<T>>,
+  getState: GetState<WithApplyT<T>>,
+) => WithApplyT<Omit<T, 'apply'>> {
+  return (setter, getter) => {
+    const setState: SetState<Omit<T, 'apply'>> = partial => {
+      const { apply, ...rest } = partial as Partial<T & { apply: unknown }>
+      setter(rest as Partial<WithApplyT<T>>)
+    }
+    const getState: GetState<Omit<T, 'apply'>> = () => {
+      const { apply, ...rest } = getter()
+      return rest
+    }
 
-/**
- * Props supplied to a context
- */
-export interface ReducerProps<State> {
-  state: State
-  apply: (
-    reducers: Reducer<State> | Array<Reducer<State>>,
-    callback?: (error?: unknown) => void,
-  ) => void
-}
-
-interface Setter<State> {
-  (props: Partial<State> | null, callback?: () => void): void
-  (func: (prev: State) => Partial<State> | null, callback?: () => void): void
-}
-
-/**
- * Manages and applies state
- */
-export default class StateManager<State> {
-  readonly #setState: Setter<State>
-  constructor(setter: Setter<State>) {
-    this.#setState = setter
+    return {
+      ...factory(setState, getState),
+      apply: apply(setState, getState),
+    }
   }
+}
 
-  readonly #reduction = new Operation()
-  /** cancels any ongoing state changes */
-  readonly cancel = this.#reduction.cancel.bind(this.#reduction)
+type WithApplyT<T> = T & { apply: Apply<T> }
 
-  /** applies a reducer function */
-  readonly #apply: ReducerProps<State>['apply'] = (
-    reducers: Reducer<State> | Array<Reducer<State>>,
+type SetState<S> = (state: Partial<S>) => void
+type GetState<S> = () => S
+
+type Apply<S> = (
+  reducers: Reducer<S> | Array<Reducer<S>>,
+  callback?: (error?: unknown) => void,
+) => void
+export type Reducer<T> = ReducerResult<T> | ReducerFunction<T>
+type ReducerResult<S> = Partial<S> | null | Promise<Partial<S> | null>
+type ReducerFunction<S> = (state: S) => ReducerResult<S>
+
+function apply<S>(setState: SetState<S>, getState: GetState<S>): Apply<S> {
+  const operation = new Operation()
+  return (
+    reducers: Reducer<S> | Array<Reducer<S>>,
     callback?: (error?: unknown) => void,
   ): void => {
-    const ticket = this.#reduction.ticket()
-
-    this.#applyReducers(ticket, Array.isArray(reducers) ? reducers : [reducers])
-      .then(() => {
-        if (typeof callback === 'function') callback()
-      })
-      .catch(err => {
-        if (typeof callback === 'function') callback(err)
-      })
+    void applyReducers(
+      operation.ticket(),
+      setState,
+      getState,
+      Array.isArray(reducers) ? reducers : [reducers],
+    ).then(callback, callback)
   }
+}
 
-  readonly #applyReducers = async (
-    ticket: () => boolean,
-    reducers: Array<Reducer<State>>,
-  ): Promise<void> => {
-    for (const reducer of reducers) {
-      await this.#applyReducer(ticket, reducer)
+async function applyReducers<S>(
+  ticket: () => boolean,
+  setState: SetState<S>,
+  getState: GetState<S>,
+
+  reducers: Array<Reducer<S>>,
+): Promise<void> {
+  for (const setter of reducers) {
+    await applyReducer(ticket, setState, getState, setter)
+  }
+}
+
+async function applyReducer<S>(
+  ticket: () => boolean,
+  setState: SetState<S>,
+  getState: GetState<S>,
+
+  reducer: Reducer<S>,
+): Promise<void> {
+  await new Promise<void>((resolve, reject) => {
+    // a function to apply the new state
+    const apply = (newState: Partial<S> | null): void => {
+      if (newState === null) {
+        return
+      }
+
+      if (!ticket()) {
+        console.warn('apply: discarding state update')
+        return
+      }
+
+      setState(newState)
+      resolve()
     }
-  }
 
-  props(state: State): ReducerProps<State> {
-    return {
-      state,
-      apply: this.#apply,
+    // call the function, catching any errors
+    let result: ReducerResult<S>
+    try {
+      result = typeof reducer === 'function' ? reducer(getState()) : reducer
+    } catch (err: unknown) {
+      // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
+      reject(err)
+      return
     }
-  }
 
-  readonly #applyReducer = async (
-    ticket: () => boolean,
-    reducer: Reducer<State>,
-  ): Promise<void> => {
-    await new Promise<void>(resolve => {
-      let reducerReturnedPromise = false
-      this.#setState(
-        state => {
-          if (!ticket()) return null
+    if (!(result instanceof Promise)) {
+      apply(result)
+      return
+    }
 
-          // if we got an actual value, apply it now!
-          const reduced =
-            typeof reducer === 'function'
-              ? (reducer as (state: State) => Partial<State>)(state)
-              : reducer
-          if (!(reduced instanceof Promise)) {
-            return reduced
-          }
-
-          reduced
-            .then(res => {
-              this.#setState(() => (ticket() ? res : null), resolve)
-            })
-            .catch(err => {
-              console.error('Error applying reducer')
-              console.error(err)
-            })
-
-          reducerReturnedPromise = true
-          return null // nothing to do for now (only when the promise resolves)
-        },
-        () => {
-          if (!reducerReturnedPromise) {
-            resolve()
-          }
-        },
-      )
-    })
-  }
+    // wait for the async case
+    void result.then(apply, reject)
+  })
 }

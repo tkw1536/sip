@@ -1,4 +1,4 @@
-import { Component, type ComponentChildren, createRef } from 'preact'
+import { type JSX, type RefObject } from 'preact'
 import GraphDisplay, {
   DriverControl,
   ExportControl,
@@ -9,7 +9,6 @@ import BundleGraphBuilder, {
   type BundleNode,
 } from '../../../lib/graph/builders/bundle'
 import { bundles } from '../../../lib/drivers/collection'
-import { type IReducerProps } from '../state'
 import type Driver from '../../../lib/drivers/impl'
 import {
   setBundleDriver,
@@ -17,83 +16,117 @@ import {
   setBundleSeed,
 } from '../state/reducers/bundle'
 import type Graph from '../../../lib/graph'
+import { useInspectorStore } from '../state'
+import { useCallback, useMemo, useRef } from 'preact/hooks'
 
-export default class BundleGraphView extends Component<IReducerProps> {
-  readonly #builder = async (): Promise<Graph<BundleNode, BundleEdge>> => {
-    const { tree, selection } = this.props.state
+export default function BundleGraphTab(): JSX.Element {
+  const selection = useInspectorStore(s => s.selection)
+  const tree = useInspectorStore(s => s.tree)
+  const bundleGraphLayout = useInspectorStore(s => s.bundleGraphLayout)
+  const bundleGraphRenderer = useInspectorStore(s => s.bundleGraphDriver)
+  const bundleGraphSeed = useInspectorStore(s => s.bundleGraphSeed)
+  const pathbuilderVersion = useInspectorStore(s => s.pathbuilderVersion)
+  const selectionVersion = useInspectorStore(s => s.selectionVersion)
+  const colorVersion = useInspectorStore(s => s.colorVersion)
+  const ns = useInspectorStore(s => s.ns)
+  const cm = useInspectorStore(s => s.cm)
 
-    const builder = new BundleGraphBuilder(tree, selection)
-    return await builder.build()
-  }
+  const makeGraph = useMemo(
+    () => async (): Promise<Graph<BundleNode, BundleEdge>> => {
+      const builder = new BundleGraphBuilder(tree, selection)
+      return await builder.build()
+    },
+    [BundleGraphBuilder, tree, selection],
+  )
 
-  readonly #displayRef =
-    createRef<GraphDisplay<BundleNode, BundleEdge, BundleOptions, never>>()
+  const displayRef =
+    useRef<GraphDisplay<BundleNode, BundleEdge, BundleOptions, never>>(null)
 
-  render(): ComponentChildren {
-    const {
-      bundleGraphLayout,
-      bundleGraphDriver: bundleGraphRenderer,
-      bundleGraphSeed,
-      pathbuilderVersion,
-      selectionVersion,
-      colorVersion,
-      ns,
-      cm,
-    } = this.props.state
+  const options = useMemo(() => ({ ns, cm }), [ns, cm])
 
-    return (
-      <GraphDisplay
-        ref={this.#displayRef}
-        loader={bundles}
-        driver={bundleGraphRenderer}
-        seed={bundleGraphSeed}
-        builderKey={`${pathbuilderVersion}-${selectionVersion}-${colorVersion}`}
-        makeGraph={this.#builder}
-        options={{ ns, cm }}
-        layout={bundleGraphLayout}
-        panel={this.#renderPanel}
-      />
-    )
-  }
-
-  readonly #handleChangeBundleRenderer = (value: string): void => {
-    this.props.apply(setBundleDriver(value))
-  }
-
-  readonly #handleChangeBundleLayout = (value: string): void => {
-    this.props.apply(setBundleLayout(value))
-  }
-  readonly #handleChangeBundleSeed = (seed: number | null): void => {
-    this.props.apply(setBundleSeed(seed))
-  }
-  readonly #handleResetDriver = (): void => {
-    const { current: display } = this.#displayRef
-    display?.remount()
-  }
-
-  readonly #renderPanel = (
-    driver: Driver<BundleNode, BundleEdge, BundleOptions, never> | null,
-    animating: boolean | null,
-  ): ComponentChildren => {
-    const {
-      state: { bundleGraphLayout, bundleGraphSeed },
-    } = this.props
-
-    return (
-      <>
-        <DriverControl
-          driverNames={bundles.names}
+  const renderPanel = useCallback(
+    (
+      driver: BundleGraphPanelProps['driver'],
+      animating: BundleGraphPanelProps['animating'],
+    ) => {
+      return (
+        <BundleGraphPanel
+          displayRef={displayRef}
           driver={driver}
-          currentLayout={bundleGraphLayout}
-          seed={bundleGraphSeed}
-          onChangeDriver={this.#handleChangeBundleRenderer}
-          onChangeLayout={this.#handleChangeBundleLayout}
-          onChangeSeed={this.#handleChangeBundleSeed}
-          onResetDriver={this.#handleResetDriver}
           animating={animating}
         />
-        <ExportControl driver={driver} display={this.#displayRef.current} />
-      </>
-    )
-  }
+      )
+    },
+    [BundleGraphPanel, displayRef],
+  )
+
+  return (
+    <GraphDisplay
+      ref={displayRef}
+      loader={bundles}
+      driver={bundleGraphRenderer}
+      seed={bundleGraphSeed}
+      builderKey={`${pathbuilderVersion}-${selectionVersion}-${colorVersion}`}
+      makeGraph={makeGraph}
+      options={options}
+      layout={bundleGraphLayout}
+      panel={renderPanel}
+    />
+  )
+}
+
+interface BundleGraphPanelProps {
+  displayRef: RefObject<
+    GraphDisplay<BundleNode, BundleEdge, BundleOptions, never>
+  >
+  driver: Driver<BundleNode, BundleEdge, BundleOptions, never> | null
+  animating: boolean | null
+}
+
+function BundleGraphPanel(props: BundleGraphPanelProps): JSX.Element {
+  const apply = useInspectorStore(s => s.apply)
+  const layout = useInspectorStore(s => s.bundleGraphLayout)
+  const seed = useInspectorStore(s => s.bundleGraphSeed)
+
+  const { animating, driver, displayRef } = props
+
+  const handleChangeBundleRenderer = useCallback(
+    (value: string): void => {
+      apply(setBundleDriver(value))
+    },
+    [apply, setBundleDriver],
+  )
+  const handleChangeBundleLayout = useCallback(
+    (value: string): void => {
+      apply(setBundleLayout(value))
+    },
+    [apply, setBundleLayout],
+  )
+  const handleChangeBundleSeed = useCallback(
+    (seed: number | null): void => {
+      apply(setBundleSeed(seed))
+    },
+    [apply, setBundleSeed],
+  )
+  const handleResetDriver = useCallback((): void => {
+    const { current: display } = displayRef
+    display?.remount()
+  }, [displayRef])
+
+  return (
+    <>
+      <DriverControl
+        driverNames={bundles.names}
+        driver={driver}
+        currentLayout={layout}
+        seed={seed}
+        onChangeDriver={handleChangeBundleRenderer}
+        onChangeLayout={handleChangeBundleLayout}
+        onChangeSeed={handleChangeBundleSeed}
+        onResetDriver={handleResetDriver}
+        animating={animating}
+      />
+      <ExportControl driver={driver} display={displayRef.current} />
+    </>
+  )
 }

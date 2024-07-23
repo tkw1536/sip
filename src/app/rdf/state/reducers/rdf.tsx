@@ -1,4 +1,4 @@
-import { type RReducer, type RState } from '..'
+import { type RReducer, type RState } from '.'
 import { triples } from '../../../../lib/drivers/collection'
 import { defaultLayout } from '../../../../lib/drivers/impl'
 

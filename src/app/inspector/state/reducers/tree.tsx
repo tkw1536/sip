@@ -1,4 +1,4 @@
-import { type IReducer, type IState } from '..'
+import { type IReducer, type IState } from '.'
 
 export function setHideEqualParentPaths(
   hideEqualParentPaths: boolean,

@@ -1,4 +1,4 @@
-import { type IReducer, type IState } from '..'
+import { type IReducer, type IState } from '.'
 import { type PathTreeNode } from '../../../../lib/pathbuilder/pathtree'
 import NodeSelection from '../../../../lib/pathbuilder/annotations/selection'
 

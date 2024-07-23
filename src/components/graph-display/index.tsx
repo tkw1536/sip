@@ -35,6 +35,7 @@ interface GraphProps<
   layout: string
   seed: number | null
 
+  // TODO: Make this a component
   panel?:
     | ComponentChildren
     | ((

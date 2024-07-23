@@ -1,5 +1,5 @@
 import { render } from 'preact'
-import { App } from '.'
+import InspectorApp from '.'
 import { ErrorBoundary } from '../../components/error'
 import Layout from '../../components/layout'
 
@@ -12,7 +12,7 @@ function main(): void {
   render(
     <ErrorBoundary>
       <Layout>
-        <App />
+        <InspectorApp />
       </Layout>
     </ErrorBoundary>,
     root,

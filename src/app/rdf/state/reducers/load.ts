@@ -1,5 +1,5 @@
 import { graph, parse } from 'rdflib'
-import { type RReducer, type RState } from '..'
+import { type RReducer, type RState } from '.'
 import { newTabID } from './tab'
 import { newRDFDriver } from './rdf'
 import { defaultLayout } from '../../../../lib/drivers/impl'

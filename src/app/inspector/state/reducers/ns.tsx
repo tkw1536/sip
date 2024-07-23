@@ -1,4 +1,4 @@
-import { type IReducer, type IState } from '..'
+import { type IReducer, type IState } from '.'
 import { NamespaceMap } from '../../../../lib/pathbuilder/namespace'
 import { type PathTree } from '../../../../lib/pathbuilder/pathtree'
 
