@@ -1,6 +1,5 @@
 import { Component, type JSX, type ComponentChild } from 'preact'
 import { NamespaceMap } from '../lib/pathbuilder/namespace'
-import { WithID } from './wrapper'
 import { Type } from '../lib/utils/media'
 import download from '../lib/utils/download'
 import DropArea from './drop-area'
@@ -8,7 +7,7 @@ import ErrorDisplay from './error'
 import * as styles from './namespace-editor.module.css'
 import { Operation } from '../lib/utils/operation'
 import { classes } from '../lib/utils/classes'
-import { useCallback } from 'preact/hooks'
+import { useCallback, useId, useMemo, useState } from 'preact/hooks'
 
 interface NamespaceEditorProps {
   ns: NamespaceMap
@@ -122,67 +121,68 @@ interface AddRowProps {
   onAdd: (long: string, short: string) => void
 }
 
-const AddMapRow = WithID<AddRowProps>(
-  class AddMapRow extends Component<AddRowProps & { id: string }> {
-    state = { short: '', shortValid: false, long: '', longValid: false }
+function AddMapRow(props: AddRowProps): JSX.Element {
+  const [short, setShort] = useState('')
+  const shortValid = useMemo(
+    () => isShortValid(short, props.ns),
+    [short, props.ns],
+  )
 
-    readonly #handleSubmit = (evt: SubmitEvent): void => {
+  const [long, setLong] = useState('')
+  const longValid = useMemo(() => isLongValid(long, props.ns), [long, props.ns])
+
+  const handleSubmit = useCallback(
+    (evt: SubmitEvent): void => {
       evt.preventDefault()
 
-      const { short, long } = this.state
-      const { shortValid, longValid } = this.state
       if (!shortValid || !longValid) return
+      props.onAdd(short, long)
+    },
+    [short, shortValid, long, longValid, props.onAdd],
+  )
 
-      this.props.onAdd(short, long)
-    }
+  const handleShortChange = useCallback(
+    (event: Event & { currentTarget: HTMLInputElement }): void => {
+      setShort(event.currentTarget.value)
+    },
+    [setShort],
+  )
 
-    readonly #handleShortChange = (
-      event: Event & { currentTarget: HTMLInputElement },
-    ): void => {
-      const { value: short } = event.currentTarget
-      this.setState({ short, shortValid: isShortValid(short, this.props.ns) })
-    }
+  const handleLongChange = useCallback(
+    (event: Event & { currentTarget: HTMLInputElement }): void => {
+      setLong(event.currentTarget.value)
+    },
+    [setLong],
+  )
 
-    readonly #handleLongChange = (
-      event: Event & { currentTarget: HTMLInputElement },
-    ): void => {
-      const { value: long } = event.currentTarget
-      this.setState({ long, longValid: isLongValid(long, this.props.ns) })
-    }
-
-    render(): ComponentChild {
-      const { id } = this.props
-      const { short, shortValid, long, longValid } = this.state
-
-      return (
-        <tr>
-          <td>
-            <input
-              type='text'
-              value={short}
-              class={classes(!shortValid && styles.invalid)}
-              onInput={this.#handleShortChange}
-            />
-          </td>
-          <td>
-            <input
-              type='text'
-              form={id}
-              value={long}
-              class={classes(styles.stretch, !longValid && styles.invalid)}
-              onInput={this.#handleLongChange}
-            />
-          </td>
-          <td>
-            <form id={id} onSubmit={this.#handleSubmit}>
-              <button disabled={!(longValid && shortValid)}>Add</button>
-            </form>
-          </td>
-        </tr>
-      )
-    }
-  },
-)
+  const id = useId()
+  return (
+    <tr>
+      <td>
+        <input
+          type='text'
+          value={short}
+          class={classes(!shortValid && styles.invalid)}
+          onInput={handleShortChange}
+        />
+      </td>
+      <td>
+        <input
+          type='text'
+          form={id}
+          value={long}
+          class={classes(styles.stretch, !longValid && styles.invalid)}
+          onInput={handleLongChange}
+        />
+      </td>
+      <td>
+        <form id={id} onSubmit={handleSubmit}>
+          <button disabled={!(longValid && shortValid)}>Add</button>
+        </form>
+      </td>
+    </tr>
+  )
+}
 
 function ControlsRow(props: {
   ns: NamespaceMap
