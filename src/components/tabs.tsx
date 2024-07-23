@@ -52,7 +52,7 @@ export default function Tabs(props: TabsProps): JSX.Element {
         return null
       })
       .filter(c => c !== null)
-  }, [props.children])
+  }, [toChildArray, Tab, Label, props.children])
 
   const { active, onChangeTab } = props
   return (
@@ -90,7 +90,7 @@ export function TabInterface(props: TabInterfaceProps): JSX.Element {
 
       props.onChangeTab(id)
     },
-    [props.children, props.onChangeTab],
+    [props.children, props.onChangeTab, findTab],
   )
 
   const id = useId()

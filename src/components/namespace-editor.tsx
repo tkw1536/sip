@@ -125,11 +125,14 @@ function AddMapRow(props: AddRowProps): JSX.Element {
   const [short, setShort] = useState('')
   const shortValid = useMemo(
     () => isShortValid(short, props.ns),
-    [short, props.ns],
+    [isShortValid, short, props.ns],
   )
 
   const [long, setLong] = useState('')
-  const longValid = useMemo(() => isLongValid(long, props.ns), [long, props.ns])
+  const longValid = useMemo(
+    () => isLongValid(long, props.ns),
+    [isLongValid, long, props.ns],
+  )
 
   const handleSubmit = useCallback(
     (evt: SubmitEvent): void => {
