@@ -323,121 +323,113 @@ export function DriverControl<
   )
 }
 
-class SimulationControls<
+function SimulationControls<
   NodeLabel extends Renderable<Options, AttachmentKey>,
   EdgeLabel extends Renderable<Options, AttachmentKey>,
   Options,
   AttachmentKey extends string,
-> extends Component<{
+>(props: {
   driver: Driver<NodeLabel, EdgeLabel, Options, AttachmentKey> | null
   animating: boolean | null
-}> {
-  readonly #handleStart = (): void => {
-    const { animating, driver } = this.props
+}): JSX.Element {
+  const handleStart = useCallback((): void => {
+    const { animating, driver } = props
     if (animating !== false || driver === null) {
       return
     }
     driver.startAnimation()
-  }
-  readonly #handleStop = (): void => {
-    const { animating, driver } = this.props
+  }, [props.driver, props.animating])
+
+  const handleStop = useCallback((): void => {
+    const { animating, driver } = props
     if (animating !== true || driver === null) {
       return
     }
     driver.stopAnimation()
-  }
-  render(): ComponentChildren {
-    const { animating } = this.props
+  }, [props.driver, props.animating])
 
-    return (
-      <>
-        <td>Animation:</td>
-        <td>
-          <ActionButton
-            disabled={animating !== false}
-            onClick={this.#handleStart}
-          >
-            Start
-          </ActionButton>
-          <ActionButton
-            disabled={animating !== true}
-            onClick={this.#handleStop}
-          >
-            Stop
-          </ActionButton>
-        </td>
+  const { animating } = props
 
-        <td colSpan={3}></td>
-      </>
-    )
-  }
+  return (
+    <>
+      <td>Animation:</td>
+      <td>
+        <ActionButton disabled={animating !== false} onClick={handleStart}>
+          Start
+        </ActionButton>
+        <ActionButton disabled={animating !== true} onClick={handleStop}>
+          Stop
+        </ActionButton>
+      </td>
+
+      <td colSpan={3}></td>
+    </>
+  )
 }
 
-class SeedControls<
+function SeedControls<
   NodeLabel extends Renderable<Options, AttachmentKey>,
   EdgeLabel extends Renderable<Options, AttachmentKey>,
   Options,
   AttachmentKey extends string,
-> extends Component<
-  {
-    id: string
+>(props: {
+  id: string
 
-    driver: Driver<NodeLabel, EdgeLabel, Options, AttachmentKey> | null
+  driver: Driver<NodeLabel, EdgeLabel, Options, AttachmentKey> | null
 
-    seed: number | null
-    onChangeSeed: (seed: number | null) => void
-  },
-  { enabled: boolean; value: number }
-> {
-  readonly #handleChangeEnabled = (
-    event: Event & { currentTarget: HTMLInputElement },
-  ): void => {
-    this.props.onChangeSeed(
-      event.currentTarget.checked ? this.props.driver?.seed ?? 0 : null,
-    )
-  }
-  readonly #handleChangeValue = (
-    event: Event & { currentTarget: HTMLInputElement },
-  ): void => {
-    event.preventDefault()
-    const value = event.currentTarget.valueAsNumber
-    if (isNaN(value) || value < 0) {
-      return
-    }
-    this.props.onChangeSeed(value)
-  }
-  render(): ComponentChildren {
-    const { id, driver, seed } = this.props
+  seed: number | null
+  onChangeSeed: (seed: number | null) => void
+}): JSX.Element {
+  const handleChangeEnabled = useCallback(
+    (event: Event & { currentTarget: HTMLInputElement }): void => {
+      props.onChangeSeed(
+        event.currentTarget.checked ? props.driver?.seed ?? 0 : null,
+      )
+    },
+    [props.onChangeSeed, props.driver],
+  )
 
-    const enabled = seed !== null
-    const value = seed ?? driver?.seed ?? undefined
+  const handleChangeValue = useCallback(
+    (event: Event & { currentTarget: HTMLInputElement }): void => {
+      event.preventDefault()
+      const value = event.currentTarget.valueAsNumber
+      if (isNaN(value) || value < 0) {
+        return
+      }
+      props.onChangeSeed(value)
+    },
+    [props.onChangeSeed],
+  )
+  const { id, driver, seed } = props
 
-    return (
-      <>
-        <td>
-          <label for={id}>Seed</label>:
-        </td>
-        <td>
-          <input
-            type='number'
-            id={id}
-            value={value}
-            disabled={!enabled}
-            onInput={this.#handleChangeValue}
-          ></input>
-        </td>
-        <td>
-          <input
-            type='checkbox'
-            checked={enabled}
-            onInput={this.#handleChangeEnabled}
-          ></input>
-        </td>
-        <td>Set Seed</td>
-        <td></td>
-      </>
-    )
-  }
+  const enabled = seed !== null
+  const value = seed ?? driver?.seed ?? undefined
+
+  return (
+    <>
+      <td>
+        <label for={id}>Seed</label>:
+      </td>
+      <td>
+        <input
+          type='number'
+          id={id}
+          value={value}
+          disabled={!enabled}
+          onInput={handleChangeValue}
+        ></input>
+      </td>
+      <td>
+        <input
+          type='checkbox'
+          checked={enabled}
+          onInput={handleChangeEnabled}
+        ></input>
+      </td>
+      <td>Set Seed</td>
+      <td></td>
+    </>
+  )
 }
 
 interface ActionButtonProps extends HTMLAttributes<HTMLButtonElement> {
@@ -456,51 +448,58 @@ function ActionButton(props: ActionButtonProps): JSX.Element {
   return <button {...props} onClick={onClick} />
 }
 
-export class ExportControl<
+export function ExportControl<
   NodeLabel extends Renderable<Options, AttachmentKey>,
   EdgeLabel extends Renderable<Options, AttachmentKey>,
   Options,
   AttachmentKey extends string,
-> extends Component<{
+>(props: {
   driver: Driver<NodeLabel, EdgeLabel, Options, AttachmentKey> | null
   display: GraphDisplay<NodeLabel, EdgeLabel, Options, AttachmentKey> | null
-}> {
-  readonly #handleExport = (format: string, event: Event): void => {
-    event.preventDefault()
-    const { driver, display } = this.props
-    if (driver === null || display === null) {
-      console.warn('handleExport called without mounted display')
-      return
-    }
+}): JSX.Element | null {
+  const handleExport = useCallback(
+    (event: Event & { currentTarget: HTMLButtonElement }): void => {
+      event.preventDefault()
+      const { driver, display } = props
+      if (driver === null || display === null) {
+        console.warn('handleExport called without mounted display')
+        return
+      }
 
-    display.export(format)
-  }
+      const { format } = event.currentTarget.dataset
+      if (typeof format !== 'string') {
+        console.warn('handleExport clicked on invalid element')
+        return
+      }
 
-  render(): ComponentChildren {
-    // check that there are some export formats
-    const exportFormats = this.props.driver?.exportFormats
-    if (typeof exportFormats === 'undefined' || exportFormats.length === 0) {
-      return null
-    }
-    return (
-      <Control name='Graph Export'>
-        <p>
-          Click the button below to export the graph. Depending on the format
-          and graph size, this might take a few seconds to generate.
-        </p>
-        <p>
-          {exportFormats.map(format => (
-            <Fragment key={format}>
-              <button onClick={this.#handleExport.bind(this, format)}>
-                {format}
-              </button>
-              &nbsp;
-            </Fragment>
-          ))}
-        </p>
-      </Control>
-    )
+      display.export(format)
+    },
+    [props.driver, props.display],
+  )
+
+  // check that there are some export formats
+  const exportFormats = props.driver?.exportFormats
+  if (typeof exportFormats === 'undefined' || exportFormats.length === 0) {
+    return null
   }
+  return (
+    <Control name='Graph Export'>
+      <p>
+        Click the button below to export the graph. Depending on the format and
+        graph size, this might take a few seconds to generate.
+      </p>
+      <p>
+        {exportFormats.map(format => (
+          <Fragment key={format}>
+            <button onClick={handleExport} data-format={format}>
+              {format}
+            </button>
+            &nbsp;
+          </Fragment>
+        ))}
+      </p>
+    </Control>
+  )
 }
 
 export function Control(props: {
