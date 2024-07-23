@@ -1,30 +1,11 @@
-import {
-  type FunctionalComponent,
-  type ComponentType,
-  type VNode,
-} from 'preact'
-import { useEffect, useId, useState } from 'preact/hooks'
+import { type ComponentType, type VNode } from 'preact'
+import { useEffect, useState } from 'preact/hooks'
 import {
   type ForwardedRef,
   forwardRef,
   type PropsWithoutRef,
 } from 'preact/compat'
 import ErrorDisplay from './error'
-
-type PropsWithoutID<T> = PropsWithoutRef<Omit<T, 'id'>>
-
-/** adds an id prop to the given component */
-export function WithID<T>(
-  Component: ComponentType<Omit<T, 'id'> & { id: string }>,
-): FunctionalComponent<PropsWithoutID<T>> {
-  const wrapper = forwardRef(
-    (props: Omit<T, 'id'>, ref: ForwardedRef<unknown>) => {
-      return <Component ref={ref} {...props} id={useId()} />
-    },
-  )
-  wrapper.displayName = `WithID(${getDisplayName(Component)})`
-  return wrapper
-}
 
 /**
  * Lazily loads a component
