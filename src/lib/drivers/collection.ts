@@ -62,7 +62,7 @@ class DriverCollection<
       throw new Error('unknown renderer ' + JSON.stringify(name))
     }
 
-    const renderer = await lazy.Get(async () => {
+    return await lazy.Get(async () => {
       const loader = this.#loaders.get(name)
       if (typeof loader === 'undefined') {
         throw new Error('implementation error: loaders missing loader')
@@ -70,8 +70,6 @@ class DriverCollection<
 
       return await loader()
     })
-
-    return renderer
   }
 
   get names(): string[] {

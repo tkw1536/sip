@@ -27,6 +27,7 @@ import {
   type ModelEdge,
   type ModelNode,
   type ModelAttachmentKey,
+  LiteralModelNode,
 } from '../../../graph/builders/model/labels'
 import {
   type Renderable,
@@ -408,14 +409,24 @@ export class GraphVizModelDriver extends GraphvizDriver<
   ModelOptions,
   ModelAttachmentKey
 > {
+  protected renderAnyNode(
+    node: ModelNode,
+    element: ElementWithAttachments<ModelAttachmentKey>,
+  ): Attributes {
+    return {
+      ...super.renderAnyNode(node, element),
+      shape: node instanceof LiteralModelNode ? 'box' : 'ellipse',
+    }
+  }
   protected renderAttachedNode(
     parent: ModelNode,
     attachment: ModelAttachmentKey,
     element: Element,
   ): Attributes {
     return {
-      shape: 'box',
       ...super.renderAttachedNode(parent, attachment, element),
+      // spellchecker:words doubleoctagon
+      shape: 'doubleoctagon',
     }
   }
 }
