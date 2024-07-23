@@ -1,4 +1,4 @@
-import { Component, type ComponentChild } from 'preact'
+import { Component, type JSX, type ComponentChild } from 'preact'
 import { NamespaceMap } from '../lib/pathbuilder/namespace'
 import { WithID } from './wrapper'
 import { Type } from '../lib/utils/media'
@@ -8,6 +8,7 @@ import ErrorDisplay from './error'
 import * as styles from './namespace-editor.module.css'
 import { Operation } from '../lib/utils/operation'
 import { classes } from '../lib/utils/classes'
+import { useCallback } from 'preact/hooks'
 
 interface NamespaceEditorProps {
   ns: NamespaceMap
@@ -183,52 +184,59 @@ const AddMapRow = WithID<AddRowProps>(
   },
 )
 
-class ControlsRow extends Component<{
+function ControlsRow(props: {
   ns: NamespaceMap
   nsLoadError?: any
   onReset: () => void
   onLoad: (file: File) => void
-}> {
-  readonly #handleSubmit = (evt: SubmitEvent): void => {
-    evt.preventDefault()
-    this.props.onReset()
-  }
+}): JSX.Element {
+  const handleSubmit = useCallback(
+    (event: SubmitEvent): void => {
+      event.preventDefault()
+      props.onReset()
+    },
+    [props.onReset],
+  )
 
-  readonly #handleNamespaceMapExport = (evt: Event): void => {
-    const data = JSON.stringify(this.props.ns.toJSON(), null, 2)
-    const blob = new Blob([data], { type: Type.JSON })
-    download(blob, 'namespaces.json', 'json')
-  }
+  const handleNamespaceMapExport = useCallback(
+    (event: Event): void => {
+      const data = JSON.stringify(props.ns.toJSON(), null, 2)
+      const blob = new Blob([data], { type: Type.JSON })
+      download(blob, 'namespaces.json', 'json')
+    },
+    [props.ns],
+  )
 
-  readonly #handleNamespaceMapImport = (file: File): void => {
-    this.props.onLoad(file)
-  }
+  const handleNamespaceMapImport = useCallback(
+    (file: File): void => {
+      props.onLoad(file)
+    },
+    [props.onLoad],
+  )
 
-  render(): ComponentChild {
-    const { nsLoadError } = this.props
-    return (
-      <tr>
-        <td colspan={2}>
-          <button onClick={this.#handleNamespaceMapExport}>Export</button>
-          <DropArea
-            types={[Type.JSON]}
-            onDropFile={this.#handleNamespaceMapImport}
-            compact
-          >
-            Import
-          </DropArea>
-          {typeof nsLoadError !== 'undefined' && (
-            <ErrorDisplay error={nsLoadError} />
-          )}
-        </td>
-        <td>
-          <form onSubmit={this.#handleSubmit}>
-            <button>Reset To Default</button>
-          </form>
-        </td>
-      </tr>
-    )
-  }
+  const { nsLoadError } = props
+  return (
+    <tr>
+      <td colspan={2}>
+        <button onClick={handleNamespaceMapExport}>Export</button>
+        <DropArea
+          types={[Type.JSON]}
+          onDropFile={handleNamespaceMapImport}
+          compact
+        >
+          Import
+        </DropArea>
+        {typeof nsLoadError !== 'undefined' && (
+          <ErrorDisplay error={nsLoadError} />
+        )}
+      </td>
+      <td>
+        <form onSubmit={handleSubmit}>
+          <button>Reset To Default</button>
+        </form>
+      </td>
+    </tr>
+  )
 }
 
 interface MapViewProps {
