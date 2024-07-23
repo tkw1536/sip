@@ -24,6 +24,7 @@ import {
   type ModelEdge,
   type ModelNode,
   type ModelDisplay,
+  type ModelAttachmentKey,
 } from '../../../lib/graph/builders/model/labels'
 
 export default WithID<IReducerProps>(
@@ -71,7 +72,9 @@ export default WithID<IReducerProps>(
     }
 
     readonly #displayRef =
-      createRef<GraphDisplay<ModelNode, ModelEdge, ModelOptions>>()
+      createRef<
+        GraphDisplay<ModelNode, ModelEdge, ModelOptions, ModelAttachmentKey>
+      >()
 
     render(): ComponentChildren {
       const {
@@ -105,7 +108,12 @@ export default WithID<IReducerProps>(
     }
 
     readonly #renderPanel = (
-      driver: Driver<ModelNode, ModelEdge, ModelOptions> | null,
+      driver: Driver<
+        ModelNode,
+        ModelEdge,
+        ModelOptions,
+        ModelAttachmentKey
+      > | null,
       animating: boolean | null,
     ): ComponentChildren => {
       const {

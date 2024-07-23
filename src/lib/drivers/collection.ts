@@ -1,3 +1,4 @@
+import { type Renderable } from '../graph/builders'
 import {
   type BundleOptions,
   type BundleEdge,
@@ -7,6 +8,7 @@ import {
   type ModelOptions,
   type ModelEdge,
   type ModelNode,
+  type ModelAttachmentKey,
 } from '../graph/builders/model/labels'
 import {
   type RDFOptions,
@@ -16,11 +18,21 @@ import {
 import { Lazy } from '../utils/once'
 import { type DriverClass } from './impl'
 
-class DriverCollection<NodeLabel, EdgeLabel, Options> {
+class DriverCollection<
+  NodeLabel extends Renderable<Options, AttachmentKey>,
+  EdgeLabel extends Renderable<Options, AttachmentKey>,
+  Options,
+  AttachmentKey extends string,
+> {
   constructor(
     public readonly defaultDriver: string,
     ...loaders: Array<
-      [string, () => Promise<DriverClass<NodeLabel, EdgeLabel, Options>>]
+      [
+        string,
+        () => Promise<
+          DriverClass<NodeLabel, EdgeLabel, Options, AttachmentKey>
+        >,
+      ]
     >
   ) {
     this.#loaders = new Map(loaders)
@@ -35,16 +47,16 @@ class DriverCollection<NodeLabel, EdgeLabel, Options> {
 
   readonly #values = new Map<
     string,
-    Lazy<DriverClass<NodeLabel, EdgeLabel, Options>>
+    Lazy<DriverClass<NodeLabel, EdgeLabel, Options, AttachmentKey>>
   >()
   readonly #loaders = new Map<
     string,
-    () => Promise<DriverClass<NodeLabel, EdgeLabel, Options>>
+    () => Promise<DriverClass<NodeLabel, EdgeLabel, Options, AttachmentKey>>
   >()
 
   public async get(
     name: string,
-  ): Promise<DriverClass<NodeLabel, EdgeLabel, Options>> {
+  ): Promise<DriverClass<NodeLabel, EdgeLabel, Options, AttachmentKey>> {
     const lazy = this.#values.get(name)
     if (typeof lazy === 'undefined') {
       throw new Error('unknown renderer ' + JSON.stringify(name))
@@ -67,7 +79,12 @@ class DriverCollection<NodeLabel, EdgeLabel, Options> {
   }
 }
 
-export const models = new DriverCollection<ModelNode, ModelEdge, ModelOptions>(
+export const models = new DriverCollection<
+  ModelNode,
+  ModelEdge,
+  ModelOptions,
+  ModelAttachmentKey
+>(
   'GraphViz',
   [
     'GraphViz',
@@ -92,7 +109,8 @@ export const models = new DriverCollection<ModelNode, ModelEdge, ModelOptions>(
 export const bundles = new DriverCollection<
   BundleNode,
   BundleEdge,
-  BundleOptions
+  BundleOptions,
+  never
 >(
   'GraphViz',
   [
@@ -115,10 +133,28 @@ export const bundles = new DriverCollection<
   ],
 )
 
-export const triples = new DriverCollection<RDFNode, RDFEdge, RDFOptions>(
+export const triples = new DriverCollection<
+  RDFNode,
+  RDFEdge,
+  RDFOptions,
+  never
+>(
   'GraphViz',
   [
     'GraphViz',
     async () => await import('./impl/graphviz').then(m => m.GraphVizRDFDriver),
+  ],
+  [
+    'vis-network',
+    async () =>
+      await import('./impl/vis-network').then(m => m.VisNetworkRDFDriver),
+  ],
+  [
+    'Sigma.js',
+    async () => await import('./impl/sigma').then(m => m.SigmaRDFDriver),
+  ],
+  [
+    'Cytoscape',
+    async () => await import('./impl/cytoscape').then(m => m.CytoRDFDriver),
   ],
 )

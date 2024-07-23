@@ -6,18 +6,24 @@ import type Driver from './impl'
 import ErrorDisplay from '../../components/error'
 import { type DriverClass, type ContextFlags, type Size } from './impl'
 import Spinner from '../../components/spinner'
+import { type Renderable } from '../graph/builders'
 
-interface KernelProps<NodeLabel, EdgeLabel, Options> {
+interface KernelProps<
+  NodeLabel extends Renderable<Options, AttachmentKey>,
+  EdgeLabel extends Renderable<Options, AttachmentKey>,
+  Options,
+  AttachmentKey extends string,
+> {
   graph: Graph<NodeLabel, EdgeLabel>
   layout: string
   options: Options
 
-  loader: DriverLoader<NodeLabel, EdgeLabel, Options>
+  loader: DriverLoader<NodeLabel, EdgeLabel, Options, AttachmentKey>
   driver: string
 
   seed: number | null
 
-  driverRef?: Ref<Driver<NodeLabel, EdgeLabel, Options>>
+  driverRef?: Ref<Driver<NodeLabel, EdgeLabel, Options, AttachmentKey>>
   animatingRef?: Ref<boolean>
 }
 
@@ -27,22 +33,34 @@ interface KernelState {
   driverLoading: boolean
 }
 
-export interface DriverLoader<NodeLabel, EdgeLabel, Options> {
-  get: (name: string) => Promise<DriverClass<NodeLabel, EdgeLabel, Options>>
+export interface DriverLoader<
+  NodeLabel extends Renderable<Options, AttachmentKey>,
+  EdgeLabel extends Renderable<Options, AttachmentKey>,
+  Options,
+  AttachmentKey extends string,
+> {
+  get: (
+    name: string,
+  ) => Promise<DriverClass<NodeLabel, EdgeLabel, Options, AttachmentKey>>
 }
 
 /**
  * Displays a driver on the page
  */
-export default class Kernel<NodeLabel, EdgeLabel, Options> extends Component<
-  KernelProps<NodeLabel, EdgeLabel, Options>,
+export default class Kernel<
+  NodeLabel extends Renderable<Options, AttachmentKey>,
+  EdgeLabel extends Renderable<Options, AttachmentKey>,
+  Options,
+  AttachmentKey extends string,
+> extends Component<
+  KernelProps<NodeLabel, EdgeLabel, Options, AttachmentKey>,
   KernelState
 > {
   static readonly #errorAborted = new Error('aborted')
 
   state: KernelState = { driverLoading: false }
   #mod: {
-    driver: Driver<NodeLabel, EdgeLabel, Options>
+    driver: Driver<NodeLabel, EdgeLabel, Options, AttachmentKey>
   } | null = null
 
   #mountDriver(): void {
@@ -130,10 +148,10 @@ export default class Kernel<NodeLabel, EdgeLabel, Options> extends Component<
   async #loadContext(
     ticket: () => boolean,
     graph: Graph<NodeLabel, EdgeLabel>,
-    loader: DriverLoader<NodeLabel, EdgeLabel, Options>,
+    loader: DriverLoader<NodeLabel, EdgeLabel, Options, AttachmentKey>,
     name: string,
     ctxFlags: ContextFlags<Options>,
-  ): Promise<Driver<NodeLabel, EdgeLabel, Options>> {
+  ): Promise<Driver<NodeLabel, EdgeLabel, Options, AttachmentKey>> {
     const DriverClass = await loader.get(name)
     const driver = new DriverClass()
 

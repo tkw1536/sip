@@ -1,4 +1,4 @@
-import GraphBuilder from '.'
+import GraphBuilder, { type Element } from '.'
 import {
   type Bundle,
   type Field,
@@ -8,24 +8,33 @@ import type NodeSelection from '../../pathbuilder/annotations/selection'
 import { type NamespaceMap } from '../../pathbuilder/namespace'
 import type ColorMap from '../../pathbuilder/annotations/colormap'
 
+type RenderMethod = (id: string, options: BundleOptions) => Element
 export type BundleNode =
   | {
       type: 'bundle'
       level: number
       bundle: Bundle
+
+      render: RenderMethod
     }
   | {
       type: 'field'
       level: number
       field: Field
+
+      render: RenderMethod
     }
 
 export type BundleEdge =
   | {
       type: 'field'
+
+      render: RenderMethod
     }
   | {
       type: 'child_bundle'
+
+      render: RenderMethod
     }
 
 export interface BundleOptions {
@@ -35,7 +44,9 @@ export interface BundleOptions {
 
 export default class BundleGraphBuilder extends GraphBuilder<
   BundleNode,
-  BundleEdge
+  BundleEdge,
+  BundleOptions,
+  never
 > {
   readonly #tree: PathTree
   readonly #selection: NodeSelection
@@ -59,7 +70,20 @@ export default class BundleGraphBuilder extends GraphBuilder<
     // add the node for this bundle
     const includeSelf = this.#selection.includes(bundle)
     if (includeSelf) {
-      this.graph.addNode({ type: 'bundle', level: 2 * level, bundle }, id)
+      this.graph.addNode(
+        {
+          type: 'bundle',
+          level: 2 * level,
+          bundle,
+          render: (id: string, options: BundleOptions): Element => ({
+            id,
+            label: bundle.path.name,
+            tooltip: bundle.path.id,
+            color: options.cm.get(bundle),
+          }),
+        },
+        id,
+      )
     }
 
     // add all the child bundles
@@ -67,7 +91,15 @@ export default class BundleGraphBuilder extends GraphBuilder<
       const includeChild = this.#addBundle(cb, level + 1)
       if (!includeChild || !includeSelf) continue
 
-      this.graph.addEdge(id, cb.path.id, { type: 'child_bundle' })
+      this.graph.addEdge(id, cb.path.id, {
+        type: 'child_bundle',
+        render: (id: string) => ({
+          id,
+          label: null,
+          tooltip: null,
+          color: null,
+        }),
+      })
     }
 
     // add all the child fields
@@ -77,12 +109,30 @@ export default class BundleGraphBuilder extends GraphBuilder<
       if (!includeField) continue
 
       this.graph.addNode(
-        { type: 'field', level: 2 * level + 1, field: cf },
+        {
+          type: 'field',
+          level: 2 * level + 1,
+          field: cf,
+          render: (id: string, options: BundleOptions): Element => ({
+            id,
+            label: cf.path.name,
+            tooltip: cf.path.id,
+            color: options.cm.get(cf),
+          }),
+        },
         fieldId,
       )
       if (!includeSelf) continue
 
-      this.graph.addEdge(id, fieldId, { type: 'field' })
+      this.graph.addEdge(id, fieldId, {
+        type: 'field',
+        render: (id: string) => ({
+          id,
+          label: null,
+          tooltip: null,
+          color: null,
+        }),
+      })
     }
 
     return includeSelf

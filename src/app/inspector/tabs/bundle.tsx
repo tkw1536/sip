@@ -27,7 +27,7 @@ export default class BundleGraphView extends Component<IReducerProps> {
   }
 
   readonly #displayRef =
-    createRef<GraphDisplay<BundleNode, BundleEdge, BundleOptions>>()
+    createRef<GraphDisplay<BundleNode, BundleEdge, BundleOptions, never>>()
 
   render(): ComponentChildren {
     const {
@@ -72,7 +72,7 @@ export default class BundleGraphView extends Component<IReducerProps> {
   }
 
   readonly #renderPanel = (
-    driver: Driver<BundleNode, BundleEdge, BundleOptions> | null,
+    driver: Driver<BundleNode, BundleEdge, BundleOptions, never> | null,
     animating: boolean | null,
   ): ComponentChildren => {
     const {

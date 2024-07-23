@@ -1,4 +1,8 @@
 import type Graph from '../../graph'
+import {
+  type ElementWithAttachments,
+  type Renderable,
+} from '../../graph/builders'
 import { IDPool } from '../../utils/id-pool'
 
 export const defaultLayout = 'auto'
@@ -16,11 +20,12 @@ export type ContextFlags<Options> = Readonly<{
   seed: number | null
 }>
 
-export type DriverClass<NodeLabel, EdgeLabel, Options> = new () => Driver<
-  NodeLabel,
-  EdgeLabel,
-  Options
->
+export type DriverClass<
+  NodeLabel extends Renderable<Options, AttachmentKey>,
+  EdgeLabel extends Renderable<Options, AttachmentKey>,
+  Options,
+  AttachmentKey extends string,
+> = new () => Driver<NodeLabel, EdgeLabel, Options, AttachmentKey>
 
 export interface Refs {
   /** indicates if the driver is currently animating a simulation */
@@ -28,7 +33,12 @@ export interface Refs {
 }
 
 /** driver renders a single instance on a page */
-export default interface Driver<NodeLabel, EdgeLabel, Options> {
+export default interface Driver<
+  NodeLabel extends Renderable<Options, AttachmentKey>,
+  EdgeLabel extends Renderable<Options, AttachmentKey>,
+  Options,
+  AttachmentKey extends string,
+> {
   readonly driverName: string
 
   /** gets the seed used by this driver, or null if not available */
@@ -111,13 +121,14 @@ export interface MountInfo<Mount> {
 
 /** implements a driver */
 export abstract class DriverImpl<
-  NodeLabel,
-  EdgeLabel,
+  NodeLabel extends Renderable<Options, AttachmentKey>,
+  EdgeLabel extends Renderable<Options, AttachmentKey>,
   Options,
+  AttachmentKey extends string,
   Context,
   Mount,
   HotContext = Context,
-> implements Driver<NodeLabel, EdgeLabel, Options>
+> implements Driver<NodeLabel, EdgeLabel, Options, AttachmentKey>
 {
   abstract readonly driverName: string
 
@@ -144,10 +155,15 @@ export abstract class DriverImpl<
 
     // add all nodes and edges
     for (const [id, node] of graph.getNodes()) {
-      hCtx = (await this.addNodeImpl(hCtx, flags, ids.for(id), node)) ?? hCtx
+      const nodeID = ids.for(id)
+      const element = node.render(nodeID, flags.options)
+      hCtx =
+        (await this.addNodeImpl(hCtx, flags, nodeID, node, element)) ?? hCtx
       if (!ticket()) throw ErrorAborted
     }
     for (const [id, from, to, edge] of graph.getEdges()) {
+      const edgeID = ids.for(id)
+      const element = edge.render(edgeID, flags.options)
       hCtx =
         (await this.addEdgeImpl(
           hCtx,
@@ -156,6 +172,7 @@ export abstract class DriverImpl<
           ids.for(from),
           ids.for(to),
           edge,
+          element,
         )) ?? hCtx
       if (!ticket()) throw ErrorAborted
     }
@@ -178,6 +195,7 @@ export abstract class DriverImpl<
     flags: ContextFlags<Options>,
     id: string,
     node: NodeLabel,
+    element: ElementWithAttachments<AttachmentKey>,
   ): Promise<HotContext | void> | void
 
   protected abstract addEdgeImpl(
@@ -187,6 +205,7 @@ export abstract class DriverImpl<
     from: string,
     to: string,
     edge: EdgeLabel,
+    element: ElementWithAttachments<AttachmentKey>,
   ): Promise<HotContext | void> | void
 
   protected abstract finalizeContextImpl(

@@ -24,40 +24,40 @@ import {
   type ModelOptions,
   type ModelEdge,
   type ModelNode,
-  LiteralModelNode,
-  ConceptModelNode,
-  type Element,
+  type ModelAttachmentKey,
 } from '../../graph/builders/model/labels'
 import { type Attributes } from 'graphology-types'
 import { prng } from '../../utils/prng'
+import {
+  type ElementWithAttachments,
+  type Element,
+  type Renderable,
+  type Attachment,
+} from '../../graph/builders'
+import {
+  type RDFEdge,
+  type RDFNode,
+  type RDFOptions,
+} from '../../graph/builders/rdf'
 
 interface SigmaMount {
   stopLayout?: () => void
   sigma: Sigma
 }
 
-abstract class SigmaDriver<NodeLabel, EdgeLabel, Options> extends DriverImpl<
+abstract class SigmaDriver<
+  NodeLabel extends Renderable<Options, AttachmentKey>,
+  EdgeLabel extends Renderable<Options, AttachmentKey>,
+  Options,
+  AttachmentKey extends string,
+> extends DriverImpl<
   NodeLabel,
   EdgeLabel,
   Options,
+  AttachmentKey,
   Graph,
   SigmaMount
 > {
-  protected abstract addNodeImpl(
-    graph: Graph,
-    flags: ContextFlags<Options>,
-    id: string,
-    node: NodeLabel,
-  ): Promise<undefined>
-  protected abstract addEdgeImpl(
-    graph: Graph,
-    flags: ContextFlags<Options>,
-    id: string,
-    from: string,
-    to: string,
-    edge: EdgeLabel,
-  ): Promise<undefined>
-
   readonly driverName = 'Sigma.js'
   readonly layouts = [defaultLayout, 'force2atlas', 'circular', 'circlepack']
 
@@ -176,187 +176,128 @@ abstract class SigmaDriver<NodeLabel, EdgeLabel, Options> extends DriverImpl<
       stopLayout()
     }
   }
+
+  protected addNodeImpl(
+    graph: Graph,
+    flags: ContextFlags<Options>,
+    id: string,
+    node: NodeLabel,
+    element: ElementWithAttachments<AttachmentKey>,
+  ): void {
+    const { attached } = element
+    if (typeof attached === 'undefined') {
+      graph.addNode(id, this.renderSimpleNode(node, element))
+      return
+    }
+
+    graph.addNode(element.id, this.renderComplexNode(node, element))
+
+    Object.entries(attached).forEach(([attachment, sElements]) => {
+      ;(sElements as Attachment[]).forEach(({ node: aNode, edge: aEdge }) => {
+        graph.addNode(
+          aNode.id,
+          this.renderAttachedNode(node, attachment as AttachmentKey, aNode),
+        )
+
+        graph.addDirectedEdge(
+          aNode.id,
+          element.id,
+          this.renderAttachedEdge(node, attachment as AttachmentKey, aEdge),
+        )
+      })
+    })
+  }
+
+  protected addEdgeImpl(
+    graph: Graph,
+    flags: ContextFlags<Options>,
+    id: string,
+    from: string,
+    to: string,
+    edge: EdgeLabel,
+    element: ElementWithAttachments<AttachmentKey>,
+  ): void {
+    graph.addDirectedEdge(from, to, this.renderEdge(edge, element))
+  }
+
+  protected renderSimpleNode(
+    node: NodeLabel,
+    element: ElementWithAttachments<AttachmentKey>,
+  ): Attributes {
+    return this.renderAnyNode(node, element)
+  }
+
+  protected renderComplexNode(
+    node: NodeLabel,
+    element: ElementWithAttachments<AttachmentKey>,
+  ): Attributes {
+    return this.renderAnyNode(node, element)
+  }
+
+  protected renderAttachedNode(
+    parent: NodeLabel,
+    attachment: AttachmentKey,
+    element: Element,
+  ): Attributes {
+    return this.renderAnyNode(parent, element)
+  }
+
+  protected renderAnyNode(
+    node: NodeLabel,
+    element: ElementWithAttachments<AttachmentKey>,
+  ): Attributes {
+    return this.attributes('node', element)
+  }
+
+  protected renderAttachedEdge(
+    parent: NodeLabel,
+    attachment: AttachmentKey,
+    element: Element,
+  ): Attributes {
+    return this.attributes('edge', element)
+  }
+
+  protected renderEdge(
+    edge: EdgeLabel,
+    element: ElementWithAttachments<AttachmentKey>,
+  ): Attributes {
+    return this.attributes('edge', element)
+  }
+
+  protected attributes(
+    type: 'node' | 'edge',
+    { color, label, tooltip }: Element,
+  ): Attributes {
+    return {
+      label: label ?? undefined,
+      color: color ?? 'black',
+
+      type: type === 'edge' ? 'arrow' : undefined,
+      arrow: type === 'edge' ? 'target' : undefined,
+      size: type === 'node' ? 10 : 5,
+    }
+  }
 }
 
 export class SigmaBundleDriver extends SigmaDriver<
   BundleNode,
   BundleEdge,
-  BundleOptions
-> {
-  protected async addNodeImpl(
-    graph: Graph,
-    { options: { cm } }: ContextFlags<BundleOptions>,
-    id: string,
-    node: BundleNode,
-  ): Promise<undefined> {
-    if (node.type === 'bundle') {
-      graph.addNode(id, {
-        label: 'Bundle\n' + node.bundle.path.name,
-        color: cm.getDefault(node.bundle),
-        size: 20,
-      })
-      return
-    }
-    if (node.type === 'field') {
-      graph.addNode(id, {
-        label: node.field.path.name,
-        color: cm.getDefault(node.field),
-        size: 10,
-      })
-      return
-    }
-    throw new Error('never reached')
-  }
-
-  protected async addEdgeImpl(
-    graph: Graph,
-    flags: ContextFlags<BundleOptions>,
-    id: string,
-    from: string,
-    to: string,
-    edge: BundleEdge,
-  ): Promise<undefined> {
-    if (edge.type === 'child_bundle') {
-      graph.addDirectedEdge(from, to, {
-        color: 'black',
-        type: 'arrow',
-        arrow: 'target',
-        size: 5,
-      })
-      return
-    }
-    if (edge.type === 'field') {
-      graph.addDirectedEdge(from, to, {
-        color: 'black',
-        type: 'arrow',
-        arrow: 'target',
-        size: 5,
-      })
-      return
-    }
-    throw new Error('never reached')
-  }
-}
+  BundleOptions,
+  never
+> {}
 
 export class SigmaModelDriver extends SigmaDriver<
   ModelNode,
   ModelEdge,
-  ModelOptions
-> {
-  protected async addNodeImpl(
-    graph: Graph,
-    { options }: ContextFlags<ModelOptions>,
-    id: string,
-    node: ModelNode,
-  ): Promise<undefined> {
-    if (node instanceof LiteralModelNode) {
-      this.#addLiteralNode(graph, options, id, node)
-      return
-    }
-    if (node instanceof ConceptModelNode) {
-      this.#addConceptNode(graph, options, id, node)
-      return
-    }
-    throw new Error('never reached')
-  }
+  ModelOptions,
+  ModelAttachmentKey
+> {}
 
-  #addLiteralNode(
-    graph: Graph,
-    options: ModelOptions,
-    id: string,
-    node: LiteralModelNode,
-  ): void {
-    const element = node.render(id, options)
-
-    graph.addNode(element.id, SigmaModelDriver.#nodeData(element, { size: 10 }))
-
-    if (typeof element.attached === 'undefined') {
-      return
-    }
-
-    element.attached.fields.forEach(({ node, edge }) => {
-      graph.addNode(node.id, SigmaModelDriver.#nodeData(node, { size: 10 }))
-      graph.addDirectedEdge(
-        node.id,
-        element.id,
-        SigmaModelDriver.#edgeData(edge, { size: 5 }),
-      )
-    })
-  }
-
-  #addConceptNode(
-    graph: Graph,
-    options: ModelOptions,
-    id: string,
-    node: ConceptModelNode,
-  ): void {
-    const element = node.render(id, options)
-
-    graph.addNode(element.id, SigmaModelDriver.#nodeData(element, { size: 10 }))
-
-    if (typeof element.attached === 'undefined') {
-      return
-    }
-
-    element.attached.fields.forEach(({ node, edge }) => {
-      graph.addNode(node.id, SigmaModelDriver.#nodeData(node, { size: 10 }))
-      graph.addDirectedEdge(
-        node.id,
-        element.id,
-        SigmaModelDriver.#edgeData(edge, { size: 5 }),
-      )
-    })
-
-    element.attached.bundles.forEach(({ node, edge }) => {
-      graph.addNode(node.id, SigmaModelDriver.#nodeData(node, { size: 10 }))
-      graph.addDirectedEdge(
-        node.id,
-        element.id,
-        SigmaModelDriver.#edgeData(edge, { size: 5 }),
-      )
-    })
-  }
-
-  protected async addEdgeImpl(
-    graph: Graph,
-    { options }: ContextFlags<ModelOptions>,
-    id: string,
-    from: string,
-    to: string,
-    edge: ModelEdge,
-  ): Promise<undefined> {
-    const element = edge.render(id, options)
-
-    graph.addDirectedEdge(
-      from,
-      to,
-      SigmaModelDriver.#edgeData(element, { size: 5 }),
-    )
-  }
-
-  static readonly #defaultEdgeColor = 'black'
-  static readonly #defaultNodeColor = 'black'
-
-  static #nodeData(element: Element, extra?: Attributes): Attributes {
-    return {
-      color: element.color ?? this.#defaultNodeColor,
-      label: element.label ?? undefined,
-
-      ...(extra ?? {}),
-    }
-  }
-
-  static #edgeData(element: Element, extra?: Attributes): Attributes {
-    return {
-      color: element.color ?? this.#defaultEdgeColor,
-      label: element.label ?? undefined,
-
-      type: 'arrow',
-      arrow: 'target',
-
-      ...(extra ?? {}),
-    }
-  }
-}
+export class SigmaRDFDriver extends SigmaDriver<
+  RDFNode,
+  RDFEdge,
+  RDFOptions,
+  never
+> {}
 
 // spellchecker:words forceatlas circlepack

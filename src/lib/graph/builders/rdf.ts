@@ -1,5 +1,5 @@
 import { type Statement, type Store } from 'rdflib'
-import GraphBuilder from '.'
+import GraphBuilder, { type Element } from '.'
 import {
   type ObjectType,
   type PredicateType,
@@ -7,13 +7,26 @@ import {
 } from 'rdflib/lib/types'
 import { type NamespaceMap } from '../../pathbuilder/namespace'
 
-export type RDFNode = SubjectType | ObjectType
-export type RDFEdge = PredicateType
+type RenderMethod = (id: string, options: RDFOptions) => Element
+
+export interface RDFNode {
+  node: SubjectType | ObjectType
+  render: RenderMethod
+}
+export interface RDFEdge {
+  edge: PredicateType
+  render: RenderMethod
+}
 export interface RDFOptions {
   ns: NamespaceMap
 }
 
-export default class RDFGraphBuilder extends GraphBuilder<RDFNode, RDFEdge> {
+export default class RDFGraphBuilder extends GraphBuilder<
+  RDFNode,
+  RDFEdge,
+  RDFOptions,
+  never
+> {
   readonly #store: Store
   constructor(store: Store) {
     super()
@@ -32,18 +45,27 @@ export default class RDFGraphBuilder extends GraphBuilder<RDFNode, RDFEdge> {
     } = statement
     // create a node for the subject (unless it already exists)
     const subject = this.graph.addNode(
-      qSubject,
+      {
+        node: qSubject,
+        render: makeRenderMethod(qSubject),
+      },
       RDFGraphBuilder.#subjectID(qSubject),
     )
 
     // create a node for the object (unless it already exists)
     const object = this.graph.addNode(
-      qObject,
+      {
+        node: qObject,
+        render: makeRenderMethod(qObject),
+      },
       RDFGraphBuilder.#objectID(qObject),
     )
 
     // and add the edge
-    this.graph.addEdge(subject, object, qPredicate)
+    this.graph.addEdge(subject, object, {
+      edge: qPredicate,
+      render: makeRenderMethod(qPredicate),
+    })
   }
 
   static #subjectID(term: SubjectType): string {
@@ -66,5 +88,54 @@ export default class RDFGraphBuilder extends GraphBuilder<RDFNode, RDFEdge> {
         return this.#subjectID(term)
     }
     return undefined
+  }
+}
+
+function makeRenderMethod(
+  node: SubjectType | ObjectType | PredicateType,
+): RenderMethod {
+  return (id: string, options: RDFOptions) => {
+    const element: Element = {
+      id,
+      label: null,
+      tooltip: null,
+      color: null,
+    }
+    switch (node.termType) {
+      case 'BlankNode' /** fallthrough */:
+        element.label = node.id
+        element.tooltip = node.id
+        element.color = 'yellow'
+        break
+      case 'NamedNode':
+        element.label = options.ns.apply(node.uri)
+        element.tooltip = node.uri
+        element.color = 'green'
+        break
+      case 'Literal':
+        // element.shape = 'box'
+        element.label = node.value
+        element.tooltip = node.termType
+        element.color = 'blue'
+        break
+      case 'Variable':
+        element.label = '?' + node.value
+        element.tooltip = '?' + node.value
+        element.color = 'red'
+        break
+      case 'Collection':
+        element.label = 'Collection'
+        element.tooltip = 'Collection'
+        element.color = 'orange'
+        break
+      case 'Empty':
+        element.label = 'Empty'
+        element.tooltip = 'Empty'
+        element.color = 'white'
+        break
+      default:
+        throw new Error('never reached')
+    }
+    return element
   }
 }

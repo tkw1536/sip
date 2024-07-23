@@ -1,4 +1,3 @@
-import type cytoscape from 'cytoscape'
 import {
   type Core,
   type CytoscapeOptions as _Options,
@@ -25,10 +24,19 @@ import {
   type ModelOptions,
   type ModelEdge,
   type ModelNode,
-  LiteralModelNode,
-  ConceptModelNode,
-  type Element,
+  type ModelAttachmentKey,
 } from '../../graph/builders/model/labels'
+import {
+  type Renderable,
+  type Element,
+  type ElementWithAttachments,
+  type Attachment,
+} from '../../graph/builders'
+import {
+  type RDFEdge,
+  type RDFNode,
+  type RDFOptions,
+} from '../../graph/builders/rdf'
 
 const Cytoscape = new LazyValue(async () => {
   const cytoscape = (await import('cytoscape')).default
@@ -57,26 +65,21 @@ interface CytoMount {
 }
 type CytoscapeOptions = Omit<_Options, 'container' | 'elements'>
 
+type Attributes = Record<string, any>
+
 abstract class CytoscapeDriver<
+  NodeLabel extends Renderable<Options, AttachmentKey>,
+  EdgeLabel extends Renderable<Options, AttachmentKey>,
+  Options,
+  AttachmentKey extends string,
+> extends DriverImpl<
   NodeLabel,
   EdgeLabel,
   Options,
-> extends DriverImpl<NodeLabel, EdgeLabel, Options, Elements, CytoMount> {
-  protected abstract addNodeImpl(
-    elements: Elements,
-    flags: ContextFlags<Options>,
-    id: string,
-    node: NodeLabel,
-  ): Promise<undefined>
-  protected abstract addEdgeImpl(
-    elements: Elements,
-    flags: ContextFlags<Options>,
-    id: string,
-    from: string,
-    to: string,
-    edge: EdgeLabel,
-  ): Promise<undefined>
-
+  AttachmentKey,
+  Elements,
+  CytoMount
+> {
   readonly driverName = 'Cytoscape'
   readonly layouts = [
     defaultLayout,
@@ -266,208 +269,152 @@ abstract class CytoscapeDriver<
     l?.stop()
     c.stop(true)
   }
+
+  protected addNodeImpl(
+    elements: Elements,
+    flags: ContextFlags<Options>,
+    id: string,
+    node: NodeLabel,
+    element: ElementWithAttachments<AttachmentKey>,
+  ): void {
+    const { attached } = element
+    if (typeof attached === 'undefined') {
+      elements.push({
+        data: {
+          ...this.renderSimpleNode(node, element),
+          id: element.id,
+        },
+      })
+      return
+    }
+
+    elements.push({
+      data: {
+        ...this.renderComplexNode(node, element),
+        id: element.id,
+      },
+    })
+
+    Object.entries(attached).forEach(([attachment, sElements]) => {
+      ;(sElements as Attachment[]).forEach(({ node: aNode, edge: aEdge }) => {
+        elements.push({
+          data: {
+            ...this.renderAttachedNode(
+              node,
+              attachment as AttachmentKey,
+              aNode,
+            ),
+            id: aNode.id,
+          },
+        })
+
+        elements.push({
+          data: {
+            ...this.renderAttachedEdge(
+              node,
+              attachment as AttachmentKey,
+              aNode,
+            ),
+            id: aEdge.id,
+            source: aNode.id,
+            target: element.id,
+          },
+        })
+      })
+    })
+  }
+
+  protected addEdgeImpl(
+    elements: Elements,
+    flags: ContextFlags<Options>,
+    id: string,
+    from: string,
+    to: string,
+    edge: EdgeLabel,
+    element: ElementWithAttachments<AttachmentKey>,
+  ): void {
+    elements.push({
+      data: {
+        ...this.renderEdge(edge, element),
+        id,
+        source: from,
+        target: to,
+      },
+    })
+  }
+
+  protected renderSimpleNode(
+    node: NodeLabel,
+    element: ElementWithAttachments<AttachmentKey>,
+  ): Attributes {
+    return this.renderAnyNode(node, element)
+  }
+
+  protected renderComplexNode(
+    node: NodeLabel,
+    element: ElementWithAttachments<AttachmentKey>,
+  ): Attributes {
+    return this.renderAnyNode(node, element)
+  }
+
+  protected renderAttachedNode(
+    parent: NodeLabel,
+    attachment: AttachmentKey,
+    element: Element,
+  ): Attributes {
+    return this.renderAnyNode(parent, element)
+  }
+
+  protected renderAnyNode(
+    node: NodeLabel,
+    element: ElementWithAttachments<AttachmentKey>,
+  ): Attributes {
+    return this.attributes('node', element)
+  }
+
+  protected renderAttachedEdge(
+    parent: NodeLabel,
+    attachment: AttachmentKey,
+    element: Element,
+  ): Attributes {
+    return this.attributes('edge', element)
+  }
+
+  protected renderEdge(
+    edge: EdgeLabel,
+    element: ElementWithAttachments<AttachmentKey>,
+  ): Attributes {
+    return this.attributes('edge', element)
+  }
+
+  protected attributes(
+    type: 'node' | 'edge',
+    { color, label, tooltip }: Element,
+  ): Attributes {
+    return {
+      label: label ?? undefined,
+      color: color ?? 'black',
+    }
+  }
 }
 
 export class CytoBundleDriver extends CytoscapeDriver<
   BundleNode,
   BundleEdge,
-  BundleOptions
-> {
-  protected async addNodeImpl(
-    elements: Elements,
-    { options: { cm } }: ContextFlags<BundleOptions>,
-    id: string,
-    node: BundleNode,
-  ): Promise<undefined> {
-    if (node.type === 'bundle') {
-      const label = 'Bundle\n' + node.bundle.path.name
-      const data = { id, label, color: cm.getDefault(node.bundle) }
-      elements.push({ data })
-      return
-    }
-    if (node.type === 'field') {
-      const label = node.field.path.name
-      const data = { id, label, color: cm.getDefault(node.field) }
-      elements.push({ data })
-      return
-    }
-    throw new Error('never reached')
-  }
-
-  protected async addEdgeImpl(
-    elements: Elements,
-    flags: ContextFlags<BundleOptions>,
-    id: string,
-    from: string,
-    to: string,
-    edge: BundleEdge,
-  ): Promise<undefined> {
-    if (edge.type === 'child_bundle') {
-      const data = { id, source: from, target: to, color: 'black' }
-      elements.push({ data })
-      return
-    }
-    if (edge.type === 'field') {
-      const data = { id, source: from, target: to, color: 'black' }
-      elements.push({ data })
-      return
-    }
-    throw new Error('never reached')
-  }
-}
-
+  BundleOptions,
+  never
+> {}
 export class CytoModelDriver extends CytoscapeDriver<
   ModelNode,
   ModelEdge,
-  ModelOptions
-> {
-  protected async addNodeImpl(
-    elements: Elements,
-    { options }: ContextFlags<ModelOptions>,
-    id: string,
-    node: ModelNode,
-  ): Promise<undefined> {
-    if (node instanceof LiteralModelNode) {
-      this.#addLiteralNode(elements, options, id, node)
-      return
-    }
-    if (node instanceof ConceptModelNode) {
-      this.#addConceptNode(elements, options, id, node)
-      return
-    }
-    throw new Error('never reached')
-  }
-
-  #addLiteralNode(
-    elements: Elements,
-    options: ModelOptions,
-    id: string,
-    node: LiteralModelNode,
-  ): void {
-    const element = node.render(id, options)
-
-    elements.push({
-      data: {
-        id: element.id,
-        ...CytoModelDriver.#nodeData(element),
-      },
-    })
-
-    if (typeof element.attached === 'undefined') {
-      return
-    }
-
-    element.attached.fields.forEach(({ node, edge }) => {
-      elements.push({
-        data: {
-          id: node.id,
-          ...CytoModelDriver.#nodeData(node),
-        },
-      })
-
-      elements.push({
-        data: {
-          id: edge.id,
-          source: node.id,
-          target: element.id,
-          ...CytoModelDriver.#edgeData(edge),
-        },
-      })
-    })
-  }
-
-  #addConceptNode(
-    elements: Elements,
-    options: ModelOptions,
-    id: string,
-    node: ConceptModelNode,
-  ): void {
-    const element = node.render(id, options)
-
-    elements.push({
-      data: {
-        id: element.id,
-        ...CytoModelDriver.#nodeData(element),
-      },
-    })
-
-    if (typeof element.attached === 'undefined') {
-      return
-    }
-
-    element.attached.fields.forEach(({ node, edge }) => {
-      elements.push({
-        data: {
-          id: node.id,
-          ...CytoModelDriver.#nodeData(node),
-        },
-      })
-
-      elements.push({
-        data: {
-          id: edge.id,
-          source: node.id,
-          target: element.id,
-          ...CytoModelDriver.#edgeData(edge),
-        },
-      })
-    })
-
-    element.attached.bundles.forEach(({ node, edge }) => {
-      elements.push({
-        data: {
-          id: node.id,
-          ...CytoModelDriver.#nodeData(node),
-        },
-      })
-
-      elements.push({
-        data: {
-          id: edge.id,
-          source: node.id,
-          target: element.id,
-          ...CytoModelDriver.#edgeData(edge),
-        },
-      })
-    })
-  }
-
-  protected async addEdgeImpl(
-    elements: Elements,
-    { options }: ContextFlags<ModelOptions>,
-    id: string,
-    from: string,
-    to: string,
-    edge: ModelEdge,
-  ): Promise<undefined> {
-    const element = edge.render(id, options)
-    const data = {
-      id: element.id,
-      source: from,
-      target: to,
-      ...CytoModelDriver.#edgeData(element),
-    }
-    elements.push({ data })
-  }
-
-  static readonly #defaultEdgeColor = 'black'
-  static readonly #defaultNodeColor = 'black'
-
-  static #nodeData(element: Element): Omit<cytoscape.NodeDataDefinition, 'id'> {
-    return {
-      label: element.label ?? '',
-      color: element.color ?? CytoModelDriver.#defaultNodeColor,
-    }
-  }
-
-  static #edgeData(
-    element: Element,
-  ): Omit<cytoscape.EdgeDataDefinition, 'id' | 'source' | 'target'> {
-    return {
-      label: element.label ?? '',
-      color: element.color ?? CytoModelDriver.#defaultEdgeColor,
-    }
-  }
-}
+  ModelOptions,
+  ModelAttachmentKey
+> {}
+export class CytoRDFDriver extends CytoscapeDriver<
+  RDFNode,
+  RDFEdge,
+  RDFOptions,
+  never
+> {}
 
 // spellchecker:words avsdf breadthfirst roundrectangle fcose dagre

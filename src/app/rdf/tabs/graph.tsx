@@ -32,7 +32,8 @@ export default class GraphTab extends Component<RReducerProps> {
     this.props.apply(setRDFSeed(seed))
   }
 
-  readonly #displayRef = createRef<GraphDisplay<RDFNode, RDFEdge, RDFOptions>>()
+  readonly #displayRef =
+    createRef<GraphDisplay<RDFNode, RDFEdge, RDFOptions, never>>()
 
   readonly #handleResetDriver = (): void => {
     const { current: display } = this.#displayRef
@@ -64,7 +65,7 @@ export default class GraphTab extends Component<RReducerProps> {
   }
 
   readonly #renderPanel = (
-    driver: Driver<RDFNode, RDFEdge, RDFOptions> | null,
+    driver: Driver<RDFNode, RDFEdge, RDFOptions, never> | null,
     animating: boolean | null,
   ): ComponentChildren => {
     const {

@@ -1,25 +1,22 @@
+import {
+  type Attachment,
+  type Element,
+  type ElementWithAttachments,
+  type Renderable,
+} from '..'
 import type ColorMap from '../../../pathbuilder/annotations/colormap'
 import { type NamespaceMap } from '../../../pathbuilder/namespace'
 import { type Bundle, type Field } from '../../../pathbuilder/pathtree'
 import type ImmutableSet from '../../../utils/immutable-set'
 
-/** An element contains all information required for rendering */
-export interface Element {
-  id: string
-  label: string | null
-  tooltip: string | null
-  color: string | null
-}
-
-interface AttachedElement {
-  node: Element
-  edge: Element
-}
-
 /** a node in the model graph */
 export type ModelNode = ConceptModelNode | LiteralModelNode
 
-export class ConceptModelNode {
+export type ModelAttachmentKey = 'fields' | 'bundles'
+
+export class ConceptModelNode
+  implements Renderable<ModelOptions, ModelAttachmentKey>
+{
   constructor(
     /** class represented at this node */
     public readonly clz: string,
@@ -34,12 +31,7 @@ export class ConceptModelNode {
   public render(
     id: string,
     options: ModelOptions,
-  ): Element & {
-    attached?: {
-      bundles: AttachedElement[]
-      fields: AttachedElement[]
-    }
-  } {
+  ): ElementWithAttachments<ModelAttachmentKey> {
     if (!options.display.ComplexConceptNodes) {
       return this.#renderSimple(id, options)
     }
@@ -88,8 +80,8 @@ export class ConceptModelNode {
     options: ModelOptions,
   ): {
     element: Element
-    bundles: AttachedElement[]
-    fields: AttachedElement[]
+    bundles: Attachment[]
+    fields: Attachment[]
   } {
     const element = {
       id,
@@ -156,17 +148,13 @@ export class LiteralModelNode {
   public render(
     id: string,
     options: ModelOptions,
-  ): Element & {
-    attached?: {
-      fields: AttachedElement[]
-    }
-  } {
+  ): ElementWithAttachments<ModelAttachmentKey> {
     if (!options.display.ComplexLiteralNodes) {
       return this.#renderSimple(id, options)
     }
 
     const { element, fields } = this.#renderComplex(id, options)
-    return { ...element, attached: { fields } }
+    return { ...element, attached: { fields, bundles: [] } }
   }
 
   #renderSimple(id: string, options: ModelOptions): Element {
@@ -189,7 +177,7 @@ export class LiteralModelNode {
     options: ModelOptions,
   ): {
     element: Element
-    fields: AttachedElement[]
+    fields: Attachment[]
   } {
     const {
       Labels: {

@@ -25,33 +25,39 @@ import {
   type ModelOptions,
   type ModelEdge,
   type ModelNode,
-  ConceptModelNode,
-  LiteralModelNode,
-  type Element,
+  type ModelAttachmentKey,
 } from '../../graph/builders/model/labels'
+import {
+  type Renderable,
+  type Element,
+  type ElementWithAttachments,
+  type Attachment,
+} from '../../graph/builders'
+import {
+  type RDFEdge,
+  type RDFNode,
+  type RDFOptions,
+} from '../../graph/builders/rdf'
+import { type Attributes } from 'graphology-types'
 
 const Vis = new LazyValue(async () => await import('vis-network'))
 
+type NodeAttributes = Omit<VisNode<string | number>, 'id'>
+type EdgeAttributes = Omit<VisEdge<string | number>, 'from' | 'to'>
+
 abstract class VisNetworkDriver<
+  NodeLabel extends Renderable<Options, AttachmentKey>,
+  EdgeLabel extends Renderable<Options, AttachmentKey>,
+  Options,
+  AttachmentKey extends string,
+> extends DriverImpl<
   NodeLabel,
   EdgeLabel,
   Options,
-> extends DriverImpl<NodeLabel, EdgeLabel, Options, Dataset, Network> {
-  protected abstract addNodeImpl(
-    dataset: Dataset,
-    flags: ContextFlags<Options>,
-    id: string,
-    node: NodeLabel,
-  ): Promise<undefined>
-  protected abstract addEdgeImpl(
-    dataset: Dataset,
-    flags: ContextFlags<Options>,
-    id: string,
-    from: string,
-    to: string,
-    edge: EdgeLabel,
-  ): Promise<undefined>
-
+  AttachmentKey,
+  Dataset,
+  Network
+> {
   readonly driverName = 'vis-network'
   readonly layouts = [defaultLayout, 'hierarchical', 'force2atlas']
 
@@ -189,202 +195,166 @@ abstract class VisNetworkDriver<
   ): void {
     network.stopSimulation()
   }
+
+  protected addNodeImpl(
+    dataset: Dataset,
+    flags: ContextFlags<Options>,
+    id: string,
+    node: NodeLabel,
+    element: ElementWithAttachments<AttachmentKey>,
+  ): void {
+    const { attached } = element
+    if (typeof attached === 'undefined') {
+      dataset.addNode({
+        ...this.renderSimpleNode(node, element),
+        id: element.id,
+      })
+      return
+    }
+
+    dataset.addNode({
+      ...this.renderComplexNode(node, element),
+      id: element.id,
+    })
+
+    Object.entries(attached).forEach(([attachment, sElements]) => {
+      ;(sElements as Attachment[]).forEach(({ node: aNode, edge: aEdge }) => {
+        dataset.addNode({
+          ...this.renderAttachedNode(node, attachment as AttachmentKey, aNode),
+          id: aNode.id,
+        })
+        dataset.addEdge({
+          ...this.renderAttachedEdge(node, attachment as AttachmentKey, aEdge),
+          from: aNode.id,
+          to: element.id,
+        })
+      })
+    })
+  }
+
+  protected addEdgeImpl(
+    dataset: Dataset,
+    flags: ContextFlags<Options>,
+    id: string,
+    from: string,
+    to: string,
+    edge: EdgeLabel,
+    element: ElementWithAttachments<AttachmentKey>,
+  ): void {
+    dataset.addEdge({
+      ...this.renderEdge(edge, element),
+      from,
+      to,
+    })
+  }
+
+  protected renderSimpleNode(
+    node: NodeLabel,
+    element: ElementWithAttachments<AttachmentKey>,
+  ): NodeAttributes {
+    return this.renderAnyNode(node, element)
+  }
+
+  protected renderComplexNode(
+    node: NodeLabel,
+    element: ElementWithAttachments<AttachmentKey>,
+  ): NodeAttributes {
+    return this.renderAnyNode(node, element)
+  }
+
+  protected renderAttachedNode(
+    parent: NodeLabel,
+    attachment: AttachmentKey,
+    element: Element,
+  ): NodeAttributes {
+    return this.renderAnyNode(parent, element)
+  }
+
+  protected renderAnyNode(
+    node: NodeLabel,
+    element: ElementWithAttachments<AttachmentKey>,
+  ): NodeAttributes {
+    return this.attributes('node', element)
+  }
+
+  protected renderAttachedEdge(
+    parent: NodeLabel,
+    attachment: AttachmentKey,
+    element: Element,
+  ): EdgeAttributes {
+    return this.attributes('edge', element)
+  }
+
+  protected renderEdge(
+    edge: EdgeLabel,
+    element: ElementWithAttachments<AttachmentKey>,
+  ): EdgeAttributes {
+    return this.attributes('edge', element)
+  }
+
+  protected attributes(type: 'node', element: Element): NodeAttributes
+  protected attributes(type: 'edge', element: Element): EdgeAttributes
+  protected attributes(
+    type: 'node' | 'edge',
+    { color, label, tooltip }: Element,
+  ): NodeAttributes | EdgeAttributes {
+    if (type === 'node') {
+      return {
+        color: {
+          background: color ?? 'white',
+          border: 'black',
+        },
+        label: label ?? undefined,
+      }
+    }
+
+    return {
+      color: color ?? undefined,
+      label: label ?? undefined,
+
+      arrows: 'to',
+    }
+  }
 }
 
 export class VisNetworkBundleDriver extends VisNetworkDriver<
   BundleNode,
   BundleEdge,
-  BundleOptions
-> {
-  protected async addNodeImpl(
-    dataset: Dataset,
-    { options: { cm } }: ContextFlags<BundleOptions>,
-    id: string,
-    node: BundleNode,
-  ): Promise<undefined> {
-    if (node.type === 'bundle') {
-      dataset.addNode({
-        id,
-        label: 'Bundle\n' + node.bundle.path.name,
-        color: cm.getDefault(node.bundle),
-        level: node.level,
-      })
-      return
-    }
-    if (node.type === 'field') {
-      dataset.addNode({
-        id,
-        label: node.field.path.name,
-        color: cm.getDefault(node.field),
-        level: node.level,
-      })
-      return
-    }
-    throw new Error('never reached')
-  }
-
-  protected async addEdgeImpl(
-    dataset: Dataset,
-    flags: ContextFlags<BundleOptions>,
-    id: string,
-    from: string,
-    to: string,
-    edge: BundleEdge,
-  ): Promise<undefined> {
-    if (edge.type === 'child_bundle') {
-      dataset.addEdge({ from, to, arrows: 'to' })
-      return
-    }
-    if (edge.type === 'field') {
-      dataset.addEdge({ from, to, arrows: 'to' })
-      return
-    }
-    throw new Error('never reached')
-  }
-}
+  BundleOptions,
+  never
+> {}
 
 export class VisNetworkModelDriver extends VisNetworkDriver<
   ModelNode,
   ModelEdge,
-  ModelOptions
+  ModelOptions,
+  ModelAttachmentKey
 > {
-  protected async addNodeImpl(
-    dataset: Dataset,
-    { options }: ContextFlags<ModelOptions>,
-    id: string,
-    node: ModelNode,
-  ): Promise<undefined> {
-    if (node instanceof LiteralModelNode) {
-      this.#addLiteralNode(dataset, options, id, node)
-      return
-    }
-    if (node instanceof ConceptModelNode) {
-      this.#addConceptNode(dataset, options, id, node)
-      return
-    }
-    throw new Error('never reached')
-  }
-
-  #addLiteralNode(
-    dataset: Dataset,
-    options: ModelOptions,
-    id: string,
-    node: LiteralModelNode,
-  ): void {
-    const element = node.render(id, options)
-
-    dataset.addNode({
-      id: element.id,
-      ...VisNetworkModelDriver.#nodeData(element),
-    })
-
-    if (typeof element.attached === 'undefined') {
-      return
-    }
-
-    element.attached.fields.forEach(({ node, edge }) => {
-      dataset.addNode({
-        id: node.id,
-        ...VisNetworkModelDriver.#nodeData(node),
-      })
-
-      dataset.addEdge({
-        from: node.id,
-        to: element.id,
-        ...VisNetworkModelDriver.#edgeData(edge),
-      })
-    })
-  }
-
-  #addConceptNode(
-    dataset: Dataset,
-    options: ModelOptions,
-    id: string,
-    node: ConceptModelNode,
-  ): void {
-    const element = node.render(id, options)
-
-    dataset.addNode({
-      id: element.id,
-      ...VisNetworkModelDriver.#nodeData(element),
-    })
-
-    if (typeof element.attached === 'undefined') {
-      return
-    }
-
-    element.attached.fields.forEach(({ node, edge }) => {
-      dataset.addNode({
-        id: node.id,
-        ...VisNetworkModelDriver.#nodeData(node),
-      })
-
-      dataset.addEdge({
-        from: node.id,
-        to: element.id,
-        ...VisNetworkModelDriver.#edgeData(edge),
-      })
-    })
-
-    element.attached.bundles.forEach(({ node, edge }) => {
-      dataset.addNode({
-        id: node.id,
-        ...VisNetworkModelDriver.#nodeData(node),
-      })
-
-      dataset.addEdge({
-        from: node.id,
-        to: element.id,
-        ...VisNetworkModelDriver.#edgeData(edge),
-      })
-    })
-  }
-
-  protected async addEdgeImpl(
-    dataset: Dataset,
-    { options }: ContextFlags<ModelOptions>,
-    id: string,
-    from: string,
-    to: string,
-    edge: ModelEdge,
-  ): Promise<undefined> {
-    const element = edge.render(id, options)
-    dataset.addEdge({
-      from,
-      to,
-      ...VisNetworkModelDriver.#edgeData(element),
-    })
-  }
-
-  static readonly #defaultNodeColor = 'white'
-  static readonly #defaultEdgeColor = 'black'
-
-  static #nodeData(
+  protected renderAttachedNode(
+    parent: ModelNode,
+    attachment: ModelAttachmentKey,
     element: Element,
-    extra?: VisCommon,
-  ): Omit<VisNode<string | number>, 'id'> {
+  ): Attributes {
     return {
-      color: {
-        background: element.color ?? this.#defaultNodeColor,
-        border: this.#defaultEdgeColor,
-      },
-      label: element.label ?? undefined,
-
-      ...extra,
+      shape: 'box',
+      ...super.renderAttachedNode(parent, attachment, element),
     }
   }
+}
 
-  static #edgeData(
-    element: Element,
-    extra?: VisCommon,
-  ): Omit<VisEdge<string | number>, 'from' | 'to'> {
+export class VisNetworkRDFDriver extends VisNetworkDriver<
+  RDFNode,
+  RDFEdge,
+  RDFOptions,
+  never
+> {
+  protected renderSimpleNode(
+    { node }: RDFNode,
+    element: ElementWithAttachments<never>,
+  ): Attributes {
     return {
-      color: element.color ?? this.#defaultEdgeColor,
-      label: element.label ?? undefined,
-
-      arrows: 'to',
-
-      ...(extra ?? {}),
+      shape: node.termType !== 'Literal' ? 'ellipse' : 'box',
+      ...this.attributes('node', element),
     }
   }
 }

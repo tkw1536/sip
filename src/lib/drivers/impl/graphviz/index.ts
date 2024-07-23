@@ -26,10 +26,14 @@ import {
   type ModelOptions,
   type ModelEdge,
   type ModelNode,
-  LiteralModelNode,
-  ConceptModelNode,
-  type Element,
+  type ModelAttachmentKey,
 } from '../../../graph/builders/model/labels'
+import {
+  type Renderable,
+  type Element,
+  type ElementWithAttachments,
+  type Attachment,
+} from '../../../graph/builders'
 
 const spz = new LazyValue(
   async () => await import('svg-pan-zoom').then(spz => spz.default),
@@ -46,10 +50,16 @@ interface Mount {
   zoom: SvgPanZoom.Instance
 }
 
-abstract class GraphvizDriver<NodeLabel, EdgeLabel, Options> extends DriverImpl<
+abstract class GraphvizDriver<
+  NodeLabel extends Renderable<Options, AttachmentKey>,
+  EdgeLabel extends Renderable<Options, AttachmentKey>,
+  Options,
+  AttachmentKey extends string,
+> extends DriverImpl<
   NodeLabel,
   EdgeLabel,
   Options,
+  AttachmentKey,
   Context,
   Mount,
   Graph
@@ -248,330 +258,182 @@ abstract class GraphvizDriver<NodeLabel, EdgeLabel, Options> extends DriverImpl<
     details: ContextDetails<Context, Options>,
     info: MountInfo<Mount>,
   ): void {}
+
+  protected attributes(
+    type: 'node' | 'edge',
+    { color, label, tooltip }: Element,
+  ): Attributes {
+    const attributes: Attributes = {}
+    if (typeof color === 'string') {
+      if (type === 'node') {
+        attributes.style = 'filled'
+        attributes.fillcolor = color
+      } else {
+        attributes.color = color
+      }
+    }
+    attributes.label = label ?? ''
+    attributes.tooltip = tooltip ?? ''
+    return attributes
+  }
+
+  protected addNodeImpl(
+    graph: Graph,
+    flags: ContextFlags<Options>,
+    id: string,
+    node: NodeLabel,
+    element: ElementWithAttachments<AttachmentKey>,
+  ): void {
+    const { attached } = element
+    if (typeof attached === 'undefined') {
+      graph.nodes.push({
+        name: element.id,
+        attributes: this.renderSimpleNode(node, element),
+      })
+      return
+    }
+
+    const sg: Subgraph = {
+      name: `subgraph-${id}`,
+      graphAttributes: { cluster: true, tooltip: '' },
+      nodeAttributes: {},
+      edgeAttributes: {},
+      nodes: [],
+      edges: [],
+      subgraphs: [],
+    }
+
+    sg.nodes.push({
+      name: element.id,
+      attributes: this.renderComplexNode(node, element),
+    })
+
+    Object.entries(attached).forEach(([attachment, elements]) => {
+      ;(elements as Attachment[]).forEach(({ node: aNode, edge: aEdge }) => {
+        sg.nodes.push({
+          name: aNode.id,
+          attributes: this.renderAttachedNode(
+            node,
+            attachment as AttachmentKey,
+            aNode,
+          ),
+        })
+
+        sg.edges.push({
+          head: element.id,
+          tail: aNode.id,
+          attributes: this.renderAttachedEdge(
+            node,
+            attachment as AttachmentKey,
+            aEdge,
+          ),
+        })
+      })
+    })
+
+    graph.subgraphs.push(sg)
+  }
+
+  protected addEdgeImpl(
+    graph: Graph,
+    flags: ContextFlags<Options>,
+    id: string,
+    from: string,
+    to: string,
+    edge: EdgeLabel,
+    element: ElementWithAttachments<AttachmentKey>,
+  ): void {
+    graph.edges.push({
+      tail: from,
+      head: to,
+      attributes: this.renderEdge(edge, element),
+    })
+  }
+
+  protected renderSimpleNode(
+    node: NodeLabel,
+    element: ElementWithAttachments<AttachmentKey>,
+  ): Attributes {
+    return this.renderAnyNode(node, element)
+  }
+
+  protected renderComplexNode(
+    node: NodeLabel,
+    element: ElementWithAttachments<AttachmentKey>,
+  ): Attributes {
+    return this.renderAnyNode(node, element)
+  }
+
+  protected renderAttachedNode(
+    parent: NodeLabel,
+    attachment: AttachmentKey,
+    element: Element,
+  ): Attributes {
+    return this.renderAnyNode(parent, element)
+  }
+
+  protected renderAnyNode(
+    node: NodeLabel,
+    element: ElementWithAttachments<AttachmentKey>,
+  ): Attributes {
+    return this.attributes('node', element)
+  }
+
+  protected renderAttachedEdge(
+    parent: NodeLabel,
+    attachment: AttachmentKey,
+    element: Element,
+  ): Attributes {
+    return this.attributes('edge', element)
+  }
+
+  protected renderEdge(
+    edge: EdgeLabel,
+    element: ElementWithAttachments<AttachmentKey>,
+  ): Attributes {
+    return this.attributes('edge', element)
+  }
 }
 
 export class GraphVizBundleDriver extends GraphvizDriver<
   BundleNode,
   BundleEdge,
-  BundleOptions
-> {
-  protected addNodeImpl(
-    graph: Graph,
-    { options: { cm } }: ContextFlags<BundleOptions>,
-    id: string,
-    node: BundleNode,
-  ): void {
-    if (node.type === 'bundle') {
-      const path = node.bundle.path
-      graph.nodes.push({
-        name: id,
-        attributes: {
-          label: 'Bundle\n' + path.name,
-          tooltip: path.id,
-
-          style: 'filled',
-          fillcolor: cm.getDefault(node.bundle),
-        },
-      })
-      return
-    }
-    if (node.type === 'field') {
-      const path = node.field.path
-      graph.nodes.push({
-        name: id,
-        attributes: {
-          label: path.name,
-          tooltip: path.id,
-
-          style: 'filled',
-          fillcolor: cm.getDefault(node.field),
-        },
-      })
-      return
-    }
-    throw new Error('never reached')
-  }
-
-  protected addEdgeImpl(
-    graph: Graph,
-    flags: ContextFlags<BundleOptions>,
-    id: string,
-    from: string,
-    to: string,
-    edge: BundleEdge,
-  ): void {
-    graph.edges.push({
-      tail: from,
-      head: to,
-      attributes: {
-        label: '',
-        tooltip: '',
-      },
-    })
-  }
-}
+  BundleOptions,
+  never
+> {}
 
 export class GraphVizModelDriver extends GraphvizDriver<
   ModelNode,
   ModelEdge,
-  ModelOptions
+  ModelOptions,
+  ModelAttachmentKey
 > {
-  readonly driverName: string = 'GraphViz'
-
-  static readonly #defaultEdgeColor = 'black'
-  static readonly #defaultNodeColor = 'white'
-
-  static #nodeData(display: Element, extra?: Attributes): Attributes {
-    const typeAttrs = {
-      style: 'filled',
-      fillcolor: display.color ?? this.#defaultNodeColor,
-    }
+  protected renderAttachedNode(
+    parent: ModelNode,
+    attachment: ModelAttachmentKey,
+    element: Element,
+  ): Attributes {
     return {
-      label: display.label ?? '',
-      tooltip: display.tooltip ?? '',
-      ...typeAttrs,
-      ...(extra ?? {}),
+      shape: 'box',
+      ...super.renderAttachedNode(parent, attachment, element),
     }
-  }
-
-  static #edgeData(display: Element, extra?: Attributes): Attributes {
-    const typeAttrs = {
-      color: display.color ?? this.#defaultEdgeColor,
-    }
-    return {
-      label: display.label ?? '',
-      tooltip: display.tooltip ?? '',
-      ...typeAttrs,
-      ...(extra ?? {}),
-    }
-  }
-
-  protected addNodeImpl(
-    graph: Graph,
-    { options }: ContextFlags<ModelOptions>,
-    id: string,
-    node: ModelNode,
-  ): void {
-    if (node instanceof LiteralModelNode) {
-      this.#addLiteralNode(graph, options, id, node)
-      return
-    }
-    if (node instanceof ConceptModelNode) {
-      this.#addConceptNode(graph, options, id, node)
-      return
-    }
-    throw new Error('never reached')
-  }
-
-  #addLiteralNode(
-    graph: Graph,
-    options: ModelOptions,
-    id: string,
-    node: LiteralModelNode,
-  ): void {
-    const element = node.render(id, options)
-    if (typeof element.attached === 'undefined') {
-      graph.nodes.push({
-        name: element.id,
-        attributes: GraphVizModelDriver.#nodeData(element, {
-          shape: 'box',
-        }),
-      })
-      return
-    }
-
-    const sg: Subgraph = {
-      name: `subgraph-${id}`,
-      graphAttributes: { cluster: true, tooltip: '' },
-      nodeAttributes: {},
-      edgeAttributes: {},
-      nodes: [],
-      edges: [],
-      subgraphs: [],
-    }
-
-    sg.nodes.push({
-      name: element.id,
-      attributes: GraphVizModelDriver.#nodeData(element),
-    })
-
-    element.attached.fields.forEach(({ node, edge }) => {
-      sg.nodes.push({
-        name: node.id,
-        attributes: GraphVizModelDriver.#nodeData(node, {
-          shape: 'box',
-        }),
-      })
-      sg.edges.push({
-        head: element.id,
-        tail: node.id,
-
-        attributes: GraphVizModelDriver.#edgeData(edge),
-      })
-    })
-
-    graph.subgraphs.push(sg)
-  }
-
-  #addConceptNode(
-    graph: Graph,
-    options: ModelOptions,
-    id: string,
-    node: ConceptModelNode,
-  ): void {
-    const element = node.render(id, options)
-    if (typeof element.attached === 'undefined') {
-      graph.nodes.push({
-        name: element.id,
-        attributes: GraphVizModelDriver.#nodeData(element),
-      })
-      return
-    }
-
-    const sg: Subgraph = {
-      name: `subgraph-${id}`,
-      graphAttributes: { cluster: true, tooltip: '' },
-      nodeAttributes: {},
-      edgeAttributes: {},
-      nodes: [],
-      edges: [],
-      subgraphs: [],
-    }
-
-    sg.nodes.push({
-      name: element.id,
-      attributes: GraphVizModelDriver.#nodeData(element),
-    })
-
-    element.attached.bundles.forEach(({ node, edge }) => {
-      sg.nodes.push({
-        name: node.id,
-        attributes: GraphVizModelDriver.#nodeData(node, {
-          shape: 'box',
-        }),
-      })
-      sg.edges.push({
-        head: element.id,
-        tail: node.id,
-
-        attributes: GraphVizModelDriver.#nodeData(edge),
-      })
-    })
-
-    element.attached.fields.forEach(({ node, edge }) => {
-      sg.nodes.push({
-        name: node.id,
-        attributes: GraphVizModelDriver.#nodeData(node, {
-          shape: 'box',
-        }),
-      })
-      sg.edges.push({
-        head: element.id,
-        tail: node.id,
-
-        attributes: GraphVizModelDriver.#edgeData(edge),
-      })
-    })
-
-    graph.subgraphs.push(sg)
-  }
-
-  protected addEdgeImpl(
-    graph: Graph,
-    { options }: ContextFlags<ModelOptions>,
-    id: string,
-    from: string,
-    to: string,
-    edge: ModelEdge,
-  ): void {
-    const element = edge.render(id, options)
-    graph.edges.push({
-      head: to,
-      tail: from,
-      attributes: GraphVizModelDriver.#edgeData(element),
-    })
   }
 }
 
 export class GraphVizRDFDriver extends GraphvizDriver<
   RDFNode,
   RDFEdge,
-  RDFOptions
+  RDFOptions,
+  never
 > {
-  static readonly colors: Record<RDFNode['termType'], string> = {
-    BlankNode: 'yellow',
-    Literal: 'blue',
-    NamedNode: 'green',
-    Variable: 'red',
-    Collection: 'orange',
-    Empty: 'white',
-  }
-
-  protected addNodeImpl(
-    graph: Graph,
-    flags: ContextFlags<RDFOptions>,
-    id: string,
-    node: RDFNode,
-  ): void {
-    const attributes: Attributes = {
-      shape: 'ellipse',
-      style: 'filled',
-      fillcolor: GraphVizRDFDriver.colors[node.termType],
+  protected renderSimpleNode(
+    { node }: RDFNode,
+    element: ElementWithAttachments<never>,
+  ): Attributes {
+    return {
+      shape: node.termType !== 'Literal' ? 'ellipse' : 'box',
+      ...this.attributes('node', element),
     }
-
-    switch (node.termType) {
-      case 'BlankNode' /** fallthrough */:
-        attributes.label = node.id
-        attributes.tooltip = node.id
-        break
-      case 'NamedNode':
-        attributes.label = flags.options.ns.apply(node.uri)
-        attributes.tooltip = node.uri
-        break
-      case 'Literal':
-        attributes.shape = 'box'
-        attributes.label = node.value
-        attributes.tooltip = node.termType
-        break
-      case 'Variable':
-        attributes.label = '?' + node.value
-        attributes.tooltip = '?' + node.value
-        break
-      case 'Collection':
-        attributes.label = 'Collection'
-        attributes.tooltip = 'Collection'
-        break
-      case 'Empty':
-        attributes.label = 'Empty'
-        attributes.tooltip = 'Empty'
-        break
-      default:
-        throw new Error('never reached')
-    }
-    graph.nodes.push({
-      name: id,
-      attributes,
-    })
-  }
-
-  protected addEdgeImpl(
-    graph: Graph,
-    { options: { ns } }: ContextFlags<RDFOptions>,
-    id: string,
-    from: string,
-    to: string,
-    edge: RDFEdge,
-  ): void {
-    const attributes =
-      edge.termType === 'NamedNode'
-        ? { label: ns.apply(edge.uri), tooltip: edge.uri }
-        : { label: '?' + edge.value, tooltip: '?' + edge.value }
-
-    graph.edges.push({
-      head: to,
-      tail: from,
-      attributes,
-    })
   }
 }
 

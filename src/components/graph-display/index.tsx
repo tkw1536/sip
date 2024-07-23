@@ -17,9 +17,15 @@ import ErrorDisplay from '../error'
 import { useCallback, useId } from 'preact/hooks'
 import { type HTMLAttributes } from 'preact/compat'
 import { Panel } from '../layout/panel'
+import { type Renderable } from '../../lib/graph/builders'
 
-interface GraphProps<NodeLabel, EdgeLabel, Options> {
-  loader: DriverLoader<NodeLabel, EdgeLabel, Options>
+interface GraphProps<
+  NodeLabel extends Renderable<Options, AttachmentKey>,
+  EdgeLabel extends Renderable<Options, AttachmentKey>,
+  Options,
+  AttachmentKey extends string,
+> {
+  loader: DriverLoader<NodeLabel, EdgeLabel, Options, AttachmentKey>
   driver: string
 
   builderKey: string
@@ -32,30 +38,36 @@ interface GraphProps<NodeLabel, EdgeLabel, Options> {
   panel?:
     | ComponentChildren
     | ((
-        driver: Driver<NodeLabel, EdgeLabel, Options> | null,
+        driver: Driver<NodeLabel, EdgeLabel, Options, AttachmentKey> | null,
         animating: boolean | null,
       ) => ComponentChildren)
 }
 
-interface GraphState<NodeLabel, EdgeLabel, Options> {
+interface GraphState<
+  NodeLabel extends Renderable<Options, AttachmentKey>,
+  EdgeLabel extends Renderable<Options, AttachmentKey>,
+  Options,
+  AttachmentKey extends string,
+> {
   open: boolean
 
   graph?: Graph<NodeLabel, EdgeLabel>
   graphError?: any
 
-  driver: Driver<NodeLabel, EdgeLabel, Options> | null
+  driver: Driver<NodeLabel, EdgeLabel, Options, AttachmentKey> | null
   animating: boolean | null
 }
 
 export default class GraphDisplay<
-  NodeLabel,
-  EdgeLabel,
+  NodeLabel extends Renderable<Options, AttachmentKey>,
+  EdgeLabel extends Renderable<Options, AttachmentKey>,
   Options,
+  AttachmentKey extends string,
 > extends Component<
-  GraphProps<NodeLabel, EdgeLabel, Options>,
-  GraphState<NodeLabel, EdgeLabel, Options>
+  GraphProps<NodeLabel, EdgeLabel, Options, AttachmentKey>,
+  GraphState<NodeLabel, EdgeLabel, Options, AttachmentKey>
 > {
-  state: GraphState<NodeLabel, EdgeLabel, Options> = {
+  state: GraphState<NodeLabel, EdgeLabel, Options, AttachmentKey> = {
     open: false,
     driver: null,
     animating: null,
@@ -63,7 +75,7 @@ export default class GraphDisplay<
 
   protected makeRenderer(): {
     name: string
-    loader: DriverLoader<NodeLabel, EdgeLabel, Options>
+    loader: DriverLoader<NodeLabel, EdgeLabel, Options, AttachmentKey>
   } {
     return { name: this.props.driver, loader: this.props.loader }
   }
@@ -109,7 +121,8 @@ export default class GraphDisplay<
     this.setState({ open })
   }
 
-  readonly #kernelRef = createRef<Kernel<NodeLabel, EdgeLabel, Options>>()
+  readonly #kernelRef =
+    createRef<Kernel<NodeLabel, EdgeLabel, Options, AttachmentKey>>()
 
   componentDidMount(): void {
     void this.#buildGraphModel()
@@ -169,7 +182,7 @@ export default class GraphDisplay<
   }
 
   readonly #driverRef = (
-    driver: Driver<NodeLabel, EdgeLabel, Options> | null,
+    driver: Driver<NodeLabel, EdgeLabel, Options, AttachmentKey> | null,
   ): void => {
     this.setState({ driver })
   }
@@ -211,9 +224,14 @@ export default class GraphDisplay<
 /**
  * A control to pick which driver to control.
  */
-export function DriverControl<NodeLabel, EdgeLabel, Options>(props: {
+export function DriverControl<
+  NodeLabel extends Renderable<Options, AttachmentKey>,
+  EdgeLabel extends Renderable<Options, AttachmentKey>,
+  Options,
+  AttachmentKey extends string,
+>(props: {
   driverNames: string[]
-  driver: Driver<NodeLabel, EdgeLabel, Options> | null
+  driver: Driver<NodeLabel, EdgeLabel, Options, AttachmentKey> | null
 
   currentLayout?: string
 
@@ -305,8 +323,13 @@ export function DriverControl<NodeLabel, EdgeLabel, Options>(props: {
   )
 }
 
-class SimulationControls<NodeLabel, EdgeLabel, Options> extends Component<{
-  driver: Driver<NodeLabel, EdgeLabel, Options> | null
+class SimulationControls<
+  NodeLabel extends Renderable<Options, AttachmentKey>,
+  EdgeLabel extends Renderable<Options, AttachmentKey>,
+  Options,
+  AttachmentKey extends string,
+> extends Component<{
+  driver: Driver<NodeLabel, EdgeLabel, Options, AttachmentKey> | null
   animating: boolean | null
 }> {
   readonly #handleStart = (): void => {
@@ -350,11 +373,16 @@ class SimulationControls<NodeLabel, EdgeLabel, Options> extends Component<{
   }
 }
 
-class SeedControls<NodeLabel, EdgeLabel, Options> extends Component<
+class SeedControls<
+  NodeLabel extends Renderable<Options, AttachmentKey>,
+  EdgeLabel extends Renderable<Options, AttachmentKey>,
+  Options,
+  AttachmentKey extends string,
+> extends Component<
   {
     id: string
 
-    driver: Driver<NodeLabel, EdgeLabel, Options> | null
+    driver: Driver<NodeLabel, EdgeLabel, Options, AttachmentKey> | null
 
     seed: number | null
     onChangeSeed: (seed: number | null) => void
@@ -428,9 +456,14 @@ function ActionButton(props: ActionButtonProps): JSX.Element {
   return <button {...props} onClick={onClick} />
 }
 
-export class ExportControl<NodeLabel, EdgeLabel, Options> extends Component<{
-  driver: Driver<NodeLabel, EdgeLabel, Options> | null
-  display: GraphDisplay<NodeLabel, EdgeLabel, Options> | null
+export class ExportControl<
+  NodeLabel extends Renderable<Options, AttachmentKey>,
+  EdgeLabel extends Renderable<Options, AttachmentKey>,
+  Options,
+  AttachmentKey extends string,
+> extends Component<{
+  driver: Driver<NodeLabel, EdgeLabel, Options, AttachmentKey> | null
+  display: GraphDisplay<NodeLabel, EdgeLabel, Options, AttachmentKey> | null
 }> {
   readonly #handleExport = (format: string, event: Event): void => {
     event.preventDefault()

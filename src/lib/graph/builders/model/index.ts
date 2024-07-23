@@ -6,7 +6,12 @@ import BundleBuilder from './dedup_bundle'
 import FullBuilder from './dedup_full'
 import NoneBuilder from './dedup_none'
 import ParentsBuilder from './dedup_parents'
-import { type ModelEdge, type ModelNode } from './labels'
+import {
+  type ModelOptions,
+  type ModelAttachmentKey,
+  type ModelEdge,
+  type ModelNode,
+} from './labels'
 
 export type Options = DedupOptions & {
   deduplication?: Deduplication
@@ -15,7 +20,9 @@ export type Options = DedupOptions & {
 /** builds a new graph for a specific model */
 export default class ModelGraphBuilder extends GraphBuilder<
   ModelNode,
-  ModelEdge
+  ModelEdge,
+  ModelOptions,
+  ModelAttachmentKey
 > {
   readonly #specific: DeduplicatingBuilder
   constructor(tree: PathTree, options: Options) {
