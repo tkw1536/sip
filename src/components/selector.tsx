@@ -1,4 +1,5 @@
-import { Component, type ComponentChild } from 'preact'
+import { type JSX } from 'preact'
+import { useCallback } from 'preact/hooks'
 
 interface ValueSelectorProps {
   id?: string
@@ -8,57 +9,45 @@ interface ValueSelectorProps {
   onInput: (value: string) => void
 }
 
-export default class ValueSelector extends Component<
-  ValueSelectorProps,
-  Record<never, never>
-> {
-  readonly #handleChange = (
-    evt: Event & { currentTarget: HTMLSelectElement },
-  ): void => {
-    evt.preventDefault()
-    if (this.disabled) return
+export default function ValueSelector(props: ValueSelectorProps): JSX.Element {
+  const { id, value, values, disabled } = props
+  const isDisabled =
+    (disabled ?? false) ||
+    typeof value === 'undefined' ||
+    typeof values === 'undefined'
 
-    // validate that we have a valid value
-    const { value } = evt.currentTarget
-    const { values, onInput } = this.props
-    if (!(values?.includes(value) ?? false)) return
+  const handleChange = useCallback(
+    (evt: Event & { currentTarget: HTMLSelectElement }): void => {
+      evt.preventDefault()
+      if (isDisabled) return
 
-    // call the handler
-    onInput(value)
-  }
+      // validate that we have a valid value
+      const { value } = evt.currentTarget
+      const { values, onInput } = props
+      if (!(values?.includes(value) ?? false)) return
 
-  get disabled(): boolean {
-    const { value, values, disabled } = this.props
-    return (
-      (disabled ?? false) ||
-      typeof value === 'undefined' ||
-      typeof values === 'undefined'
-    )
-  }
+      // call the handler
+      onInput(value)
+    },
+    [isDisabled, props.values, props.onInput],
+  )
 
-  render(): ComponentChild {
-    const { id, value, values } = this.props
-    if (typeof values === 'undefined') {
-      if (typeof value !== 'undefined') {
-        return (
-          <select id={id} value={value} disabled>
-            <option>{value}</option>
-          </select>
-        )
-      }
-      return <select id={id} disabled />
+  if (typeof values === 'undefined') {
+    if (typeof value !== 'undefined') {
+      return (
+        <select id={id} value={value} disabled>
+          <option>{value}</option>
+        </select>
+      )
     }
-    return (
-      <select
-        id={id}
-        value={value}
-        disabled={this.disabled}
-        onInput={this.#handleChange}
-      >
-        {values.map(value => (
-          <option key={value}>{value}</option>
-        ))}
-      </select>
-    )
+    return <select id={id} disabled />
   }
+
+  return (
+    <select id={id} value={value} disabled={isDisabled} onInput={handleChange}>
+      {values.map(value => (
+        <option key={value}>{value}</option>
+      ))}
+    </select>
+  )
 }
