@@ -1,13 +1,12 @@
 import {
-  Component,
   type ComponentType,
   type ComponentChildren,
   type VNode,
+  type JSX,
 } from 'preact'
-import { Operation } from '../../lib/utils/operation'
 import * as styles from './index.module.css'
 import { Lazy as LazyImpl } from '../wrapper'
-import { type PropsWithoutRef } from 'preact/compat'
+import { useEffect, useState, type PropsWithoutRef } from 'preact/compat'
 
 interface LoaderProps {
   message?: ComponentChildren
@@ -35,31 +34,21 @@ export function LazyLoaded<P>(
   return LazyImpl(loader, <Spinner message={message} />)
 }
 
-/** AvoidFlicker avoids showing children until after delayMS */
-class AvoidFlicker extends Component<{
-  delayMs?: number
-  children: ComponentChildren
-}> {
-  static readonly defaultDelayMs = 1000
-  state = { visible: false }
+function AvoidFlicker(props: {
+  delayMS?: number
+  children: JSX.Element | null
+}): JSX.Element | null {
+  const [visible, setVisible] = useState(false)
 
-  readonly #avoidFlicker = new Operation()
-  componentDidMount(): void {
-    const ticket = this.#avoidFlicker.ticket()
-    setTimeout(() => {
-      if (!ticket()) return
-      this.setState({ visible: true })
-    }, this.props.delayMs ?? AvoidFlicker.defaultDelayMs)
-  }
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setVisible(true)
+    }, props.delayMS ?? 1000)
+    return () => {
+      clearTimeout(timeout)
+    }
+  }, [props.delayMS])
 
-  componentWillUnmount(): void {
-    this.#avoidFlicker.cancel()
-  }
-
-  render(): ComponentChildren {
-    const { visible } = this.state
-    if (!visible) return false
-
-    return this.props.children
-  }
+  if (!visible) return null
+  return props.children
 }
