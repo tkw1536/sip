@@ -33,7 +33,6 @@ import {
   type Renderable,
   type Element,
   type ElementWithAttachments,
-  type Attachment,
 } from '../../../graph/builders'
 
 const spz = new LazyValue(
@@ -61,6 +60,9 @@ abstract class GraphvizDriver<
   EdgeLabel,
   Options,
   AttachmentKey,
+  Attributes,
+  Attributes,
+  Subgraph,
   Context,
   Mount,
   Graph
@@ -278,24 +280,35 @@ abstract class GraphvizDriver<
     return attributes
   }
 
-  protected addNodeImpl(
+  protected placeNode(
     graph: Graph,
-    flags: ContextFlags<Options>,
     id: string,
-    node: NodeLabel,
-    element: ElementWithAttachments<AttachmentKey>,
+    attributes: Attributes,
+    cluster?: Subgraph | undefined,
   ): void {
-    const { attached } = element
-    if (typeof attached === 'undefined') {
-      graph.nodes.push({
-        name: element.id,
-        attributes: this.renderSimpleNode(node, element),
-      })
-      return
-    }
+    ;(cluster ?? graph).nodes.push({
+      name: id,
+      attributes,
+    })
+  }
+  protected placeEdge(
+    graph: Graph,
+    id: string,
+    from: string,
+    to: string,
+    attributes: Attributes,
+    cluster?: Subgraph | undefined,
+  ): void {
+    ;(cluster ?? graph).edges.push({
+      head: to,
+      tail: from,
+      attributes,
+    })
+  }
 
-    const sg: Subgraph = {
-      name: `subgraph-${id}`,
+  protected createCluster(context: Graph, id: string): Subgraph {
+    return {
+      name: id,
       graphAttributes: { cluster: true, tooltip: '' },
       nodeAttributes: {},
       edgeAttributes: {},
@@ -303,96 +316,9 @@ abstract class GraphvizDriver<
       edges: [],
       subgraphs: [],
     }
-
-    sg.nodes.push({
-      name: element.id,
-      attributes: this.renderComplexNode(node, element),
-    })
-
-    Object.entries(attached).forEach(([attachment, elements]) => {
-      ;(elements as Attachment[]).forEach(({ node: aNode, edge: aEdge }) => {
-        sg.nodes.push({
-          name: aNode.id,
-          attributes: this.renderAttachedNode(
-            node,
-            attachment as AttachmentKey,
-            aNode,
-          ),
-        })
-
-        sg.edges.push({
-          head: element.id,
-          tail: aNode.id,
-          attributes: this.renderAttachedEdge(
-            node,
-            attachment as AttachmentKey,
-            aEdge,
-          ),
-        })
-      })
-    })
-
-    graph.subgraphs.push(sg)
   }
-
-  protected addEdgeImpl(
-    graph: Graph,
-    flags: ContextFlags<Options>,
-    id: string,
-    from: string,
-    to: string,
-    edge: EdgeLabel,
-    element: ElementWithAttachments<AttachmentKey>,
-  ): void {
-    graph.edges.push({
-      tail: from,
-      head: to,
-      attributes: this.renderEdge(edge, element),
-    })
-  }
-
-  protected renderSimpleNode(
-    node: NodeLabel,
-    element: ElementWithAttachments<AttachmentKey>,
-  ): Attributes {
-    return this.renderAnyNode(node, element)
-  }
-
-  protected renderComplexNode(
-    node: NodeLabel,
-    element: ElementWithAttachments<AttachmentKey>,
-  ): Attributes {
-    return this.renderAnyNode(node, element)
-  }
-
-  protected renderAttachedNode(
-    parent: NodeLabel,
-    attachment: AttachmentKey,
-    element: Element,
-  ): Attributes {
-    return this.renderAnyNode(parent, element)
-  }
-
-  protected renderAnyNode(
-    node: NodeLabel,
-    element: ElementWithAttachments<AttachmentKey>,
-  ): Attributes {
-    return this.attributes('node', element)
-  }
-
-  protected renderAttachedEdge(
-    parent: NodeLabel,
-    attachment: AttachmentKey,
-    element: Element,
-  ): Attributes {
-    return this.attributes('edge', element)
-  }
-
-  protected renderEdge(
-    edge: EdgeLabel,
-    element: ElementWithAttachments<AttachmentKey>,
-  ): Attributes {
-    return this.attributes('edge', element)
+  protected placeCluster(graph: Graph, id: string, cluster: Subgraph): void {
+    graph.subgraphs.push(cluster)
   }
 }
 

@@ -6,7 +6,6 @@ import {
 } from 'cytoscape'
 import {
   type ContextDetails,
-  type ContextFlags,
   DriverImpl,
   ErrorUnsupported,
   type MountInfo,
@@ -26,12 +25,7 @@ import {
   type ModelNode,
   type ModelAttachmentKey,
 } from '../../graph/builders/model/labels'
-import {
-  type Renderable,
-  type Element,
-  type ElementWithAttachments,
-  type Attachment,
-} from '../../graph/builders'
+import { type Renderable, type Element } from '../../graph/builders'
 import {
   type RDFEdge,
   type RDFNode,
@@ -77,6 +71,9 @@ abstract class CytoscapeDriver<
   EdgeLabel,
   Options,
   AttachmentKey,
+  Attributes,
+  Attributes,
+  null,
   Elements,
   CytoMount
 > {
@@ -270,121 +267,40 @@ abstract class CytoscapeDriver<
     c.stop(true)
   }
 
-  protected addNodeImpl(
-    elements: Elements,
-    flags: ContextFlags<Options>,
-    id: string,
-    node: NodeLabel,
-    element: ElementWithAttachments<AttachmentKey>,
-  ): void {
-    const { attached } = element
-    if (typeof attached === 'undefined') {
-      elements.push({
-        data: {
-          ...this.renderSimpleNode(node, element),
-          id: element.id,
-        },
-      })
-      return
-    }
+  protected createCluster(context: Elements, id: string): null {
+    return null
+  }
+  protected placeCluster(context: Elements, id: string, cluster: null): void {}
 
+  protected placeNode(
+    elements: Elements,
+    id: string,
+    attributes: Attributes,
+    cluster?: null | undefined,
+  ): void {
     elements.push({
       data: {
-        ...this.renderComplexNode(node, element),
-        id: element.id,
+        ...attributes,
+        id,
       },
     })
-
-    Object.entries(attached).forEach(([attachment, sElements]) => {
-      ;(sElements as Attachment[]).forEach(({ node: aNode, edge: aEdge }) => {
-        elements.push({
-          data: {
-            ...this.renderAttachedNode(
-              node,
-              attachment as AttachmentKey,
-              aNode,
-            ),
-            id: aNode.id,
-          },
-        })
-
-        elements.push({
-          data: {
-            ...this.renderAttachedEdge(
-              node,
-              attachment as AttachmentKey,
-              aNode,
-            ),
-            id: aEdge.id,
-            source: aNode.id,
-            target: element.id,
-          },
-        })
-      })
-    })
   }
-
-  protected addEdgeImpl(
+  protected placeEdge(
     elements: Elements,
-    flags: ContextFlags<Options>,
     id: string,
     from: string,
     to: string,
-    edge: EdgeLabel,
-    element: ElementWithAttachments<AttachmentKey>,
+    attributes: Attributes,
+    cluster?: null | undefined,
   ): void {
     elements.push({
       data: {
-        ...this.renderEdge(edge, element),
+        ...attributes,
         id,
         source: from,
         target: to,
       },
     })
-  }
-
-  protected renderSimpleNode(
-    node: NodeLabel,
-    element: ElementWithAttachments<AttachmentKey>,
-  ): Attributes {
-    return this.renderAnyNode(node, element)
-  }
-
-  protected renderComplexNode(
-    node: NodeLabel,
-    element: ElementWithAttachments<AttachmentKey>,
-  ): Attributes {
-    return this.renderAnyNode(node, element)
-  }
-
-  protected renderAttachedNode(
-    parent: NodeLabel,
-    attachment: AttachmentKey,
-    element: Element,
-  ): Attributes {
-    return this.renderAnyNode(parent, element)
-  }
-
-  protected renderAnyNode(
-    node: NodeLabel,
-    element: ElementWithAttachments<AttachmentKey>,
-  ): Attributes {
-    return this.attributes('node', element)
-  }
-
-  protected renderAttachedEdge(
-    parent: NodeLabel,
-    attachment: AttachmentKey,
-    element: Element,
-  ): Attributes {
-    return this.attributes('edge', element)
-  }
-
-  protected renderEdge(
-    edge: EdgeLabel,
-    element: ElementWithAttachments<AttachmentKey>,
-  ): Attributes {
-    return this.attributes('edge', element)
   }
 
   protected attributes(

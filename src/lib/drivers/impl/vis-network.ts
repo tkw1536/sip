@@ -1,6 +1,5 @@
 import {
   type ContextDetails,
-  type ContextFlags,
   DriverImpl,
   ErrorUnsupported,
   type MountInfo,
@@ -31,7 +30,6 @@ import {
   type Renderable,
   type Element,
   type ElementWithAttachments,
-  type Attachment,
 } from '../../graph/builders'
 import {
   type RDFEdge,
@@ -55,6 +53,9 @@ abstract class VisNetworkDriver<
   EdgeLabel,
   Options,
   AttachmentKey,
+  NodeAttributes,
+  EdgeAttributes,
+  null,
   Dataset,
   Network
 > {
@@ -196,104 +197,42 @@ abstract class VisNetworkDriver<
     network.stopSimulation()
   }
 
-  protected addNodeImpl(
+  protected placeNode(
     dataset: Dataset,
-    flags: ContextFlags<Options>,
     id: string,
-    node: NodeLabel,
-    element: ElementWithAttachments<AttachmentKey>,
+    attributes: NodeAttributes,
+    cluster?: null | undefined,
   ): void {
-    const { attached } = element
-    if (typeof attached === 'undefined') {
-      dataset.addNode({
-        ...this.renderSimpleNode(node, element),
-        id: element.id,
-      })
-      return
-    }
-
     dataset.addNode({
-      ...this.renderComplexNode(node, element),
-      id: element.id,
-    })
-
-    Object.entries(attached).forEach(([attachment, sElements]) => {
-      ;(sElements as Attachment[]).forEach(({ node: aNode, edge: aEdge }) => {
-        dataset.addNode({
-          ...this.renderAttachedNode(node, attachment as AttachmentKey, aNode),
-          id: aNode.id,
-        })
-        dataset.addEdge({
-          ...this.renderAttachedEdge(node, attachment as AttachmentKey, aEdge),
-          from: aNode.id,
-          to: element.id,
-        })
-      })
+      ...attributes,
+      id,
     })
   }
 
-  protected addEdgeImpl(
+  protected placeEdge(
     dataset: Dataset,
-    flags: ContextFlags<Options>,
     id: string,
     from: string,
     to: string,
-    edge: EdgeLabel,
-    element: ElementWithAttachments<AttachmentKey>,
-  ): void {
+    attributes: EdgeAttributes,
+    cluster?: null | undefined,
+  ): Dataset | void {
     dataset.addEdge({
-      ...this.renderEdge(edge, element),
+      ...attributes,
       from,
       to,
     })
   }
 
-  protected renderSimpleNode(
-    node: NodeLabel,
-    element: ElementWithAttachments<AttachmentKey>,
-  ): NodeAttributes {
-    return this.renderAnyNode(node, element)
+  protected createCluster(context: Dataset, id: string): null {
+    return null
   }
+  protected placeCluster(
+    context: Dataset,
+    id: string,
+    cluster: null,
+  ): Dataset | void {}
 
-  protected renderComplexNode(
-    node: NodeLabel,
-    element: ElementWithAttachments<AttachmentKey>,
-  ): NodeAttributes {
-    return this.renderAnyNode(node, element)
-  }
-
-  protected renderAttachedNode(
-    parent: NodeLabel,
-    attachment: AttachmentKey,
-    element: Element,
-  ): NodeAttributes {
-    return this.renderAnyNode(parent, element)
-  }
-
-  protected renderAnyNode(
-    node: NodeLabel,
-    element: ElementWithAttachments<AttachmentKey>,
-  ): NodeAttributes {
-    return this.attributes('node', element)
-  }
-
-  protected renderAttachedEdge(
-    parent: NodeLabel,
-    attachment: AttachmentKey,
-    element: Element,
-  ): EdgeAttributes {
-    return this.attributes('edge', element)
-  }
-
-  protected renderEdge(
-    edge: EdgeLabel,
-    element: ElementWithAttachments<AttachmentKey>,
-  ): EdgeAttributes {
-    return this.attributes('edge', element)
-  }
-
-  protected attributes(type: 'node', element: Element): NodeAttributes
-  protected attributes(type: 'edge', element: Element): EdgeAttributes
   protected attributes(
     type: 'node' | 'edge',
     { color, label, tooltip }: Element,

@@ -1,5 +1,7 @@
 import type Graph from '../../graph'
 import {
+  type Attachment,
+  type Element,
   type ElementWithAttachments,
   type Renderable,
 } from '../../graph/builders'
@@ -125,6 +127,9 @@ export abstract class DriverImpl<
   EdgeLabel extends Renderable<Options, AttachmentKey>,
   Options,
   AttachmentKey extends string,
+  NodeAttrs,
+  EdgeAttrs,
+  Cluster,
   Context,
   Mount,
   HotContext = Context,
@@ -150,63 +155,45 @@ export abstract class DriverImpl<
     const ids = new IDPool()
     if (!ticket()) throw ErrorAborted
 
-    let hCtx = await this.newContextImpl(flags, seed)
+    let hot: HotContext = await this.newContextImpl(flags, seed)
     if (!ticket()) throw ErrorAborted
 
     // add all nodes and edges
     for (const [id, node] of graph.getNodes()) {
       const nodeID = ids.for(id)
       const element = node.render(nodeID, flags.options)
-      hCtx =
-        (await this.addNodeImpl(hCtx, flags, nodeID, node, element)) ?? hCtx
+      hot = this.addNodeImpl(hot, flags, nodeID, node, element) ?? hot
       if (!ticket()) throw ErrorAborted
     }
     for (const [id, from, to, edge] of graph.getEdges()) {
       const edgeID = ids.for(id)
       const element = edge.render(edgeID, flags.options)
-      hCtx =
-        (await this.addEdgeImpl(
-          hCtx,
+      hot =
+        this.addEdgeImpl(
+          hot,
           flags,
           ids.for(id),
           ids.for(from),
           ids.for(to),
           edge,
           element,
-        )) ?? hCtx
+        ) ?? hot
       if (!ticket()) throw ErrorAborted
     }
 
     // finalize the context
-    const ctx = await this.finalizeContextImpl(hCtx, flags, seed)
+    const ctx = await this.finalizeContextImpl(hot, flags, seed)
     if (!ticket()) throw ErrorAborted
 
     // get the seed of this mount (if any)
     this.#context = { context: ctx, flags, seed }
     this.#seed = this.getSeedImpl(this.#context, null) ?? flags.seed
   }
+
   protected abstract newContextImpl(
     flags: ContextFlags<Options>,
     seed: number,
   ): Promise<HotContext>
-
-  protected abstract addNodeImpl(
-    ctx: HotContext,
-    flags: ContextFlags<Options>,
-    id: string,
-    node: NodeLabel,
-    element: ElementWithAttachments<AttachmentKey>,
-  ): Promise<HotContext | void> | void
-
-  protected abstract addEdgeImpl(
-    ctx: HotContext,
-    flags: ContextFlags<Options>,
-    id: string,
-    from: string,
-    to: string,
-    edge: EdgeLabel,
-    element: ElementWithAttachments<AttachmentKey>,
-  ): Promise<HotContext | void> | void
 
   protected abstract finalizeContextImpl(
     ctx: HotContext,
@@ -325,4 +312,153 @@ export abstract class DriverImpl<
     details: ContextDetails<Context, Options>,
     info: MountInfo<Mount> | null,
   ): void
+
+  /** creates a new cluster */
+  protected abstract createCluster(context: HotContext, id: string): Cluster
+
+  /** creates a new cluster with the given id */
+  protected abstract placeCluster(
+    context: HotContext,
+    id: string,
+    cluster: Cluster,
+  ): HotContext | void
+
+  /** places the node into the context */
+  protected abstract placeNode(
+    context: HotContext,
+    id: string,
+    attributes: NodeAttrs,
+    cluster?: Cluster,
+  ): HotContext | void
+
+  /** places the edge into the context */
+  protected abstract placeEdge(
+    context: HotContext,
+    id: string,
+    from: string,
+    to: string,
+    attributes: EdgeAttrs,
+    cluster?: Cluster,
+  ): HotContext | void
+
+  /** get the attributes for a node */
+  protected abstract attributes(type: 'node', element: Element): NodeAttrs
+
+  /** get the attributes for an edge */
+  protected abstract attributes(type: 'edge', element: Element): EdgeAttrs
+
+  protected addNodeImpl(
+    context: HotContext,
+    flags: ContextFlags<Options>,
+    id: string,
+    node: NodeLabel,
+    element: ElementWithAttachments<AttachmentKey>,
+  ): HotContext | void {
+    const { attached } = element
+
+    // no attachments => place a simple node
+    if (typeof attached === 'undefined') {
+      return this.placeNode(
+        context,
+        element.id,
+        this.renderSimpleNode(node, element),
+      )
+    }
+
+    let hot = context
+
+    // complex node => create a cluster
+    const clusterID = `${element.id}-cluster`
+    const cluster = this.createCluster(hot, clusterID)
+
+    // add the node itself
+    hot =
+      this.placeNode(
+        hot,
+        element.id,
+        this.renderComplexNode(node, element),
+        cluster,
+      ) ?? hot
+
+    // add all the attachments
+    Object.entries(attached).forEach(([attachment, sElements]) => {
+      ;(sElements as Attachment[]).forEach(({ node: aNode, edge: aEdge }) => {
+        hot =
+          this.placeNode(
+            hot,
+            aNode.id,
+            this.renderAttachedNode(node, attachment as AttachmentKey, aNode),
+            cluster,
+          ) ?? hot
+
+        hot =
+          this.placeEdge(
+            hot,
+            aEdge.id,
+            aNode.id,
+            element.id,
+            this.renderAttachedEdge(node, attachment as AttachmentKey, aEdge),
+            cluster,
+          ) ?? hot
+      })
+    })
+
+    return this.placeCluster(hot, clusterID, cluster)
+  }
+
+  protected addEdgeImpl(
+    context: HotContext,
+    flags: ContextFlags<Options>,
+    id: string,
+    from: string,
+    to: string,
+    edge: EdgeLabel,
+    element: ElementWithAttachments<AttachmentKey>,
+  ): HotContext | void {
+    return this.placeEdge(context, id, from, to, this.renderEdge(edge, element))
+  }
+
+  protected renderSimpleNode(
+    node: NodeLabel,
+    element: ElementWithAttachments<AttachmentKey>,
+  ): NodeAttrs {
+    return this.renderAnyNode(node, element)
+  }
+
+  protected renderComplexNode(
+    node: NodeLabel,
+    element: ElementWithAttachments<AttachmentKey>,
+  ): NodeAttrs {
+    return this.renderAnyNode(node, element)
+  }
+
+  protected renderAttachedNode(
+    parent: NodeLabel,
+    attachment: AttachmentKey,
+    element: Element,
+  ): NodeAttrs {
+    return this.renderAnyNode(parent, element)
+  }
+
+  protected renderAnyNode(
+    node: NodeLabel,
+    element: ElementWithAttachments<AttachmentKey>,
+  ): NodeAttrs {
+    return this.attributes('node', element)
+  }
+
+  protected renderAttachedEdge(
+    parent: NodeLabel,
+    attachment: AttachmentKey,
+    element: Element,
+  ): EdgeAttrs {
+    return this.attributes('edge', element)
+  }
+
+  protected renderEdge(
+    edge: EdgeLabel,
+    element: ElementWithAttachments<AttachmentKey>,
+  ): EdgeAttrs {
+    return this.attributes('edge', element)
+  }
 }

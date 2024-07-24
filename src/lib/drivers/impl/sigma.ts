@@ -1,6 +1,5 @@
 import {
   type ContextDetails,
-  type ContextFlags,
   DriverImpl,
   ErrorUnsupported,
   type MountInfo,
@@ -28,12 +27,7 @@ import {
 } from '../../graph/builders/model/labels'
 import { type Attributes } from 'graphology-types'
 import { prng } from '../../utils/prng'
-import {
-  type ElementWithAttachments,
-  type Element,
-  type Renderable,
-  type Attachment,
-} from '../../graph/builders'
+import { type Element, type Renderable } from '../../graph/builders'
 import {
   type RDFEdge,
   type RDFNode,
@@ -55,6 +49,9 @@ abstract class SigmaDriver<
   EdgeLabel,
   Options,
   AttachmentKey,
+  Attributes,
+  Attributes,
+  null,
   Graph,
   SigmaMount
 > {
@@ -177,91 +174,37 @@ abstract class SigmaDriver<
     }
   }
 
-  protected addNodeImpl(
-    graph: Graph,
-    flags: ContextFlags<Options>,
+  protected createCluster(
+    context: Graph<Attributes, Attributes, Attributes>,
     id: string,
-    node: NodeLabel,
-    element: ElementWithAttachments<AttachmentKey>,
-  ): void {
-    const { attached } = element
-    if (typeof attached === 'undefined') {
-      graph.addNode(id, this.renderSimpleNode(node, element))
-      return
-    }
-
-    graph.addNode(element.id, this.renderComplexNode(node, element))
-
-    Object.entries(attached).forEach(([attachment, sElements]) => {
-      ;(sElements as Attachment[]).forEach(({ node: aNode, edge: aEdge }) => {
-        graph.addNode(
-          aNode.id,
-          this.renderAttachedNode(node, attachment as AttachmentKey, aNode),
-        )
-
-        graph.addDirectedEdge(
-          aNode.id,
-          element.id,
-          this.renderAttachedEdge(node, attachment as AttachmentKey, aEdge),
-        )
-      })
-    })
+  ): null {
+    return null
   }
 
-  protected addEdgeImpl(
-    graph: Graph,
-    flags: ContextFlags<Options>,
+  protected placeCluster(
+    context: Graph<Attributes, Attributes, Attributes>,
+    id: string,
+    cluster: null,
+  ): Graph<Attributes, Attributes, Attributes> | void {}
+
+  protected placeNode(
+    graph: Graph<Attributes, Attributes, Attributes>,
+    id: string,
+    attributes: Attributes,
+    cluster?: null | undefined,
+  ): Graph<Attributes, Attributes, Attributes> | void {
+    graph.addNode(id, attributes)
+  }
+
+  protected placeEdge(
+    graph: Graph<Attributes, Attributes, Attributes>,
     id: string,
     from: string,
     to: string,
-    edge: EdgeLabel,
-    element: ElementWithAttachments<AttachmentKey>,
+    attributes: Attributes,
+    cluster?: null | undefined,
   ): void {
-    graph.addDirectedEdge(from, to, this.renderEdge(edge, element))
-  }
-
-  protected renderSimpleNode(
-    node: NodeLabel,
-    element: ElementWithAttachments<AttachmentKey>,
-  ): Attributes {
-    return this.renderAnyNode(node, element)
-  }
-
-  protected renderComplexNode(
-    node: NodeLabel,
-    element: ElementWithAttachments<AttachmentKey>,
-  ): Attributes {
-    return this.renderAnyNode(node, element)
-  }
-
-  protected renderAttachedNode(
-    parent: NodeLabel,
-    attachment: AttachmentKey,
-    element: Element,
-  ): Attributes {
-    return this.renderAnyNode(parent, element)
-  }
-
-  protected renderAnyNode(
-    node: NodeLabel,
-    element: ElementWithAttachments<AttachmentKey>,
-  ): Attributes {
-    return this.attributes('node', element)
-  }
-
-  protected renderAttachedEdge(
-    parent: NodeLabel,
-    attachment: AttachmentKey,
-    element: Element,
-  ): Attributes {
-    return this.attributes('edge', element)
-  }
-
-  protected renderEdge(
-    edge: EdgeLabel,
-    element: ElementWithAttachments<AttachmentKey>,
-  ): Attributes {
-    return this.attributes('edge', element)
+    graph.addDirectedEdge(from, to, attributes)
   }
 
   protected attributes(
