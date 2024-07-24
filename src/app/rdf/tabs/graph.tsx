@@ -8,11 +8,10 @@ import RDFGraphBuilder, {
   type RDFEdge,
   type RDFNode,
 } from '../../../lib/graph/builders/rdf'
-import { setRDFDriver, setRDFLayout, setRDFSeed } from '../state/reducers/rdf'
 import type Graph from '../../../lib/graph'
 import type Driver from '../../../lib/drivers/impl'
 import { triples } from '../../../lib/drivers/collection'
-import { useRDFStore } from '../state'
+import useRDFStore from '../state'
 import { useCallback, useMemo, useRef } from 'preact/hooks'
 
 export default function GraphTab(): JSX.Element {
@@ -21,7 +20,7 @@ export default function GraphTab(): JSX.Element {
   const driver = useRDFStore(s => s.rdfGraphDriver)
   const seed = useRDFStore(s => s.rdfGraphSeed)
   const ns = useRDFStore(s => s.ns)
-  const nsVersion = useRDFStore(s => s.namespaceVersion)
+  const nsVersion = useRDFStore(s => s.nsVersion)
 
   const makeGraph = useMemo(
     () => async (): Promise<Graph<RDFNode, RDFEdge>> => {
@@ -69,61 +68,34 @@ interface GraphTabPanelProps {
 }
 
 function GraphTabPanel(props: GraphTabPanelProps): JSX.Element {
-  const apply = useRDFStore(s => s.apply)
-
-  const rdfGraphSeed = useRDFStore(s => s.rdfGraphSeed)
-  const rdfGraphLayout = useRDFStore(s => s.rdfGraphLayout)
-
   const { driver, animating, displayRef } = props
 
-  const handleChangeRDFDriver = useCallback(
-    (driver: string): void => {
-      apply(setRDFDriver(driver))
-    },
-    [apply, setRDFDriver],
-  )
+  const setDriver = useRDFStore(s => s.setRDFDriver)
 
-  const handleChangeRDFLayout = useCallback(
-    (value: string): void => {
-      apply(setRDFLayout(value))
-    },
-    [apply, setRDFLayout],
-  )
+  const layout = useRDFStore(s => s.rdfGraphLayout)
+  const setLayout = useRDFStore(s => s.setRDFLayout)
 
   const handleResetDriver = useCallback((): void => {
     displayRef.current?.remount()
   }, [displayRef.current])
 
-  const handleChangeRDFSeed = useCallback(
-    (seed: number | null): void => {
-      apply(setRDFSeed(seed))
-    },
-    [apply, setRDFSeed],
-  )
+  const seed = useRDFStore(s => s.rdfGraphSeed)
+  const setSeed = useRDFStore(s => s.setRDFSeed)
 
   return (
     <>
       <DriverControl
         driverNames={triples.names}
         driver={driver}
-        seed={rdfGraphSeed}
-        currentLayout={rdfGraphLayout}
-        onChangeDriver={handleChangeRDFDriver}
-        onChangeLayout={handleChangeRDFLayout}
-        onChangeSeed={handleChangeRDFSeed}
+        onChangeDriver={setDriver}
         onResetDriver={handleResetDriver}
+        currentLayout={layout}
+        onChangeLayout={setLayout}
+        seed={seed}
+        onChangeSeed={setSeed}
         animating={animating}
       />
       <ExportControl driver={driver} display={displayRef.current} />
     </>
   )
 }
-/*
-  readonly #renderPanel = (
-    driver: Driver<RDFNode, RDFEdge, RDFOptions, never> | null,
-    animating: boolean | null,
-  ): ComponentChildren => {
-    
-  }
-}
-*/

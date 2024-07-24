@@ -1,11 +1,9 @@
 import { type JSX } from 'preact'
-import { useRDFStore } from './state'
-import { setActiveTab } from './state/reducers/tab'
+import useRDFStore from './state'
 import Tabs, { Label, Tab } from '../../components/tabs'
 import { LazyLoaded } from '../../components/spinner'
 import Banner from '../../components/layout/banner'
-import { useCallback } from 'preact/hooks'
-import { closeModal } from './state/reducers/rdf'
+import useEventCallback from '../../components/hooks/event'
 
 const RDFTab = LazyLoaded(async () => (await import('./tabs/rdf')).default)
 const MapTab = LazyLoaded(async () => (await import('./tabs/map')).default)
@@ -14,27 +12,20 @@ const DocsTab = LazyLoaded(async () => (await import('./tabs/docs')).default)
 const AboutTab = LazyLoaded(async () => (await import('./tabs/about')).default)
 
 export default function RDFViewerApp(): JSX.Element {
-  const apply = useRDFStore(s => s.apply)
   const activeTab = useRDFStore(s => s.activeTab)
+  const setActiveTab = useRDFStore(s => s.setActiveTab)
+
+  const modal = useRDFStore(s => s.modal)
+  const closeModal = useRDFStore(s => s.hideModal)
+  const handleCloseModal = useEventCallback(closeModal)
+
   const loadStage = useRDFStore(s => s.loadStage)
-  const showModal = useRDFStore(s => s.showModal)
-
   const loaded = loadStage === true
-
-  const handleChangeTab = useCallback(
-    (key: string): void => {
-      apply(setActiveTab(key))
-    },
-    [apply, setActiveTab],
-  )
-  const handleClose = useCallback(() => {
-    apply(closeModal())
-  }, [apply, closeModal])
 
   return (
     <>
-      {showModal && <Banner onClose={handleClose} />}
-      <Tabs onChangeTab={handleChangeTab} active={activeTab}>
+      {modal && <Banner onClose={handleCloseModal} />}
+      <Tabs onChangeTab={setActiveTab} active={activeTab}>
         <Label>
           <b>RDF Viewer</b>
         </Label>

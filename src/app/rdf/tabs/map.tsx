@@ -1,23 +1,14 @@
 import { type JSX } from 'preact'
 
-import { useRDFStore } from '../state'
-import { resetNamespaceMap, setNamespaceMap } from '../state/reducers/ns'
-import { type NamespaceMap } from '../../../lib/pathbuilder/namespace'
+import useRDFStore from '../state'
 import NamespaceEditor from '../../../components/namespace-editor'
-import { useCallback } from 'preact/hooks'
 
 export default function MapTab(): JSX.Element {
-  const apply = useRDFStore(s => s.apply)
   const ns = useRDFStore(s => s.ns)
-  const nsVersion = useRDFStore(s => s.namespaceVersion)
+  const nsVersion = useRDFStore(s => s.nsVersion)
 
-  const handleReset = useCallback((): void => {
-    apply(resetNamespaceMap())
-  }, [apply, resetNamespaceMap])
-
-  const handleNewMap = useCallback((ns: NamespaceMap): void => {
-    apply(setNamespaceMap(ns))
-  }, [])
+  const resetNamespaceMap = useRDFStore(s => s.resetNamespaceMap)
+  const setNamespaceMap = useRDFStore(s => s.setNamespaceMap)
 
   return (
     <>
@@ -27,8 +18,8 @@ export default function MapTab(): JSX.Element {
       <NamespaceEditor
         ns={ns}
         nsKey={nsVersion}
-        onReset={handleReset}
-        onUpdate={handleNewMap}
+        onReset={resetNamespaceMap}
+        onUpdate={setNamespaceMap}
       />
     </>
   )

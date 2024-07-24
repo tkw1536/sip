@@ -1,11 +1,9 @@
 import { type JSX } from 'preact'
-import { loadRDF, setStoreLoading } from '../state/reducers/load'
 import Spinner from '../../../components/spinner'
 import { StyledDropArea } from '../../../components/drop-area'
 import ErrorDisplay from '../../../components/error'
-import { resetRDFInterface } from '../state/reducers/init'
-import { useRDFStore } from '../state'
-import { useCallback } from 'preact/hooks'
+import useRDFStore from '../state'
+import useEventCallback from '../../../components/hooks/event'
 
 export default function RDFTab(): JSX.Element {
   const loadState = useRDFStore(s => s.loadStage)
@@ -17,15 +15,8 @@ export default function RDFTab(): JSX.Element {
 }
 
 function WelcomeView(): JSX.Element {
-  const apply = useRDFStore(s => s.apply)
   const loadStage = useRDFStore(s => s.loadStage)
-
-  const handleLoadPathbuilder = useCallback(
-    (file: File) => {
-      apply([setStoreLoading, loadRDF(file)])
-    },
-    [apply, setStoreLoading, loadRDF],
-  )
+  const openFile = useRDFStore(s => s.loadFile)
 
   if (loadStage === 'loading') {
     return <Spinner message='Loading RDF' />
@@ -38,7 +29,7 @@ function WelcomeView(): JSX.Element {
         All processing happens on-device, meaning the server host can not access
         any data contained within your statements.
       </p>
-      <StyledDropArea onDropFile={handleLoadPathbuilder}>
+      <StyledDropArea onDropFile={openFile}>
         Click or drag an <code>RDF/XML</code> file here
       </StyledDropArea>
       {typeof loadStage === 'object' && loadStage.error instanceof Error && (
@@ -54,18 +45,12 @@ function WelcomeView(): JSX.Element {
 }
 
 function InfoView(): JSX.Element {
-  const apply = useRDFStore(s => s.apply)
+  const closeFile = useRDFStore(s => s.closeFile)
+  const handleClose = useEventCallback(closeFile)
+
   const filename = useRDFStore(s => s.filename)
-
-  const handleClose = useCallback(
-    (evt: Event): void => {
-      evt.preventDefault()
-      apply(resetRDFInterface(false))
-    },
-    [apply, resetRDFInterface],
-  )
-
   const theFilename = filename !== '' ? filename : 'statements.rdf'
+
   return (
     <>
       <p>
