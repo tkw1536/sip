@@ -20,16 +20,16 @@ import { useInspectorStore } from '../state'
 import { useCallback, useMemo, useRef } from 'preact/hooks'
 
 export default function BundleGraphTab(): JSX.Element {
-  const selection = useInspectorStore(s => s.selection)
   const tree = useInspectorStore(s => s.tree)
-  const bundleGraphLayout = useInspectorStore(s => s.bundleGraphLayout)
-  const bundleGraphRenderer = useInspectorStore(s => s.bundleGraphDriver)
-  const bundleGraphSeed = useInspectorStore(s => s.bundleGraphSeed)
-  const pathbuilderVersion = useInspectorStore(s => s.pathbuilderVersion)
+  const pbVersion = useInspectorStore(s => s.pathbuilderVersion)
+  const selection = useInspectorStore(s => s.selection)
   const selectionVersion = useInspectorStore(s => s.selectionVersion)
-  const colorVersion = useInspectorStore(s => s.colorVersion)
+  const driver = useInspectorStore(s => s.bundleGraphDriver)
+  const layout = useInspectorStore(s => s.bundleGraphLayout)
+  const seed = useInspectorStore(s => s.bundleGraphSeed)
   const ns = useInspectorStore(s => s.ns)
   const cm = useInspectorStore(s => s.cm)
+  const cmVersion = useInspectorStore(s => s.colorVersion)
 
   const makeGraph = useMemo(
     () => async (): Promise<Graph<BundleNode, BundleEdge>> => {
@@ -64,12 +64,12 @@ export default function BundleGraphTab(): JSX.Element {
     <GraphDisplay
       ref={displayRef}
       loader={bundles}
-      driver={bundleGraphRenderer}
-      seed={bundleGraphSeed}
-      builderKey={`${pathbuilderVersion}-${selectionVersion}-${colorVersion}`}
+      driver={driver}
+      seed={seed}
+      builderKey={`${pbVersion}-${selectionVersion}-${cmVersion}`}
       makeGraph={makeGraph}
       options={options}
-      layout={bundleGraphLayout}
+      layout={layout}
       panel={renderPanel}
     />
   )

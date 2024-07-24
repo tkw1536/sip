@@ -29,18 +29,23 @@ import { useInspectorStore } from '../state'
 
 export default function ModelGraphView(): JSX.Element {
   const tree = useInspectorStore(s => s.tree)
+  const pbVersion = useInspectorStore(s => s.pathbuilderVersion)
+
   const selection = useInspectorStore(s => s.selection)
-  const deduplication = useInspectorStore(s => s.modelDeduplication)
-  const pathbuilderVersion = useInspectorStore(s => s.pathbuilderVersion)
   const selectionVersion = useInspectorStore(s => s.selectionVersion)
+  const deduplication = useInspectorStore(s => s.modelDeduplication)
+
+  const display = useInspectorStore(s => s.modelDisplay)
   const optionVersion = useInspectorStore(s => s.modelGraphOptionVersion)
-  const colorVersion = useInspectorStore(s => s.colorVersion)
+
+  const cm = useInspectorStore(s => s.cm)
+  const cmVersion = useInspectorStore(s => s.colorVersion)
+
   const driver = useInspectorStore(s => s.modelGraphDriver)
   const seed = useInspectorStore(s => s.modelGraphSeed)
   const layout = useInspectorStore(s => s.modelGraphLayout)
+
   const ns = useInspectorStore(s => s.ns)
-  const cm = useInspectorStore(s => s.cm)
-  const display = useInspectorStore(s => s.modelDisplay)
 
   const displayRef =
     useRef<
@@ -57,7 +62,7 @@ export default function ModelGraphView(): JSX.Element {
     }
   }, [ModelGraphBuilder, tree, selection, deduplication])
 
-  const builderKey = `${pathbuilderVersion}-${selectionVersion}-${optionVersion}-${colorVersion}`
+  const builderKey = `${pbVersion}-${selectionVersion}-${optionVersion}-${cmVersion}`
 
   const renderPanel = useMemo(() => {
     return (

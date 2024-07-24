@@ -62,8 +62,8 @@ export default function TreeTab(): JSX.Element {
 function TreeTabPanel(): JSX.Element {
   const apply = useInspectorStore(s => s.apply)
   const cm = useInspectorStore(s => s.cm)
-  const hideEqualParentPaths = useInspectorStore(s => s.hideEqualParentPaths)
-  const cmLoadError = useInspectorStore(s => s.cmLoadError)
+  const hideParents = useInspectorStore(s => s.hideEqualParentPaths)
+  const colorLoad = useInspectorStore(s => s.cmLoadError)
 
   const handleSelectAll = useCallback(
     (evt: Event): void => {
@@ -205,7 +205,7 @@ function TreeTabPanel(): JSX.Element {
           <input
             id='hide-parent-paths'
             type='checkbox'
-            checked={hideEqualParentPaths}
+            checked={hideParents}
             onInput={handleHideEqualParentPaths}
           />
           <label for='hide-parent-paths'>
@@ -266,10 +266,10 @@ function TreeTabPanel(): JSX.Element {
             Import
           </DropArea>
           {` `}
-          {typeof cmLoadError === 'string' && (
+          {typeof colorLoad === 'string' && (
             <small>
               &nbsp;
-              {cmLoadError}
+              {colorLoad}
             </small>
           )}
         </p>
@@ -290,7 +290,7 @@ function BundleRows(props: {
   const ns = useInspectorStore(s => s.ns)
   const selection = useInspectorStore(s => s.selection)
   const collapsed = useInspectorStore(s => s.collapsed)
-  const hideEqualParentPaths = useInspectorStore(s => s.hideEqualParentPaths)
+  const hideParents = useInspectorStore(s => s.hideEqualParentPaths)
 
   const handleClick = useCallback(
     (evt: Event): void => {
@@ -367,11 +367,7 @@ function BundleRows(props: {
           <code>{path.id}</code>
         </td>
         <td>
-          <Path
-            hideEqualParentPaths={hideEqualParentPaths}
-            node={bundle}
-            ns={ns}
-          />
+          <Path hideEqualParentPaths={hideParents} node={bundle} ns={ns} />
         </td>
         <td />
         <td>{path.cardinality > 0 ? path.cardinality : 'unlimited'}</td>
@@ -406,7 +402,7 @@ function FieldRow(props: {
   const cm = useInspectorStore(s => s.cm)
   const ns = useInspectorStore(s => s.ns)
   const selection = useInspectorStore(s => s.selection)
-  const hideEqualParentPaths = useInspectorStore(s => s.hideEqualParentPaths)
+  const hideParents = useInspectorStore(s => s.hideEqualParentPaths)
 
   const handleSelectionChange = useCallback(
     (evt: Event & { currentTarget: HTMLInputElement }): void => {
@@ -444,11 +440,7 @@ function FieldRow(props: {
         <code>{path.id}</code>
       </td>
       <td>
-        <Path
-          hideEqualParentPaths={hideEqualParentPaths}
-          node={field}
-          ns={ns}
-        />
+        <Path hideEqualParentPaths={hideParents} node={field} ns={ns} />
       </td>
       <td>{path.informativeFieldType}</td>
       <td>{path.cardinality > 0 ? path.cardinality : 'unlimited'}</td>

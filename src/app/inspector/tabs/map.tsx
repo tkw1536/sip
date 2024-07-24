@@ -8,7 +8,7 @@ import { useInspectorStore } from '../state'
 export default function MapTab(): JSX.Element {
   const apply = useInspectorStore(s => s.apply)
   const ns = useInspectorStore(s => s.ns)
-  const namespaceVersion = useInspectorStore(s => s.namespaceVersion)
+  const nsVersion = useInspectorStore(s => s.namespaceVersion)
 
   const handleReset = useCallback((): void => {
     apply(resetNamespaceMap())
@@ -34,7 +34,7 @@ export default function MapTab(): JSX.Element {
       </p>
       <NamespaceEditor
         ns={ns}
-        nsKey={namespaceVersion}
+        nsKey={nsVersion}
         onReset={handleReset}
         onUpdate={handleNewMap}
       />

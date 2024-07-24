@@ -9,7 +9,7 @@ import { useCallback } from 'preact/hooks'
 export default function MapTab(): JSX.Element {
   const apply = useRDFStore(s => s.apply)
   const ns = useRDFStore(s => s.ns)
-  const namespaceVersion = useRDFStore(s => s.namespaceVersion)
+  const nsVersion = useRDFStore(s => s.namespaceVersion)
 
   const handleReset = useCallback((): void => {
     apply(resetNamespaceMap())
@@ -26,7 +26,7 @@ export default function MapTab(): JSX.Element {
       </p>
       <NamespaceEditor
         ns={ns}
-        nsKey={namespaceVersion}
+        nsKey={nsVersion}
         onReset={handleReset}
         onUpdate={handleNewMap}
       />

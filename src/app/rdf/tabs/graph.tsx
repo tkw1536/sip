@@ -17,12 +17,11 @@ import { useCallback, useMemo, useRef } from 'preact/hooks'
 
 export default function GraphTab(): JSX.Element {
   const store = useRDFStore(s => s.store)
-
-  const rdfGraphLayout = useRDFStore(s => s.rdfGraphLayout)
-  const rdfGraphDriver = useRDFStore(s => s.rdfGraphDriver)
-  const rdfGraphSeed = useRDFStore(s => s.rdfGraphSeed)
+  const layout = useRDFStore(s => s.rdfGraphLayout)
+  const driver = useRDFStore(s => s.rdfGraphDriver)
+  const seed = useRDFStore(s => s.rdfGraphSeed)
   const ns = useRDFStore(s => s.ns)
-  const namespaceVersion = useRDFStore(s => s.namespaceVersion)
+  const nsVersion = useRDFStore(s => s.namespaceVersion)
 
   const makeGraph = useMemo(
     () => async (): Promise<Graph<RDFNode, RDFEdge>> => {
@@ -52,12 +51,12 @@ export default function GraphTab(): JSX.Element {
     <GraphDisplay
       ref={displayRef}
       loader={triples}
-      driver={rdfGraphDriver}
-      seed={rdfGraphSeed}
-      builderKey={namespaceVersion.toString()}
+      driver={driver}
+      seed={seed}
+      builderKey={nsVersion.toString()}
       makeGraph={makeGraph}
       options={{ ns }}
-      layout={rdfGraphLayout}
+      layout={layout}
       panel={panel}
     />
   )
