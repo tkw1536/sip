@@ -34,7 +34,7 @@ export const create: StateCreator<BoundState, [], [], Slice> = set => {
   return {
     ...initialState,
 
-    loadFile: async (file: File) => {
+    loadFile: (file: File) => {
       // tell the caller that we're loading
       set({ loadStage: 'loading' })
 

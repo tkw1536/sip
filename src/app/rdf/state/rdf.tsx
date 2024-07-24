@@ -8,24 +8,18 @@ import { type StateCreator } from 'zustand'
 export type Slice = State & Actions
 
 interface State {
-  modal: boolean
-
   rdfGraphDriver: string
   rdfGraphLayout: string
   rdfGraphSeed: number | null
 }
 
 interface Actions {
-  hideModal: () => void
-
   setRDFDriver: (name: string) => void
   setRDFLayout: (name: string) => void
   setRDFSeed: (seed: number | null) => void
 }
 
 const initialState: State = {
-  modal: false,
-
   rdfGraphDriver: triples.defaultDriver,
   rdfGraphLayout: defaultLayout,
   rdfGraphSeed: null,
@@ -41,10 +35,6 @@ export const create: StateCreator<BoundState, [], [], Slice> = set => {
 
   return {
     ...initialState,
-
-    hideModal: () => {
-      set({ modal: false })
-    },
 
     setRDFDriver: (name: string) => {
       set({ rdfGraphDriver: name, rdfGraphLayout: defaultLayout })
