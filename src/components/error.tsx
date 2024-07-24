@@ -43,6 +43,7 @@ function ErrorDisplayAny(props: { error: unknown }): JSX.Element {
   }
   return <ErrorDisplayError error={error} />
 }
+
 class ErrorDisplayError extends Component<{ error: Error }, State> {
   state: State = {}
   readonly #formatError = new Operation()
@@ -108,10 +109,59 @@ export class ErrorBoundary extends Component<
   { children: ComponentChildren },
   { error?: unknown }
 > {
-  state: { error?: Error } = {}
+  state: { error?: ApplicationCrash } = {}
 
   componentDidCatch(error: any, info: ErrorInfo): void {
     this.setState({ error: new ApplicationCrash(error, info) })
+  }
+
+  /** remove the current error state and attempts to re-render the children */
+  readonly #remount = (): void => {
+    this.setState(({ error }) => {
+      // if we didn't crash, don't do anything
+      if (!(error instanceof ApplicationCrash)) return null
+
+      // try to render again
+      return { error: undefined }
+    })
+  }
+
+  #enabled = false
+  #enableAutoRemount(): void {
+    if (this.#enabled) return
+    import.meta.hot?.on('vite:afterUpdate', this.#remount)
+    this.#enabled = true
+  }
+  #disableAutoRemount(): void {
+    if (!this.#enabled) return
+    import.meta.hot?.off('vite:afterUpdate', this.#remount)
+    this.#enabled = false
+  }
+
+  componentDidUpdate(
+    previousProps: typeof this.props,
+    previousState: typeof this.state,
+  ): void {
+    // if we don't have a hot reload, don't bother
+    if (typeof import.meta.hot === 'undefined') {
+      return
+    }
+
+    // check that the error changed
+    const { error } = this.state
+    const { error: prevError } = previousState
+    if (error === prevError) return
+
+    // listen to changes only if there is an error
+    if (typeof error !== 'undefined') {
+      this.#enableAutoRemount()
+    } else {
+      this.#disableAutoRemount()
+    }
+  }
+
+  componentWillUnmount(): void {
+    this.#disableAutoRemount()
   }
 
   render(): ComponentChildren {
