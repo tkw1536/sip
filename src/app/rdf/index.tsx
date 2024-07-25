@@ -17,7 +17,7 @@ export default function RDFViewerApp(): JSX.Element {
 
   const modal = useRDFStore(s => s.modal)
   const closeModal = useRDFStore(s => s.hideModal)
-  const handleCloseModal = useEventCallback(closeModal)
+  const handleCloseModal = useEventCallback(closeModal, [closeModal])
 
   const loadStage = useRDFStore(s => s.loadStage)
   const loaded = loadStage === true

@@ -52,7 +52,7 @@ export default function Tabs(props: TabsProps): JSX.Element {
         return null
       })
       .filter(c => c !== null)
-  }, [toChildArray, Tab, Label, props.children])
+  }, [props.children])
 
   const { active, onChangeTab } = props
   return (
@@ -76,7 +76,7 @@ function findTab(
 }
 
 export function TabInterface(props: TabInterfaceProps): JSX.Element {
-  const { active, children } = props
+  const { active, children, onChangeTab } = props
 
   const handleTabClick = useCallback(
     (event: MouseEvent & { currentTarget: HTMLLIElement }): void => {
@@ -85,12 +85,12 @@ export function TabInterface(props: TabInterfaceProps): JSX.Element {
       const { id } = event.currentTarget.dataset
       if (typeof id !== 'string') return
 
-      const tab = findTab(id, props.children)
+      const tab = findTab(id, children)
       if (tab === null || (tab.disabled ?? false)) return
 
-      props.onChangeTab(id)
+      onChangeTab(id)
     },
-    [props.children, props.onChangeTab, findTab],
+    [children, onChangeTab],
   )
 
   const id = useId()

@@ -70,7 +70,7 @@ function TreeTabPanel(): JSX.Element {
       evt.preventDefault()
       apply(selectAll())
     },
-    [apply, selectAll],
+    [apply],
   )
 
   const handleSelectNone = useCallback(
@@ -78,7 +78,7 @@ function TreeTabPanel(): JSX.Element {
       evt.preventDefault()
       apply(selectNone())
     },
-    [apply, selectNone],
+    [apply],
   )
 
   const handleSelectOnlyBundles = useCallback(
@@ -86,7 +86,7 @@ function TreeTabPanel(): JSX.Element {
       evt.preventDefault()
       apply(selectPredicate(x => x instanceof Bundle))
     },
-    [apply, selectPredicate],
+    [apply],
   )
 
   const handleSelectOnlyFields = useCallback(
@@ -94,7 +94,7 @@ function TreeTabPanel(): JSX.Element {
       evt.preventDefault()
       apply(selectPredicate(x => x instanceof Field))
     },
-    [apply, selectPredicate],
+    [apply],
   )
 
   const handleExpandAll = useCallback(
@@ -102,7 +102,7 @@ function TreeTabPanel(): JSX.Element {
       evt.preventDefault()
       apply(expandAll())
     },
-    [apply, expandAll],
+    [apply],
   )
 
   const handleCollapseAll = useCallback(
@@ -110,7 +110,7 @@ function TreeTabPanel(): JSX.Element {
       evt.preventDefault()
       apply(collapseAll())
     },
-    [apply, collapseAll],
+    [apply],
   )
 
   const handleColorPreset = useCallback(
@@ -121,7 +121,7 @@ function TreeTabPanel(): JSX.Element {
 
       apply(applyColorPreset(preset as ColorPreset))
     },
-    [apply, applyColorPreset],
+    [apply],
   )
 
   const handleColorMapExport = useCallback(
@@ -130,14 +130,14 @@ function TreeTabPanel(): JSX.Element {
       const blob = new Blob([data], { type: Type.JSON })
       download(blob, 'colors.json', 'json')
     },
-    [cm, download],
+    [cm],
   )
 
   const handleColorMapImport = useCallback(
     (file: File): void => {
       apply(loadColorMap(file))
     },
-    [apply, loadColorMap],
+    [apply],
   )
 
   const handleHideEqualParentPaths = useCallback(
@@ -145,7 +145,7 @@ function TreeTabPanel(): JSX.Element {
       event.preventDefault()
       apply(setHideEqualParentPaths(event.currentTarget.checked))
     },
-    [apply, setHideEqualParentPaths],
+    [apply],
   )
 
   return (
@@ -285,6 +285,8 @@ function BundleRows(props: {
   level: number
   visible: boolean
 }): JSX.Element {
+  const { bundle, level, visible } = props
+
   const apply = useInspectorStore(s => s.apply)
   const cm = useInspectorStore(s => s.cm)
   const ns = useInspectorStore(s => s.ns)
@@ -296,9 +298,9 @@ function BundleRows(props: {
     (evt: Event): void => {
       evt.preventDefault()
 
-      apply(collapseNode(props.bundle))
+      apply(collapseNode(bundle))
     },
-    [apply, collapseNode, props.bundle],
+    [apply, bundle],
   )
 
   const shiftHeld = useRef(false)
@@ -314,7 +316,6 @@ function BundleRows(props: {
     (evt: Event & { currentTarget: HTMLInputElement }): void => {
       evt.preventDefault()
 
-      const { bundle } = props
       const { current: shift } = shiftHeld
 
       const keys = shift ? Array.from(bundle.walk()) : [bundle]
@@ -322,17 +323,16 @@ function BundleRows(props: {
 
       apply(updateSelection(keys.map(k => [k, value])))
     },
-    [props.bundle, shiftHeld, apply, updateSelection],
+    [bundle, apply],
   )
 
   const handleColorChange = useCallback(
     (evt: Event & { currentTarget: HTMLInputElement }): void => {
-      apply(setColor(props.bundle, evt.currentTarget.value))
+      apply(setColor(bundle, evt.currentTarget.value))
     },
-    [apply, setColor, props.bundle],
+    [apply, bundle],
   )
 
-  const { bundle, level, visible } = props
   const path = bundle.path
   const expanded = !collapsed.includes(bundle)
 
@@ -398,6 +398,8 @@ function FieldRow(props: {
   level: number
   visible: boolean
 }): JSX.Element {
+  const { field, level, visible } = props
+
   const apply = useInspectorStore(s => s.apply)
   const cm = useInspectorStore(s => s.cm)
   const ns = useInspectorStore(s => s.ns)
@@ -406,19 +408,18 @@ function FieldRow(props: {
 
   const handleSelectionChange = useCallback(
     (evt: Event & { currentTarget: HTMLInputElement }): void => {
-      apply(updateSelection([[props.field, evt.currentTarget.checked]]))
+      apply(updateSelection([[field, evt.currentTarget.checked]]))
     },
-    [apply, updateSelection, props.field],
+    [apply, field],
   )
 
   const handleColorChange = useCallback(
     (evt: Event & { currentTarget: HTMLInputElement }): void => {
-      apply(setColor(props.field, evt.currentTarget.value))
+      apply(setColor(field, evt.currentTarget.value))
     },
-    [apply, props.field, setColor],
+    [apply, field],
   )
 
-  const { field, level, visible } = props
   const { path } = field
 
   return (

@@ -125,14 +125,11 @@ function AddMapRow(props: AddRowProps): JSX.Element {
   const [short, setShort] = useState('')
   const shortValid = useMemo(
     () => isShortValid(short, props.ns),
-    [isShortValid, short, props.ns],
+    [short, props.ns],
   )
 
   const [long, setLong] = useState('')
-  const longValid = useMemo(
-    () => isLongValid(long, props.ns),
-    [isLongValid, long, props.ns],
-  )
+  const longValid = useMemo(() => isLongValid(long, props.ns), [long, props.ns])
 
   const handleSubmit = useCallback(
     (evt: SubmitEvent): void => {
@@ -141,7 +138,7 @@ function AddMapRow(props: AddRowProps): JSX.Element {
       if (!shortValid || !longValid) return
       props.onAdd(short, long)
     },
-    [short, shortValid, long, longValid, props.onAdd],
+    [shortValid, longValid, props, short, long],
   )
 
   const handleShortChange = useCallback(
@@ -193,12 +190,14 @@ function ControlsRow(props: {
   onReset: () => void
   onLoad: (file: File) => void
 }): JSX.Element {
+  const { nsLoadError, onReset, onLoad } = props
+
   const handleSubmit = useCallback(
     (event: SubmitEvent): void => {
       event.preventDefault()
-      props.onReset()
+      onReset()
     },
-    [props.onReset],
+    [onReset],
   )
 
   const handleNamespaceMapExport = useCallback(
@@ -212,12 +211,11 @@ function ControlsRow(props: {
 
   const handleNamespaceMapImport = useCallback(
     (file: File): void => {
-      props.onLoad(file)
+      onLoad(file)
     },
-    [props.onLoad],
+    [onLoad],
   )
 
-  const { nsLoadError } = props
   return (
     <tr>
       <td colspan={2}>

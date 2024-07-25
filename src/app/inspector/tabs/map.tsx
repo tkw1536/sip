@@ -12,13 +12,13 @@ export default function MapTab(): JSX.Element {
 
   const handleReset = useCallback((): void => {
     apply(resetNamespaceMap())
-  }, [apply, resetNamespaceMap])
+  }, [apply])
 
   const handleNewMap = useCallback(
     (ns: NamespaceMap): void => {
       apply(setNamespaceMap(ns))
     },
-    [apply, setNamespaceMap],
+    [apply],
   )
 
   return (

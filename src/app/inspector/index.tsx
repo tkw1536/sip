@@ -34,11 +34,11 @@ export default function InspectorApp(): JSX.Element {
     (key: string): void => {
       apply(setActiveTab(key))
     },
-    [apply, setActiveTab],
+    [apply],
   )
   const handleClose = useCallback(() => {
     apply(closeModal())
-  }, [apply, closeModal])
+  }, [apply])
 
   return (
     <>

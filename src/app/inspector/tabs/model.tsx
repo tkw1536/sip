@@ -26,6 +26,7 @@ import {
 } from '../../../lib/graph/builders/model/labels'
 import { useCallback, useId, useMemo, useRef } from 'preact/hooks'
 import { useInspectorStore } from '../state'
+import useEventCallback from '../../../components/hooks/event'
 
 export default function ModelGraphView(): JSX.Element {
   const tree = useInspectorStore(s => s.tree)
@@ -60,7 +61,7 @@ export default function ModelGraphView(): JSX.Element {
       })
       return await builder.build()
     }
-  }, [ModelGraphBuilder, tree, selection, deduplication])
+  }, [tree, selection, deduplication])
 
   const builderKey = `${pbVersion}-${selectionVersion}-${optionVersion}-${cmVersion}`
 
@@ -77,7 +78,7 @@ export default function ModelGraphView(): JSX.Element {
         />
       )
     }
-  }, [ModelGraphPanel, displayRef])
+  }, [displayRef])
 
   const options = useMemo(() => ({ ns, cm, display }), [ns, cm, display])
 
@@ -121,35 +122,35 @@ function ModelGraphPanel(props: ModelGraphPanelProps): JSX.Element {
         ),
       )
     },
-    [apply, setModelDeduplication],
+    [apply],
   )
 
   const handleChangeModelRenderer = useCallback(
     (value: string): void => {
       apply(setModelDriver(value))
     },
-    [apply, setModelDriver],
+    [apply],
   )
 
   const handleChangeDisplay = useCallback(
     (display: ModelDisplay): void => {
       apply(setModelDisplay(display))
     },
-    [apply, setModelDisplay],
+    [apply],
   )
 
   const handleChangeModelLayout = useCallback(
     (value: string): void => {
       apply(setModelLayout(value))
     },
-    [apply, setModelLayout],
+    [apply],
   )
 
   const handleChangeModelSeed = useCallback(
     (seed: number | null): void => {
       apply(setModelSeed(seed))
     },
-    [apply, setModelSeed],
+    [apply],
   )
 
   const handleResetDriver = useCallback((): void => {
@@ -388,25 +389,26 @@ interface ComponentCheckboxProps extends ModelDisplayControlProps {
 }
 
 function ComponentCheckbox(props: ComponentCheckboxProps): JSX.Element {
-  const handleInput = useCallback(
-    (event: Event & { currentTarget: HTMLInputElement }): void => {
-      event.preventDefault()
+  const { onUpdate, set, display, value, label } = props
+  const handleInput = useEventCallback(
+    (event: Event & { currentTarget: HTMLInputElement }) => {
       const { checked } = event.currentTarget
-      props.onUpdate(props.set(props.display, checked))
+      onUpdate(set(display, checked))
     },
-    [props.onUpdate, props.set, props.display],
+    [display, onUpdate, set],
   )
+
   const id = useId()
   return (
     <>
       <input
         type='checkbox'
         id={id}
-        checked={props.value}
+        checked={value}
         onInput={handleInput}
       ></input>
       <label for={id}>
-        <em>{props.label}</em>
+        <em>{label}</em>
       </label>
     </>
   )

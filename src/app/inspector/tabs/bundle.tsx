@@ -36,7 +36,7 @@ export default function BundleGraphTab(): JSX.Element {
       const builder = new BundleGraphBuilder(tree, selection)
       return await builder.build()
     },
-    [BundleGraphBuilder, tree, selection],
+    [tree, selection],
   )
 
   const displayRef =
@@ -57,7 +57,7 @@ export default function BundleGraphTab(): JSX.Element {
         />
       )
     },
-    [BundleGraphPanel, displayRef],
+    [displayRef],
   )
 
   return (
@@ -94,19 +94,19 @@ function BundleGraphPanel(props: BundleGraphPanelProps): JSX.Element {
     (value: string): void => {
       apply(setBundleDriver(value))
     },
-    [apply, setBundleDriver],
+    [apply],
   )
   const handleChangeBundleLayout = useCallback(
     (value: string): void => {
       apply(setBundleLayout(value))
     },
-    [apply, setBundleLayout],
+    [apply],
   )
   const handleChangeBundleSeed = useCallback(
     (seed: number | null): void => {
       apply(setBundleSeed(seed))
     },
-    [apply, setBundleSeed],
+    [apply],
   )
   const handleResetDriver = useCallback((): void => {
     const { current: display } = displayRef

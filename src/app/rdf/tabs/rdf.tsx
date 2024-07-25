@@ -46,7 +46,7 @@ function WelcomeView(): JSX.Element {
 
 function InfoView(): JSX.Element {
   const closeFile = useRDFStore(s => s.closeFile)
-  const handleClose = useEventCallback(closeFile)
+  const handleClose = useEventCallback(closeFile, [closeFile])
 
   const filename = useRDFStore(s => s.filename)
   const theFilename = filename !== '' ? filename : 'statements.rdf'

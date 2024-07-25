@@ -47,22 +47,23 @@ export function Lazy<P>(
         return () => {
           mounted = false
         }
-      }, [loader])
+      }, [])
 
       const [hideFallback, setHideFallback] = useState(
         shouldHideFallbackByDefault,
       )
-      if (shouldHideFallbackByDefault) {
-        useEffect(() => {
-          const timeout = setTimeout(() => {
-            setHideFallback(false)
-          }, fallbackDelay)
+      useEffect(() => {
+        if (!shouldHideFallbackByDefault) {
+          return
+        }
+        const timeout = setTimeout(() => {
+          setHideFallback(false)
+        }, fallbackDelay)
 
-          return () => {
-            clearTimeout(timeout)
-          }
-        })
-      }
+        return () => {
+          clearTimeout(timeout)
+        }
+      })
 
       const { Component, Error: loadError } = cState
 

@@ -27,7 +27,7 @@ export default function GraphTab(): JSX.Element {
       const builder = new RDFGraphBuilder(store)
       return await builder.build()
     },
-    [RDFGraphBuilder, store],
+    [store],
   )
 
   const displayRef =
@@ -44,7 +44,7 @@ export default function GraphTab(): JSX.Element {
         displayRef={displayRef}
       />
     ),
-    [GraphTabPanel, displayRef],
+    [displayRef],
   )
   return (
     <GraphDisplay
@@ -77,7 +77,7 @@ function GraphTabPanel(props: GraphTabPanelProps): JSX.Element {
 
   const handleResetDriver = useCallback((): void => {
     displayRef.current?.remount()
-  }, [displayRef.current])
+  }, [displayRef])
 
   const seed = useRDFStore(s => s.rdfGraphSeed)
   const setSeed = useRDFStore(s => s.setRDFSeed)

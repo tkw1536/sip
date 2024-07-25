@@ -333,23 +333,21 @@ function SimulationControls<
   driver: Driver<NodeLabel, EdgeLabel, Options, AttachmentKey> | null
   animating: boolean | null
 }): JSX.Element {
+  const { animating, driver } = props
+
   const handleStart = useCallback((): void => {
-    const { animating, driver } = props
     if (animating !== false || driver === null) {
       return
     }
     driver.startAnimation()
-  }, [props.driver, props.animating])
+  }, [animating, driver])
 
   const handleStop = useCallback((): void => {
-    const { animating, driver } = props
     if (animating !== true || driver === null) {
       return
     }
     driver.stopAnimation()
-  }, [props.driver, props.animating])
-
-  const { animating } = props
+  }, [driver, animating])
 
   return (
     <>
@@ -381,13 +379,13 @@ function SeedControls<
   seed: number | null
   onChangeSeed: (seed: number | null) => void
 }): JSX.Element {
+  const { id, driver, seed, onChangeSeed } = props
+
   const handleChangeEnabled = useCallback(
     (event: Event & { currentTarget: HTMLInputElement }): void => {
-      props.onChangeSeed(
-        event.currentTarget.checked ? props.driver?.seed ?? 0 : null,
-      )
+      onChangeSeed(event.currentTarget.checked ? driver?.seed ?? 0 : null)
     },
-    [props.onChangeSeed, props.driver],
+    [onChangeSeed, driver?.seed],
   )
 
   const handleChangeValue = useCallback(
@@ -397,11 +395,10 @@ function SeedControls<
       if (isNaN(value) || value < 0) {
         return
       }
-      props.onChangeSeed(value)
+      onChangeSeed(value)
     },
-    [props.onChangeSeed],
+    [onChangeSeed],
   )
-  const { id, driver, seed } = props
 
   const enabled = seed !== null
   const value = seed ?? driver?.seed ?? undefined
@@ -437,16 +434,17 @@ interface ActionButtonProps extends HTMLAttributes<HTMLButtonElement> {
   onClick?: () => void
 }
 function ActionButton(props: ActionButtonProps): JSX.Element {
-  const onClick = useCallback(
+  const { onClick } = props
+  const handleClick = useCallback(
     (event: Event) => {
       event.preventDefault()
-      if (typeof props.onClick === 'function') {
-        props.onClick()
+      if (typeof onClick === 'function') {
+        onClick()
       }
     },
-    [props.onClick],
+    [onClick],
   )
-  return <button {...props} onClick={onClick} />
+  return <button {...props} onClick={handleClick} />
 }
 
 export function ExportControl<
@@ -458,10 +456,11 @@ export function ExportControl<
   driver: Driver<NodeLabel, EdgeLabel, Options, AttachmentKey> | null
   display: GraphDisplay<NodeLabel, EdgeLabel, Options, AttachmentKey> | null
 }): JSX.Element | null {
+  const { driver, display } = props
+
   const handleExport = useCallback(
     (event: Event & { currentTarget: HTMLButtonElement }): void => {
       event.preventDefault()
-      const { driver, display } = props
       if (driver === null || display === null) {
         console.warn('handleExport called without mounted display')
         return
@@ -475,11 +474,11 @@ export function ExportControl<
 
       display.export(format)
     },
-    [props.driver, props.display],
+    [driver, display],
   )
 
   // check that there are some export formats
-  const exportFormats = props.driver?.exportFormats
+  const exportFormats = driver?.exportFormats
   if (typeof exportFormats === 'undefined' || exportFormats.length === 0) {
     return null
   }

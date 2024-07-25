@@ -49,7 +49,7 @@ function WelcomeView(): JSX.Element {
     (file: File): void => {
       apply([setPathbuilderLoading, loadPathbuilder(file)])
     },
-    [apply, setPathbuilderLoading, loadPathbuilder],
+    [apply],
   )
 
   if (loadStage === 'loading') {
@@ -97,7 +97,7 @@ function InfoView(): JSX.Element {
       const file = new Blob([pathbuilder.toXML()], { type: 'application/xml' })
       download(file, filename)
     },
-    [pathbuilder, download, filename],
+    [pathbuilder, filename],
   )
 
   const handleClosePathbuilder = useCallback(
@@ -106,7 +106,7 @@ function InfoView(): JSX.Element {
 
       apply(resetInspector(false))
     },
-    [apply, resetInspector],
+    [apply],
   )
 
   const theFilename = filename !== '' ? filename : 'pathbuilder.xml'

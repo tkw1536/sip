@@ -10,7 +10,7 @@ interface ValueSelectorProps {
 }
 
 export default function ValueSelector(props: ValueSelectorProps): JSX.Element {
-  const { id, value, values, disabled } = props
+  const { id, value, values, disabled, onInput } = props
   const isDisabled =
     (disabled ?? false) ||
     typeof value === 'undefined' ||
@@ -23,13 +23,12 @@ export default function ValueSelector(props: ValueSelectorProps): JSX.Element {
 
       // validate that we have a valid value
       const { value } = evt.currentTarget
-      const { values, onInput } = props
       if (!(values?.includes(value) ?? false)) return
 
       // call the handler
       onInput(value)
     },
-    [isDisabled, props.values, props.onInput],
+    [isDisabled, values, onInput],
   )
 
   if (typeof values === 'undefined') {

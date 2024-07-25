@@ -62,7 +62,12 @@ export default [
       'react/no-unsafe': ['error'],
 
       'react-hooks/rules-of-hooks': ['error'],
-      'react-hooks/exhaustive-deps': ['error'],
+      'react-hooks/exhaustive-deps': [
+        'error',
+        {
+          additionalHooks: '(useEventCallback)',
+        },
+      ],
     },
     settings: {
       react: {
