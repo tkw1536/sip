@@ -4,16 +4,11 @@ import {
   type ComponentChildren,
   type ErrorInfo,
 } from 'preact'
-import { Operation } from '../lib/utils/operation'
 import * as styles from './error.module.css'
 
 import StackTrace from 'stacktrace-js'
 import { classes } from '../lib/utils/classes'
-
-interface State {
-  error?: Error
-  stack?: string
-}
+import { useEffect, useState } from 'preact/hooks'
 
 interface ErrorProps {
   error?: unknown
@@ -44,65 +39,57 @@ function ErrorDisplayAny(props: { error: unknown }): JSX.Element {
   return <ErrorDisplayError error={error} />
 }
 
-class ErrorDisplayError extends Component<{ error: Error }, State> {
-  state: State = {}
-  readonly #formatError = new Operation()
+interface State {
+  error: Error
+  stack?: string
+}
 
-  readonly #doFormatError = (): void => {
-    const { error } = this.props
-    const ticket = this.#formatError.ticket()
+function ErrorDisplayError(props: { error: Error }): JSX.Element {
+  const { error } = props
+  const [{ error: sErr, stack: sStack }, setErrState] = useState<State>({
+    error,
+    stack: undefined,
+  })
+
+  useEffect(() => {
+    let active = true
 
     StackTrace.fromError(error)
       .then(frames => {
-        if (!ticket()) return
+        if (!active) return
 
         const stack = frames.map(sf => sf.toString()).join('\n')
-        this.setState({ error, stack })
+        setErrState({ error, stack })
       })
       .catch(() => {
-        if (!ticket()) return
-        this.setState({ error, stack: undefined })
+        if (!active) return
+        setErrState({ error, stack: undefined })
       })
-  }
 
-  componentDidMount(): void {
-    this.#doFormatError()
-  }
-
-  componentWillUnmount(): void {
-    this.#formatError.cancel()
-  }
-
-  componentDidUpdate(previousProps: typeof this.props): void {
-    if (this.props.error !== previousProps.error) {
-      this.#doFormatError()
+    return () => {
+      active = false
     }
-  }
+  }, [error])
 
-  render(): ComponentChildren {
-    const { error } = this.props
-    const { error: sErr, stack: sStack } = this.state
+  const stack = error === sErr ? sStack ?? sErr.stack : error.stack
+  return (
+    <>
+      <ErrorTitle title={error.name} message={error.message} />
 
-    const stack = error === sErr ? sStack ?? sErr.stack : error.stack
-    return (
-      <>
-        <ErrorTitle title={error.name} message={error.message} />
-
-        {typeof stack === 'string' &&
-          stack.split('\n').map((frame, index) => (
-            <span key={index} class={styles.line}>
-              {frame}
-            </span>
-          ))}
-        {typeof error.cause !== 'undefined' && error.cause !== null && (
-          <details>
-            <summary>Cause</summary>
-            <ErrorDisplayAny error={error.cause} />
-          </details>
-        )}
-      </>
-    )
-  }
+      {typeof stack === 'string' &&
+        stack.split('\n').map((frame, index) => (
+          <span key={index} class={styles.line}>
+            {frame}
+          </span>
+        ))}
+      {typeof error.cause !== 'undefined' && error.cause !== null && (
+        <details>
+          <summary>Cause</summary>
+          <ErrorDisplayAny error={error.cause} />
+        </details>
+      )}
+    </>
+  )
 }
 
 export class ErrorBoundary extends Component<
