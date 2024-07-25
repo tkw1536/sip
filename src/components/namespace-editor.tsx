@@ -1,4 +1,4 @@
-import { Component, type JSX, type ComponentChild } from 'preact'
+import { type JSX } from 'preact'
 import { NamespaceMap } from '../lib/pathbuilder/namespace'
 import { Type } from '../lib/utils/media'
 import download from '../lib/utils/download'
@@ -7,113 +7,122 @@ import ErrorDisplay from './error'
 import * as styles from './namespace-editor.module.css'
 import { Operation } from '../lib/utils/operation'
 import { classes } from '../lib/utils/classes'
-import { useCallback, useId, useMemo, useState } from 'preact/hooks'
+import { useCallback, useEffect, useId, useMemo, useState } from 'preact/hooks'
 
 interface NamespaceEditorProps {
   ns: NamespaceMap
-  nsKey: string | number
   onReset: () => void
   onUpdate: (ns: NamespaceMap) => void
 }
 
-interface NamespaceEditorState {
-  loadError?: any
-}
+export default function NamespaceEditor(
+  props: NamespaceEditorProps,
+): JSX.Element {
+  const { onUpdate, ns, onReset } = props
+  const [loadError, setLoadError] = useState<any>(undefined)
 
-export default class NamespaceEditor extends Component<
-  NamespaceEditorProps,
-  NamespaceEditorState
-> {
-  state: NamespaceEditorState = {}
+  const doUpdate = useCallback(
+    (newNS: NamespaceMap) => {
+      setLoadError(undefined)
 
-  readonly #handleUpdate = (
-    short: string,
-    newShort: string | undefined,
-    newLong: string | undefined,
-  ): void => {
-    this.setState({ loadError: undefined }, () => {
-      let { ns } = this.props
+      if (newNS === ns) return
+      onUpdate(newNS)
+    },
+    [ns, onUpdate],
+  )
+
+  const handleUpdate = useCallback(
+    (
+      short: string,
+      newShort: string | undefined,
+      newLong: string | undefined,
+    ): void => {
+      let newNS = ns
       if (typeof newLong === 'string') {
-        ns = ns.update(short, newLong)
+        newNS = newNS.update(short, newLong)
       }
       if (typeof newShort === 'string') {
-        ns = ns.rename(short, newShort)
+        newNS = newNS.rename(short, newShort)
       }
+      doUpdate(newNS)
+    },
+    [doUpdate, ns],
+  )
 
-      this.props.onUpdate(ns)
-    })
-  }
-  readonly #handleAdd = (short: string, long: string): void => {
-    this.setState({ loadError: undefined }, () => {
-      this.props.onUpdate(this.props.ns.add(short, long))
-    })
-  }
-  readonly #handleDelete = (long: string): void => {
-    this.setState({ loadError: undefined }, () => {
-      this.props.onUpdate(this.props.ns.remove(long))
-    })
-  }
+  const handleAdd = useCallback(
+    (short: string, long: string): void => {
+      setLoadError(undefined)
 
-  readonly #operation = new Operation()
-  readonly #loadNS = (file: File): void => {
-    void this.#doLoadNS(file)
-  }
-  readonly #doLoadNS = async (file: File): Promise<void> => {
-    const ticket = this.#operation.ticket()
+      doUpdate(ns.add(short, long))
+    },
+    [doUpdate, ns],
+  )
 
-    let ns: NamespaceMap
-    try {
-      const data = JSON.parse(await file.text())
-      const newNS = NamespaceMap.fromJSON(data)
-      if (newNS === null) throw new Error('not a valid namespace map')
-      ns = newNS
-    } catch (e: unknown) {
-      if (!ticket()) return
-      this.setState({ loadError: e })
-      return
-    }
+  const handleDelete = useCallback(
+    (long: string): void => {
+      doUpdate(ns.remove(long))
+    },
+    [doUpdate, ns],
+  )
 
-    if (!ticket()) return
-    this.props.onUpdate(ns)
-  }
+  const operation = useMemo(() => new Operation(), []) // TODO: Figure out what to put here
+  useEffect(() => () => {
+    operation.cancel()
+  })
 
-  componentWillUnmount(): void {
-    this.#operation.cancel()
-  }
+  const loadNS = useCallback(
+    (file: File) => {
+      void (async () => {
+        const ticket = operation.ticket()
+        let ns: NamespaceMap
+        try {
+          const data = JSON.parse(await file.text())
+          const newNS = NamespaceMap.fromJSON(data)
+          if (newNS === null) throw new Error('not a valid namespace map')
+          ns = newNS
+        } catch (e: unknown) {
+          if (!ticket()) return
+          setLoadError(e)
+          return
+        }
 
-  render(): ComponentChild {
-    const { nsKey, ns, onReset } = this.props
-    return (
-      <table class={classes(styles.table)}>
-        <thead>
-          <tr>
-            <th>NS</th>
-            <th>URI</th>
-            <th />
-          </tr>
-        </thead>
-        <tbody>
-          {Array.from(ns).map(([short, long]) => (
-            <MapViewRow
-              ns={ns}
-              long={long}
-              short={short}
-              key={short}
-              onUpdate={this.#handleUpdate.bind(this, short)}
-              onDelete={this.#handleDelete.bind(this, short)}
-            />
-          ))}
-          <AddMapRow ns={ns} key={nsKey} onAdd={this.#handleAdd} />
-          <ControlsRow
+        if (!ticket()) return
+        doUpdate(ns)
+      })()
+    },
+    [doUpdate, operation],
+  )
+
+  return (
+    <table class={classes(styles.table)}>
+      <thead>
+        <tr>
+          <th>NS</th>
+          <th>URI</th>
+          <th />
+        </tr>
+      </thead>
+      <tbody>
+        {Array.from(ns).map(([short, long]) => (
+          <MapViewRow
             ns={ns}
-            nsLoadError={this.state.loadError}
-            onReset={onReset}
-            onLoad={this.#loadNS}
+            long={long}
+            short={short}
+            key={short}
+            onUpdate={handleUpdate}
+            onDelete={handleDelete}
           />
-        </tbody>
-      </table>
-    )
-  }
+        ))}
+        <AddMapRow ns={ns} onAdd={handleAdd} />
+        <ControlsRow
+          ns={ns}
+          nsLoadError={loadError}
+          onReset={onReset}
+          onLoad={loadNS}
+        />
+      </tbody>
+    </table>
+  )
 }
 
 interface AddRowProps {
@@ -122,23 +131,28 @@ interface AddRowProps {
 }
 
 function AddMapRow(props: AddRowProps): JSX.Element {
-  const [short, setShort] = useState('')
+  const { ns, onAdd } = props
+
+  const [shortValue, setShort] = useState('')
   const shortValid = useMemo(
-    () => isShortValid(short, props.ns),
-    [short, props.ns],
+    () => isShortValid(shortValue, ns),
+    [shortValue, ns],
   )
 
-  const [long, setLong] = useState('')
-  const longValid = useMemo(() => isLongValid(long, props.ns), [long, props.ns])
+  const [longValue, setLong] = useState('')
+  const longValid = useMemo(() => isLongValid(longValue, ns), [longValue, ns])
 
   const handleSubmit = useCallback(
     (evt: SubmitEvent): void => {
       evt.preventDefault()
 
       if (!shortValid || !longValid) return
-      props.onAdd(short, long)
+
+      onAdd(shortValue, longValue)
+      setShort('')
+      setLong('')
     },
-    [shortValid, longValid, props, short, long],
+    [shortValid, longValid, onAdd, shortValue, longValue],
   )
 
   const handleShortChange = useCallback(
@@ -161,7 +175,7 @@ function AddMapRow(props: AddRowProps): JSX.Element {
       <td>
         <input
           type='text'
-          value={short}
+          value={shortValue}
           class={classes(!shortValid && styles.invalid)}
           onInput={handleShortChange}
         />
@@ -170,7 +184,7 @@ function AddMapRow(props: AddRowProps): JSX.Element {
         <input
           type='text'
           form={id}
-          value={long}
+          value={longValue}
           class={classes(styles.stretch, !longValid && styles.invalid)}
           onInput={handleLongChange}
         />
@@ -244,107 +258,107 @@ interface MapViewProps {
   ns: NamespaceMap
   long: string
   short: string
-  onUpdate: (newShort: string | undefined, newLong: string | undefined) => void
-  onDelete: () => void
+  onUpdate: (
+    myShort: string,
+    newShort: string | undefined,
+    newLong: string | undefined,
+  ) => void
+  onDelete: (myShort: string) => void
 }
 
-interface MapViewState {
-  short?: string
-  shortValid: boolean
-  long?: string
-  longValid: boolean
-}
+function MapViewRow(props: MapViewProps): JSX.Element {
+  const { short, long, ns, onUpdate, onDelete } = props
 
-class MapViewRow extends Component<MapViewProps, MapViewState> {
-  state: MapViewState = { shortValid: true, longValid: true }
+  const [shortValue, setShort] = useState(short)
+  const shortValid = useMemo(
+    () => isShortValid(shortValue, ns, short),
+    [ns, short, shortValue],
+  )
 
-  readonly #handleApply = (evt: Event): void => {
-    evt.preventDefault()
+  const [longValue, setLong] = useState(long)
+  const longValid = useMemo(
+    () => isLongValid(longValue, ns, long),
+    [long, longValue, ns],
+  )
 
-    const { short, long } = this.props
-    const { long: longValue = long, short: shortValue = short } = this.state
+  const handleApply = useCallback(
+    (evt: Event): void => {
+      evt.preventDefault()
 
-    const newShort = short !== shortValue ? shortValue : undefined
-    const newLong = long !== longValue ? longValue : undefined
+      const newShort = short !== shortValue ? shortValue : undefined
+      const newLong = long !== longValue ? longValue : undefined
 
-    // ensure that something has changed
-    if (typeof newShort === 'undefined' && typeof newLong === 'undefined') {
-      return
-    }
+      // ensure that something has changed
+      if (typeof newShort === 'undefined' && typeof newLong === 'undefined') {
+        return
+      }
 
-    // ensure that both elements are valid
-    const { shortValid, longValid } = this.state
-    if (!shortValid || !longValid) return
+      // ensure that both elements are valid
+      if (!shortValid || !longValid) return
 
-    this.props.onUpdate(newShort, newLong)
-  }
+      onUpdate(short, newShort, newLong)
+    },
+    [long, longValid, longValue, onUpdate, short, shortValid, shortValue],
+  )
 
-  readonly #handleEditShort = (
-    event: Event & { currentTarget: HTMLInputElement },
-  ): void => {
-    const { value: short } = event.currentTarget
-    const { short: oldShort, ns } = this.props
-    this.setState({ short, shortValid: isShortValid(short, ns, oldShort) })
-  }
-  readonly #handleEditLong = (
-    event: Event & { currentTarget: HTMLInputElement },
-  ): void => {
-    const { value: long } = event.currentTarget
-    const { long: oldLong, ns } = this.props
-    this.setState({ long, longValid: isLongValid(long, ns, oldLong) })
-  }
+  const handleEditShort = useCallback(
+    (event: Event & { currentTarget: HTMLInputElement }): void => {
+      setShort(event.currentTarget.value)
+    },
+    [],
+  )
 
-  readonly #handleDelete = (event: Event): void => {
-    event.preventDefault()
+  const handleEditLong = useCallback(
+    (event: Event & { currentTarget: HTMLInputElement }): void => {
+      setLong(event.currentTarget.value)
+    },
+    [],
+  )
 
-    this.props.onDelete()
-  }
+  const handleDelete = useCallback(
+    (event: Event): void => {
+      event.preventDefault()
 
-  render(): ComponentChild {
-    const { long, short } = this.props
-    const {
-      long: longValue = long,
-      longValid,
-      short: shortValue = short,
-      shortValid,
-    } = this.state
+      onDelete(short)
+    },
+    [onDelete, short],
+  )
 
-    const valid = longValid && shortValid
-    const dirty = longValue !== long || shortValue !== short
-    const enabled = valid && dirty
+  const valid = longValid && shortValid
+  const dirty = longValue !== long || shortValue !== short
+  const enabled = valid && dirty
 
-    return (
-      <tr>
-        <td>
-          <form onSubmit={this.#handleApply}>
-            <input
-              type='text'
-              value={shortValue}
-              onInput={this.#handleEditShort}
-              class={classes(!shortValid && styles.invalid)}
-            />
-          </form>
-        </td>
-        <td>
-          <form onSubmit={this.#handleApply}>
-            <input
-              type='text'
-              value={longValue}
-              onInput={this.#handleEditLong}
-              class={classes(styles.stretch, !longValid && styles.invalid)}
-            />
-          </form>
-        </td>
-        <td>
-          <button onClick={this.#handleApply} disabled={!enabled}>
-            Apply
-          </button>
-          &nbsp;
-          <button onClick={this.#handleDelete}>Delete</button>
-        </td>
-      </tr>
-    )
-  }
+  return (
+    <tr>
+      <td>
+        <form onSubmit={handleApply}>
+          <input
+            type='text'
+            value={shortValue}
+            onInput={handleEditShort}
+            class={classes(!shortValid && styles.invalid)}
+          />
+        </form>
+      </td>
+      <td>
+        <form onSubmit={handleApply}>
+          <input
+            type='text'
+            value={longValue}
+            onInput={handleEditLong}
+            class={classes(styles.stretch, !longValid && styles.invalid)}
+          />
+        </form>
+      </td>
+      <td>
+        <button onClick={handleApply} disabled={!enabled}>
+          Apply
+        </button>
+        &nbsp;
+        <button onClick={handleDelete}>Delete</button>
+      </td>
+    </tr>
+  )
 }
 
 function isShortValid(

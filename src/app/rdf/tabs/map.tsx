@@ -5,7 +5,6 @@ import NamespaceEditor from '../../../components/namespace-editor'
 
 export default function MapTab(): JSX.Element {
   const ns = useRDFStore(s => s.ns)
-  const nsVersion = useRDFStore(s => s.nsVersion)
 
   const resetNamespaceMap = useRDFStore(s => s.resetNamespaceMap)
   const setNamespaceMap = useRDFStore(s => s.setNamespaceMap)
@@ -17,7 +16,6 @@ export default function MapTab(): JSX.Element {
       </p>
       <NamespaceEditor
         ns={ns}
-        nsKey={nsVersion}
         onReset={resetNamespaceMap}
         onUpdate={setNamespaceMap}
       />

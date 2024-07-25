@@ -8,7 +8,6 @@ import { useInspectorStore } from '../state'
 export default function MapTab(): JSX.Element {
   const apply = useInspectorStore(s => s.apply)
   const ns = useInspectorStore(s => s.ns)
-  const nsVersion = useInspectorStore(s => s.namespaceVersion)
 
   const handleReset = useCallback((): void => {
     apply(resetNamespaceMap())
@@ -32,12 +31,7 @@ export default function MapTab(): JSX.Element {
         the pathbuilder. You can manually adjust it here, by adding, removing or
         editing abbreviations.
       </p>
-      <NamespaceEditor
-        ns={ns}
-        nsKey={nsVersion}
-        onReset={handleReset}
-        onUpdate={handleNewMap}
-      />
+      <NamespaceEditor ns={ns} onReset={handleReset} onUpdate={handleNewMap} />
     </>
   )
 }
