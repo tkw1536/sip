@@ -7,6 +7,7 @@ import ErrorDisplay from '../../components/error'
 import { type DriverClass, type ContextFlags, type Size } from './impl'
 import Spinner from '../../components/spinner'
 import { type Renderable } from '../graph/builders'
+import { setRef } from '../utils/ref'
 
 interface KernelProps<
   NodeLabel extends Renderable<Options, AttachmentKey>,
@@ -341,19 +342,5 @@ export default class Kernel<
         )}
       </div>
     )
-  }
-}
-
-/** sets a reference to a specific value */
-function setRef<T>(ref: Ref<T> | undefined, value: T | null): void {
-  if (ref === null) return
-  switch (typeof ref) {
-    case 'undefined':
-      return
-    case 'function':
-      ref(value)
-      return
-    default:
-      ref.current = value
   }
 }

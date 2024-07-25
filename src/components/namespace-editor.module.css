@@ -17,6 +17,6 @@ input.stretch {
     box-sizing: border-box;
 }
 
-input.invalid {
+input.validate:invalid {
     background-color: red;
 }

@@ -8,6 +8,7 @@ import * as styles from './namespace-editor.module.css'
 import { Operation } from '../lib/utils/operation'
 import { classes } from '../lib/utils/classes'
 import { useCallback, useEffect, useId, useMemo, useState } from 'preact/hooks'
+import InputWithValidity from './input-with-validity'
 
 interface NamespaceEditorProps {
   ns: NamespaceMap
@@ -134,13 +135,18 @@ function AddMapRow(props: AddRowProps): JSX.Element {
   const { ns, onAdd } = props
 
   const [shortValue, setShort] = useState('')
-  const shortValid = useMemo(
+  const shortValidity = useMemo(
     () => isShortValid(shortValue, ns),
     [shortValue, ns],
   )
+  const shortValid = typeof shortValidity === 'undefined'
 
   const [longValue, setLong] = useState('')
-  const longValid = useMemo(() => isLongValid(longValue, ns), [longValue, ns])
+  const longValidity = useMemo(
+    () => isLongValid(longValue, ns),
+    [longValue, ns],
+  )
+  const longValid = typeof longValidity === 'undefined'
 
   const handleSubmit = useCallback(
     (evt: SubmitEvent): void => {
@@ -159,34 +165,36 @@ function AddMapRow(props: AddRowProps): JSX.Element {
     (event: Event & { currentTarget: HTMLInputElement }): void => {
       setShort(event.currentTarget.value)
     },
-    [setShort],
+    [],
   )
 
   const handleLongChange = useCallback(
     (event: Event & { currentTarget: HTMLInputElement }): void => {
       setLong(event.currentTarget.value)
     },
-    [setLong],
+    [],
   )
 
   const id = useId()
   return (
     <tr>
       <td>
-        <input
+        <InputWithValidity
           type='text'
           value={shortValue}
-          class={classes(!shortValid && styles.invalid)}
+          class={classes(styles.validate)}
           onInput={handleShortChange}
+          validity={shortValidity}
         />
       </td>
       <td>
-        <input
+        <InputWithValidity
           type='text'
           form={id}
           value={longValue}
-          class={classes(styles.stretch, !longValid && styles.invalid)}
+          class={classes(styles.stretch, styles.validate)}
           onInput={handleLongChange}
+          validity={longValidity}
         />
       </td>
       <td>
@@ -270,16 +278,18 @@ function MapViewRow(props: MapViewProps): JSX.Element {
   const { short, long, ns, onUpdate, onDelete } = props
 
   const [shortValue, setShort] = useState(short)
-  const shortValid = useMemo(
+  const shortValidity = useMemo(
     () => isShortValid(shortValue, ns, short),
     [ns, short, shortValue],
   )
+  const shortValid = typeof shortValidity === 'undefined'
 
   const [longValue, setLong] = useState(long)
-  const longValid = useMemo(
+  const longValidity = useMemo(
     () => isLongValid(longValue, ns, long),
     [long, longValue, ns],
   )
+  const longValid = typeof longValidity === 'undefined'
 
   const handleApply = useCallback(
     (evt: Event): void => {
@@ -332,21 +342,23 @@ function MapViewRow(props: MapViewProps): JSX.Element {
     <tr>
       <td>
         <form onSubmit={handleApply}>
-          <input
+          <InputWithValidity
             type='text'
             value={shortValue}
+            validity={shortValidity}
             onInput={handleEditShort}
-            class={classes(!shortValid && styles.invalid)}
+            class={classes(styles.validate)}
           />
         </form>
       </td>
       <td>
         <form onSubmit={handleApply}>
-          <input
+          <InputWithValidity
             type='text'
             value={longValue}
+            validity={longValidity}
             onInput={handleEditLong}
-            class={classes(styles.stretch, !longValid && styles.invalid)}
+            class={classes(styles.stretch, styles.validate)}
           />
         </form>
       </td>
@@ -365,20 +377,28 @@ function isShortValid(
   short: string,
   ns: NamespaceMap,
   oldShort?: string,
-): boolean {
+): string | undefined {
   if (!NamespaceMap.validKey.test(short)) {
-    return false
+    return 'invalid characters in key'
   }
   if (typeof oldShort === 'string' && short === oldShort) {
-    return true
+    return undefined
   }
-  return !ns.has(short)
+
+  if (ns.has(short)) {
+    return 'duplicate namespace'
+  }
+
+  return undefined
 }
 
 function isLongValid(
   long: string,
   ns: NamespaceMap,
   oldLong?: string,
-): boolean {
-  return long !== ''
+): string | undefined {
+  if (long === '') {
+    return 'URI is empty'
+  }
+  return undefined
 }
