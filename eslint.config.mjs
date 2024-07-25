@@ -3,6 +3,13 @@
 import love from 'eslint-config-love'
 import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended'
 import react from 'eslint-plugin-react'
+import { fixupPluginRules } from '@eslint/compat'
+
+const eslintPluginReactHooks = await (async () => {
+  /** @type {any} */
+  const broken = (await import('eslint-plugin-react-hooks')).default
+  return fixupPluginRules(broken)
+})()
 
 const files = ['**/*.mjs', '**/*.js', '**/*.jsx', '**/*.ts', '**/*.tsx']
 const testFiles = [
@@ -39,6 +46,7 @@ export default [
     files: ['**/*.{js,jsx,mjs,cjs,ts,tsx}'],
     plugins: {
       react,
+      'react-hooks': eslintPluginReactHooks,
     },
     languageOptions: {
       parserOptions: {
@@ -52,6 +60,9 @@ export default [
       'react/no-unused-state': ['error'],
       'react/prefer-stateless-function': ['error'],
       'react/no-unsafe': ['error'],
+
+      'react-hooks/rules-of-hooks': ['error'],
+      'react-hooks/exhaustive-deps': ['error'],
     },
     settings: {
       react: {

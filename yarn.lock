@@ -714,6 +714,11 @@
   resolved "https://registry.yarnpkg.com/@eslint-community/regexpp/-/regexpp-4.11.0.tgz#b0ffd0312b4a3fd2d6f77237e7248a5ad3a680ae"
   integrity sha512-G/M/tIiMrTAxEWRfLfQJMmGNX28IxBg4PBz8XqQhqUHLFI6TL2htpIB1iQCj144V5ee/JaKyT9/WZ0MGZWfA7A==
 
+"@eslint/compat@^1.1.1":
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/@eslint/compat/-/compat-1.1.1.tgz#5736523f5105c94dfae5f35e31debc38443722cd"
+  integrity sha512-lpHyRyplhGPL5mGEh6M9O5nnKk0Gz4bFI+Zu6tKlPpDUN7XshWvH9C/px4UVm87IAANE0W81CEsNGbS1KlzXpA==
+
 "@eslint/eslintrc@^2.1.4":
   version "2.1.4"
   resolved "https://registry.yarnpkg.com/@eslint/eslintrc/-/eslintrc-2.1.4.tgz#388a269f0f25c1b6adc317b5a2c55714894c70ad"
@@ -2742,6 +2747,11 @@ eslint-plugin-promise@^6.0.0, eslint-plugin-promise@^6.1.1:
   resolved "https://registry.yarnpkg.com/eslint-plugin-promise/-/eslint-plugin-promise-6.4.0.tgz#54926d53c79541efe9cea6ac1d823a58bbed1106"
   integrity sha512-/KWWRaD3fGkVCZsdR0RU53PSthFmoHVhZl+y9+6DqeDLSikLdlUVpVEAmI6iCRR5QyOjBYBqHZV/bdv4DJ4Gtw==
 
+eslint-plugin-react-hooks@^4.6.2:
+  version "4.6.2"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-react-hooks/-/eslint-plugin-react-hooks-4.6.2.tgz#c829eb06c0e6f484b3fbb85a97e57784f328c596"
+  integrity sha512-QzliNJq4GinDBcD8gPB5v0wh6g8q3SUi6EFF0x8N/BL9PoVs0atuGc47ozMRyOWAKdwaZ5OnbOEa3WR+dSGKuQ==
+
 eslint-plugin-react@^7.32.2:
   version "7.34.3"
   resolved "https://registry.yarnpkg.com/eslint-plugin-react/-/eslint-plugin-react-7.34.3.tgz#9965f27bd1250a787b5d4cfcc765e5a5d58dcb7b"
@@ -4392,7 +4402,7 @@ react-is@^18.0.0:
   integrity sha512-/LLMVyas0ljjAtoYiPqYiL8VWXzUUdThrmU5+n20DZv+a+ClRoevUzw5JxU+Ieh5/c87ytoTBV9G1FiKfNJdmg==
 
 "react@file:./packages/fake_react":
-  version "1.0.0"
+  version "18.0.0"
 
 readable-stream@^4.0.0:
   version "4.5.2"
