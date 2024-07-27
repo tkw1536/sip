@@ -4,7 +4,6 @@ import {
   ErrorUnsupported,
   type MountInfo,
   type Refs,
-  type Size,
   defaultLayout,
 } from '.'
 import Sigma from 'sigma'
@@ -33,6 +32,7 @@ import {
   type RDFNode,
   type RDFOptions,
 } from '../../graph/builders/rdf'
+import { type Size } from '../../../components/hooks/observer'
 
 interface SigmaMount {
   stopLayout?: () => void

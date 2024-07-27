@@ -3,7 +3,6 @@ import {
   type ContextFlags,
   DriverImpl,
   type MountInfo,
-  type Size,
   defaultLayout,
 } from '..'
 import {
@@ -34,6 +33,7 @@ import {
   type Element,
   type ElementWithAttachments,
 } from '../../../graph/builders'
+import { type Size } from '../../../../components/hooks/observer'
 
 const spz = new LazyValue(
   async () => await import('svg-pan-zoom').then(spz => spz.default),

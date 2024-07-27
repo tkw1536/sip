@@ -4,7 +4,6 @@ import {
   ErrorUnsupported,
   type MountInfo,
   type Refs,
-  type Size,
   defaultLayout,
 } from '.'
 import {
@@ -37,6 +36,7 @@ import {
   type RDFOptions,
 } from '../../graph/builders/rdf'
 import { type Attributes } from 'graphology-types'
+import { type Size } from '../../../components/hooks/observer'
 
 const Vis = new LazyValue(async () => await import('vis-network'))
 

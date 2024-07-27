@@ -1,3 +1,4 @@
+import { type Size } from '../../../components/hooks/observer'
 import type Graph from '../../graph'
 import {
   type Attachment,
@@ -8,11 +9,6 @@ import {
 import { IDPool } from '../../utils/id-pool'
 
 export const defaultLayout = 'auto'
-
-export interface Size {
-  width: number
-  height: number
-}
 
 export type ContextFlags<Options> = Readonly<{
   options: Options

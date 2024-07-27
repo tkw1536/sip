@@ -10,7 +10,6 @@ import {
   ErrorUnsupported,
   type MountInfo,
   type Refs,
-  type Size,
   defaultLayout,
 } from '.'
 import {
@@ -31,6 +30,7 @@ import {
   type RDFNode,
   type RDFOptions,
 } from '../../graph/builders/rdf'
+import { type Size } from '../../../components/hooks/observer'
 
 const Cytoscape = new LazyValue(async () => {
   const cytoscape = (await import('cytoscape')).default

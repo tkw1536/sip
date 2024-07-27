@@ -3,11 +3,12 @@ import type Graph from '../graph'
 import * as styles from './index.module.css'
 import type Driver from './impl'
 import ErrorDisplay from '../../components/error'
-import { type DriverClass, type ContextFlags, type Size } from './impl'
+import { type DriverClass, type ContextFlags } from './impl'
 import Spinner from '../../components/spinner'
 import { type Renderable } from '../graph/builders'
 import { setRef } from '../utils/ref'
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks'
+import useVisibleSize, { type Size } from '../../components/hooks/observer'
 
 /** KernelProps are props for the current kernel */
 export interface KernelProps<
@@ -169,32 +170,9 @@ function KernelWrapper<
 >(
   props: KernelWrapperProps<NodeLabel, EdgeLabel, Options, AttachmentKey>,
 ): JSX.Element {
-  const wrapper = useRef<HTMLDivElement>(null)
-
-  // setup and keep track of size
-  const [size, setSize] = useState<Size | null>(null)
-  useEffect(() => {
-    const { current } = wrapper
-    if (current === null) {
-      throw new Error(
-        'never reached: wrapper ref MUST BE mounted during useEffect',
-      )
-    }
-
-    const observer = new ResizeObserver(entries => {
-      if (entries.length !== 1) return
-      const { width, height } = getVisibleSize(entries[0].target)
-      setSize({ width, height })
-    })
-    observer.observe(current)
-
-    return () => {
-      observer.disconnect()
-    }
-  })
-
+  const [size, ref] = useVisibleSize<HTMLDivElement>()
   return (
-    <div ref={wrapper} class={styles.wrapper}>
+    <div ref={ref} class={styles.wrapper}>
       {size !== null && <KernelMount {...props} size={size} />}
     </div>
   )
@@ -250,18 +228,6 @@ function KernelMount<
       ref={container}
     ></div>
   )
-}
-
-function getVisibleSize(target: Element): Size {
-  const { top, bottom, left, right } = target.getBoundingClientRect()
-
-  return {
-    width: Math.max(Math.min(right, window.innerWidth) - Math.max(left, 0), 0),
-    height: Math.max(
-      Math.min(bottom, window.innerHeight) - Math.max(top, 0),
-      0,
-    ),
-  }
 }
 
 /** encapsulates bi-directional controls for the browser */
