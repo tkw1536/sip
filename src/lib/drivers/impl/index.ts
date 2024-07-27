@@ -18,7 +18,6 @@ export type ContextFlags<Options> = Readonly<{
   options: Options
   layout: string
   definitelyAcyclic: boolean
-  size: Size
   seed: number | null
 }>
 
@@ -117,8 +116,8 @@ export interface MountInfo<Mount> {
   /** refs set by this driver */
   refs: Refs
 
-  /** the current size of this mount */
-  size: Size
+  /** the current size of this mount (if known) */
+  size?: Size
 }
 
 /** implements a driver */
@@ -222,15 +221,10 @@ export abstract class DriverImpl<
       throw new Error('Driver error: mount called out of order')
     }
 
-    const {
-      flags: { size },
-    } = this.#context
-
     this.#mount = {
       mount: this.mountImpl(this.#context, element, refs),
       element,
       refs,
-      size,
     }
 
     this.#seed = this.getSeedImpl(this.#context, this.#mount) ?? this.#seed

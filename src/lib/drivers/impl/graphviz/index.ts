@@ -176,7 +176,7 @@ abstract class GraphvizDriver<
   }
 
   protected mountImpl(
-    { context, flags: { size } }: ContextDetails<Context, Options>,
+    { context }: ContextDetails<Context, Options>,
     element: HTMLElement,
   ): Mount {
     // mount the svg we have already rendered
@@ -188,8 +188,6 @@ abstract class GraphvizDriver<
     }
 
     // create the svg element and add it to the container
-    svg.style.height = `${size.height}px`
-    svg.style.width = `${size.width}px`
     element.appendChild(svg)
 
     // add zoom controls

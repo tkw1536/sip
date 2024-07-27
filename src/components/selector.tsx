@@ -1,8 +1,7 @@
 import { type JSX } from 'preact'
-import { useCallback } from 'preact/hooks'
+import { useCallback, useId } from 'preact/hooks'
 
 interface ValueSelectorProps {
-  id?: string
   values?: string[]
   value?: string
   disabled?: boolean
@@ -10,7 +9,8 @@ interface ValueSelectorProps {
 }
 
 export default function ValueSelector(props: ValueSelectorProps): JSX.Element {
-  const { id, value, values, disabled, onInput } = props
+  const { value, values, disabled, onInput } = props
+  const id = useId()
   const isDisabled =
     (disabled ?? false) ||
     typeof value === 'undefined' ||

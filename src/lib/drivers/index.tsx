@@ -1,15 +1,16 @@
-import { Component, type ComponentChild, type Ref, createRef } from 'preact'
+import { type JSX, type Ref } from 'preact'
 import type Graph from '../graph'
 import * as styles from './index.module.css'
-import { Operation } from '../utils/operation'
 import type Driver from './impl'
 import ErrorDisplay from '../../components/error'
 import { type DriverClass, type ContextFlags, type Size } from './impl'
 import Spinner from '../../components/spinner'
 import { type Renderable } from '../graph/builders'
 import { setRef } from '../utils/ref'
+import { useCallback, useEffect, useRef, useState } from 'preact/hooks'
 
-interface KernelProps<
+/** KernelProps are props for the current kernel */
+export interface KernelProps<
   NodeLabel extends Renderable<Options, AttachmentKey>,
   EdgeLabel extends Renderable<Options, AttachmentKey>,
   Options,
@@ -24,14 +25,31 @@ interface KernelProps<
 
   seed: number | null
 
-  driverRef?: Ref<Driver<NodeLabel, EdgeLabel, Options, AttachmentKey>>
-  animatingRef?: Ref<boolean>
+  controller: Ref<KernelController<
+    NodeLabel,
+    EdgeLabel,
+    Options,
+    AttachmentKey
+  > | null>
 }
 
-interface KernelState {
-  size?: Size
-  driverError?: Error
-  driverLoading: boolean
+interface KernelWrapperProps<
+  NodeLabel extends Renderable<Options, AttachmentKey>,
+  EdgeLabel extends Renderable<Options, AttachmentKey>,
+  Options,
+  AttachmentKey extends string,
+> extends KernelProps<NodeLabel, EdgeLabel, Options, AttachmentKey> {
+  forceRerender: () => void
+  instance: Driver<NodeLabel, EdgeLabel, Options, AttachmentKey> /* whatever */
+}
+
+interface KernelMountProps<
+  NodeLabel extends Renderable<Options, AttachmentKey>,
+  EdgeLabel extends Renderable<Options, AttachmentKey>,
+  Options,
+  AttachmentKey extends string,
+> extends KernelWrapperProps<NodeLabel, EdgeLabel, Options, AttachmentKey> {
+  size: Size
 }
 
 export interface DriverLoader<
@@ -45,302 +63,222 @@ export interface DriverLoader<
   ) => Promise<DriverClass<NodeLabel, EdgeLabel, Options, AttachmentKey>>
 }
 
-/**
- * Displays a driver on the page
- */
-export default class Kernel<
+type InstanceState<
   NodeLabel extends Renderable<Options, AttachmentKey>,
   EdgeLabel extends Renderable<Options, AttachmentKey>,
   Options,
   AttachmentKey extends string,
-> extends Component<
-  KernelProps<NodeLabel, EdgeLabel, Options, AttachmentKey>,
-  KernelState
-> {
-  static readonly #errorAborted = new Error('aborted')
-
-  state: KernelState = { driverLoading: false }
-  #mod: {
-    driver: Driver<NodeLabel, EdgeLabel, Options, AttachmentKey>
-  } | null = null
-
-  #mountDriver(): void {
-    const { current: container } = this.#container
-    const { size } = this.state
-    if (
-      this.#mod !== null ||
-      container === null ||
-      typeof size === 'undefined'
-    ) {
-      return
+> =
+  | { state: 'loading' }
+  | { state: 'error'; error: Error }
+  | {
+      state: 'loaded'
+      driver: Driver<NodeLabel, EdgeLabel, Options, AttachmentKey>
     }
 
-    const {
-      graph,
-      layout,
-      options,
-      driver: name,
-      loader,
-      driverRef,
-      seed,
-    } = this.props
+export default function Kernel<
+  NodeLabel extends Renderable<Options, AttachmentKey>,
+  EdgeLabel extends Renderable<Options, AttachmentKey>,
+  Options,
+  AttachmentKey extends string,
+>(
+  props: KernelProps<NodeLabel, EdgeLabel, Options, AttachmentKey>,
+): JSX.Element {
+  const [instance, setInstance] = useState<
+    InstanceState<NodeLabel, EdgeLabel, Options, AttachmentKey>
+  >({ state: 'loading' })
 
-    const flags: ContextFlags<Options> = Object.freeze({
-      options,
-      definitelyAcyclic: this.props.graph.definitelyAcyclic,
+  const { loader, graph, layout, options, driver: name, seed } = props
 
-      layout,
-      size,
-      seed,
-    })
+  const [rerenderHack, setRerenderHack] = useState(0)
 
-    // create a ticket, and make the context
-    const ticket = this.#mount.ticket()
+  // use an effect to load the class and the current instance
+  // TODO: split this up into class et all
+  useEffect(() => {
+    let active = true
 
-    this.setState({ driverLoading: true, driverError: undefined }, () => {
-      this.#loadContext(ticket, graph, loader, name, flags)
-        .then(async driver => {
-          // await to set the new state
-          await new Promise<void>((resolve, reject) => {
-            this.setState(
-              () => {
-                if (!ticket()) return null
-                return { driverError: undefined, driverLoading: false }
-              },
-              () => {
-                if (ticket()) {
-                  resolve()
-                } else {
-                  reject(Kernel.#errorAborted)
-                }
-              },
-            )
-          })
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const _ = rerenderHack
 
-          // check that we have a valid layout
-          if (!driver.layouts.includes(flags.layout)) {
-            console.error('cannot mount: unsupported driver layout received')
-            return
-          }
+    ;(async () => {
+      const DriverClass = await loader.get(name)
 
-          driver.mount(container, {
-            animating: (animating): void => {
-              setRef(this.props.animatingRef, animating)
-            },
-          })
-          this.#mod = { driver }
-          this.#resizeMount()
+      const flags: ContextFlags<Options> = Object.freeze({
+        options,
+        definitelyAcyclic: graph.definitelyAcyclic,
 
-          // update the ref
-          setRef(driverRef, driver)
+        layout,
+        seed,
+        size: { width: 100, height: 100 },
+      })
+
+      const driver = new DriverClass()
+      await driver.initialize(graph, flags, () => active)
+
+      return driver
+    })().then(
+      driver => {
+        if (!active) return
+        setInstance({ state: 'loaded', driver })
+      },
+      (err: unknown) => {
+        if (!active) return
+        setInstance({
+          state: 'error',
+          error: err instanceof Error ? err : new Error(String(err)),
         })
-        .catch((err: unknown) => {
-          if (err === Kernel.#errorAborted || !ticket()) return
-
-          console.error('error while mounting driver: ', err)
-          const driverError =
-            err instanceof Error ? err : new Error(String(err))
-          container.innerHTML = '' // remove whatever elements were in there
-          this.setState({ driverError, driverLoading: false })
-        })
-    })
-  }
-
-  async #loadContext(
-    ticket: () => boolean,
-    graph: Graph<NodeLabel, EdgeLabel>,
-    loader: DriverLoader<NodeLabel, EdgeLabel, Options, AttachmentKey>,
-    name: string,
-    ctxFlags: ContextFlags<Options>,
-  ): Promise<Driver<NodeLabel, EdgeLabel, Options, AttachmentKey>> {
-    const DriverClass = await loader.get(name)
-    const driver = new DriverClass()
-
-    await driver.initialize(graph, ctxFlags, ticket)
-
-    return driver
-  }
-
-  #unmountDriver(): void {
-    if (this.#mod === null) return
-
-    this.#mod.driver.unmount()
-    this.#mod = null
-    setRef(this.props.driverRef, null)
-    setRef(this.props.animatingRef, null)
-  }
-
-  #resizeMount(): void {
-    const { size } = this.state
-    if (this.#mod == null || typeof size === 'undefined') return
-
-    // call the resize function and store the new size
-    this.#mod.driver.resize(size)
-  }
-
-  async exportBlob(format: string): Promise<Blob> {
-    if (this.#mod == null) throw new Error('instance not setup')
-
-    const { driver } = this.#mod
-    if (!driver.exportFormats.includes(format)) {
-      throw new Error('unsupported export format attempted')
-    }
-
-    return await driver.export(format)
-  }
-
-  /** remounts the current driver, resetting it to default */
-  remountDriver(): void {
-    this.#unmountDriver()
-    this.#mountDriver()
-  }
-
-  readonly #mount = new Operation()
-  componentDidMount(): void {
-    this.#createObserver()
-  }
-
-  componentDidUpdate(
-    previousProps: typeof this.props,
-    previousState: typeof this.state,
-  ): void {
-    const { size } = this.state
-    const { current: container } = this.#container
-    if (typeof size === 'undefined' || container === null) return
-
-    // if any of the critical properties changed => create a new driver
-    if (this.#shouldRemount(previousProps, previousState)) {
-      this.remountDriver()
-      return
-    }
-
-    // if the size changed, we should update the size
-    if (this.#shouldResizeMount(previousProps, previousState)) {
-      this.#resizeMount()
-      return // eslint-disable-line no-useless-return
-    }
-  }
-
-  #shouldRemount(
-    previousProps: typeof this.props,
-    previousState: typeof this.state,
-  ): boolean {
-    return (
-      // we didn't have a size before, but we do now
-      (typeof previousState.size === 'undefined' &&
-        typeof this.state.size !== 'undefined') ||
-      // the driver or loader changed
-      !(
-        previousProps.driver === this.props.driver &&
-        previousProps.loader === this.props.loader
-      ) ||
-      // the graph changed
-      previousProps.graph !== this.props.graph ||
-      // the layout changed
-      previousProps.layout !== this.props.layout ||
-      // the seed changed
-      previousProps.seed !== this.props.seed
+      },
     )
-  }
 
-  #shouldResizeMount(
-    previousProps: typeof this.props,
-    previousState: typeof this.state,
-  ): boolean {
-    const { size: prevSize } = previousState
-    const { size } = this.state
+    return () => {
+      active = false
+      setInstance({ state: 'loading' })
+    }
+  }, [graph, layout, loader, name, options, rerenderHack, seed])
 
-    return (
-      // either of the sizes are not defined
-      typeof prevSize === 'undefined' ||
-      typeof size === 'undefined' ||
-      // either of the dimensions have changed
-      prevSize.width !== size.width ||
-      prevSize.height !== size.height
-    )
-  }
+  const forceRerender = useCallback(() => {
+    setRerenderHack(x => x + 1)
+  }, [])
 
-  componentWillUnmount(): void {
-    this.#mount.cancel()
-    this.#destroyObserver()
-    this.#unmountDriver()
-  }
-
-  // #region "observer"
-  #observer: ResizeObserver | null = null
-
-  /** creates a resize observer unless it already exists */
-  #createObserver(): void {
-    // check that we don't already have an observer
-    const { current: wrapper } = this.#wrapper
-    if (wrapper === null || this.#observer !== null) return
-
-    this.#observer = new ResizeObserver(this.#handleObserverResize)
-    this.#observer.observe(wrapper)
-  }
-
-  /** destroys a resize observer if it exists */
-  #destroyObserver(): void {
-    if (this.#observer === null) return
-    this.#observer.disconnect()
-    this.#observer = null
-  }
-
-  /** handles updating the state to the newly observed size */
-  readonly #handleObserverResize = ([entry]: ResizeObserverEntry[]): void => {
-    if (this.#mount.canceled) return // no longer mounted => no need to do anything
-
-    const [width, height] = Kernel.#getVisibleSize(entry.target)
-
-    this.setState(({ size }) => {
-      if (
-        typeof size !== 'undefined' &&
-        size.width === width &&
-        size.height === height
+  switch (instance.state) {
+    case 'loading':
+      return (
+        <Spinner
+          message={'Loading is taking a bit longer, please be patient. '}
+        />
       )
-        return null
+    case 'loaded':
+      return (
+        <KernelWrapper
+          {...props}
+          instance={instance.driver}
+          forceRerender={forceRerender}
+        />
+      )
+    case 'error':
+      return <ErrorDisplay error={instance.error} />
+  }
+  throw new Error('never reached')
+}
 
-      return { size: { width, height } }
+function KernelWrapper<
+  NodeLabel extends Renderable<Options, AttachmentKey>,
+  EdgeLabel extends Renderable<Options, AttachmentKey>,
+  Options,
+  AttachmentKey extends string,
+>(
+  props: KernelWrapperProps<NodeLabel, EdgeLabel, Options, AttachmentKey>,
+): JSX.Element {
+  const wrapper = useRef<HTMLDivElement>(null)
+
+  // setup and keep track of size
+  const [size, setSize] = useState<Size | null>(null)
+  useEffect(() => {
+    const { current } = wrapper
+    if (current === null) {
+      throw new Error(
+        'never reached: wrapper ref MUST BE mounted during useEffect',
+      )
+    }
+
+    const observer = new ResizeObserver(entries => {
+      if (entries.length !== 1) return
+      const { width, height } = getVisibleSize(entries[0].target)
+      setSize({ width, height })
     })
+    observer.observe(current)
+
+    return () => {
+      observer.disconnect()
+    }
+  })
+
+  return (
+    <div ref={wrapper} class={styles.wrapper}>
+      {size !== null && <KernelMount {...props} size={size} />}
+    </div>
+  )
+}
+
+/** MountedKernel mounts a kernel with a driver */
+function KernelMount<
+  NodeLabel extends Renderable<Options, AttachmentKey>,
+  EdgeLabel extends Renderable<Options, AttachmentKey>,
+  Options,
+  AttachmentKey extends string,
+>(
+  props: KernelMountProps<NodeLabel, EdgeLabel, Options, AttachmentKey>,
+): JSX.Element {
+  const { instance, controller, size, forceRerender } = props
+  const container = useRef<HTMLDivElement>(null)
+
+  // mount the instance
+  useEffect(() => {
+    const { current } = container
+    if (current === null) {
+      throw new Error(
+        'never reached: current ref MUST BE mounted during useEffect',
+      )
+    }
+
+    let animating: boolean | null = null
+    instance.mount(current, {
+      animating: (newAnimating: boolean | null) => {
+        animating = newAnimating
+        setRef(
+          controller,
+          new KernelController(instance, animating, forceRerender),
+        )
+      },
+    })
+    setRef(controller, new KernelController(instance, animating, forceRerender))
+
+    return () => {
+      setRef(controller, null)
+      instance.unmount()
+    }
+  }, [controller, instance, forceRerender])
+
+  // resize the instance whenever possible
+  useEffect(() => {
+    instance.resize(size)
+  }, [instance, size])
+
+  return (
+    <div
+      style={{ width: size.width, height: size.height }}
+      ref={container}
+    ></div>
+  )
+}
+
+function getVisibleSize(target: Element): Size {
+  const { top, bottom, left, right } = target.getBoundingClientRect()
+
+  return {
+    width: Math.max(Math.min(right, window.innerWidth) - Math.max(left, 0), 0),
+    height: Math.max(
+      Math.min(bottom, window.innerHeight) - Math.max(top, 0),
+      0,
+    ),
   }
+}
 
-  /* returns the size of the part of target that is visible in the view port */
-  static readonly #getVisibleSize = (target: Element): [number, number] => {
-    const { top, bottom, left, right } = target.getBoundingClientRect()
-
-    return [
-      Math.max(Math.min(right, window.innerWidth) - Math.max(left, 0), 0),
-      Math.max(Math.min(bottom, window.innerHeight) - Math.max(top, 0), 0),
-    ]
-  }
-
-  // #endregion
-
-  readonly #wrapper = createRef<HTMLDivElement>()
-  readonly #container = createRef<HTMLDivElement>()
-  render(): ComponentChild {
-    const { size, driverLoading, driverError } = this.state
-
-    return (
-      <div ref={this.#wrapper} class={styles.wrapper}>
-        {typeof size !== 'undefined' && (
-          <div
-            style={{ width: size.width, height: size.height }}
-            ref={this.#container}
-          >
-            {driverLoading && (
-              <Spinner
-                message={
-                  <>Rendering is taking a bit longer. Please be patient. </>
-                }
-              />
-            )}
-            {driverError instanceof Error && (
-              <ErrorDisplay error={driverError} />
-            )}
-          </div>
-        )}
-      </div>
-    )
-  }
+/** encapsulates bi-directional controls for the browser */
+export class KernelController<
+  NodeLabel extends Renderable<Options, AttachmentKey>,
+  EdgeLabel extends Renderable<Options, AttachmentKey>,
+  Options,
+  AttachmentKey extends string,
+> {
+  constructor(
+    public readonly instance: Driver<
+      NodeLabel,
+      EdgeLabel,
+      Options,
+      AttachmentKey
+    >,
+    public animating: boolean | null,
+    public rerender: () => void,
+  ) {}
 }

@@ -38,7 +38,7 @@ async function main(): Promise<void> {
   const cm = ColorMap.generate(tree, { field: '#f6b73c', bundle: '#add8e6' })
 
   // build the actual graph
-  const graph = await new ModelGraphBuilder(tree, {
+  const graph = new ModelGraphBuilder(tree, {
     deduplication: Deduplication.Full,
   }).build()
 
@@ -48,7 +48,6 @@ async function main(): Promise<void> {
     options: { ns, cm, display: newModelDisplay() },
     definitelyAcyclic: graph.definitelyAcyclic,
     layout: driver.layouts[0],
-    size: { width: 1000, height: 1000 },
     seed: null,
   }
 

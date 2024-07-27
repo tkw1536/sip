@@ -1,14 +1,16 @@
-import { type JSX, type RefObject } from 'preact'
+import { type JSX } from 'preact'
 import ModelGraphBuilder from '../../../lib/graph/builders/model'
 import type Deduplication from '../state/state/deduplication'
 import { explanations, names, values } from '../state/state/deduplication'
 import { models } from '../../../lib/drivers/collection'
-import type Driver from '../../../lib/drivers/impl'
 import GraphDisplay, {
+  type PanelProps,
+} from '../../../components/graph-display'
+import {
   Control,
   DriverControl,
   ExportControl,
-} from '../../../components/graph-display'
+} from '../../../components/graph-display/controls'
 import {
   setModelDeduplication,
   setModelDisplay,
@@ -24,7 +26,7 @@ import {
   type ModelDisplay,
   type ModelAttachmentKey,
 } from '../../../lib/graph/builders/model/labels'
-import { useCallback, useId, useMemo, useRef } from 'preact/hooks'
+import { useCallback, useId, useMemo } from 'preact/hooks'
 import { useInspectorStore } from '../state'
 import useEventCallback from '../../../components/hooks/event'
 
@@ -48,43 +50,22 @@ export default function ModelGraphView(): JSX.Element {
 
   const ns = useInspectorStore(s => s.ns)
 
-  const displayRef =
-    useRef<
-      GraphDisplay<ModelNode, ModelEdge, ModelOptions, ModelAttachmentKey>
-    >(null)
-
   const builder = useMemo(() => {
     return async (): Promise<Graph<ModelNode, ModelEdge>> => {
       const builder = new ModelGraphBuilder(tree, {
         include: selection.includes.bind(selection),
         deduplication,
       })
-      return await builder.build()
+      return builder.build()
     }
   }, [tree, selection, deduplication])
 
   const builderKey = `${pbVersion}-${selectionVersion}-${optionVersion}-${cmVersion}`
 
-  const renderPanel = useMemo(() => {
-    return (
-      driver: ModelGraphPanelProps['driver'],
-      animating: ModelGraphPanelProps['animating'],
-    ) => {
-      return (
-        <ModelGraphPanel
-          displayRef={displayRef}
-          driver={driver}
-          animating={animating}
-        />
-      )
-    }
-  }, [displayRef])
-
   const options = useMemo(() => ({ ns, cm, display }), [ns, cm, display])
 
   return (
     <GraphDisplay
-      ref={displayRef}
       loader={models}
       builderKey={builderKey}
       makeGraph={builder}
@@ -92,19 +73,14 @@ export default function ModelGraphView(): JSX.Element {
       seed={seed}
       options={options}
       layout={layout}
-      panel={renderPanel}
+      panel={ModelGraphPanel}
     />
   )
 }
 
-interface ModelGraphPanelProps {
-  driver: Driver<ModelNode, ModelEdge, ModelOptions, ModelAttachmentKey> | null
-  animating: boolean | null
-  displayRef: RefObject<
-    GraphDisplay<ModelNode, ModelEdge, ModelOptions, ModelAttachmentKey>
-  >
-}
-function ModelGraphPanel(props: ModelGraphPanelProps): JSX.Element {
+function ModelGraphPanel(
+  props: PanelProps<ModelNode, ModelEdge, ModelOptions, ModelAttachmentKey>,
+): JSX.Element {
   const apply = useInspectorStore(s => s.apply)
   const seed = useInspectorStore(s => s.modelGraphSeed)
   const layout = useInspectorStore(s => s.modelGraphLayout)
@@ -112,7 +88,6 @@ function ModelGraphPanel(props: ModelGraphPanelProps): JSX.Element {
   const display = useInspectorStore(s => s.modelDisplay)
 
   const id = useId()
-  const { driver, animating, displayRef } = props
 
   const handleChangeMode = useCallback(
     (evt: Event): void => {
@@ -153,23 +128,16 @@ function ModelGraphPanel(props: ModelGraphPanelProps): JSX.Element {
     [apply],
   )
 
-  const handleResetDriver = useCallback((): void => {
-    const { current: display } = displayRef
-    display?.remount()
-  }, [displayRef])
-
   return (
     <>
       <DriverControl
         driverNames={models.names}
-        driver={driver}
-        currentLayout={layout}
+        layout={layout}
         seed={seed}
         onChangeDriver={handleChangeModelRenderer}
         onChangeLayout={handleChangeModelLayout}
         onChangeSeed={handleChangeModelSeed}
-        onResetDriver={handleResetDriver}
-        animating={animating}
+        {...props}
       />
       <ModelGraphDisplayControl
         display={display}
@@ -202,7 +170,7 @@ function ModelGraphPanel(props: ModelGraphPanelProps): JSX.Element {
           ))}
         </div>
       </Control>
-      <ExportControl driver={driver} display={displayRef.current} />
+      <ExportControl {...props} />
     </>
   )
 }

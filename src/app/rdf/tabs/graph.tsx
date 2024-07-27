@@ -1,18 +1,20 @@
-import { type JSX, type RefObject } from 'preact'
+import { type JSX } from 'preact'
 import GraphDisplay, {
+  type PanelProps,
+} from '../../../components/graph-display'
+import {
   DriverControl,
   ExportControl,
-} from '../../../components/graph-display'
+} from '../../../components/graph-display/controls'
 import RDFGraphBuilder, {
   type RDFOptions,
   type RDFEdge,
   type RDFNode,
 } from '../../../lib/graph/builders/rdf'
 import type Graph from '../../../lib/graph'
-import type Driver from '../../../lib/drivers/impl'
 import { triples } from '../../../lib/drivers/collection'
 import useRDFStore from '../state'
-import { useCallback, useMemo, useRef } from 'preact/hooks'
+import { useMemo } from 'preact/hooks'
 
 export default function GraphTab(): JSX.Element {
   const store = useRDFStore(s => s.store)
@@ -25,30 +27,13 @@ export default function GraphTab(): JSX.Element {
   const makeGraph = useMemo(
     () => async (): Promise<Graph<RDFNode, RDFEdge>> => {
       const builder = new RDFGraphBuilder(store)
-      return await builder.build()
+      return builder.build()
     },
     [store],
   )
 
-  const displayRef =
-    useRef<GraphDisplay<RDFNode, RDFEdge, RDFOptions, never>>(null)
-
-  const panel = useCallback(
-    (
-      driver: GraphTabPanelProps['driver'],
-      animating: GraphTabPanelProps['animating'],
-    ) => (
-      <GraphTabPanel
-        driver={driver}
-        animating={animating}
-        displayRef={displayRef}
-      />
-    ),
-    [displayRef],
-  )
   return (
     <GraphDisplay
-      ref={displayRef}
       loader={triples}
       driver={driver}
       seed={seed}
@@ -56,28 +41,18 @@ export default function GraphTab(): JSX.Element {
       makeGraph={makeGraph}
       options={{ ns }}
       layout={layout}
-      panel={panel}
+      panel={GraphTabPanel}
     />
   )
 }
 
-interface GraphTabPanelProps {
-  animating: boolean
-  driver: Driver<RDFNode, RDFEdge, RDFOptions, never> | null
-  displayRef: RefObject<GraphDisplay<RDFNode, RDFEdge, RDFOptions, never>>
-}
-
-function GraphTabPanel(props: GraphTabPanelProps): JSX.Element {
-  const { driver, animating, displayRef } = props
-
+function GraphTabPanel(
+  props: PanelProps<RDFNode, RDFEdge, RDFOptions, never>,
+): JSX.Element {
   const setDriver = useRDFStore(s => s.setRDFDriver)
 
   const layout = useRDFStore(s => s.rdfGraphLayout)
   const setLayout = useRDFStore(s => s.setRDFLayout)
-
-  const handleResetDriver = useCallback((): void => {
-    displayRef.current?.remount()
-  }, [displayRef])
 
   const seed = useRDFStore(s => s.rdfGraphSeed)
   const setSeed = useRDFStore(s => s.setRDFSeed)
@@ -86,16 +61,14 @@ function GraphTabPanel(props: GraphTabPanelProps): JSX.Element {
     <>
       <DriverControl
         driverNames={triples.names}
-        driver={driver}
-        onChangeDriver={setDriver}
-        onResetDriver={handleResetDriver}
-        currentLayout={layout}
-        onChangeLayout={setLayout}
+        layout={layout}
         seed={seed}
+        onChangeDriver={setDriver}
+        onChangeLayout={setLayout}
         onChangeSeed={setSeed}
-        animating={animating}
+        {...props}
       />
-      <ExportControl driver={driver} display={displayRef.current} />
+      <ExportControl {...props} />
     </>
   )
 }
