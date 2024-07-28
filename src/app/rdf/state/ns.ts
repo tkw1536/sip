@@ -7,7 +7,6 @@ export type Slice = State & Actions
 
 interface State {
   ns: NamespaceMap
-  nsVersion: number
 }
 
 interface Actions {
@@ -17,7 +16,6 @@ interface Actions {
 
 const initialState: State = {
   ns: NamespaceMap.empty(),
-  nsVersion: 0,
 }
 const resetState: State = { ...initialState }
 
@@ -41,7 +39,7 @@ export const create: StateCreator<BoundState, [], [], Slice> = (set, get) => {
     },
 
     setNamespaceMap: (ns: NamespaceMap): void => {
-      set(({ nsVersion }) => ({ ns, nsVersion: nsVersion + 1 }))
+      set({ ns })
     },
   }
 }
