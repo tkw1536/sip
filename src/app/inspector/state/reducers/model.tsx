@@ -26,15 +26,13 @@ export function newModelDeduplication(): Deduplication {
 }
 
 export function setModelDeduplication(dup: Deduplication): IReducer {
-  return ({ modelGraphOptionVersion }: IState): Partial<IState> => ({
-    modelGraphOptionVersion: modelGraphOptionVersion + 1,
+  return (): Partial<IState> => ({
     modelDeduplication: dup,
   })
 }
 
 export function setModelDisplay(display: ModelDisplay): IReducer {
-  return ({ modelGraphOptionVersion }: IState): Partial<IState> => ({
-    modelGraphOptionVersion: modelGraphOptionVersion + 1,
+  return (): Partial<IState> => ({
     modelDisplay: display,
   })
 }

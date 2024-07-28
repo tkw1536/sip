@@ -6,15 +6,13 @@ export function newNamespaceMap(tree: PathTree): NamespaceMap {
   return NamespaceMap.generate(tree.uris, undefined, NamespaceMap.KnownPrefixes)
 }
 export function resetNamespaceMap(): IReducer {
-  return ({ namespaceVersion, tree }: IState): Partial<IState> => ({
+  return ({ tree }: IState): Partial<IState> => ({
     ns: newNamespaceMap(tree),
-    namespaceVersion: namespaceVersion + 1,
   })
 }
 
 export function setNamespaceMap(ns: NamespaceMap): IReducer {
-  return ({ namespaceVersion }: IState): Partial<IState> => ({
+  return (): Partial<IState> => ({
     ns,
-    namespaceVersion: namespaceVersion + 1,
   })
 }

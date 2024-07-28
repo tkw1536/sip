@@ -32,28 +32,20 @@ export default function newInspectorState(
     pathbuilder,
     filename,
 
-    pathbuilderVersion: 0,
     tree,
     diagnostics,
 
     hideEqualParentPaths: false,
 
-    namespaceVersion: 0, // this number is updated every time the namespaceMap is updated
     ns: newNamespaceMap(tree),
-
-    colorVersion: 0,
     cm: newColor(tree, ColorPreset.BlueAndOrange),
-
-    selectionVersion: 0,
     selection: newSelection(),
-
-    modelGraphOptionVersion: 0,
-    modelDeduplication: newModelDeduplication(),
-    modelDisplay: newModelDisplay(),
 
     bundleGraphDriver: newBundleDriver(),
     bundleGraphLayout: defaultLayout,
     bundleGraphSeed: null,
+    modelDeduplication: newModelDeduplication(),
+    modelDisplay: newModelDisplay(),
 
     modelGraphDriver: newModelDriver(),
     modelGraphLayout: defaultLayout,

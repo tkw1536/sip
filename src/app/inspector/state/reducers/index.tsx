@@ -18,26 +18,18 @@ export interface IState {
   loadStage: false | 'loading' | true | { error: unknown } // boolean indicating if file has been loaded, string for error
   filename: string
 
-  pathbuilderVersion: number
   pathbuilder: Pathbuilder
   tree: PathTree
   diagnostics: Diagnostic[]
 
   hideEqualParentPaths: boolean
 
-  namespaceVersion: number
   ns: NamespaceMap
 
-  colorVersion: number
   cm: ColorMap
   cmLoadError?: string
 
-  selectionVersion: number
   selection: NodeSelection // the selection
-
-  modelGraphOptionVersion: number
-  modelDeduplication: Deduplication
-  modelDisplay: ModelDisplay
 
   // renders for the graphs
   bundleGraphDriver: string
@@ -47,6 +39,8 @@ export interface IState {
   modelGraphDriver: string
   modelGraphLayout: string
   modelGraphSeed: number | null
+  modelDeduplication: Deduplication
+  modelDisplay: ModelDisplay
 
   collapsed: NodeSelection
 }
@@ -61,25 +55,17 @@ export function resetInspector(showModal: boolean): IState {
 
     filename: '',
 
-    pathbuilderVersion: -1,
     pathbuilder: new Pathbuilder([]),
     tree,
     diagnostics: [],
 
     hideEqualParentPaths: false,
 
-    namespaceVersion: -1,
     ns: NamespaceMap.empty(),
 
-    colorVersion: -1,
     cm: ColorMap.empty(),
 
-    selectionVersion: -1,
     selection: NodeSelection.none(),
-
-    modelGraphOptionVersion: -1,
-    modelDeduplication: Deduplication.None,
-    modelDisplay: newModelDisplay(),
 
     // renders for the graphs
     bundleGraphDriver: '',
@@ -89,6 +75,8 @@ export function resetInspector(showModal: boolean): IState {
     modelGraphDriver: '',
     modelGraphLayout: '',
     modelGraphSeed: null,
+    modelDeduplication: Deduplication.None,
+    modelDisplay: newModelDisplay(),
 
     collapsed: NodeSelection.none(),
   }

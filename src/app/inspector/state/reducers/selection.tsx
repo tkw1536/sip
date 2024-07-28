@@ -8,9 +8,8 @@ export function newSelection(): NodeSelection {
 
 /** selects all items */
 export function selectAll(): IReducer {
-  return ({ selectionVersion }: IState): Partial<IState> => ({
+  return (): Partial<IState> => ({
     selection: NodeSelection.all(),
-    selectionVersion: selectionVersion + 1,
   })
 }
 
@@ -18,17 +17,15 @@ export function selectAll(): IReducer {
 export function updateSelection(
   pairs: Array<[PathTreeNode, boolean]>,
 ): IReducer {
-  return ({ selection, selectionVersion }: IState): Partial<IState> => ({
+  return ({ selection }: IState): Partial<IState> => ({
     selection: selection.with(pairs),
-    selectionVersion: selectionVersion + 1,
   })
 }
 
 /** selects none of the item */
 export function selectNone(): IReducer {
-  return ({ selection, selectionVersion }: IState): Partial<IState> => ({
+  return ({ selection }: IState): Partial<IState> => ({
     selection: NodeSelection.none(),
-    selectionVersion: selectionVersion + 1,
   })
 }
 
@@ -36,13 +33,12 @@ export function selectNone(): IReducer {
 export function selectPredicate(
   predicate: (node: PathTreeNode) => boolean,
 ): IReducer {
-  return ({ tree, selectionVersion }: IState): Partial<IState> => ({
+  return ({ tree }: IState): Partial<IState> => ({
     selection: NodeSelection.these(
       Array.from(tree.walk())
         .filter(predicate)
         .map(node => node.path?.id)
         .filter(x => typeof x === 'string'),
     ),
-    selectionVersion: selectionVersion + 1,
   })
 }
