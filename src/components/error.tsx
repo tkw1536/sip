@@ -8,7 +8,8 @@ import * as styles from './error.module.css'
 
 import StackTrace from 'stacktrace-js'
 import { classes } from '../lib/utils/classes'
-import { useEffect, useState } from 'preact/hooks'
+import { useState } from 'preact/hooks'
+import useAsyncEffect from './hooks/async'
 
 interface ErrorProps {
   error?: unknown
@@ -51,25 +52,21 @@ function ErrorDisplayError(props: { error: Error }): JSX.Element {
     stack: undefined,
   })
 
-  useEffect(() => {
-    let active = true
-
-    StackTrace.fromError(error)
-      .then(frames => {
-        if (!active) return
-
+  useAsyncEffect(
+    () => ({
+      async promise() {
+        return await StackTrace.fromError(error)
+      },
+      onFulfilled(frames) {
         const stack = frames.map(sf => sf.toString()).join('\n')
         setErrState({ error, stack })
-      })
-      .catch(() => {
-        if (!active) return
+      },
+      onRejected() {
         setErrState({ error, stack: undefined })
-      })
-
-    return () => {
-      active = false
-    }
-  }, [error])
+      },
+    }),
+    [error],
+  )
 
   const stack = error === sErr ? sStack ?? sErr.stack : error.stack
   return (

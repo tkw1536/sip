@@ -7,9 +7,10 @@ import Kernel, {
 import type Graph from '../../lib/graph'
 
 import ErrorDisplay from '../error'
-import { useEffect, useState } from 'preact/hooks'
+import { useState } from 'preact/hooks'
 import { Panel } from '../layout/panel'
 import { type Renderable } from '../../lib/graph/builders'
+import useAsyncEffect from '../hooks/async'
 
 interface GraphProps<
   NodeLabel extends Renderable<Options, AttachmentKey>,
@@ -72,22 +73,20 @@ export default function GraphDisplay<
 
   const [open, setOpen] = useState(false)
 
-  useEffect(() => {
-    let active = true
-    makeGraph().then(
-      graph => {
-        if (!active) return
+  useAsyncEffect(() => {
+    return {
+      async promise() {
+        return await makeGraph()
+      },
+      onFulfilled(graph) {
         setGraph({ state: 'done', graph })
       },
-      error => {
-        if (!active) return
+      onRejected(error) {
         setGraph({ state: 'error', error })
       },
-    )
-
-    return () => {
-      active = false
-      setGraph({ state: 'build' })
+      cleanup() {
+        setGraph({ state: 'build' })
+      },
     }
   }, [makeGraph])
 

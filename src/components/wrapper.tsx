@@ -6,6 +6,7 @@ import {
   type PropsWithoutRef,
 } from 'preact/compat'
 import ErrorDisplay from './error'
+import useAsyncEffect from './hooks/async'
 
 /**
  * Lazily loads a component
@@ -29,25 +30,21 @@ export function Lazy<P>(
         Error?: any
       }>({})
 
-      useEffect(() => {
-        let mounted = true
-
-        loader().then(
-          Component => {
-            if (!mounted) return
+      useAsyncEffect(
+        () => ({
+          async promise() {
+            return await loader()
+          },
+          onFulfilled(Component) {
             wrapper.displayName = `Lazy(${getDisplayName(Component)})`
             setCState({ Component, Error: undefined })
           },
-          Error => {
-            if (!mounted) return
+          onRejected(Error) {
             setCState({ Component: undefined, Error })
           },
-        )
-
-        return () => {
-          mounted = false
-        }
-      }, [])
+        }),
+        [],
+      )
 
       const [hideFallback, setHideFallback] = useState(
         shouldHideFallbackByDefault,

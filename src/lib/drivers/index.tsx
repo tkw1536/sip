@@ -9,6 +9,7 @@ import { type Renderable } from '../graph/builders'
 import { setRef } from '../utils/ref'
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks'
 import useVisibleSize, { type Size } from '../../components/hooks/observer'
+import useAsyncEffect from '../../components/hooks/async'
 
 /** KernelProps are props for the current kernel */
 export interface KernelProps<
@@ -93,49 +94,40 @@ export default function Kernel<
 
   const [rerenderHack, setRerenderHack] = useState(0)
 
-  // use an effect to load the class and the current instance
-  // TODO: split this up into class et all
-  useEffect(() => {
-    let active = true
+  useAsyncEffect(
+    ticket => ({
+      async promise() {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const _ = rerenderHack
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const _ = rerenderHack
+        const DriverClass = await loader.get(name)
 
-    ;(async () => {
-      const DriverClass = await loader.get(name)
+        const flags: ContextFlags<Options> = Object.freeze({
+          options,
+          definitelyAcyclic: graph.definitelyAcyclic,
 
-      const flags: ContextFlags<Options> = Object.freeze({
-        options,
-        definitelyAcyclic: graph.definitelyAcyclic,
+          layout,
+          seed,
+          size: { width: 100, height: 100 },
+        })
 
-        layout,
-        seed,
-        size: { width: 100, height: 100 },
-      })
+        const driver = new DriverClass()
+        await driver.initialize(graph, flags, ticket)
 
-      const driver = new DriverClass()
-      await driver.initialize(graph, flags, () => active)
-
-      return driver
-    })().then(
-      driver => {
-        if (!active) return
+        return driver
+      },
+      onFulfilled(driver) {
         setInstance({ state: 'loaded', driver })
       },
-      (err: unknown) => {
-        if (!active) return
+      onRejected(err) {
         setInstance({
           state: 'error',
           error: err instanceof Error ? err : new Error(String(err)),
         })
       },
-    )
-
-    return () => {
-      active = false
-      setInstance({ state: 'loading' })
-    }
-  }, [graph, layout, loader, name, options, rerenderHack, seed])
+    }),
+    [graph, layout, loader, name, options, rerenderHack, seed],
+  )
 
   const forceRerender = useCallback(() => {
     setRerenderHack(x => x + 1)
