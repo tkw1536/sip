@@ -177,11 +177,11 @@ abstract class CytoscapeDriver<
     }
   }
 
-  protected async newContextImpl(): Promise<Elements> {
+  protected newContextImpl(): Elements {
     return []
   }
 
-  protected async finalizeContextImpl(elements: Elements): Promise<Elements> {
+  protected async initializeImpl(elements: Elements): Promise<Elements> {
     await Cytoscape.load()
     return elements
   }
@@ -239,12 +239,6 @@ abstract class CytoscapeDriver<
     format: string,
   ): Promise<Blob> {
     throw ErrorUnsupported
-  }
-  protected getSeedImpl(
-    details: ContextDetails<Elements, Options>,
-    info: MountInfo<CytoMount> | null,
-  ): number | null {
-    return null // not supported
   }
 
   protected startSimulationImpl(

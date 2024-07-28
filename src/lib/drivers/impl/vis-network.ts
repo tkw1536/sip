@@ -6,19 +6,14 @@ import {
   type Refs,
   defaultLayout,
 } from '.'
-import {
-  type Data,
-  type Network,
-  type Options as VisOptions,
-} from 'vis-network'
-import { type DataSet } from 'vis-data'
+import { type Data, Network, type Options as VisOptions } from 'vis-network'
+import { DataSet } from 'vis-data'
 import {
   type BundleOptions,
   type BundleEdge,
   type BundleNode,
 } from '../../graph/builders/bundle'
 import { Type } from '../../utils/media'
-import { LazyValue } from '../../utils/once'
 import {
   type ModelOptions,
   type ModelEdge,
@@ -37,8 +32,6 @@ import {
 } from '../../graph/builders/rdf'
 import { type Attributes } from 'graphology-types'
 import { type Size } from '../../../components/hooks/observer'
-
-const Vis = new LazyValue(async () => await import('vis-network'))
 
 type NodeAttributes = Omit<VisNode<string | number>, 'id'>
 type EdgeAttributes = Omit<VisEdge<string | number>, 'from' | 'to'>
@@ -106,15 +99,11 @@ abstract class VisNetworkDriver<
         }
   }
 
-  protected async newContextImpl(): Promise<Dataset> {
-    if (Object.hasOwn(globalThis, 'window')) {
-      await Vis.load()
-    }
-    const { DataSet } = await import('vis-data')
+  protected newContextImpl(): Dataset {
     return new Dataset(new DataSet(), new DataSet())
   }
 
-  protected async finalizeContextImpl(ctx: Dataset): Promise<Dataset> {
+  protected async initializeImpl(ctx: Dataset): Promise<Dataset> {
     return ctx
   }
 
@@ -130,7 +119,7 @@ abstract class VisNetworkDriver<
     const options = this.options(seed, layout)
     options.autoResize = false
 
-    const network = new Vis.value.Network(element, dataset.toData(), options)
+    const network = new Network(element, dataset.toData(), options)
     network.on('startStabilizing', () => {
       refs.animating(true)
     })
@@ -164,21 +153,6 @@ abstract class VisNetworkDriver<
   ): Promise<Blob> {
     if (info === null) throw ErrorUnsupported
     return await dataset.drawNetworkClone(info.mount, 1000, 1000, Type.PNG, 1)
-  }
-
-  protected getSeedImpl(
-    details: ContextDetails<Dataset, Options>,
-    info: MountInfo<Network> | null,
-  ): number | null {
-    if (info === null) {
-      return null
-    }
-    const seed = info.mount.getSeed()
-    if (typeof seed === 'number') {
-      return seed
-    }
-
-    return null
   }
 
   protected startSimulationImpl(
@@ -396,7 +370,7 @@ class Dataset {
     document.body.append(container)
 
     // create a clone of the network
-    const networkClone = new Vis.value.Network(
+    const networkClone = new Network(
       container,
       { nodes: nodeSet, edges: edgeSet } as unknown as Data,
       {

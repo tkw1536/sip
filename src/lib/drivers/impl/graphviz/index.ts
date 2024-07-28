@@ -74,10 +74,7 @@ abstract class GraphvizDriver<
     return { engine }
   }
 
-  protected async newContextImpl(
-    flags: ContextFlags<Options>,
-    seed: number,
-  ): Promise<Graph> {
+  protected newContextImpl(flags: ContextFlags<Options>, seed: number): Graph {
     return {
       name: '',
       strict: false,
@@ -91,7 +88,7 @@ abstract class GraphvizDriver<
     }
   }
 
-  protected async finalizeContextImpl(
+  protected async initializeImpl(
     graph: Graph,
     flags: ContextFlags<Options>,
   ): Promise<Context> {
@@ -234,20 +231,6 @@ abstract class GraphvizDriver<
       }
     }
     throw new Error('never reached')
-  }
-
-  protected getSeedImpl(
-    details: ContextDetails<Context, Options>,
-    info: MountInfo<Mount> | null,
-  ): number | null {
-    const attrs = details.context.graph.graphAttributes
-    if (Object.hasOwn(attrs, 'start')) {
-      const { start } = attrs
-      if (typeof start === 'number') {
-        return start
-      }
-    }
-    return null
   }
 
   protected startSimulationImpl(

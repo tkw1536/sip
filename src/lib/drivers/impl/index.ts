@@ -23,6 +23,7 @@ export type DriverClass<
   AttachmentKey extends string,
 > = new (
   graph: Graph<NodeLabel, EdgeLabel>,
+  flags: ContextFlags<Options>,
 ) => Driver<NodeLabel, EdgeLabel, Options, AttachmentKey>
 
 export interface Refs {
@@ -38,6 +39,7 @@ export default interface Driver<
   AttachmentKey extends string,
 > {
   graph: Graph<NodeLabel, EdgeLabel>
+  flags: ContextFlags<Options>
 
   readonly driverName: string
 
@@ -54,10 +56,7 @@ export default interface Driver<
    * @param flags Flags for the context to create
    * @param ticket Used for cancellation. Returns false if the result is known to be discarded. In this case makeContext may chose to throw {@link ErrorAborted}.
    */
-  initialize: (
-    flags: ContextFlags<Options>,
-    ticket: () => boolean,
-  ) => Promise<void>
+  initialize: (ticket: () => boolean) => Promise<void>
 
   /** list of supported layouts to be passed to initialize */
   readonly layouts: string[]
@@ -131,86 +130,72 @@ export abstract class DriverImpl<
   HotContext = Context,
 > implements Driver<NodeLabel, EdgeLabel, Options, AttachmentKey>
 {
-  constructor(public readonly graph: Graph<NodeLabel, EdgeLabel>) {}
-
-  abstract readonly driverName: string
-
-  #context: ContextDetails<Context, Options> | null = null
-  #mount: MountInfo<Mount> | null = null
-
-  async initialize(
+  flags: ContextFlags<Options>
+  constructor(
+    public readonly graph: Graph<NodeLabel, EdgeLabel>,
     flags: ContextFlags<Options>,
-    ticket: () => boolean,
-  ): Promise<void> {
-    if (this.#context !== null || this.#mount !== null) {
-      throw new Error('Driver error: initialize called out of order')
-    }
+  ) {
+    this.flags = Object.freeze(flags)
 
-    const seed =
-      flags.seed ?? Math.floor(Math.random() * Number.MAX_SAFE_INTEGER)
+    this.seed =
+      this.flags.seed ?? Math.floor(Math.random() * Number.MAX_SAFE_INTEGER)
 
     const ids = new IDPool()
-    if (!ticket()) throw ErrorAborted
 
-    let hot: HotContext = await this.newContextImpl(flags, seed)
-    if (!ticket()) throw ErrorAborted
+    let hot: HotContext = this.newContextImpl(this.flags, this.seed)
 
     // add all nodes and edges
     for (const [id, node] of this.graph.getNodes()) {
       const nodeID = ids.for(id)
-      const element = node.render(nodeID, flags.options)
-      hot = this.addNodeImpl(hot, flags, nodeID, node, element) ?? hot
-      if (!ticket()) throw ErrorAborted
+      const element = node.render(nodeID, this.flags.options)
+      hot = this.addNodeImpl(hot, this.flags, nodeID, node, element) ?? hot
     }
     for (const [id, from, to, edge] of this.graph.getEdges()) {
       const edgeID = ids.for(id)
-      const element = edge.render(edgeID, flags.options)
+      const element = edge.render(edgeID, this.flags.options)
       hot =
         this.addEdgeImpl(
           hot,
-          flags,
+          this.flags,
           ids.for(id),
           ids.for(from),
           ids.for(to),
           edge,
           element,
         ) ?? hot
-      if (!ticket()) throw ErrorAborted
     }
+    this.#hot = hot
+  }
 
+  abstract readonly driverName: string
+
+  readonly #hot: HotContext
+  readonly seed: number
+  #context: ContextDetails<Context, Options> | null = null
+  #mount: MountInfo<Mount> | null = null
+
+  async initialize(ticket: () => boolean): Promise<void> {
+    if (this.#hot === null) {
+      throw new Error('Driver error: initialize called out of order')
+    }
     // finalize the context
-    const ctx = await this.finalizeContextImpl(hot, flags, seed)
+    const ctx = await this.initializeImpl(this.#hot, this.flags, this.seed)
     if (!ticket()) throw ErrorAborted
 
     // get the seed of this mount (if any)
-    this.#context = { context: ctx, flags, seed }
-    this.#seed = this.getSeedImpl(this.#context, null) ?? flags.seed
+    this.#context = { context: ctx, flags: this.flags, seed: this.seed }
   }
 
   protected abstract newContextImpl(
     flags: ContextFlags<Options>,
     seed: number,
-  ): Promise<HotContext>
+  ): HotContext
 
-  protected abstract finalizeContextImpl(
+  protected abstract initializeImpl(
     ctx: HotContext,
     flags: ContextFlags<Options>,
     seed: number,
   ): Promise<Context>
-
-  #seed: number | null = null
-  get seed(): number | null {
-    return this.#seed
-  }
-
-  /**
-   * Gets the seed that was actually used by the driver.
-   * Called once after {@link initialize} and once after {@link mount}.
-   */
-  protected abstract getSeedImpl(
-    details: ContextDetails<Context, Options>,
-    info: MountInfo<Mount> | null,
-  ): number | null
 
   abstract readonly layouts: string[]
 
@@ -224,8 +209,6 @@ export abstract class DriverImpl<
       element,
       refs,
     }
-
-    this.#seed = this.getSeedImpl(this.#context, this.#mount) ?? this.#seed
   }
   protected abstract mountImpl(
     details: ContextDetails<Context, Options>,

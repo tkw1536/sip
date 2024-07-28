@@ -64,11 +64,11 @@ abstract class SigmaDriver<
     }
   }
 
-  protected async newContextImpl(): Promise<Graph> {
+  protected newContextImpl(): Graph {
     return new Graph()
   }
 
-  protected async finalizeContextImpl(ctx: Graph): Promise<Graph> {
+  protected async initializeImpl(ctx: Graph): Promise<Graph> {
     return ctx
   }
 
@@ -150,13 +150,6 @@ abstract class SigmaDriver<
     format: string,
   ): Promise<Blob> {
     throw ErrorUnsupported
-  }
-
-  protected getSeedImpl(
-    details: ContextDetails<Graph, Options>,
-    info: MountInfo<SigmaMount> | null,
-  ): number | null {
-    return details.seed
   }
 
   protected startSimulationImpl(

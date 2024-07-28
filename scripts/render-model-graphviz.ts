@@ -7,11 +7,8 @@ import ColorMap from '../src/lib/pathbuilder/annotations/colormap'
 import ModelGraphBuilder from '../src/lib/graph/builders/model'
 import Deduplication from '../src/app/inspector/state/state/deduplication'
 import { GraphVizModelDriver } from '../src/lib/drivers/impl/graphviz'
-import { type ContextFlags } from '../src/lib/drivers/impl'
-import {
-  newModelDisplay,
-  type ModelOptions,
-} from '../src/lib/graph/builders/model/labels'
+import { defaultLayout } from '../src/lib/drivers/impl'
+import { newModelDisplay } from '../src/lib/graph/builders/model/labels'
 
 // Usage: node node_modules/vite-node/vite-node.mjs ./scripts/render-model-graphviz.ts -p pathbuilder
 
@@ -43,15 +40,13 @@ async function main(): Promise<void> {
   }).build()
 
   // load the driver and setup flags to use
-  const driver = new GraphVizModelDriver(graph)
-  const flags: ContextFlags<ModelOptions> = {
+  const driver = new GraphVizModelDriver(graph, {
     options: { ns, cm, display: newModelDisplay() },
-    layout: driver.layouts[0],
+    layout: defaultLayout,
     seed: null,
-  }
-
+  })
   // initialize and create blob
-  await driver.initialize(flags, () => true)
+  await driver.initialize(() => true)
   const blob = await driver.export('svg')
 
   // write the actual blob to the console

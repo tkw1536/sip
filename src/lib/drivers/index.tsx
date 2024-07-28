@@ -82,8 +82,8 @@ export default function Kernel<
         seed,
       }
 
-      const instance = new DriverClass(graph)
-      await instance.initialize(flags, ticket)
+      const instance = new DriverClass(graph, flags)
+      await instance.initialize(ticket)
       return instance
     },
     [DriverClass, graph, instanceCount, layout, options, seed],
