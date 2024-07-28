@@ -1,7 +1,7 @@
 import { type JSX } from 'preact'
 import ModelGraphBuilder from '../../../lib/graph/builders/model'
-import type Deduplication from '../state/state/deduplication'
-import { explanations, names, values } from '../state/state/deduplication'
+import type Deduplication from '../state/datatypes/deduplication'
+import { explanations, names, values } from '../state/datatypes/deduplication'
 import { models } from '../../../lib/drivers/collection'
 import GraphDisplay, {
   type PanelProps,
@@ -11,13 +11,7 @@ import {
   DriverControl,
   ExportControl,
 } from '../../../components/graph-display/controls'
-import {
-  setModelDeduplication,
-  setModelDisplay,
-  setModelDriver,
-  setModelLayout,
-  setModelSeed,
-} from '../state/reducers/model'
+
 import type Graph from '../../../lib/graph'
 import {
   type ModelOptions,
@@ -27,17 +21,17 @@ import {
   type ModelAttachmentKey,
 } from '../../../lib/graph/builders/model/labels'
 import { useCallback, useId, useMemo } from 'preact/hooks'
-import { useInspectorStore } from '../state'
 import useEventCallback from '../../../components/hooks/event'
+import useInspectorStore from '../state'
 
 export default function ModelGraphView(): JSX.Element {
-  const tree = useInspectorStore(s => s.tree)
+  const tree = useInspectorStore(s => s.pathtree)
   const selection = useInspectorStore(s => s.selection)
   const deduplication = useInspectorStore(s => s.modelDeduplication)
   const display = useInspectorStore(s => s.modelDisplay)
   const cm = useInspectorStore(s => s.cm)
   const driver = useInspectorStore(s => s.modelGraphDriver)
-  const seed = useInspectorStore(s => s.modelGraphSeed)
+  const seed = useInspectorStore(s => s.modelSeed)
   const layout = useInspectorStore(s => s.modelGraphLayout)
 
   const ns = useInspectorStore(s => s.ns)
@@ -70,51 +64,26 @@ export default function ModelGraphView(): JSX.Element {
 function ModelGraphPanel(
   props: PanelProps<ModelNode, ModelEdge, ModelOptions, ModelAttachmentKey>,
 ): JSX.Element {
-  const apply = useInspectorStore(s => s.apply)
-  const seed = useInspectorStore(s => s.modelGraphSeed)
+  const id = useId()
+
+  const seed = useInspectorStore(s => s.modelSeed)
   const layout = useInspectorStore(s => s.modelGraphLayout)
   const deduplication = useInspectorStore(s => s.modelDeduplication)
   const display = useInspectorStore(s => s.modelDisplay)
 
-  const id = useId()
+  const setModelDeduplication = useInspectorStore(s => s.setModelDeduplication)
+  const setModelDriver = useInspectorStore(s => s.setModelDriver)
+  const setModelDisplay = useInspectorStore(s => s.setModelDisplay)
+  const setModelLayout = useInspectorStore(s => s.setModelLayout)
+  const setModelSeed = useInspectorStore(s => s.setModelSeed)
 
   const handleChangeMode = useCallback(
     (evt: Event): void => {
-      apply(
-        setModelDeduplication(
-          (evt.target as HTMLInputElement).value as Deduplication,
-        ),
+      setModelDeduplication(
+        (evt.target as HTMLInputElement).value as Deduplication,
       )
     },
-    [apply],
-  )
-
-  const handleChangeModelRenderer = useCallback(
-    (value: string): void => {
-      apply(setModelDriver(value))
-    },
-    [apply],
-  )
-
-  const handleChangeDisplay = useCallback(
-    (display: ModelDisplay): void => {
-      apply(setModelDisplay(display))
-    },
-    [apply],
-  )
-
-  const handleChangeModelLayout = useCallback(
-    (value: string): void => {
-      apply(setModelLayout(value))
-    },
-    [apply],
-  )
-
-  const handleChangeModelSeed = useCallback(
-    (seed: number | null): void => {
-      apply(setModelSeed(seed))
-    },
-    [apply],
+    [setModelDeduplication],
   )
 
   return (
@@ -123,15 +92,12 @@ function ModelGraphPanel(
         driverNames={models.names}
         layout={layout}
         seed={seed}
-        onChangeDriver={handleChangeModelRenderer}
-        onChangeLayout={handleChangeModelLayout}
-        onChangeSeed={handleChangeModelSeed}
+        onChangeDriver={setModelDriver}
+        onChangeLayout={setModelLayout}
+        onChangeSeed={setModelSeed}
         {...props}
       />
-      <ModelGraphDisplayControl
-        display={display}
-        onUpdate={handleChangeDisplay}
-      />
+      <ModelGraphDisplayControl display={display} onUpdate={setModelDisplay} />
       <Control name='Deduplication'>
         <p>
           Classes may occur in the pathbuilder more than once. Usually, each
@@ -370,5 +336,3 @@ function ComponentCheckbox(props: ComponentCheckboxProps): JSX.Element {
     </>
   )
 }
-
-// spellchecker:words dedup Renderable

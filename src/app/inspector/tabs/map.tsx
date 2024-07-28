@@ -1,24 +1,11 @@
 import { type JSX } from 'preact'
-import { resetNamespaceMap, setNamespaceMap } from '../state/reducers/ns'
-import { type NamespaceMap } from '../../../lib/pathbuilder/namespace'
 import NamespaceEditor from '../../../components/namespace-editor'
-import { useCallback } from 'preact/hooks'
-import { useInspectorStore } from '../state'
+import useInspectorStore from '../state'
 
 export default function MapTab(): JSX.Element {
-  const apply = useInspectorStore(s => s.apply)
   const ns = useInspectorStore(s => s.ns)
-
-  const handleReset = useCallback((): void => {
-    apply(resetNamespaceMap())
-  }, [apply])
-
-  const handleNewMap = useCallback(
-    (ns: NamespaceMap): void => {
-      apply(setNamespaceMap(ns))
-    },
-    [apply],
-  )
+  const resetNamespaceMap = useInspectorStore(s => s.resetNamespaceMap)
+  const setNamespaceMap = useInspectorStore(s => s.setNamespaceMap)
 
   return (
     <>
@@ -31,7 +18,11 @@ export default function MapTab(): JSX.Element {
         the pathbuilder. You can manually adjust it here, by adding, removing or
         editing abbreviations.
       </p>
-      <NamespaceEditor ns={ns} onReset={handleReset} onUpdate={handleNewMap} />
+      <NamespaceEditor
+        ns={ns}
+        onReset={resetNamespaceMap}
+        onUpdate={setNamespaceMap}
+      />
     </>
   )
 }

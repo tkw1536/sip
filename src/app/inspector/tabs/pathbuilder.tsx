@@ -1,16 +1,12 @@
 import { type JSX } from 'preact'
 import { StyledDropArea } from '../../../components/drop-area'
-import { useInspectorStore } from '../state'
-import {
-  loadPathbuilder,
-  resetInspector,
-  setPathbuilderLoading,
-} from '../state/reducers'
+
 import ErrorDisplay from '../../../components/error'
 import download from '../../../lib/utils/download'
 import { Type } from '../../../lib/utils/media'
 import Spinner from '../../../components/spinner'
 import { useCallback } from 'preact/hooks'
+import useInspectorStore from '../state'
 
 export default function PathbuilderTab(): JSX.Element {
   const loadStage = useInspectorStore(s => s.loadStage)
@@ -42,15 +38,8 @@ function dragContent(active: boolean, valid: boolean): JSX.Element {
 }
 
 function WelcomeView(): JSX.Element {
-  const apply = useInspectorStore(s => s.apply)
   const loadStage = useInspectorStore(s => s.loadStage)
-
-  const handleLoadPathbuilder = useCallback(
-    (file: File): void => {
-      apply([setPathbuilderLoading, loadPathbuilder(file)])
-    },
-    [apply],
-  )
+  const loadFile = useInspectorStore(s => s.loadFile)
 
   if (loadStage === 'loading') {
     return <Spinner message='Loading pathbuilder' />
@@ -70,7 +59,7 @@ function WelcomeView(): JSX.Element {
         All processing happens on-device, meaning the server host can not access
         any data contained within your pathbuilder.
       </p>
-      <StyledDropArea onDropFile={handleLoadPathbuilder} types={[Type.XML]}>
+      <StyledDropArea onDropFile={loadFile} types={[Type.XML]}>
         {dragContent}
       </StyledDropArea>
       {typeof loadStage === 'object' && loadStage.error instanceof Error && (
@@ -86,9 +75,10 @@ function WelcomeView(): JSX.Element {
 }
 
 function InfoView(): JSX.Element {
-  const apply = useInspectorStore(s => s.apply)
   const pathbuilder = useInspectorStore(s => s.pathbuilder)
   const filename = useInspectorStore(s => s.filename)
+
+  const closeFile = useInspectorStore(s => s.closeFile)
 
   const handleExport = useCallback(
     (evt: MouseEvent): void => {
@@ -98,15 +88,6 @@ function InfoView(): JSX.Element {
       download(file, filename)
     },
     [pathbuilder, filename],
-  )
-
-  const handleClosePathbuilder = useCallback(
-    (evt: MouseEvent): void => {
-      evt.preventDefault()
-
-      apply(resetInspector(false))
-    },
-    [apply],
   )
 
   const theFilename = filename !== '' ? filename : 'pathbuilder.xml'
@@ -119,8 +100,7 @@ function InfoView(): JSX.Element {
         pathbuilder.
       </p>
       <p>
-        You can also close{' '}
-        <button onClick={handleClosePathbuilder}>Close</button> this
+        You can also close <button onClick={closeFile}>Close</button> this
         pathbuilder.
       </p>
     </>

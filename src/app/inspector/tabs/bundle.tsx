@@ -12,21 +12,17 @@ import BundleGraphBuilder, {
   type BundleNode,
 } from '../../../lib/graph/builders/bundle'
 import { bundles } from '../../../lib/drivers/collection'
-import {
-  setBundleDriver,
-  setBundleLayout,
-  setBundleSeed,
-} from '../state/reducers/bundle'
+
 import type Graph from '../../../lib/graph'
-import { useInspectorStore } from '../state'
-import { useCallback, useMemo } from 'preact/hooks'
+import { useMemo } from 'preact/hooks'
+import useInspectorStore from '../state'
 
 export default function BundleGraphTab(): JSX.Element {
-  const tree = useInspectorStore(s => s.tree)
+  const tree = useInspectorStore(s => s.pathtree)
   const selection = useInspectorStore(s => s.selection)
   const driver = useInspectorStore(s => s.bundleGraphDriver)
   const layout = useInspectorStore(s => s.bundleGraphLayout)
-  const seed = useInspectorStore(s => s.bundleGraphSeed)
+  const seed = useInspectorStore(s => s.bundleSeed)
   const ns = useInspectorStore(s => s.ns)
   const cm = useInspectorStore(s => s.cm)
 
@@ -56,28 +52,12 @@ export default function BundleGraphTab(): JSX.Element {
 function BundleGraphPanel(
   props: PanelProps<BundleNode, BundleEdge, BundleOptions, never>,
 ): JSX.Element {
-  const apply = useInspectorStore(s => s.apply)
   const layout = useInspectorStore(s => s.bundleGraphLayout)
-  const seed = useInspectorStore(s => s.bundleGraphSeed)
+  const seed = useInspectorStore(s => s.bundleSeed)
 
-  const handleChangeBundleRenderer = useCallback(
-    (value: string): void => {
-      apply(setBundleDriver(value))
-    },
-    [apply],
-  )
-  const handleChangeBundleLayout = useCallback(
-    (value: string): void => {
-      apply(setBundleLayout(value))
-    },
-    [apply],
-  )
-  const handleChangeBundleSeed = useCallback(
-    (seed: number | null): void => {
-      apply(setBundleSeed(seed))
-    },
-    [apply],
-  )
+  const setDriver = useInspectorStore(s => s.setBundleDriver)
+  const setLayout = useInspectorStore(s => s.setBundleLayout)
+  const setSeed = useInspectorStore(s => s.setBundleSeed)
 
   return (
     <>
@@ -85,9 +65,9 @@ function BundleGraphPanel(
         driverNames={bundles.names}
         layout={layout}
         seed={seed}
-        onChangeDriver={handleChangeBundleRenderer}
-        onChangeLayout={handleChangeBundleLayout}
-        onChangeSeed={handleChangeBundleSeed}
+        onChangeDriver={setDriver}
+        onChangeLayout={setLayout}
+        onChangeSeed={setSeed}
         {...props}
       />
       <ExportControl {...props} />

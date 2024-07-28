@@ -5,9 +5,8 @@ import download from '../lib/utils/download'
 import DropArea from './drop-area'
 import ErrorDisplay from './error'
 import * as styles from './namespace-editor.module.css'
-import { Operation } from '../lib/utils/operation'
 import { classes } from '../lib/utils/classes'
-import { useCallback, useEffect, useId, useMemo, useState } from 'preact/hooks'
+import { useCallback, useId, useMemo, useState } from 'preact/hooks'
 import InputWithValidity from './input-with-validity'
 
 interface NamespaceEditorProps {
@@ -23,13 +22,11 @@ export default function NamespaceEditor(
   const [loadError, setLoadError] = useState<any>(undefined)
 
   const doUpdate = useCallback(
-    (newNS: NamespaceMap) => {
+    (ns: NamespaceMap) => {
       setLoadError(undefined)
-
-      if (newNS === ns) return
-      onUpdate(newNS)
+      onUpdate(ns)
     },
-    [ns, onUpdate],
+    [onUpdate],
   )
 
   const handleUpdate = useCallback(
@@ -66,32 +63,23 @@ export default function NamespaceEditor(
     [doUpdate, ns],
   )
 
-  const operation = useMemo(() => new Operation(), []) // TODO: Figure out what to put here
-  useEffect(() => () => {
-    operation.cancel()
-  })
-
   const loadNS = useCallback(
     (file: File) => {
       void (async () => {
-        const ticket = operation.ticket()
-        let ns: NamespaceMap
-        try {
-          const data = JSON.parse(await file.text())
-          const newNS = NamespaceMap.fromJSON(data)
-          if (newNS === null) throw new Error('not a valid namespace map')
-          ns = newNS
-        } catch (e: unknown) {
-          if (!ticket()) return
-          setLoadError(e)
-          return
-        }
-
-        if (!ticket()) return
-        doUpdate(ns)
-      })()
+        const data = JSON.parse(await file.text())
+        const ns = NamespaceMap.fromJSON(data)
+        if (ns === null) throw new Error('not a valid namespace map')
+        return ns
+      })().then(
+        ns => {
+          doUpdate(ns)
+        },
+        err => {
+          setLoadError(err)
+        },
+      )
     },
-    [doUpdate, operation],
+    [doUpdate],
   )
 
   return (

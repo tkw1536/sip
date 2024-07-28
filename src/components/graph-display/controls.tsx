@@ -4,9 +4,9 @@ import download from '../../lib/utils/download'
 import type Driver from '../../lib/drivers/impl'
 import ValueSelector from '../selector'
 import { useCallback, useId } from 'preact/hooks'
-import { type HTMLAttributes } from 'preact/compat'
 import { type Renderable } from '../../lib/graph/builders'
 import { type PanelProps } from '.'
+import ActionButton from '../button'
 
 /** Control that provides only UI components */
 export function Control(props: {
@@ -283,21 +283,4 @@ export function ExportControl<
       </p>
     </Control>
   )
-}
-
-interface ActionButtonProps extends HTMLAttributes<HTMLButtonElement> {
-  onClick?: () => void
-}
-function ActionButton(props: ActionButtonProps): JSX.Element {
-  const { onClick } = props
-  const handleClick = useCallback(
-    (event: Event) => {
-      event.preventDefault()
-      if (typeof onClick === 'function') {
-        onClick()
-      }
-    },
-    [onClick],
-  )
-  return <button {...props} onClick={handleClick} />
 }

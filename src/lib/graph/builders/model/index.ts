@@ -1,5 +1,5 @@
 import GraphBuilder from '..'
-import Deduplication from '../../../../app/inspector/state/state/deduplication'
+import Deduplication from '../../../../app/inspector/state/datatypes/deduplication'
 import { type PathTree } from '../../../pathbuilder/pathtree'
 import { type DeduplicatingBuilder, type DedupOptions } from './dedup'
 import BundleBuilder from './dedup_bundle'

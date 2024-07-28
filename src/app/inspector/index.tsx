@@ -1,13 +1,10 @@
 import { type JSX } from 'preact'
-import { closeModal } from './state/reducers'
-import { useInspectorStore } from './state'
-import { setActiveTab } from './state/reducers/tab'
 import Tabs, { Label, Tab } from '../../components/tabs'
 
 import DebugTab from './tabs/debug'
 import { LazyLoaded } from '../../components/spinner'
 import Banner from '../../components/layout/banner'
-import { useCallback } from 'preact/hooks'
+import useInspectorStore from './state'
 
 const PathbuilderTab = LazyLoaded(
   async () => (await import('./tabs/pathbuilder')).default,
@@ -23,27 +20,18 @@ const MapTab = LazyLoaded(async () => (await import('./tabs/map')).default)
 const AboutTab = LazyLoaded(async () => (await import('./tabs/about')).default)
 
 export default function InspectorApp(): JSX.Element {
-  const apply = useInspectorStore(s => s.apply)
   const activeTab = useInspectorStore(s => s.activeTab)
   const loadStage = useInspectorStore(s => s.loadStage)
-  const showModal = useInspectorStore(s => s.showModal)
+  const modal = useInspectorStore(s => s.modal)
+  const setActiveTab = useInspectorStore(s => s.setActiveTab)
+  const hideModal = useInspectorStore(s => s.hideModal)
 
   const loaded = loadStage === true
 
-  const handleChangeTab = useCallback(
-    (key: string): void => {
-      apply(setActiveTab(key))
-    },
-    [apply],
-  )
-  const handleClose = useCallback(() => {
-    apply(closeModal())
-  }, [apply])
-
   return (
     <>
-      {showModal && <Banner onClose={handleClose} />}
-      <Tabs onChangeTab={handleChangeTab} active={activeTab}>
+      {modal && <Banner onClose={hideModal} />}
+      <Tabs onChangeTab={setActiveTab} active={activeTab}>
         <Label>
           <b>Supreme Inspector for Pathbuilders</b>
         </Label>

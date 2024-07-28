@@ -7,33 +7,18 @@ import {
 } from '../../../lib/pathbuilder/pathtree'
 import * as styles from './tree.module.css'
 import { classes } from '../../../lib/utils/classes'
-import { type ColorPreset, colorPresets } from '../state/state/preset'
-import { useInspectorStore } from '../state'
-import {
-  selectAll,
-  selectNone,
-  selectPredicate,
-  updateSelection,
-} from '../state/reducers/selection'
-import {
-  collapseAll,
-  collapseNode,
-  expandAll,
-} from '../state/reducers/collapse'
-import {
-  applyColorPreset,
-  loadColorMap,
-  setColor,
-} from '../state/reducers/color'
+import { type ColorPreset, colorPresets } from '../state/datatypes/color'
 import DropArea from '../../../components/drop-area'
 import download from '../../../lib/utils/download'
 import { Type } from '../../../lib/utils/media'
-import { setHideEqualParentPaths } from '../state/reducers/tree'
 import { Panel } from '../../../components/layout/panel'
 import { useCallback, useMemo, useRef } from 'preact/hooks'
+import useInspectorStore from '../state'
+import useEventCallback from '../../../components/hooks/event'
+import ActionButton from '../../../components/button'
 
 export default function TreeTab(): JSX.Element {
-  const tree = useInspectorStore(s => s.tree)
+  const tree = useInspectorStore(s => s.pathtree)
   const children = useMemo(() => Array.from(tree.children()), [tree])
 
   return (
@@ -60,68 +45,34 @@ export default function TreeTab(): JSX.Element {
 }
 
 function TreeTabPanel(): JSX.Element {
-  const apply = useInspectorStore(s => s.apply)
   const cm = useInspectorStore(s => s.cm)
-  const hideParents = useInspectorStore(s => s.hideEqualParentPaths)
-  const colorLoad = useInspectorStore(s => s.cmLoadError)
+  const hideParents = useInspectorStore(s => s.collapseParentPaths)
+  const cmLoadError = useInspectorStore(s => s.cmLoadError)
 
-  const handleSelectAll = useCallback(
-    (evt: Event): void => {
-      evt.preventDefault()
-      apply(selectAll())
-    },
-    [apply],
-  )
+  const selectAll = useInspectorStore(s => s.selectAll)
+  const selectNone = useInspectorStore(s => s.selectNone)
 
-  const handleSelectNone = useCallback(
-    (evt: Event): void => {
-      evt.preventDefault()
-      apply(selectNone())
-    },
-    [apply],
-  )
+  const selectPredicate = useInspectorStore(s => s.selectPredicate)
+  const selectBundles = useCallback(() => {
+    selectPredicate(x => x instanceof Bundle)
+  }, [selectPredicate])
+  const selectFields = useCallback(() => {
+    selectPredicate(x => x instanceof Field)
+  }, [selectPredicate])
 
-  const handleSelectOnlyBundles = useCallback(
-    (evt: Event): void => {
-      evt.preventDefault()
-      apply(selectPredicate(x => x instanceof Bundle))
-    },
-    [apply],
-  )
+  const expandAll = useInspectorStore(s => s.expandAll)
+  const collapseAll = useInspectorStore(s => s.collapseAll)
 
-  const handleSelectOnlyFields = useCallback(
-    (evt: Event): void => {
-      evt.preventDefault()
-      apply(selectPredicate(x => x instanceof Field))
-    },
-    [apply],
-  )
-
-  const handleExpandAll = useCallback(
-    (evt: Event): void => {
-      evt.preventDefault()
-      apply(expandAll())
-    },
-    [apply],
-  )
-
-  const handleCollapseAll = useCallback(
-    (evt: Event): void => {
-      evt.preventDefault()
-      apply(collapseAll())
-    },
-    [apply],
-  )
-
-  const handleColorPreset = useCallback(
+  const applyColorPreset = useInspectorStore(s => s.applyColorPreset)
+  const handleColorPreset = useEventCallback(
     (evt: Event & { currentTarget: HTMLButtonElement }): void => {
       evt.preventDefault()
       const { preset } = evt.currentTarget.dataset
       if (typeof preset !== 'string') return
 
-      apply(applyColorPreset(preset as ColorPreset))
+      applyColorPreset(preset as ColorPreset)
     },
-    [apply],
+    [applyColorPreset],
   )
 
   const handleColorMapExport = useCallback(
@@ -133,19 +84,16 @@ function TreeTabPanel(): JSX.Element {
     [cm],
   )
 
-  const handleColorMapImport = useCallback(
-    (file: File): void => {
-      apply(loadColorMap(file))
-    },
-    [apply],
-  )
+  const loadColorMap = useInspectorStore(s => s.loadColorMap)
 
-  const handleHideEqualParentPaths = useCallback(
-    (event: Event & { currentTarget: HTMLInputElement }): void => {
-      event.preventDefault()
-      apply(setHideEqualParentPaths(event.currentTarget.checked))
+  const setCollapseParentPaths = useInspectorStore(
+    s => s.setCollapseParentPaths,
+  )
+  const handleCollapseParentPaths = useEventCallback(
+    (evt: Event & { currentTarget: HTMLInputElement }): void => {
+      setCollapseParentPaths(evt.currentTarget.checked)
     },
-    [apply],
+    [setCollapseParentPaths],
   )
 
   return (
@@ -158,9 +106,9 @@ function TreeTabPanel(): JSX.Element {
         </p>
 
         <p>
-          <button onClick={handleCollapseAll}>Collapse All</button>
+          <button onClick={collapseAll}>Collapse All</button>
           {` `}
-          <button onClick={handleExpandAll}>Expand All</button>
+          <button onClick={expandAll}>Expand All</button>
         </p>
 
         <p>
@@ -206,7 +154,7 @@ function TreeTabPanel(): JSX.Element {
             id='hide-parent-paths'
             type='checkbox'
             checked={hideParents}
-            onInput={handleHideEqualParentPaths}
+            onInput={handleCollapseParentPaths}
           />
           <label for='hide-parent-paths'>
             Collapse shared paths into ellipses
@@ -223,13 +171,13 @@ function TreeTabPanel(): JSX.Element {
         </p>
 
         <p>
-          <button onClick={handleSelectAll}>Select All</button>
+          <ActionButton onClick={selectAll}>Select All</ActionButton>
           {` `}
-          <button onClick={handleSelectNone}>Select None</button>
+          <ActionButton onClick={selectNone}>Select None</ActionButton>
           {` `}
-          <button onClick={handleSelectOnlyBundles}>Select Bundles</button>
+          <ActionButton onClick={selectBundles}>Select Bundles</ActionButton>
           {` `}
-          <button onClick={handleSelectOnlyFields}>Select Fields</button>
+          <ActionButton onClick={selectFields}>Select Fields</ActionButton>
         </p>
       </fieldset>
       <br />
@@ -258,18 +206,14 @@ function TreeTabPanel(): JSX.Element {
         <p>
           <button onClick={handleColorMapExport}>Export</button>
           {` `}
-          <DropArea
-            types={[Type.JSON]}
-            onDropFile={handleColorMapImport}
-            compact
-          >
+          <DropArea types={[Type.JSON]} onDropFile={loadColorMap} compact>
             Import
           </DropArea>
           {` `}
-          {typeof colorLoad === 'string' && (
+          {typeof cmLoadError !== 'undefined' && (
             <small>
               &nbsp;
-              {colorLoad}
+              {cmLoadError.message}
             </small>
           )}
         </p>
@@ -287,20 +231,20 @@ function BundleRows(props: {
 }): JSX.Element {
   const { bundle, level, visible } = props
 
-  const apply = useInspectorStore(s => s.apply)
   const cm = useInspectorStore(s => s.cm)
   const ns = useInspectorStore(s => s.ns)
   const selection = useInspectorStore(s => s.selection)
-  const collapsed = useInspectorStore(s => s.collapsed)
-  const hideParents = useInspectorStore(s => s.hideEqualParentPaths)
+  const collapsed = useInspectorStore(s => s.collapse)
+  const hideParents = useInspectorStore(s => s.collapseParentPaths)
+  const toggleNode = useInspectorStore(s => s.toggleNode)
 
   const handleClick = useCallback(
     (evt: Event): void => {
       evt.preventDefault()
 
-      apply(collapseNode(bundle))
+      toggleNode(bundle)
     },
-    [apply, bundle],
+    [bundle, toggleNode],
   )
 
   const shiftHeld = useRef(false)
@@ -312,25 +256,25 @@ function BundleRows(props: {
     [shiftHeld],
   )
 
-  const handleSelectionChange = useCallback(
+  const updateSelection = useInspectorStore(s => s.updateSelection)
+  const handleSelectionChange = useEventCallback(
     (evt: Event & { currentTarget: HTMLInputElement }): void => {
-      evt.preventDefault()
-
       const { current: shift } = shiftHeld
 
       const keys = shift ? Array.from(bundle.walk()) : [bundle]
       const value = evt.currentTarget.checked
 
-      apply(updateSelection(keys.map(k => [k, value])))
+      updateSelection(keys.map(k => [k, value]))
     },
-    [bundle, apply],
+    [bundle, updateSelection],
   )
 
+  const setColor = useInspectorStore(s => s.setColor)
   const handleColorChange = useCallback(
     (evt: Event & { currentTarget: HTMLInputElement }): void => {
-      apply(setColor(bundle, evt.currentTarget.value))
+      setColor(bundle, evt?.currentTarget.value)
     },
-    [apply, bundle],
+    [bundle, setColor],
   )
 
   const path = bundle.path
@@ -400,24 +344,25 @@ function FieldRow(props: {
 }): JSX.Element {
   const { field, level, visible } = props
 
-  const apply = useInspectorStore(s => s.apply)
   const cm = useInspectorStore(s => s.cm)
   const ns = useInspectorStore(s => s.ns)
   const selection = useInspectorStore(s => s.selection)
-  const hideParents = useInspectorStore(s => s.hideEqualParentPaths)
+  const hideParents = useInspectorStore(s => s.collapseParentPaths)
 
-  const handleSelectionChange = useCallback(
+  const updateSelection = useInspectorStore(s => s.updateSelection)
+  const handleSelectionChange = useEventCallback(
     (evt: Event & { currentTarget: HTMLInputElement }): void => {
-      apply(updateSelection([[field, evt.currentTarget.checked]]))
+      updateSelection([[field, evt.currentTarget.checked]])
     },
-    [apply, field],
+    [field, updateSelection],
   )
 
-  const handleColorChange = useCallback(
+  const setColor = useInspectorStore(s => s.setColor)
+  const handleColorChange = useEventCallback(
     (evt: Event & { currentTarget: HTMLInputElement }): void => {
-      apply(setColor(field, evt.currentTarget.value))
+      setColor(field, evt.currentTarget.value)
     },
-    [apply, field],
+    [field, setColor],
   )
 
   const { path } = field
