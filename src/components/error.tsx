@@ -9,7 +9,7 @@ import * as styles from './error.module.css'
 import StackTrace from 'stacktrace-js'
 import { classes } from '../lib/utils/classes'
 import { useState } from 'preact/hooks'
-import useAsyncEffect from './hooks/async'
+import { useAsyncEffect } from './hooks/async'
 
 interface ErrorProps {
   error?: unknown
@@ -61,7 +61,7 @@ function ErrorDisplayError(props: { error: Error }): JSX.Element {
         const stack = frames.map(sf => sf.toString()).join('\n')
         setErrState({ error, stack })
       },
-      onRejected() {
+      cleanup() {
         setErrState({ error, stack: undefined })
       },
     }),

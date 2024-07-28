@@ -22,7 +22,6 @@ export default function GraphTab(): JSX.Element {
   const driver = useRDFStore(s => s.rdfGraphDriver)
   const seed = useRDFStore(s => s.rdfGraphSeed)
   const ns = useRDFStore(s => s.ns)
-  const nsVersion = useRDFStore(s => s.nsVersion)
 
   const makeGraph = useMemo(
     () => async (): Promise<Graph<RDFNode, RDFEdge>> => {
@@ -35,9 +34,8 @@ export default function GraphTab(): JSX.Element {
   return (
     <GraphDisplay
       loader={triples}
-      driver={driver}
+      name={driver}
       seed={seed}
-      builderKey={nsVersion.toString()}
       makeGraph={makeGraph}
       options={{ ns }}
       layout={layout}

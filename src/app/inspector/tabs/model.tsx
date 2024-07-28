@@ -32,18 +32,10 @@ import useEventCallback from '../../../components/hooks/event'
 
 export default function ModelGraphView(): JSX.Element {
   const tree = useInspectorStore(s => s.tree)
-  const pbVersion = useInspectorStore(s => s.pathbuilderVersion)
-
   const selection = useInspectorStore(s => s.selection)
-  const selectionVersion = useInspectorStore(s => s.selectionVersion)
   const deduplication = useInspectorStore(s => s.modelDeduplication)
-
   const display = useInspectorStore(s => s.modelDisplay)
-  const optionVersion = useInspectorStore(s => s.modelGraphOptionVersion)
-
   const cm = useInspectorStore(s => s.cm)
-  const cmVersion = useInspectorStore(s => s.colorVersion)
-
   const driver = useInspectorStore(s => s.modelGraphDriver)
   const seed = useInspectorStore(s => s.modelGraphSeed)
   const layout = useInspectorStore(s => s.modelGraphLayout)
@@ -60,16 +52,13 @@ export default function ModelGraphView(): JSX.Element {
     }
   }, [tree, selection, deduplication])
 
-  const builderKey = `${pbVersion}-${selectionVersion}-${optionVersion}-${cmVersion}`
-
   const options = useMemo(() => ({ ns, cm, display }), [ns, cm, display])
 
   return (
     <GraphDisplay
       loader={models}
-      builderKey={builderKey}
       makeGraph={builder}
-      driver={driver}
+      name={driver}
       seed={seed}
       options={options}
       layout={layout}

@@ -6,7 +6,7 @@ import {
   type PropsWithoutRef,
 } from 'preact/compat'
 import ErrorDisplay from './error'
-import useAsyncEffect from './hooks/async'
+import useAsyncState, { reasonAsCause } from './hooks/async'
 
 /**
  * Lazily loads a component
@@ -25,25 +25,14 @@ export function Lazy<P>(
 
   const wrapper = forwardRef(
     (props: P, ref: ForwardedRef<unknown>): VNode<any> | null => {
-      const [cState, setCState] = useState<{
-        Component?: ComponentType<P>
-        Error?: any
-      }>({})
-
-      useAsyncEffect(
-        () => ({
-          async promise() {
-            return await loader()
-          },
-          onFulfilled(Component) {
-            wrapper.displayName = `Lazy(${getDisplayName(Component)})`
-            setCState({ Component, Error: undefined })
-          },
-          onRejected(Error) {
-            setCState({ Component: undefined, Error })
-          },
-        }),
+      const component = useAsyncState(
+        ticket => async () => {
+          const Component = await loader()
+          wrapper.displayName = `Lazy(${getDisplayName(Component)})`
+          return Component
+        },
         [],
+        reasonAsCause('failed to load component'),
       )
 
       const [hideFallback, setHideFallback] = useState(
@@ -62,19 +51,18 @@ export function Lazy<P>(
         }
       })
 
-      const { Component, Error: loadError } = cState
-
-      if (typeof loadError !== 'undefined') {
-        return <ErrorDisplay error={loadError} />
+      if (component.status === 'rejected') {
+        return <ErrorDisplay error={component.reason} />
       }
 
-      if (typeof Component === 'undefined') {
+      if (component.status === 'pending') {
         if (hideFallback) {
           return null
         }
         return fallback ?? null
       }
 
+      const Component = component.value
       return <Component ref={ref} {...props} />
     },
   )

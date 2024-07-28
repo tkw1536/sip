@@ -23,15 +23,12 @@ import { useCallback, useMemo } from 'preact/hooks'
 
 export default function BundleGraphTab(): JSX.Element {
   const tree = useInspectorStore(s => s.tree)
-  const pbVersion = useInspectorStore(s => s.pathbuilderVersion)
   const selection = useInspectorStore(s => s.selection)
-  const selectionVersion = useInspectorStore(s => s.selectionVersion)
   const driver = useInspectorStore(s => s.bundleGraphDriver)
   const layout = useInspectorStore(s => s.bundleGraphLayout)
   const seed = useInspectorStore(s => s.bundleGraphSeed)
   const ns = useInspectorStore(s => s.ns)
   const cm = useInspectorStore(s => s.cm)
-  const cmVersion = useInspectorStore(s => s.colorVersion)
 
   const makeGraph = useMemo(
     () => async (): Promise<Graph<BundleNode, BundleEdge>> => {
@@ -46,9 +43,8 @@ export default function BundleGraphTab(): JSX.Element {
   return (
     <GraphDisplay
       loader={bundles}
-      driver={driver}
+      name={driver}
       seed={seed}
-      builderKey={`${pbVersion}-${selectionVersion}-${cmVersion}`}
       makeGraph={makeGraph}
       options={options}
       layout={layout}

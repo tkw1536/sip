@@ -10,7 +10,9 @@ import ErrorDisplay from '../error'
 import { useState } from 'preact/hooks'
 import { Panel } from '../layout/panel'
 import { type Renderable } from '../../lib/graph/builders'
-import useAsyncEffect from '../hooks/async'
+import useAsyncState, { reasonAsCause, type AsyncState } from '../hooks/async'
+import { type DriverClass } from '../../lib/drivers/impl'
+import Spinner from '../spinner'
 
 interface GraphProps<
   NodeLabel extends Renderable<Options, AttachmentKey>,
@@ -19,11 +21,11 @@ interface GraphProps<
   AttachmentKey extends string,
 > {
   loader: DriverLoader<NodeLabel, EdgeLabel, Options, AttachmentKey>
-  driver: string
+  name: string
 
-  builderKey: string
   makeGraph: () => Promise<Graph<NodeLabel, EdgeLabel>>
 
+  // TODO: make this flags
   options: Options
   layout: string
   seed: number | null
@@ -45,11 +47,6 @@ export interface PanelProps<
   > | null
 }
 
-type GraphLoadState<NodeLabel, EdgeLabel> =
-  | { state: 'build' }
-  | { state: 'error'; error: unknown }
-  | { state: 'done'; graph: Graph<NodeLabel, EdgeLabel> }
-
 export default function GraphDisplay<
   NodeLabel extends Renderable<Options, AttachmentKey>,
   EdgeLabel extends Renderable<Options, AttachmentKey>,
@@ -60,36 +57,25 @@ export default function GraphDisplay<
 ): JSX.Element {
   const {
     loader,
-    driver,
+    name,
     options,
     layout,
     seed,
     makeGraph,
     panel: GraphDisplayPanel,
   } = props
-  const [graph, setGraph] = useState<GraphLoadState<NodeLabel, EdgeLabel>>({
-    state: 'build',
-  })
+  const graph = useAsyncState(
+    ticket => makeGraph,
+    [makeGraph],
+    reasonAsCause('failed to create graph'),
+  )
+  const driver = useAsyncState(
+    ticket => async () => await loader.get(name),
+    [name, loader],
+    reasonAsCause('failed to load driver'),
+  )
 
   const [open, setOpen] = useState(false)
-
-  useAsyncEffect(() => {
-    return {
-      async promise() {
-        return await makeGraph()
-      },
-      onFulfilled(graph) {
-        setGraph({ state: 'done', graph })
-      },
-      onRejected(error) {
-        setGraph({ state: 'error', error })
-      },
-      cleanup() {
-        setGraph({ state: 'build' })
-      },
-    }
-  }, [makeGraph])
-
   const [controller, setController] = useState<KernelController<
     NodeLabel,
     EdgeLabel,
@@ -105,7 +91,6 @@ export default function GraphDisplay<
     >
       <GraphDisplayMain
         graph={graph}
-        loader={loader}
         driver={driver}
         controller={setController}
         options={options}
@@ -123,9 +108,13 @@ interface GraphDisplayMainProps<
   AttachmentKey extends string,
 > extends Omit<
     KernelProps<NodeLabel, EdgeLabel, Options, AttachmentKey>,
-    'graph'
+    'graph' | 'driver'
   > {
-  graph: GraphLoadState<NodeLabel, EdgeLabel>
+  driver: AsyncState<
+    DriverClass<NodeLabel, EdgeLabel, Options, AttachmentKey>,
+    Error
+  >
+  graph: AsyncState<Graph<NodeLabel, EdgeLabel>, Error>
 }
 
 function GraphDisplayMain<
@@ -136,14 +125,20 @@ function GraphDisplayMain<
 >(
   props: GraphDisplayMainProps<NodeLabel, EdgeLabel, Options, AttachmentKey>,
 ): JSX.Element | null {
-  const { graph, ...rest } = props
+  const { graph, driver, ...rest } = props
 
-  if (graph.state === 'build') {
-    return null
+  if (graph.status === 'pending') {
+    return <Spinner message='Building Graph'></Spinner>
   }
-  if (graph.state === 'error') {
-    return <ErrorDisplay error={graph.error} />
+  if (graph.status === 'rejected') {
+    return <ErrorDisplay error={graph.reason} />
+  }
+  if (driver.status === 'pending') {
+    return <Spinner message='Loading Driver'></Spinner>
+  }
+  if (driver.status === 'rejected') {
+    return <ErrorDisplay error={driver.reason} />
   }
 
-  return <Kernel {...rest} graph={graph.graph} />
+  return <Kernel {...rest} graph={graph.value} driver={driver.value} />
 }

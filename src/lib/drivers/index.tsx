@@ -1,4 +1,4 @@
-import { type JSX, type Ref } from 'preact'
+import { type JSX, type Ref, type ComponentChildren } from 'preact'
 import type Graph from '../graph'
 import * as styles from './index.module.css'
 import type Driver from './impl'
@@ -9,7 +9,7 @@ import { type Renderable } from '../graph/builders'
 import { setRef } from '../utils/ref'
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks'
 import useVisibleSize, { type Size } from '../../components/hooks/observer'
-import useAsyncEffect from '../../components/hooks/async'
+import useAsyncState, { reasonAsError } from '../../components/hooks/async'
 
 /** KernelProps are props for the current kernel */
 export interface KernelProps<
@@ -22,8 +22,7 @@ export interface KernelProps<
   layout: string
   options: Options
 
-  loader: DriverLoader<NodeLabel, EdgeLabel, Options, AttachmentKey>
-  driver: string
+  driver: DriverClass<NodeLabel, EdgeLabel, Options, AttachmentKey>
 
   seed: number | null
 
@@ -35,7 +34,7 @@ export interface KernelProps<
   > | null>
 }
 
-interface KernelWrapperProps<
+interface KernelMountProps<
   NodeLabel extends Renderable<Options, AttachmentKey>,
   EdgeLabel extends Renderable<Options, AttachmentKey>,
   Options,
@@ -43,14 +42,6 @@ interface KernelWrapperProps<
 > extends KernelProps<NodeLabel, EdgeLabel, Options, AttachmentKey> {
   forceRerender: () => void
   instance: Driver<NodeLabel, EdgeLabel, Options, AttachmentKey> /* whatever */
-}
-
-interface KernelMountProps<
-  NodeLabel extends Renderable<Options, AttachmentKey>,
-  EdgeLabel extends Renderable<Options, AttachmentKey>,
-  Options,
-  AttachmentKey extends string,
-> extends KernelWrapperProps<NodeLabel, EdgeLabel, Options, AttachmentKey> {
   size: Size
 }
 
@@ -65,19 +56,6 @@ export interface DriverLoader<
   ) => Promise<DriverClass<NodeLabel, EdgeLabel, Options, AttachmentKey>>
 }
 
-type InstanceState<
-  NodeLabel extends Renderable<Options, AttachmentKey>,
-  EdgeLabel extends Renderable<Options, AttachmentKey>,
-  Options,
-  AttachmentKey extends string,
-> =
-  | { state: 'loading' }
-  | { state: 'error'; error: Error }
-  | {
-      state: 'loaded'
-      driver: Driver<NodeLabel, EdgeLabel, Options, AttachmentKey>
-    }
-
 export default function Kernel<
   NodeLabel extends Renderable<Options, AttachmentKey>,
   EdgeLabel extends Renderable<Options, AttachmentKey>,
@@ -86,86 +64,68 @@ export default function Kernel<
 >(
   props: KernelProps<NodeLabel, EdgeLabel, Options, AttachmentKey>,
 ): JSX.Element {
-  const [instance, setInstance] = useState<
-    InstanceState<NodeLabel, EdgeLabel, Options, AttachmentKey>
-  >({ state: 'loading' })
+  const { graph, layout, options, seed, driver: DriverClass } = props
 
-  const { loader, graph, layout, options, driver: name, seed } = props
+  // introduce a counter for how many instances we have re-created.
+  // this allows the user to re-create the new instance on demand.
+  const [instanceCount, setInstanceCount] = useState(0)
 
-  const [rerenderHack, setRerenderHack] = useState(0)
+  const instance = useAsyncState(
+    ticket => async () => {
+      // re-create the instance, to allow the user to refresh the seed
+      const _ = instanceCount // eslint-disable-line @typescript-eslint/no-unused-vars
 
-  useAsyncEffect(
-    ticket => ({
-      async promise() {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const _ = rerenderHack
+      const flags: ContextFlags<Options> = Object.freeze({
+        options,
+        definitelyAcyclic: graph.definitelyAcyclic,
 
-        const DriverClass = await loader.get(name)
+        layout,
+        seed,
+      })
 
-        const flags: ContextFlags<Options> = Object.freeze({
-          options,
-          definitelyAcyclic: graph.definitelyAcyclic,
-
-          layout,
-          seed,
-          size: { width: 100, height: 100 },
-        })
-
-        const driver = new DriverClass()
-        await driver.initialize(graph, flags, ticket)
-
-        return driver
-      },
-      onFulfilled(driver) {
-        setInstance({ state: 'loaded', driver })
-      },
-      onRejected(err) {
-        setInstance({
-          state: 'error',
-          error: err instanceof Error ? err : new Error(String(err)),
-        })
-      },
-    }),
-    [graph, layout, loader, name, options, rerenderHack, seed],
+      const instance = new DriverClass()
+      await instance.initialize(graph, flags, ticket)
+      return instance
+    },
+    [DriverClass, graph, instanceCount, layout, options, seed],
+    reasonAsError,
   )
 
   const forceRerender = useCallback(() => {
-    setRerenderHack(x => x + 1)
+    setInstanceCount(x => x + 1)
   }, [])
 
-  switch (instance.state) {
-    case 'loading':
-      return (
+  const [size, ref] = useVisibleSize<HTMLDivElement>()
+
+  let body: ComponentChildren
+  switch (instance.status) {
+    case 'pending':
+      body = (
         <Spinner
           message={'Loading is taking a bit longer, please be patient. '}
         />
       )
-    case 'loaded':
-      return (
-        <KernelWrapper
+      break
+    case 'fulfilled':
+      body = size !== null && (
+        <KernelMount
           {...props}
-          instance={instance.driver}
+          size={size}
+          instance={instance.value}
           forceRerender={forceRerender}
         />
       )
-    case 'error':
-      return <ErrorDisplay error={instance.error} />
+      break
+    case 'rejected':
+      body = <ErrorDisplay error={instance.reason} />
+      break
+    default:
+      throw new Error('never reached')
   }
-  throw new Error('never reached')
-}
 
-function KernelWrapper<
-  NodeLabel extends Renderable<Options, AttachmentKey>,
-  EdgeLabel extends Renderable<Options, AttachmentKey>,
-  Options,
-  AttachmentKey extends string,
->(
-  props: KernelWrapperProps<NodeLabel, EdgeLabel, Options, AttachmentKey>,
-): JSX.Element {
-  const [size, ref] = useVisibleSize<HTMLDivElement>()
   return (
     <div ref={ref} class={styles.wrapper}>
-      {size !== null && <KernelMount {...props} size={size} />}
+      {size !== null && body}
     </div>
   )
 }
