@@ -43,16 +43,15 @@ async function main(): Promise<void> {
   }).build()
 
   // load the driver and setup flags to use
-  const driver = new GraphVizModelDriver()
+  const driver = new GraphVizModelDriver(graph)
   const flags: ContextFlags<ModelOptions> = {
     options: { ns, cm, display: newModelDisplay() },
-    definitelyAcyclic: graph.definitelyAcyclic,
     layout: driver.layouts[0],
     seed: null,
   }
 
   // initialize and create blob
-  await driver.initialize(graph, flags, () => true)
+  await driver.initialize(flags, () => true)
   const blob = await driver.export('svg')
 
   // write the actual blob to the console

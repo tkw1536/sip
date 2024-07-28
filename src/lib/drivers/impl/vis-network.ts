@@ -62,13 +62,11 @@ abstract class VisNetworkDriver<
   readonly driverName = 'vis-network'
   readonly layouts = [defaultLayout, 'hierarchical', 'force2atlas']
 
-  protected options(
-    seed: number,
-    layout: string,
-    definitelyAcyclic: boolean,
-  ): VisOptions {
+  protected options(seed: number, layout: string): VisOptions {
     const hierarchical =
-      layout === defaultLayout ? definitelyAcyclic : layout === 'hierarchical'
+      layout === defaultLayout
+        ? this.graph.definitelyAcyclic
+        : layout === 'hierarchical'
 
     return hierarchical
       ? {
@@ -123,13 +121,13 @@ abstract class VisNetworkDriver<
   protected mountImpl(
     {
       context: dataset,
-      flags: { layout, definitelyAcyclic },
+      flags: { layout },
       seed,
     }: ContextDetails<Dataset, Options>,
     element: HTMLElement,
     refs: Refs,
   ): Network {
-    const options = this.options(seed, layout, definitelyAcyclic)
+    const options = this.options(seed, layout)
     options.autoResize = false
 
     const network = new Vis.value.Network(element, dataset.toData(), options)

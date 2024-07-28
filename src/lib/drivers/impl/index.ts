@@ -13,7 +13,6 @@ export const defaultLayout = 'auto'
 export type ContextFlags<Options> = Readonly<{
   options: Options
   layout: string
-  definitelyAcyclic: boolean
   seed: number | null
 }>
 
@@ -22,7 +21,9 @@ export type DriverClass<
   EdgeLabel extends Renderable<Options, AttachmentKey>,
   Options,
   AttachmentKey extends string,
-> = new () => Driver<NodeLabel, EdgeLabel, Options, AttachmentKey>
+> = new (
+  graph: Graph<NodeLabel, EdgeLabel>,
+) => Driver<NodeLabel, EdgeLabel, Options, AttachmentKey>
 
 export interface Refs {
   /** indicates if the driver is currently animating a simulation */
@@ -36,6 +37,8 @@ export default interface Driver<
   Options,
   AttachmentKey extends string,
 > {
+  graph: Graph<NodeLabel, EdgeLabel>
+
   readonly driverName: string
 
   /** gets the seed used by this driver, or null if not available */
@@ -49,11 +52,9 @@ export default interface Driver<
    * For this reason initialize should automatically remove any background jobs.
    *
    * @param flags Flags for the context to create
-   * @param graph The graph to be rendered
    * @param ticket Used for cancellation. Returns false if the result is known to be discarded. In this case makeContext may chose to throw {@link ErrorAborted}.
    */
   initialize: (
-    graph: Graph<NodeLabel, EdgeLabel>,
     flags: ContextFlags<Options>,
     ticket: () => boolean,
   ) => Promise<void>
@@ -130,13 +131,14 @@ export abstract class DriverImpl<
   HotContext = Context,
 > implements Driver<NodeLabel, EdgeLabel, Options, AttachmentKey>
 {
+  constructor(public readonly graph: Graph<NodeLabel, EdgeLabel>) {}
+
   abstract readonly driverName: string
 
   #context: ContextDetails<Context, Options> | null = null
   #mount: MountInfo<Mount> | null = null
 
   async initialize(
-    graph: Graph<NodeLabel, EdgeLabel>,
     flags: ContextFlags<Options>,
     ticket: () => boolean,
   ): Promise<void> {
@@ -154,13 +156,13 @@ export abstract class DriverImpl<
     if (!ticket()) throw ErrorAborted
 
     // add all nodes and edges
-    for (const [id, node] of graph.getNodes()) {
+    for (const [id, node] of this.graph.getNodes()) {
       const nodeID = ids.for(id)
       const element = node.render(nodeID, flags.options)
       hot = this.addNodeImpl(hot, flags, nodeID, node, element) ?? hot
       if (!ticket()) throw ErrorAborted
     }
-    for (const [id, from, to, edge] of graph.getEdges()) {
+    for (const [id, from, to, edge] of this.graph.getEdges()) {
       const edgeID = ids.for(id)
       const element = edge.render(edgeID, flags.options)
       hot =

@@ -75,16 +75,15 @@ export default function Kernel<
       // re-create the instance, to allow the user to refresh the seed
       const _ = instanceCount // eslint-disable-line @typescript-eslint/no-unused-vars
 
-      const flags: ContextFlags<Options> = Object.freeze({
+      const flags: ContextFlags<Options> = {
         options,
-        definitelyAcyclic: graph.definitelyAcyclic,
 
         layout,
         seed,
-      })
+      }
 
-      const instance = new DriverClass()
-      await instance.initialize(graph, flags, ticket)
+      const instance = new DriverClass(graph)
+      await instance.initialize(flags, ticket)
       return instance
     },
     [DriverClass, graph, instanceCount, layout, options, seed],

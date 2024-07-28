@@ -89,13 +89,14 @@ abstract class CytoscapeDriver<
     'fcose',
     'cola',
   ]
-  protected layoutOptions(
-    layout: string,
-    definitelyAcyclic: boolean,
-  ): CytoscapeOptions['layout'] {
+  protected layoutOptions(layout: string): CytoscapeOptions['layout'] {
     const maxSimulationTime = 365 * 24 * 60 * 60 * 1000 // 1 year
     switch (
-      layout === defaultLayout ? (definitelyAcyclic ? 'dagre' : 'cola') : layout
+      layout === defaultLayout
+        ? this.graph.definitelyAcyclic
+          ? 'dagre'
+          : 'cola'
+        : layout
     ) {
       case 'grid':
         return { name: 'grid' }
@@ -119,10 +120,7 @@ abstract class CytoscapeDriver<
     }
   }
 
-  protected options(
-    layout: string,
-    definitelyAcyclic: boolean,
-  ): CytoscapeOptions {
+  protected options(layout: string): CytoscapeOptions {
     return {
       style: [
         {
@@ -175,7 +173,7 @@ abstract class CytoscapeDriver<
           },
         },
       ],
-      layout: this.layoutOptions(layout, definitelyAcyclic),
+      layout: this.layoutOptions(layout),
     }
   }
 
@@ -189,14 +187,11 @@ abstract class CytoscapeDriver<
   }
 
   protected mountImpl(
-    {
-      context: elements,
-      flags: { layout, definitelyAcyclic },
-    }: ContextDetails<Elements, Options>,
+    { context: elements, flags: { layout } }: ContextDetails<Elements, Options>,
     element: HTMLElement,
     refs: Refs,
   ): CytoMount {
-    const options = this.options(layout, definitelyAcyclic)
+    const options = this.options(layout)
 
     const c = Cytoscape.value({
       container: element,
