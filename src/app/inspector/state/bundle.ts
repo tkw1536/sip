@@ -39,10 +39,14 @@ export const create: StateCreator<BoundState, [], [], Slice> = set => {
     ...initialState,
 
     setBundleDriver(driver) {
-      set({ bundleGraphDriver: driver })
+      set({
+        bundleGraphDriver: driver,
+        bundleGraphLayout: defaultLayout,
+        bundleSeed: null,
+      })
     },
     setBundleLayout(layout) {
-      set({ bundleGraphLayout: layout })
+      set({ bundleGraphLayout: layout, bundleSeed: null })
     },
     setBundleSeed(seed) {
       set({ bundleSeed: seed })

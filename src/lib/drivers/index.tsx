@@ -148,6 +148,7 @@ interface KernelMountSnapshot<
   driver: DriverClass<NodeLabel, EdgeLabel, Options, AttachmentKey>
   graph: Graph<NodeLabel, EdgeLabel>
   seed: number | null
+  flags: ContextFlags<Options>
   snapshot: Snapshot | null
 }
 
@@ -164,15 +165,8 @@ function KernelMount<
     props
   const container = useRef<HTMLDivElement>(null)
 
-  // on the final unmount, store the snapshot into the state
-  // this is to prevent storing every time we re-mount
-  useComponentWillUnmount(() => {
-    setSnapshot(instance.snapshot)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [setSnapshot])
-
   // mount the instance
-  useEffectWithSnapshot<
+  const snapshotRef = useEffectWithSnapshot<
     KernelMountSnapshot<NodeLabel, EdgeLabel, Options, AttachmentKey>
   >(
     prev => {
@@ -200,6 +194,7 @@ function KernelMount<
         prev.graph === instance.graph &&
         prev.driver === instance.driver &&
         prev.seed === instance.seed &&
+        prev.flags.layout === instance.flags.layout &&
         prev.snapshot !== null
       ) {
         instance.snapshot = prev.snapshot
@@ -225,6 +220,7 @@ function KernelMount<
           graph: instance.graph,
           snapshot: instance.snapshot,
           seed: instance.seed,
+          flags: instance.flags,
         })
 
         setRef(controller, null)
@@ -236,9 +232,16 @@ function KernelMount<
       driver: instance.driver,
       graph: instance.graph,
       seed: instance.seed,
+      flags: instance.flags,
       snapshot,
     },
   )
+
+  // on the final unmount, store the snapshot into the state
+  // this is to prevent storing every time we re-mount
+  useComponentWillUnmount(() => {
+    setSnapshot(snapshotRef.current?.snapshot ?? null)
+  }, [setSnapshot, snapshotRef])
 
   // resize the instance whenever possible
   useEffect(() => {

@@ -20,7 +20,7 @@ export default function useEffectWithSnapshot<S, I extends S | null = S | null>(
   callback: EffectCallback<S, I>,
   inputs: Inputs,
   initialValue: I,
-): void {
+): MutableRef<S | I> {
   const initialValueRef = useCurrent(initialValue)
 
   const ref = useRef<S | I>(initialValueRef.current)
@@ -43,4 +43,6 @@ export default function useEffectWithSnapshot<S, I extends S | null = S | null>(
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, inputs)
+
+  return ref
 }

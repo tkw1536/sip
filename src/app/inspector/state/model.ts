@@ -62,10 +62,14 @@ export const create: StateCreator<BoundState, [], [], Slice> = set => {
     ...initialState,
 
     setModelDriver(driver) {
-      set({ modelGraphDriver: driver })
+      set({
+        modelGraphDriver: driver,
+        modelSnapshot: null,
+        modelGraphLayout: defaultLayout,
+      })
     },
     setModelLayout(layout) {
-      set({ modelGraphLayout: layout })
+      set({ modelGraphLayout: layout, modelSnapshot: null })
     },
     setModelDeduplication(deduplication) {
       set({ modelDeduplication: deduplication })

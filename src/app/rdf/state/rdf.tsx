@@ -40,11 +40,15 @@ export const create: StateCreator<BoundState, [], [], Slice> = set => {
     ...initialState,
 
     setRDFDriver: (name: string) => {
-      set({ rdfGraphDriver: name, rdfGraphLayout: defaultLayout })
+      set({
+        rdfGraphDriver: name,
+        rdfGraphLayout: defaultLayout,
+        rdfGraphSeed: null,
+      })
     },
 
     setRDFLayout: (layout: string) => {
-      set({ rdfGraphLayout: layout })
+      set({ rdfGraphLayout: layout, rdfGraphSeed: null })
     },
 
     setRDFSeed: (seed: number | null) => {
