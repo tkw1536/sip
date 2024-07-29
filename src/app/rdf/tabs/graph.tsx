@@ -22,6 +22,8 @@ export default function GraphTab(): JSX.Element {
   const layout = useRDFStore(s => s.rdfGraphLayout)
   const driver = useRDFStore(s => s.rdfGraphDriver)
   const seed = useRDFStore(s => s.rdfGraphSeed)
+  const snapshot = useRDFStore(s => s.rdfGraphSnapshot)
+  const setSnapshot = useRDFStore(s => s.setRDFSnapshot)
   const ns = useRDFStore(s => s.ns)
 
   const makeGraph = useMemo(
@@ -41,6 +43,8 @@ export default function GraphTab(): JSX.Element {
       options={{ ns }}
       layout={layout}
       panel={GraphTabPanel}
+      snapshot={snapshot}
+      setSnapshot={setSnapshot}
     />
   )
 }
@@ -48,6 +52,7 @@ export default function GraphTab(): JSX.Element {
 function GraphTabPanel(
   props: PanelProps<RDFNode, RDFEdge, RDFOptions, never>,
 ): JSX.Element {
+  const driver = useRDFStore(s => s.rdfGraphDriver)
   const setDriver = useRDFStore(s => s.setRDFDriver)
 
   const layout = useRDFStore(s => s.rdfGraphLayout)
@@ -59,6 +64,7 @@ function GraphTabPanel(
   return (
     <ControlGroup>
       <DriverControl
+        driver={driver}
         driverNames={triples.names}
         layout={layout}
         seed={seed}

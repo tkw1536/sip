@@ -10,6 +10,7 @@ import {
   ErrorUnsupported,
   type MountInfo,
   type Refs,
+  type Snapshot,
   defaultLayout,
 } from '.'
 import {
@@ -192,6 +193,8 @@ abstract class CytoscapeDriver<
     refs: Refs,
   ): CytoMount {
     const options = this.options(layout)
+    const { layout: layoutOptions } = options
+    options.layout = undefined
 
     const c = Cytoscape.value({
       container: element,
@@ -199,7 +202,6 @@ abstract class CytoscapeDriver<
       ...options,
     })
 
-    const { layout: layoutOptions } = options
     const l =
       typeof layoutOptions !== 'undefined' ? c.layout(layoutOptions) : undefined
 
@@ -253,7 +255,7 @@ abstract class CytoscapeDriver<
     { mount: { c, l }, refs }: MountInfo<CytoMount>,
   ): void {
     l?.stop()
-    c.stop(true)
+    c.stop(true, true)
   }
 
   protected createCluster(context: Elements, id: string): string {
@@ -307,6 +309,26 @@ abstract class CytoscapeDriver<
       label: label ?? undefined,
       color: color ?? 'black',
     }
+  }
+
+  protected getPositionsImpl(
+    details: ContextDetails<Elements, Options>,
+    { mount: { c } }: MountInfo<CytoMount>,
+  ): Snapshot['positions'] {
+    const positions: Snapshot['positions'] = {}
+    c.nodes().forEach(node => {
+      positions[node.id()] = node.position()
+    })
+    return positions
+  }
+  protected setPositionsImpl(
+    { context }: ContextDetails<Elements, Options>,
+    { mount: { c }, animating }: MountInfo<CytoMount>,
+    positions: Snapshot['positions'],
+  ): void {
+    Object.entries(positions).forEach(([id, { x, y }]) => {
+      c.getElementById(id).position({ x, y }) // .lock()
+    })
   }
 }
 

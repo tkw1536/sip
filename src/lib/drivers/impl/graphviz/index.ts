@@ -315,6 +315,11 @@ abstract class GraphvizDriver<
   protected placeCluster(graph: Graph, id: string, cluster: Subgraph): void {
     graph.subgraphs.push(cluster)
   }
+
+  protected getPositionsImpl(): null {
+    return null
+  }
+  protected setPositionsImpl(): void {}
 }
 
 export class GraphVizBundleDriver extends GraphvizDriver<

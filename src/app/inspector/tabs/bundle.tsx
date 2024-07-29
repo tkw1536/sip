@@ -27,6 +27,9 @@ export default function BundleGraphTab(): JSX.Element {
   const ns = useInspectorStore(s => s.ns)
   const cm = useInspectorStore(s => s.cm)
 
+  const snapshot = useInspectorStore(s => s.bundleSnapshot)
+  const setSnapshot = useInspectorStore(s => s.setBundleSnapshot)
+
   const makeGraph = useMemo(
     () => async (): Promise<Graph<BundleNode, BundleEdge>> => {
       const builder = new BundleGraphBuilder(tree, selection)
@@ -46,6 +49,8 @@ export default function BundleGraphTab(): JSX.Element {
       options={options}
       layout={layout}
       panel={BundleGraphPanel}
+      snapshot={snapshot}
+      setSnapshot={setSnapshot}
     />
   )
 }
@@ -53,6 +58,7 @@ export default function BundleGraphTab(): JSX.Element {
 function BundleGraphPanel(
   props: PanelProps<BundleNode, BundleEdge, BundleOptions, never>,
 ): JSX.Element {
+  const driver = useInspectorStore(s => s.bundleGraphDriver)
   const layout = useInspectorStore(s => s.bundleGraphLayout)
   const seed = useInspectorStore(s => s.bundleSeed)
 
@@ -64,6 +70,7 @@ function BundleGraphPanel(
     <ControlGroup>
       <DriverControl
         driverNames={bundles.names}
+        driver={driver}
         layout={layout}
         seed={seed}
         onChangeDriver={setDriver}

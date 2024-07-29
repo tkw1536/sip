@@ -3,13 +3,15 @@ import type Graph from '../graph'
 import * as styles from './index.module.css'
 import type Driver from './impl'
 import ErrorDisplay from '../../components/error'
-import { type DriverClass, type ContextFlags } from './impl'
+import { type DriverClass, type ContextFlags, type Snapshot } from './impl'
 import Spinner from '../../components/spinner'
 import { type Renderable } from '../graph/builders'
 import { setRef } from '../utils/ref'
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks'
 import useVisibleSize, { type Size } from '../../components/hooks/observer'
 import useAsyncState, { reasonAsError } from '../../components/hooks/async'
+import useEffectWithSnapshot from '../../components/hooks/effect'
+import { useComponentWillUnmount } from '../../components/hooks/unmount'
 
 /** KernelProps are props for the current kernel */
 export interface KernelProps<
@@ -23,6 +25,9 @@ export interface KernelProps<
   options: Options
 
   driver: DriverClass<NodeLabel, EdgeLabel, Options, AttachmentKey>
+
+  snapshot: Snapshot | null
+  setSnapshot: (value: Snapshot | null) => void
 
   seed: number | null
 
@@ -134,6 +139,18 @@ export default function Kernel<
   )
 }
 
+interface KernelMountSnapshot<
+  NodeLabel extends Renderable<Options, AttachmentKey>,
+  EdgeLabel extends Renderable<Options, AttachmentKey>,
+  Options,
+  AttachmentKey extends string,
+> {
+  driver: DriverClass<NodeLabel, EdgeLabel, Options, AttachmentKey>
+  graph: Graph<NodeLabel, EdgeLabel>
+  seed: number | null
+  snapshot: Snapshot | null
+}
+
 /** MountedKernel mounts a kernel with a driver */
 function KernelMount<
   NodeLabel extends Renderable<Options, AttachmentKey>,
@@ -143,35 +160,85 @@ function KernelMount<
 >(
   props: KernelMountProps<NodeLabel, EdgeLabel, Options, AttachmentKey>,
 ): JSX.Element {
-  const { instance, controller, size, forceRerender } = props
+  const { instance, controller, size, forceRerender, setSnapshot, snapshot } =
+    props
   const container = useRef<HTMLDivElement>(null)
 
+  // on the final unmount, store the snapshot into the state
+  // this is to prevent storing every time we re-mount
+  useComponentWillUnmount(() => {
+    setSnapshot(instance.snapshot)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [setSnapshot])
+
   // mount the instance
-  useEffect(() => {
-    const { current } = container
-    if (current === null) {
-      throw new Error(
-        'never reached: current ref MUST BE mounted during useEffect',
-      )
-    }
-
-    let animating: boolean | null = null
-    instance.mount(current, {
-      animating: (newAnimating: boolean | null) => {
-        animating = newAnimating
-        setRef(
-          controller,
-          new KernelController(instance, animating, forceRerender),
+  useEffectWithSnapshot<
+    KernelMountSnapshot<NodeLabel, EdgeLabel, Options, AttachmentKey>
+  >(
+    prev => {
+      const { current } = container
+      if (current === null) {
+        throw new Error(
+          'never reached: current ref MUST BE mounted during useEffect',
         )
-      },
-    })
-    setRef(controller, new KernelController(instance, animating, forceRerender))
+      }
 
-    return () => {
-      setRef(controller, null)
-      instance.unmount()
-    }
-  }, [controller, instance, forceRerender])
+      let animating: boolean | null = null
+      instance.mount(current, {
+        animating: (newAnimating: boolean | null) => {
+          animating = newAnimating
+          setRef(
+            controller,
+            new KernelController(instance, animating, forceRerender),
+          )
+        },
+      })
+
+      // apply the snapshot (if any)
+      if (
+        prev !== null &&
+        prev.graph === instance.graph &&
+        prev.driver === instance.driver &&
+        prev.seed === instance.seed &&
+        prev.snapshot !== null
+      ) {
+        instance.snapshot = prev.snapshot
+      }
+
+      setRef(
+        controller,
+        new KernelController(instance, animating, forceRerender),
+      )
+
+      return (
+        makeSnapshot: (
+          snapshot: KernelMountSnapshot<
+            NodeLabel,
+            EdgeLabel,
+            Options,
+            AttachmentKey
+          >,
+        ) => void,
+      ) => {
+        makeSnapshot({
+          driver: instance.driver,
+          graph: instance.graph,
+          snapshot: instance.snapshot,
+          seed: instance.seed,
+        })
+
+        setRef(controller, null)
+        instance.unmount()
+      }
+    },
+    [controller, instance, forceRerender],
+    {
+      driver: instance.driver,
+      graph: instance.graph,
+      seed: instance.seed,
+      snapshot,
+    },
+  )
 
   // resize the instance whenever possible
   useEffect(() => {

@@ -82,6 +82,11 @@ export default interface Driver<
   startAnimation: () => void
   stopAnimation: () => void
 
+  /** snapshot gets the current node positions */
+  get snapshot(): Snapshot | null
+  /** snapshot sets the current node positions */
+  set snapshot(value: Snapshot)
+
   /**
    * Exports the rendered image into a blob.
    *
@@ -92,6 +97,12 @@ export default interface Driver<
    * @param mount Options used for mounting on the page.
    */
   export: (format: string) => Promise<Blob>
+}
+
+/** Snapshot holds the positions of all elements within this graph */
+export interface Snapshot {
+  animating: boolean | null
+  positions: Record<string, { x: number; y: number }>
 }
 
 /** indicates to the caller that the driver has aborted it's current operation */
@@ -117,6 +128,9 @@ export interface MountInfo<Mount> {
 
   /** refs set by this driver */
   refs: Refs
+
+  /** if we're current animating */
+  animating: boolean | null
 
   /** the current size of this mount (if known) */
   size?: Size
@@ -229,11 +243,24 @@ export abstract class DriverImpl<
     const { element, refs } = this.#mountData
     this.#mountData = null
 
+    const originalRef = refs.animating
+
+    let initialAnimating: boolean | null = null
+    refs.animating = animating => {
+      if (this.#mount !== null) {
+        this.#mount.animating = animating
+      } else {
+        initialAnimating = animating
+      }
+      originalRef(animating)
+    }
+
     // do the actual mount!
     this.#mount = {
       mount: this.mountImpl(this.#context, element, refs, size),
       element,
       refs,
+      animating: initialAnimating,
       size,
     }
   }
@@ -255,12 +282,11 @@ export abstract class DriverImpl<
       throw new Error('Driver error: resize called out of order')
     }
 
-    const { mount, element, refs } = this.#mount
     this.#mount = {
-      mount: this.resizeMountImpl(this.#context, this.#mount, size) ?? mount,
-      element,
-      refs,
-      size,
+      ...this.#mount,
+      mount:
+        this.resizeMountImpl(this.#context, this.#mount, size) ??
+        this.#mount.mount,
     }
   }
   protected abstract resizeMountImpl(
@@ -477,4 +503,52 @@ export abstract class DriverImpl<
   ): EdgeAttrs {
     return this.attributes('edge', element)
   }
+
+  /** snapshot gets the current node positions */
+  get snapshot(): Snapshot | null {
+    if (this.#context === null || this.#mount === null) {
+      throw new Error('Driver error: snapshot called in wrong order')
+    }
+    const positions = this.getPositionsImpl(this.#context, this.#mount)
+    if (positions === null) {
+      return null
+    }
+    return {
+      animating: this.#mount.animating,
+      positions,
+    }
+  }
+  /** snapshot sets the current node positions */
+  set snapshot(snapshot: Snapshot) {
+    if (this.#context === null || this.#mount === null) {
+      throw new Error('Driver error: snapshot called in wrong order')
+    }
+
+    // always stop the animation before a restore
+    this.stopAnimation()
+
+    // set the positions
+    this.#mount = {
+      ...this.#mount,
+      mount:
+        this.setPositionsImpl(this.#context, this.#mount, snapshot.positions) ??
+        this.#mount.mount,
+    }
+
+    // if we were running before, start the animation
+    if (snapshot.animating === true) {
+      this.startAnimation()
+    }
+  }
+
+  protected abstract getPositionsImpl(
+    details: ContextDetails<Context, Options>,
+    info: MountInfo<Mount>,
+  ): Snapshot['positions'] | null
+
+  protected abstract setPositionsImpl(
+    details: ContextDetails<Context, Options>,
+    info: MountInfo<Mount>,
+    positions: Snapshot['positions'],
+  ): Mount | void
 }

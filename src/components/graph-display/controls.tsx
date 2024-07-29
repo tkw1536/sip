@@ -44,6 +44,7 @@ interface DriverControlProps<
   AttachmentKey extends string,
 > extends PanelProps<NodeLabel, EdgeLabel, Options, AttachmentKey> {
   driverNames: string[]
+  driver: string
   layout: string | undefined
   seed: number | null
 
@@ -65,6 +66,7 @@ export function DriverControl<
   props: DriverControlProps<NodeLabel, EdgeLabel, Options, AttachmentKey>,
 ): JSX.Element {
   const {
+    driver,
     driverNames,
     layout,
     onChangeDriver,
@@ -102,7 +104,7 @@ export function DriverControl<
             <td>
               <ValueSelector
                 values={driverNames}
-                value={controller?.instance?.driver?.id}
+                value={driver}
                 onInput={onChangeDriver}
               />
             </td>

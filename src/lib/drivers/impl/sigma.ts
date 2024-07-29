@@ -4,6 +4,7 @@ import {
   ErrorUnsupported,
   type MountInfo,
   type Refs,
+  type Snapshot,
   defaultLayout,
 } from '.'
 import Sigma from 'sigma'
@@ -217,6 +218,35 @@ abstract class SigmaDriver<
       arrow: type === 'edge' ? 'target' : undefined,
       size: type === 'node' ? 10 : 5,
     }
+  }
+
+  protected getPositionsImpl(
+    {
+      context: graph,
+    }: ContextDetails<Graph<Attributes, Attributes, Attributes>, Options>,
+    { mount: { sigma } }: MountInfo<SigmaMount>,
+  ): Snapshot['positions'] | null {
+    const positions: Snapshot['positions'] = {}
+    graph.nodes().forEach(node => {
+      const display = sigma.getNodeDisplayData(node)
+      if (typeof display === 'undefined') return display
+      positions[node] = { x: display.x, y: display.y }
+    })
+    return positions
+  }
+
+  protected setPositionsImpl(
+    {
+      context: graph,
+    }: ContextDetails<Graph<Attributes, Attributes, Attributes>, Options>,
+    { mount: { sigma } }: MountInfo<SigmaMount>,
+    positions: Snapshot['positions'],
+  ): SigmaMount | void {
+    Object.entries(positions).forEach(([node, { x, y }]) => {
+      graph.setNodeAttribute(node, 'x', x)
+      graph.setNodeAttribute(node, 'y', y)
+    })
+    sigma.refresh()
   }
 }
 

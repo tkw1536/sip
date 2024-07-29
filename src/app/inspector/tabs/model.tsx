@@ -35,6 +35,9 @@ export default function ModelGraphView(): JSX.Element {
   const seed = useInspectorStore(s => s.modelSeed)
   const layout = useInspectorStore(s => s.modelGraphLayout)
 
+  const snapshot = useInspectorStore(s => s.modelSnapshot)
+  const setSnapshot = useInspectorStore(s => s.setModelSnapshot)
+
   const ns = useInspectorStore(s => s.ns)
 
   const builder = useMemo(() => {
@@ -58,6 +61,8 @@ export default function ModelGraphView(): JSX.Element {
       options={options}
       layout={layout}
       panel={ModelGraphPanel}
+      snapshot={snapshot}
+      setSnapshot={setSnapshot}
     />
   )
 }
@@ -66,6 +71,8 @@ function ModelGraphPanel(
   props: PanelProps<ModelNode, ModelEdge, ModelOptions, ModelAttachmentKey>,
 ): JSX.Element {
   const id = useId()
+
+  const driver = useInspectorStore(s => s.modelGraphDriver)
 
   const seed = useInspectorStore(s => s.modelSeed)
   const layout = useInspectorStore(s => s.modelGraphLayout)
@@ -91,6 +98,7 @@ function ModelGraphPanel(
     <ControlGroup>
       <DriverControl
         driverNames={models.names}
+        driver={driver}
         layout={layout}
         seed={seed}
         onChangeDriver={setModelDriver}

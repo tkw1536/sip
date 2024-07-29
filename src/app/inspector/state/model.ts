@@ -4,7 +4,7 @@ import { type PathTree } from '../../../lib/pathbuilder/pathtree'
 import Deduplication from './datatypes/deduplication'
 import { type ModelDisplay } from '../../../lib/graph/builders/model/labels'
 import { models } from '../../../lib/drivers/collection'
-import { defaultLayout } from '../../../lib/drivers/impl'
+import { defaultLayout, type Snapshot } from '../../../lib/drivers/impl'
 
 export type Slice = State & Actions
 
@@ -14,6 +14,7 @@ interface State {
   modelSeed: number | null
   modelDeduplication: Deduplication
   modelDisplay: ModelDisplay
+  modelSnapshot: Snapshot | null
 }
 
 interface Actions {
@@ -22,6 +23,7 @@ interface Actions {
   setModelSeed: (seed: number | null) => void
   setModelDeduplication: (deduplication: Deduplication) => void
   setModelDisplay: (display: ModelDisplay) => void
+  setModelSnapshot: (snapshot: Snapshot | null) => void
 }
 
 const initialState: State = {
@@ -45,6 +47,7 @@ const initialState: State = {
       DatatypeProperty: true,
     },
   },
+  modelSnapshot: null,
 }
 const resetState: State = { ...initialState }
 
@@ -72,6 +75,9 @@ export const create: StateCreator<BoundState, [], [], Slice> = set => {
     },
     setModelSeed(seed) {
       set({ modelSeed: seed })
+    },
+    setModelSnapshot(snapshot) {
+      set({ modelSnapshot: snapshot })
     },
   }
 }

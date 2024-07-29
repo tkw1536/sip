@@ -65,7 +65,8 @@ export default [
       'react-hooks/exhaustive-deps': [
         'error',
         {
-          additionalHooks: '(useEventCallback|useAsyncEffect|useAsyncState)',
+          additionalHooks:
+            '(useEventCallback|useAsyncEffect|useAsyncState|useEffectWithSnapshot|useComponentWillUnmount)',
         },
       ],
     },

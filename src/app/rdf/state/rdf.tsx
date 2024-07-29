@@ -1,7 +1,7 @@
 import { type Store } from 'rdflib'
 import { loaders, resetters, type BoundState } from '.'
 import { triples } from '../../../lib/drivers/collection'
-import { defaultLayout } from '../../../lib/drivers/impl'
+import { defaultLayout, type Snapshot } from '../../../lib/drivers/impl'
 
 import { type StateCreator } from 'zustand'
 
@@ -11,18 +11,21 @@ interface State {
   rdfGraphDriver: string
   rdfGraphLayout: string
   rdfGraphSeed: number | null
+  rdfGraphSnapshot: Snapshot | null
 }
 
 interface Actions {
   setRDFDriver: (name: string) => void
   setRDFLayout: (name: string) => void
   setRDFSeed: (seed: number | null) => void
+  setRDFSnapshot: (snapshot: Snapshot | null) => void
 }
 
 const initialState: State = {
   rdfGraphDriver: triples.defaultDriver,
   rdfGraphLayout: defaultLayout,
   rdfGraphSeed: null,
+  rdfGraphSnapshot: null,
 }
 const resetState: State = { ...initialState }
 
@@ -46,6 +49,10 @@ export const create: StateCreator<BoundState, [], [], Slice> = set => {
 
     setRDFSeed: (seed: number | null) => {
       set({ rdfGraphSeed: seed })
+    },
+
+    setRDFSnapshot(snapshot) {
+      set({ rdfGraphSnapshot: snapshot })
     },
   }
 }

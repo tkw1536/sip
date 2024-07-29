@@ -4,6 +4,7 @@ import {
   ErrorUnsupported,
   type MountInfo,
   type Refs,
+  type Snapshot,
   defaultLayout,
 } from '.'
 import { type Data, Network, type Options as VisOptions } from 'vis-network'
@@ -254,6 +255,29 @@ abstract class VisNetworkDriver<
 
       arrows: 'to',
     }
+  }
+
+  protected getPositionsImpl(
+    { context: dataset }: ContextDetails<Dataset, Options>,
+    { mount: { network } }: MountInfo<NetworkContext>,
+  ): Snapshot['positions'] {
+    const positions: Snapshot['positions'] = {}
+    dataset.toData().nodes?.forEach(node => {
+      if (typeof node.id !== 'string') return
+
+      const { x, y } = network.getPosition(node.id)
+      positions[node.id] = { x, y }
+    })
+    return positions
+  }
+  protected setPositionsImpl(
+    details: ContextDetails<Dataset, Options>,
+    { mount: { network } }: MountInfo<NetworkContext>,
+    positions: Snapshot['positions'],
+  ): void {
+    Object.entries(positions).forEach(([id, { x, y }]) => {
+      network.moveNode(id, x, y)
+    })
   }
 }
 
