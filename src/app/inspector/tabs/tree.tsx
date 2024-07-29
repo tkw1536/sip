@@ -19,6 +19,7 @@ import ActionButton from '../../../components/button'
 import { reasonAsError, useAsyncLoad } from '../../../components/hooks/async'
 import ColorMap from '../../../lib/pathbuilder/annotations/colormap'
 import ErrorDisplay from '../../../components/error'
+import { Control } from '../../../components/graph-display/controls'
 
 export default function TreeTab(): JSX.Element {
   const tree = useInspectorStore(s => s.pathtree)
@@ -48,9 +49,98 @@ export default function TreeTab(): JSX.Element {
 }
 
 function TreeTabPanel(): JSX.Element {
-  const cm = useInspectorStore(s => s.cm)
+  return (
+    <>
+      <OverviewControl />
+      <SelectionControl />
+      <ColorMapControl />
+    </>
+  )
+}
+
+function OverviewControl(): JSX.Element {
   const hideParents = useInspectorStore(s => s.collapseParentPaths)
 
+  const expandAll = useInspectorStore(s => s.expandAll)
+  const collapseAll = useInspectorStore(s => s.collapseAll)
+
+  const setCollapseParentPaths = useInspectorStore(
+    s => s.setCollapseParentPaths,
+  )
+  const handleCollapseParentPaths = useEventCallback(
+    (evt: Event & { currentTarget: HTMLInputElement }): void => {
+      setCollapseParentPaths(evt.currentTarget.checked)
+    },
+    [setCollapseParentPaths],
+  )
+
+  return (
+    <Control name='Overview'>
+      <p>
+        This page displays the pathbuilder as a hierarchical structure. It is
+        similar to the WissKI Interface, except read-only.
+      </p>
+
+      <p>
+        <button onClick={collapseAll}>Collapse All</button>
+        {` `}
+        <button onClick={expandAll}>Expand All</button>
+      </p>
+
+      <p>
+        <span class={classes(styles.display_path, styles.path_concept)}>
+          Concept
+        </span>
+        <span
+          class={classes(
+            styles.display_path,
+            styles.path_concept,
+            styles.path_shared,
+          )}
+        >
+          Concept (shared with parent)
+        </span>
+        <span
+          class={classes(
+            styles.display_path,
+            styles.path_concept,
+            styles.path_disambiguation,
+          )}
+        >
+          Disambiguated Concept
+        </span>
+        <span class={classes(styles.display_path, styles.path_predicate)}>
+          Predicate
+        </span>
+        <span
+          class={classes(
+            styles.display_path,
+            styles.path_shared,
+            styles.path_predicate,
+          )}
+        >
+          Predicate (shared with parent)
+        </span>
+        <span class={classes(styles.display_path, styles.path_datatype)}>
+          Datatype Property
+        </span>
+      </p>
+      <p>
+        <input
+          id='hide-parent-paths'
+          type='checkbox'
+          checked={hideParents}
+          onInput={handleCollapseParentPaths}
+        />
+        <label for='hide-parent-paths'>
+          Collapse shared paths into ellipses
+        </label>
+      </p>
+    </Control>
+  )
+}
+
+function SelectionControl(): JSX.Element {
   const selectAll = useInspectorStore(s => s.selectAll)
   const selectNone = useInspectorStore(s => s.selectNone)
 
@@ -62,8 +152,28 @@ function TreeTabPanel(): JSX.Element {
     selectPredicate(x => x instanceof Field)
   }, [selectPredicate])
 
-  const expandAll = useInspectorStore(s => s.expandAll)
-  const collapseAll = useInspectorStore(s => s.collapseAll)
+  return (
+    <Control name='Selection'>
+      <p>
+        The checkboxes here are used to include the paths in the graph displays.
+        Use the shift key to update the all child values recursively.
+      </p>
+
+      <p>
+        <ActionButton onClick={selectAll}>Select All</ActionButton>
+        {` `}
+        <ActionButton onClick={selectNone}>Select None</ActionButton>
+        {` `}
+        <ActionButton onClick={selectBundles}>Select Bundles</ActionButton>
+        {` `}
+        <ActionButton onClick={selectFields}>Select Fields</ActionButton>
+      </p>
+    </Control>
+  )
+}
+
+function ColorMapControl(): JSX.Element {
+  const cm = useInspectorStore(s => s.cm)
 
   const applyColorPreset = useInspectorStore(s => s.applyColorPreset)
   const handleColorPreset = useEventCallback(
@@ -86,16 +196,6 @@ function TreeTabPanel(): JSX.Element {
     [cm],
   )
 
-  const setCollapseParentPaths = useInspectorStore(
-    s => s.setCollapseParentPaths,
-  )
-  const handleCollapseParentPaths = useEventCallback(
-    (evt: Event & { currentTarget: HTMLInputElement }): void => {
-      setCollapseParentPaths(evt.currentTarget.checked)
-    },
-    [setCollapseParentPaths],
-  )
-
   const setColorMap = useInspectorStore(s => s.setColorMap)
   const [cmLoading, cmLoad] = useAsyncLoad(
     setColorMap,
@@ -116,139 +216,52 @@ function TreeTabPanel(): JSX.Element {
   )
 
   return (
-    <>
-      <fieldset>
-        <legend>Overview</legend>
-        <p>
-          This page displays the pathbuilder as a hierarchical structure. It is
-          similar to the WissKI Interface, except read-only.
-        </p>
+    <Control name='Color Map'>
+      <p>
+        The color boxes are used to change the color of the fields in the graph
+        displays. If a single node includes multiple colors, the color of the
+        most important item will be used. Parent-paths are more important than
+        sub-paths; if two paths are of the same priority the one higher in the
+        list of paths is used.
+      </p>
 
-        <p>
-          <button onClick={collapseAll}>Collapse All</button>
-          {` `}
-          <button onClick={expandAll}>Expand All</button>
-        </p>
+      <p>
+        {colorPresets.map(preset => (
+          <Fragment key={preset}>
+            <button data-preset={preset} onClick={handleColorPreset}>
+              {preset}
+            </button>
+            {` `}
+          </Fragment>
+        ))}
+      </p>
 
-        <p>
-          <span class={classes(styles.display_path, styles.path_concept)}>
-            Concept
-          </span>
-          <span
-            class={classes(
-              styles.display_path,
-              styles.path_concept,
-              styles.path_shared,
-            )}
-          >
-            Concept (shared with parent)
-          </span>
-          <span
-            class={classes(
-              styles.display_path,
-              styles.path_concept,
-              styles.path_disambiguation,
-            )}
-          >
-            Disambiguated Concept
-          </span>
-          <span class={classes(styles.display_path, styles.path_predicate)}>
-            Predicate
-          </span>
-          <span
-            class={classes(
-              styles.display_path,
-              styles.path_shared,
-              styles.path_predicate,
-            )}
-          >
-            Predicate (shared with parent)
-          </span>
-          <span class={classes(styles.display_path, styles.path_datatype)}>
-            Datatype Property
-          </span>
-        </p>
-        <p>
-          <input
-            id='hide-parent-paths'
-            type='checkbox'
-            checked={hideParents}
-            onInput={handleCollapseParentPaths}
-          />
-          <label for='hide-parent-paths'>
-            Collapse shared paths into ellipses
-          </label>
-        </p>
-      </fieldset>
-      <fieldset>
-        <legend>Selection</legend>
-
-        <p>
-          The checkboxes here are used to include the paths in the graph
-          displays. Use the shift key to update the all child values
-          recursively.
-        </p>
-
-        <p>
-          <ActionButton onClick={selectAll}>Select All</ActionButton>
-          {` `}
-          <ActionButton onClick={selectNone}>Select None</ActionButton>
-          {` `}
-          <ActionButton onClick={selectBundles}>Select Bundles</ActionButton>
-          {` `}
-          <ActionButton onClick={selectFields}>Select Fields</ActionButton>
-        </p>
-      </fieldset>
-      <br />
-      <fieldset>
-        <legend>Color Map</legend>
-
-        <p>
-          The color boxes are used to change the color of the fields in the
-          graph displays. If a single node includes multiple colors, the color
-          of the most important item will be used. Parent-paths are more
-          important than sub-paths; if two paths are of the same priority the
-          one higher in the list of paths is used.
-        </p>
-
-        <p>
-          {colorPresets.map(preset => (
-            <Fragment key={preset}>
-              <button data-preset={preset} onClick={handleColorPreset}>
-                {preset}
-              </button>
-              {` `}
-            </Fragment>
-          ))}
-        </p>
-
-        <p>
-          <button onClick={handleColorMapExport}>Export</button>
-          {` `}
-          <DropArea
-            types={[Type.JSON]}
-            onDropFile={loadColorMap}
-            compact
-            disabled={cmLoading?.status === 'pending'}
-          >
-            Import
-          </DropArea>
-          {` `}
-          {cmLoading?.status === 'rejected' && (
-            <small>&nbsp; Import failed</small>
-          )}
-          {cmLoading?.status === 'fulfilled' && (
-            <small>&nbsp; Import successful</small>
-          )}
-          {cmLoading?.status === 'pending' && <small>&nbsp; Loading</small>}
-        </p>
+      <p>
+        <button onClick={handleColorMapExport}>Export</button>
+        {` `}
+        <DropArea
+          types={[Type.JSON]}
+          onDropFile={loadColorMap}
+          compact
+          disabled={cmLoading?.status === 'pending'}
+        >
+          Import
+        </DropArea>
+        {` `}
         {cmLoading?.status === 'rejected' && (
-          <p>
-            <ErrorDisplay error={cmLoading.reason} />
-          </p>
+          <small>&nbsp; Import failed</small>
         )}
-      </fieldset>
-    </>
+        {cmLoading?.status === 'fulfilled' && (
+          <small>&nbsp; Import successful</small>
+        )}
+        {cmLoading?.status === 'pending' && <small>&nbsp; Loading</small>}
+      </p>
+      {cmLoading?.status === 'rejected' && (
+        <p>
+          <ErrorDisplay error={cmLoading.reason} />
+        </p>
+      )}
+    </Control>
   )
 }
 
