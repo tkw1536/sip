@@ -55,8 +55,13 @@ abstract class SigmaDriver<
   Graph,
   SigmaMount
 > {
-  readonly driverName = 'Sigma.js'
-  readonly layouts = [defaultLayout, 'force2atlas', 'circular', 'circlepack']
+  static readonly id = 'Sigma.js'
+  static readonly layouts = [
+    defaultLayout,
+    'force2atlas',
+    'circular',
+    'circlepack',
+  ]
 
   protected settings(): Partial<Settings> {
     return {
@@ -143,7 +148,7 @@ abstract class SigmaDriver<
     }
   }
 
-  readonly exportFormats = []
+  static readonly formats = []
   protected async exportImpl(
     details: ContextDetails<Graph, Options>,
     info: MountInfo<SigmaMount> | null,
@@ -220,20 +225,26 @@ export class SigmaBundleDriver extends SigmaDriver<
   BundleEdge,
   BundleOptions,
   never
-> {}
+> {
+  readonly driver = SigmaBundleDriver
+}
 
 export class SigmaModelDriver extends SigmaDriver<
   ModelNode,
   ModelEdge,
   ModelOptions,
   ModelAttachmentKey
-> {}
+> {
+  readonly driver = SigmaModelDriver
+}
 
 export class SigmaRDFDriver extends SigmaDriver<
   RDFNode,
   RDFEdge,
   RDFOptions,
   never
-> {}
+> {
+  readonly driver = SigmaRDFDriver
+}
 
 // spellchecker:words forceatlas circlepack

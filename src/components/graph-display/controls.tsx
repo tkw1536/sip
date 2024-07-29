@@ -102,7 +102,7 @@ export function DriverControl<
             <td>
               <ValueSelector
                 values={driverNames}
-                value={controller?.instance?.driverName}
+                value={controller?.instance?.driver?.id}
                 onInput={onChangeDriver}
               />
             </td>
@@ -115,7 +115,7 @@ export function DriverControl<
               <ValueSelector
                 disabled={controller === null}
                 value={layout}
-                values={controller?.instance?.layouts}
+                values={controller?.instance?.driver?.layouts}
                 onInput={onChangeLayout}
               />
             </td>
@@ -258,7 +258,7 @@ export function ExportControl<
       const { format } = button.dataset
       if (
         typeof format !== 'string' ||
-        !instance.exportFormats.includes(format)
+        !instance.driver.formats.includes(format)
       ) {
         console.warn('handleExport clicked on invalid element')
         return
@@ -278,7 +278,7 @@ export function ExportControl<
   )
 
   // check that there are some export formats
-  const exportFormats = controller?.instance?.exportFormats
+  const exportFormats = controller?.instance?.driver?.formats
   if (typeof exportFormats === 'undefined' || exportFormats.length === 0) {
     return null
   }

@@ -16,15 +16,26 @@ export type ContextFlags<Options> = Readonly<{
   seed: number | null
 }>
 
-export type DriverClass<
+export interface DriverClass<
   NodeLabel extends Renderable<Options, AttachmentKey>,
   EdgeLabel extends Renderable<Options, AttachmentKey>,
   Options,
   AttachmentKey extends string,
-> = new (
-  graph: Graph<NodeLabel, EdgeLabel>,
-  flags: ContextFlags<Options>,
-) => Driver<NodeLabel, EdgeLabel, Options, AttachmentKey>
+> {
+  new (
+    graph: Graph<NodeLabel, EdgeLabel>,
+    flags: ContextFlags<Options>,
+  ): Driver<NodeLabel, EdgeLabel, Options, AttachmentKey>
+
+  /** the id of this driver class */
+  readonly id: string
+
+  /** list of supported layouts to be passed to {@link new} */
+  readonly layouts: string[]
+
+  /** list of formats allowed as an argument to {@link Driver.export} */
+  readonly formats: string[]
+}
 
 export interface Refs {
   /** indicates if the driver is currently animating a simulation */
@@ -38,10 +49,11 @@ export default interface Driver<
   Options,
   AttachmentKey extends string,
 > {
-  graph: Graph<NodeLabel, EdgeLabel>
-  flags: ContextFlags<Options>
+  /** returns the class of this driver */
+  readonly driver: DriverClass<NodeLabel, EdgeLabel, Options, AttachmentKey>
 
-  readonly driverName: string
+  readonly graph: Graph<NodeLabel, EdgeLabel>
+  readonly flags: ContextFlags<Options>
 
   /** gets the seed used by this driver, or null if not available */
   readonly seed: number | null
@@ -58,9 +70,6 @@ export default interface Driver<
    */
   initialize: (ticket: () => boolean) => Promise<void>
 
-  /** list of supported layouts to be passed to initialize */
-  readonly layouts: string[]
-
   /** mounts this instance onto the page */
   mount: (element: HTMLElement, refs: Refs) => void
 
@@ -72,9 +81,6 @@ export default interface Driver<
 
   startAnimation: () => void
   stopAnimation: () => void
-
-  /** list of formats allowed as an argument to {@link export} */
-  readonly exportFormats: string[]
 
   /**
    * Exports the rendered image into a blob.
@@ -130,6 +136,13 @@ export abstract class DriverImpl<
   HotContext = Context,
 > implements Driver<NodeLabel, EdgeLabel, Options, AttachmentKey>
 {
+  abstract readonly driver: DriverClass<
+    NodeLabel,
+    EdgeLabel,
+    Options,
+    AttachmentKey
+  >
+
   flags: ContextFlags<Options>
   constructor(
     public readonly graph: Graph<NodeLabel, EdgeLabel>,
@@ -167,8 +180,6 @@ export abstract class DriverImpl<
     this.#hot = hot
   }
 
-  abstract readonly driverName: string
-
   readonly #hot: HotContext
   readonly seed: number
   #context: ContextDetails<Context, Options> | null = null
@@ -198,8 +209,6 @@ export abstract class DriverImpl<
     flags: ContextFlags<Options>,
     seed: number,
   ): Promise<Context>
-
-  abstract readonly layouts: string[]
 
   protected delayMountUntilAfterResize = false
   mount(element: HTMLElement, refs: Refs): void {
@@ -278,8 +287,6 @@ export abstract class DriverImpl<
     details: ContextDetails<Context, Options>,
     info: MountInfo<Mount> | null,
   ): void
-
-  abstract readonly exportFormats: string[]
 
   async export(format: string): Promise<Blob> {
     if (this.#mountData !== null) {

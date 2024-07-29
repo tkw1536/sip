@@ -83,6 +83,11 @@ export default function Kernel<
       }
 
       const instance = new DriverClass(graph, flags)
+      if (instance.driver !== DriverClass) {
+        throw new Error(
+          `${DriverClass.id}: instance has incorrect driver attribute`,
+        )
+      }
       await instance.initialize(ticket)
       return instance
     },

@@ -58,8 +58,8 @@ abstract class VisNetworkDriver<
   Dataset,
   NetworkContext
 > {
-  readonly driverName = 'vis-network'
-  readonly layouts = [defaultLayout, 'hierarchical', 'force2atlas']
+  static readonly id = 'vis-network'
+  static readonly layouts = [defaultLayout, 'hierarchical', 'force2atlas']
 
   protected options(seed: number, layout: string): VisOptions {
     const hierarchical =
@@ -166,7 +166,7 @@ abstract class VisNetworkDriver<
     network.destroy()
   }
 
-  readonly exportFormats = ['png']
+  static readonly formats = ['png']
   protected async exportImpl(
     { context: dataset }: ContextDetails<Dataset, Options>,
     info: MountInfo<NetworkContext> | null,
@@ -262,7 +262,9 @@ export class VisNetworkBundleDriver extends VisNetworkDriver<
   BundleEdge,
   BundleOptions,
   never
-> {}
+> {
+  readonly driver = VisNetworkBundleDriver
+}
 
 export class VisNetworkModelDriver extends VisNetworkDriver<
   ModelNode,
@@ -270,6 +272,8 @@ export class VisNetworkModelDriver extends VisNetworkDriver<
   ModelOptions,
   ModelAttachmentKey
 > {
+  readonly driver = VisNetworkModelDriver
+
   protected renderAttachedNode(
     parent: ModelNode,
     attachment: ModelAttachmentKey,
@@ -288,6 +292,7 @@ export class VisNetworkRDFDriver extends VisNetworkDriver<
   RDFOptions,
   never
 > {
+  readonly driver = VisNetworkRDFDriver
   protected renderSimpleNode(
     { node }: RDFNode,
     element: ElementWithAttachments<never>,

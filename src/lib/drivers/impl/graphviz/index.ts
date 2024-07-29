@@ -68,8 +68,8 @@ abstract class GraphvizDriver<
   Mount,
   Graph
 > {
-  readonly driverName: string = 'GraphViz'
-  readonly layouts = [defaultLayout, 'dot', 'fdp', 'circo', 'neato']
+  static readonly id: string = 'GraphViz'
+  static readonly layouts = [defaultLayout, 'dot', 'fdp', 'circo', 'neato']
   protected options({ layout }: ContextFlags<Options>): RenderOptions {
     const engine = layout === defaultLayout ? 'dot' : layout
     return { engine }
@@ -230,7 +230,7 @@ abstract class GraphvizDriver<
     element.removeChild(svg)
   }
 
-  readonly exportFormats = ['svg', 'gv']
+  static readonly formats = ['svg', 'gv']
   protected async exportImpl(
     { context: { canon, svg } }: ContextDetails<Context, Options>,
     info: MountInfo<Mount> | null,
@@ -322,7 +322,9 @@ export class GraphVizBundleDriver extends GraphvizDriver<
   BundleEdge,
   BundleOptions,
   never
-> {}
+> {
+  readonly driver = GraphVizBundleDriver
+}
 
 export class GraphVizModelDriver extends GraphvizDriver<
   ModelNode,
@@ -330,6 +332,8 @@ export class GraphVizModelDriver extends GraphvizDriver<
   ModelOptions,
   ModelAttachmentKey
 > {
+  readonly driver = GraphVizModelDriver
+
   protected renderAnyNode(
     node: ModelNode,
     element: ElementWithAttachments<ModelAttachmentKey>,
@@ -358,6 +362,7 @@ export class GraphVizRDFDriver extends GraphvizDriver<
   RDFOptions,
   never
 > {
+  readonly driver = GraphVizRDFDriver
   protected renderSimpleNode(
     { node }: RDFNode,
     element: ElementWithAttachments<never>,

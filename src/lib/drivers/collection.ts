@@ -67,8 +67,13 @@ class DriverCollection<
       if (typeof loader === 'undefined') {
         throw new Error('implementation error: loaders missing loader')
       }
-
-      return await loader()
+      const clz = await loader()
+      if (clz.id !== name) {
+        throw new Error(
+          `implementation error: loader loaded class of incorrect id: Expected ${name}, but got ${clz.id}`,
+        )
+      }
+      return clz
     })
   }
 

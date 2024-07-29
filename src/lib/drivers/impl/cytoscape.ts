@@ -77,8 +77,8 @@ abstract class CytoscapeDriver<
   Elements,
   CytoMount
 > {
-  readonly driverName = 'Cytoscape'
-  readonly layouts = [
+  static readonly id = 'Cytoscape'
+  static readonly layouts = [
     defaultLayout,
     'grid',
     'circle',
@@ -232,7 +232,7 @@ abstract class CytoscapeDriver<
     c.destroy()
   }
 
-  readonly exportFormats = []
+  static readonly formats = []
   protected async exportImpl(
     details: ContextDetails<Elements, Options>,
     info: MountInfo<CytoMount> | null,
@@ -315,18 +315,24 @@ export class CytoBundleDriver extends CytoscapeDriver<
   BundleEdge,
   BundleOptions,
   never
-> {}
+> {
+  readonly driver = CytoBundleDriver
+}
 export class CytoModelDriver extends CytoscapeDriver<
   ModelNode,
   ModelEdge,
   ModelOptions,
   ModelAttachmentKey
-> {}
+> {
+  readonly driver = CytoModelDriver
+}
 export class CytoRDFDriver extends CytoscapeDriver<
   RDFNode,
   RDFEdge,
   RDFOptions,
   never
-> {}
+> {
+  readonly driver = CytoRDFDriver
+}
 
 // spellchecker:words avsdf breadthfirst roundrectangle fcose dagre

@@ -7,7 +7,6 @@ import ColorMap from '../src/lib/pathbuilder/annotations/colormap'
 import ModelGraphBuilder from '../src/lib/graph/builders/model'
 import Deduplication from '../src/app/inspector/state/datatypes/deduplication'
 import { GraphVizModelDriver } from '../src/lib/drivers/impl/graphviz'
-import { defaultLayout } from '../src/lib/drivers/impl'
 import { newModelDisplay } from '../src/lib/graph/builders/model/labels'
 
 // Usage: node node_modules/vite-node/vite-node.mjs ./scripts/render-model-graphviz.ts -p pathbuilder
@@ -42,7 +41,7 @@ async function main(): Promise<void> {
   // load the driver and setup flags to use
   const driver = new GraphVizModelDriver(graph, {
     options: { ns, cm, display: newModelDisplay() },
-    layout: defaultLayout,
+    layout: GraphVizModelDriver.formats[0],
     seed: null,
   })
   // initialize and create blob
