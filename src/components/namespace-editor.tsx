@@ -8,6 +8,7 @@ import * as styles from './namespace-editor.module.css'
 import { classes } from '../lib/utils/classes'
 import { useCallback, useId, useMemo, useState } from 'preact/hooks'
 import InputWithValidity from './input-with-validity'
+import { type AsyncLoadState, reasonAsError, useAsyncLoad } from './hooks/async'
 
 interface NamespaceEditorProps {
   ns: NamespaceMap
@@ -19,14 +20,18 @@ export default function NamespaceEditor(
   props: NamespaceEditorProps,
 ): JSX.Element {
   const { onUpdate, ns, onReset } = props
-  const [loadError, setLoadError] = useState<any>(undefined)
-
+  const [loading, load, clearLoading] = useAsyncLoad(
+    onUpdate,
+    2000,
+    undefined,
+    reasonAsError,
+  )
   const doUpdate = useCallback(
     (ns: NamespaceMap) => {
-      setLoadError(undefined)
+      clearLoading()
       onUpdate(ns)
     },
-    [onUpdate],
+    [clearLoading, onUpdate],
   )
 
   const handleUpdate = useCallback(
@@ -49,11 +54,10 @@ export default function NamespaceEditor(
 
   const handleAdd = useCallback(
     (short: string, long: string): void => {
-      setLoadError(undefined)
-
+      clearLoading()
       doUpdate(ns.add(short, long))
     },
-    [doUpdate, ns],
+    [clearLoading, doUpdate, ns],
   )
 
   const handleDelete = useCallback(
@@ -65,52 +69,51 @@ export default function NamespaceEditor(
 
   const loadNS = useCallback(
     (file: File) => {
-      void (async () => {
+      load(async () => {
         const data = JSON.parse(await file.text())
         const ns = NamespaceMap.fromJSON(data)
         if (ns === null) throw new Error('not a valid namespace map')
         return ns
-      })().then(
-        ns => {
-          doUpdate(ns)
-        },
-        err => {
-          setLoadError(err)
-        },
-      )
+      })
     },
-    [doUpdate],
+    [load],
   )
 
   return (
-    <table class={classes(styles.table)}>
-      <thead>
-        <tr>
-          <th>NS</th>
-          <th>URI</th>
-          <th />
-        </tr>
-      </thead>
-      <tbody>
-        {Array.from(ns).map(([short, long]) => (
-          <MapViewRow
+    <>
+      <table class={classes(styles.table)}>
+        <thead>
+          <tr>
+            <th>NS</th>
+            <th>URI</th>
+            <th />
+          </tr>
+        </thead>
+        <tbody>
+          {Array.from(ns).map(([short, long]) => (
+            <MapViewRow
+              ns={ns}
+              long={long}
+              short={short}
+              key={short}
+              onUpdate={handleUpdate}
+              onDelete={handleDelete}
+            />
+          ))}
+          <AddMapRow ns={ns} onAdd={handleAdd} />
+          <ControlsRow
+            loading={loading}
+            clearLoading={clearLoading}
             ns={ns}
-            long={long}
-            short={short}
-            key={short}
-            onUpdate={handleUpdate}
-            onDelete={handleDelete}
+            onReset={onReset}
+            onLoad={loadNS}
           />
-        ))}
-        <AddMapRow ns={ns} onAdd={handleAdd} />
-        <ControlsRow
-          ns={ns}
-          nsLoadError={loadError}
-          onReset={onReset}
-          onLoad={loadNS}
-        />
-      </tbody>
-    </table>
+        </tbody>
+      </table>
+      {loading?.status === 'rejected' && (
+        <ErrorDisplay error={loading?.reason} />
+      )}
+    </>
   )
 }
 
@@ -196,11 +199,12 @@ function AddMapRow(props: AddRowProps): JSX.Element {
 
 function ControlsRow(props: {
   ns: NamespaceMap
-  nsLoadError?: any
+  loading: AsyncLoadState<NamespaceMap, Error>
+  clearLoading: () => void
   onReset: () => void
   onLoad: (file: File) => void
 }): JSX.Element {
-  const { nsLoadError, onReset, onLoad } = props
+  const { loading, clearLoading, onReset, onLoad, ns } = props
 
   const handleSubmit = useCallback(
     (event: SubmitEvent): void => {
@@ -212,11 +216,12 @@ function ControlsRow(props: {
 
   const handleNamespaceMapExport = useCallback(
     (event: Event): void => {
-      const data = JSON.stringify(props.ns.toJSON(), null, 2)
+      clearLoading()
+      const data = JSON.stringify(ns.toJSON(), null, 2)
       const blob = new Blob([data], { type: Type.JSON })
       download(blob, 'namespaces.json', 'json')
     },
-    [props.ns],
+    [clearLoading, ns],
   )
 
   const handleNamespaceMapImport = useCallback(
@@ -230,16 +235,21 @@ function ControlsRow(props: {
     <tr>
       <td colspan={2}>
         <button onClick={handleNamespaceMapExport}>Export</button>
+        &nbsp;
         <DropArea
           types={[Type.JSON]}
           onDropFile={handleNamespaceMapImport}
           compact
+          disabled={loading?.status === 'pending'}
         >
           Import
         </DropArea>
-        {typeof nsLoadError !== 'undefined' && (
-          <ErrorDisplay error={nsLoadError} />
+        &nbsp;
+        {loading?.status === 'pending' && <>loading</>}
+        {loading?.status === 'fulfilled' && (
+          <>loaded NamespaceMap of size {loading.value.size}</>
         )}
+        {loading?.status === 'rejected' && <>failed to load NamespaceMap</>}
       </td>
       <td>
         <form onSubmit={handleSubmit}>

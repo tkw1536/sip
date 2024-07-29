@@ -24,6 +24,11 @@ export class NamespaceMap {
     return this.#entries.entries()
   }
 
+  /** the number of entries in this map */
+  get size(): number {
+    return this.#entries.size
+  }
+
   /** turns a map into a json map */
   toJSON(): NamespaceMapExport {
     return {

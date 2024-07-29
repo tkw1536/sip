@@ -7,6 +7,7 @@ interface DropAreaProps {
   onDropFile: (...files: File[]) => void
 
   compact?: boolean
+  disabled?: boolean
 
   class?: string
   activeValidClass?: string
@@ -68,6 +69,7 @@ export default function DropArea(props: DropAreaProps): JSX.Element {
     types,
     multiple,
     compact,
+    disabled,
     onDropFile,
   } = props
 
@@ -77,25 +79,31 @@ export default function DropArea(props: DropAreaProps): JSX.Element {
   const callFileHandler = useMemo(
     () =>
       (files?: FileList): void => {
-        if (!validateFiles(types, multiple ?? false, false, files)) return
+        if (
+          !validateFiles(types, multiple ?? false, false, files) ||
+          disabled === true
+        )
+          return
         onDropFile(...Array.from(files))
       },
-    [multiple, onDropFile, types],
+    [disabled, multiple, onDropFile, types],
   )
 
   const handleDropFile = useCallback(
     (event: DragEvent): void => {
       event.preventDefault()
+      if (disabled === true) return
 
       setDragActive(false)
       callFileHandler(event.dataTransfer?.files)
     },
-    [callFileHandler],
+    [disabled, callFileHandler],
   )
 
   const handleDropOver = useCallback(
     (event: DragEvent): void => {
       event.preventDefault()
+      if (disabled === true) return
 
       setDragActive(true)
       setDragValid(
@@ -107,7 +115,7 @@ export default function DropArea(props: DropAreaProps): JSX.Element {
         ),
       )
     },
-    [multiple, types],
+    [disabled, multiple, types],
   )
 
   const handleDragLeave = useCallback((event: DragEvent): void => {
@@ -118,21 +126,24 @@ export default function DropArea(props: DropAreaProps): JSX.Element {
 
   const fileInput = useRef<HTMLInputElement>(null)
 
-  const handleClick = useCallback((event: MouseEvent): void => {
-    event.preventDefault()
+  const handleClick = useCallback(
+    (event: MouseEvent): void => {
+      event.preventDefault()
 
-    const { current } = fileInput
-    if (current === null) return
-    current.click()
-  }, [])
+      const { current } = fileInput
+      if (current === null || disabled === true) return
+      current.click()
+    },
+    [disabled],
+  )
 
   const handleUploadFile = useCallback(
     (event: Event): void => {
       event.preventDefault()
-
+      if (disabled === true) return
       callFileHandler(fileInput?.current?.files ?? undefined)
     },
-    [callFileHandler],
+    [disabled, callFileHandler],
   )
 
   // determine classes to apply
@@ -166,7 +177,7 @@ export default function DropArea(props: DropAreaProps): JSX.Element {
     )
   } else {
     main = (
-      <button class={classes(clz)} onClick={handleClick}>
+      <button class={classes(clz)} onClick={handleClick} disabled={disabled}>
         {childNodes}
       </button>
     )

@@ -1,4 +1,4 @@
-import { type Inputs, useEffect, useState } from 'preact/hooks'
+import { type Inputs, useCallback, useEffect, useState } from 'preact/hooks'
 
 export type AsyncState<V, R = unknown> =
   | { status: 'pending' }
@@ -96,4 +96,97 @@ export function useAsyncEffect<T>(
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, inputs)
+}
+
+export type AsyncLoadState<T, R = unknown> = AsyncState<T, R> | null
+
+export function useAsyncLoad<T>(
+  apply: (value: T) => void,
+  fulfilledClear: number | undefined,
+  rejectedClear: number | undefined,
+): [AsyncLoadState<T>, (load: () => Promise<T>) => void, () => void]
+export function useAsyncLoad<T, R>(
+  apply: (value: T) => void,
+  fulfilledClear: number | undefined,
+  rejectedClear: number | undefined,
+  processReason: (reason: unknown) => R,
+): [AsyncLoadState<T, R> | null, (load: () => Promise<T>) => void, () => void]
+/**
+ * useAsyncLoad loads some data
+ * @param apply function to apply the loaded data to the state
+ * @param fulfilledClear timeout after which to automatically clear fulfilled state
+ * @param rejectedClear timeout after which to automatically clear rejected state
+ * @param processReason optional (pure) function to process the reason field before adding it to the state
+ * @returns
+ */
+export function useAsyncLoad<T, R = unknown>(
+  apply: (value: T) => void,
+  fulfilledClear: number | undefined,
+  rejectedClear: number | undefined,
+  processReason?: (reason: unknown) => R,
+): [AsyncLoadState<T, R>, (load: () => Promise<T>) => void, () => void] {
+  const [loading, setLoading] = useState<AsyncLoadState<T, R>>(null)
+
+  const load = useCallback(
+    (elements: () => Promise<T>) => {
+      // tell the component that we're pending
+      setLoading({ status: 'pending' })
+
+      elements().then(
+        value => {
+          apply(value)
+          setLoading({ status: 'fulfilled', value })
+        },
+        reason => {
+          const theReason =
+            typeof processReason === 'function'
+              ? processReason(reason)
+              : (reason as R)
+          setLoading({ status: 'rejected', reason: theReason })
+        },
+      )
+    },
+    [apply, processReason],
+  )
+
+  // function to apply a loading state
+  const clearLoadingState = useCallback((): void => {
+    setLoading(state =>
+      state === null || state.status === 'pending' ? state : null,
+    )
+  }, [])
+
+  // clear success state after a specific timeout
+  useEffect(() => {
+    if (
+      loading === null ||
+      loading.status !== 'fulfilled' ||
+      typeof fulfilledClear === 'undefined'
+    ) {
+      return
+    }
+
+    const timer = setTimeout(clearLoadingState, fulfilledClear)
+    return () => {
+      window.clearTimeout(timer)
+    }
+  }, [clearLoadingState, loading, fulfilledClear])
+
+  // clear failure state after a specific timeout
+  useEffect(() => {
+    if (
+      loading === null ||
+      loading.status !== 'rejected' ||
+      typeof rejectedClear === 'undefined'
+    ) {
+      return
+    }
+
+    const timer = setTimeout(clearLoadingState, rejectedClear)
+    return () => {
+      window.clearTimeout(timer)
+    }
+  }, [clearLoadingState, loading, rejectedClear])
+
+  return [loading, load, clearLoadingState]
 }
