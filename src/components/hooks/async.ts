@@ -3,7 +3,7 @@ import { type Inputs, useCallback, useEffect, useState } from 'preact/hooks'
 export type AsyncState<V, R = unknown> =
   | { status: 'pending' }
   | PromiseFulfilledResult<V>
-  | (PromiseRejectedResult & { reason: R })
+  | (Omit<PromiseRejectedResult, 'reason'> & { reason: R })
 
 function useAsyncState<V>(
   effect: (ticket: () => boolean) => () => Promise<V>,

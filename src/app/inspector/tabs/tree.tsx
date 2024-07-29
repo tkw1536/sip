@@ -16,6 +16,9 @@ import { useCallback, useMemo, useRef } from 'preact/hooks'
 import useInspectorStore from '../state'
 import useEventCallback from '../../../components/hooks/event'
 import ActionButton from '../../../components/button'
+import { reasonAsError, useAsyncLoad } from '../../../components/hooks/async'
+import ColorMap from '../../../lib/pathbuilder/annotations/colormap'
+import ErrorDisplay from '../../../components/error'
 
 export default function TreeTab(): JSX.Element {
   const tree = useInspectorStore(s => s.pathtree)
@@ -47,7 +50,6 @@ export default function TreeTab(): JSX.Element {
 function TreeTabPanel(): JSX.Element {
   const cm = useInspectorStore(s => s.cm)
   const hideParents = useInspectorStore(s => s.collapseParentPaths)
-  const cmLoadError = useInspectorStore(s => s.cmLoadError)
 
   const selectAll = useInspectorStore(s => s.selectAll)
   const selectNone = useInspectorStore(s => s.selectNone)
@@ -84,8 +86,6 @@ function TreeTabPanel(): JSX.Element {
     [cm],
   )
 
-  const loadColorMap = useInspectorStore(s => s.loadColorMap)
-
   const setCollapseParentPaths = useInspectorStore(
     s => s.setCollapseParentPaths,
   )
@@ -94,6 +94,25 @@ function TreeTabPanel(): JSX.Element {
       setCollapseParentPaths(evt.currentTarget.checked)
     },
     [setCollapseParentPaths],
+  )
+
+  const setColorMap = useInspectorStore(s => s.setColorMap)
+  const [cmLoading, cmLoad] = useAsyncLoad(
+    setColorMap,
+    1000,
+    10 * 1000,
+    reasonAsError,
+  )
+  const loadColorMap = useCallback(
+    (file: File) => {
+      cmLoad(async () => {
+        const text = JSON.parse(await file.text())
+        const cm = ColorMap.fromJSON(text)
+        if (cm === null) throw new Error('invalid ColorMap')
+        return cm
+      })
+    },
+    [cmLoad],
   )
 
   return (
@@ -206,17 +225,28 @@ function TreeTabPanel(): JSX.Element {
         <p>
           <button onClick={handleColorMapExport}>Export</button>
           {` `}
-          <DropArea types={[Type.JSON]} onDropFile={loadColorMap} compact>
+          <DropArea
+            types={[Type.JSON]}
+            onDropFile={loadColorMap}
+            compact
+            disabled={cmLoading?.status === 'pending'}
+          >
             Import
           </DropArea>
           {` `}
-          {typeof cmLoadError !== 'undefined' && (
-            <small>
-              &nbsp;
-              {cmLoadError.message}
-            </small>
+          {cmLoading?.status === 'rejected' && (
+            <small>&nbsp; Import failed</small>
           )}
+          {cmLoading?.status === 'fulfilled' && (
+            <small>&nbsp; Import successful</small>
+          )}
+          {cmLoading?.status === 'pending' && <small>&nbsp; Loading</small>}
         </p>
+        {cmLoading?.status === 'rejected' && (
+          <p>
+            <ErrorDisplay error={cmLoading.reason} />
+          </p>
+        )}
       </fieldset>
     </>
   )

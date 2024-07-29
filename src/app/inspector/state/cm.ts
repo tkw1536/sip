@@ -11,18 +11,16 @@ export type Slice = State & Actions
 
 interface State {
   cm: ColorMap
-  cmLoadError: Error | undefined
 }
 
 interface Actions {
   applyColorPreset: (preset: ColorPreset) => void
   setColor: (node: PathTreeNode, color: string) => void
-  loadColorMap: (file: File) => void
+  setColorMap: (map: ColorMap) => void
 }
 
 const initialState: State = {
   cm: ColorMap.empty(),
-  cmLoadError: undefined,
 }
 const resetState: State = { ...initialState }
 
@@ -43,7 +41,6 @@ export const create: StateCreator<BoundState, [], [], Slice> = (set, get) => {
     applyColorPreset(preset) {
       set(({ pathtree }) => ({
         cm: applyColorPreset(pathtree, preset),
-        cmLoadError: undefined,
       }))
     },
 
@@ -51,22 +48,8 @@ export const create: StateCreator<BoundState, [], [], Slice> = (set, get) => {
       set(({ cm }) => ({ cm: cm.set(node, color), cmLoadError: undefined }))
     },
 
-    loadColorMap(file) {
-      void (async () => {
-        try {
-          const data = JSON.parse(await file.text())
-          const cm = ColorMap.fromJSON(data)
-          if (cm === null) throw new Error('not a valid colormap')
-          set({ cm, cmLoadError: undefined })
-        } catch (e: unknown) {
-          set({
-            cmLoadError:
-              e instanceof Error
-                ? e
-                : new Error('unable to load colormap', { cause: e }),
-          })
-        }
-      })()
+    setColorMap(cm: ColorMap) {
+      set({ cm })
     },
   }
 }
