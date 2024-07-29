@@ -8,6 +8,7 @@ import {
 } from '.'
 import { type Data, Network, type Options as VisOptions } from 'vis-network'
 import { DataSet } from 'vis-data'
+import buttonCSS from 'vis-network/dist/dist/vis-network.min.css?inline'
 import {
   type BundleOptions,
   type BundleEdge,
@@ -36,6 +37,11 @@ import { type Size } from '../../../components/hooks/observer'
 type NodeAttributes = Omit<VisNode<string | number>, 'id'>
 type EdgeAttributes = Omit<VisEdge<string | number>, 'from' | 'to'>
 
+interface NetworkContext {
+  network: Network
+  styles: HTMLStyleElement
+}
+
 abstract class VisNetworkDriver<
   NodeLabel extends Renderable<Options, AttachmentKey>,
   EdgeLabel extends Renderable<Options, AttachmentKey>,
@@ -50,7 +56,7 @@ abstract class VisNetworkDriver<
   EdgeAttributes,
   null,
   Dataset,
-  Network
+  NetworkContext
 > {
   readonly driverName = 'vis-network'
   readonly layouts = [defaultLayout, 'hierarchical', 'force2atlas']
@@ -115,9 +121,23 @@ abstract class VisNetworkDriver<
     }: ContextDetails<Dataset, Options>,
     element: HTMLElement,
     refs: Refs,
-  ): Network {
+  ): NetworkContext {
+    // inject styles for buttons
+    const styles = document.createElement('style')
+    styles.setAttribute('type', 'text/css')
+    styles.innerHTML = buttonCSS
+    document.head.appendChild(styles)
+
     const options = this.options(seed, layout)
     options.autoResize = false
+    if (typeof options.interaction === 'undefined') {
+      options.interaction = {}
+    }
+    options.interaction = {
+      ...(options.interaction ?? {}),
+      keyboard: true,
+      navigationButtons: true,
+    }
 
     const network = new Network(element, dataset.toData(), options)
     network.on('startStabilizing', () => {
@@ -126,12 +146,12 @@ abstract class VisNetworkDriver<
     network.on('stabilized', () => {
       refs.animating(false)
     })
-    return network
+    return { network, styles }
   }
 
   protected resizeMountImpl(
     details: ContextDetails<Dataset, Options>,
-    { mount: network }: MountInfo<Network>,
+    { mount: { network } }: MountInfo<NetworkContext>,
     { width, height }: Size,
   ): void {
     network.setSize(`${width}px`, `${height}px`)
@@ -140,31 +160,38 @@ abstract class VisNetworkDriver<
 
   protected unmountImpl(
     details: ContextDetails<Dataset, Options>,
-    { mount: network, element }: MountInfo<Network>,
+    { mount: { network, styles }, element }: MountInfo<NetworkContext>,
   ): void {
+    styles.remove()
     network.destroy()
   }
 
   readonly exportFormats = ['png']
   protected async exportImpl(
     { context: dataset }: ContextDetails<Dataset, Options>,
-    info: MountInfo<Network> | null,
+    info: MountInfo<NetworkContext> | null,
     format: string,
   ): Promise<Blob> {
     if (info === null) throw ErrorUnsupported
-    return await dataset.drawNetworkClone(info.mount, 1000, 1000, Type.PNG, 1)
+    return await dataset.drawNetworkClone(
+      info.mount.network,
+      1000,
+      1000,
+      Type.PNG,
+      1,
+    )
   }
 
   protected startSimulationImpl(
     details: ContextDetails<Dataset, Options>,
-    { mount: network, refs }: MountInfo<Network>,
+    { mount: { network }, refs }: MountInfo<NetworkContext>,
   ): void {
     network.startSimulation()
   }
 
   protected stopSimulationImpl(
     details: ContextDetails<Dataset, Options>,
-    { mount: network, refs }: MountInfo<Network>,
+    { mount: { network }, refs }: MountInfo<NetworkContext>,
   ): void {
     network.stopSimulation()
   }
@@ -215,6 +242,7 @@ abstract class VisNetworkDriver<
           background: color ?? 'white',
           border: 'black',
         },
+        title: tooltip ?? undefined,
         label: label ?? undefined,
       }
     }
@@ -222,6 +250,7 @@ abstract class VisNetworkDriver<
     return {
       color: color ?? undefined,
       label: label ?? undefined,
+      title: tooltip ?? undefined,
 
       arrows: 'to',
     }
@@ -304,6 +333,7 @@ type VisEdge<T extends string | number> = {
 
 interface VisCommon {
   label?: string
+  title?: string
   color?: string | { background: string; border: string }
   font?: string
 }
