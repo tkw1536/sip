@@ -3,6 +3,7 @@ import {
   type ContextFlags,
   DriverImpl,
   type MountInfo,
+  type Refs,
   defaultLayout,
 } from '..'
 import {
@@ -172,9 +173,12 @@ abstract class GraphvizDriver<
     })
   }
 
+  protected delayMountUntilAfterResize = true
   protected mountImpl(
     { context }: ContextDetails<Context, Options>,
     element: HTMLElement,
+    refs: Refs,
+    size?: Size,
   ): Mount {
     // mount the svg we have already rendered
     element.innerHTML = context.svg
@@ -183,6 +187,15 @@ abstract class GraphvizDriver<
     if (svg === null) {
       throw new Error('unable to mount svg element')
     }
+
+    if (typeof size === 'undefined') {
+      throw new Error(
+        'never reached: mountImpl called without size despite delayMountUntilAfterResize',
+      )
+    }
+    const { height, width } = size
+    svg.style.height = `${height}px`
+    svg.style.width = `${width}px`
 
     // create the svg element and add it to the container
     element.appendChild(svg)
@@ -194,6 +207,7 @@ abstract class GraphvizDriver<
       controlIconsEnabled: true,
       dblClickZoomEnabled: false,
     })
+    zoom.reset()
     return { svg, zoom }
   }
 

@@ -172,6 +172,8 @@ export abstract class DriverImpl<
   readonly #hot: HotContext
   readonly seed: number
   #context: ContextDetails<Context, Options> | null = null
+
+  #mountData: { element: HTMLElement; refs: Refs } | null = null
   #mount: MountInfo<Mount> | null = null
 
   async initialize(ticket: () => boolean): Promise<void> {
@@ -199,24 +201,47 @@ export abstract class DriverImpl<
 
   abstract readonly layouts: string[]
 
+  protected delayMountUntilAfterResize = false
   mount(element: HTMLElement, refs: Refs): void {
-    if (this.#context === null || this.#mount !== null) {
+    this.#mountData = { element, refs }
+    if (this.delayMountUntilAfterResize) {
+      return
+    }
+
+    this.#doMount(undefined)
+  }
+
+  #doMount(size?: Size): void {
+    if (this.#mountData === null || this.#context === null) {
       throw new Error('Driver error: mount called out of order')
     }
 
+    // extract and clear the mount data
+    const { element, refs } = this.#mountData
+    this.#mountData = null
+
+    // do the actual mount!
     this.#mount = {
-      mount: this.mountImpl(this.#context, element, refs),
+      mount: this.mountImpl(this.#context, element, refs, size),
       element,
       refs,
+      size,
     }
   }
+
   protected abstract mountImpl(
     details: ContextDetails<Context, Options>,
     element: HTMLElement,
     refs: Refs,
+    size?: Size,
   ): Mount
 
   resize(size: Size): void {
+    // if we haven't mounted yet => do it
+    if (this.#mountData !== null) {
+      this.#doMount(size)
+    }
+
     if (this.#context === null || this.#mount === null) {
       throw new Error('Driver error: resize called out of order')
     }
@@ -236,6 +261,12 @@ export abstract class DriverImpl<
   ): Mount | void
 
   unmount(): void {
+    // delayed the mount, but we never did it!
+    if (this.#mountData !== null) {
+      this.#mountData = null
+      return
+    }
+
     if (this.#context === null || this.#mount === null) {
       throw new Error('Driver error: unmount called out of order')
     }
@@ -251,6 +282,9 @@ export abstract class DriverImpl<
   abstract readonly exportFormats: string[]
 
   async export(format: string): Promise<Blob> {
+    if (this.#mountData !== null) {
+      throw new Error('Driver error: export called before initial resize')
+    }
     if (this.#context === null) {
       throw new Error('Driver error: export called out of order')
     }
