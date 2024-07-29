@@ -8,6 +8,7 @@ import GraphDisplay, {
 } from '../../../components/graph-display'
 import {
   Control,
+  ControlGroup,
   DriverControl,
   ExportControl,
 } from '../../../components/graph-display/controls'
@@ -87,7 +88,7 @@ function ModelGraphPanel(
   )
 
   return (
-    <>
+    <ControlGroup>
       <DriverControl
         driverNames={models.names}
         layout={layout}
@@ -126,7 +127,7 @@ function ModelGraphPanel(
         </div>
       </Control>
       <ExportControl {...props} />
-    </>
+    </ControlGroup>
   )
 }
 

@@ -3,6 +3,7 @@ import GraphDisplay, {
   type PanelProps,
 } from '../../../components/graph-display'
 import {
+  ControlGroup,
   DriverControl,
   ExportControl,
 } from '../../../components/graph-display/controls'
@@ -60,7 +61,7 @@ function BundleGraphPanel(
   const setSeed = useInspectorStore(s => s.setBundleSeed)
 
   return (
-    <>
+    <ControlGroup>
       <DriverControl
         driverNames={bundles.names}
         layout={layout}
@@ -71,6 +72,6 @@ function BundleGraphPanel(
         {...props}
       />
       <ExportControl {...props} />
-    </>
+    </ControlGroup>
   )
 }

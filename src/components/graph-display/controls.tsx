@@ -1,4 +1,4 @@
-import { type ComponentChildren, Fragment, type JSX } from 'preact'
+import { type ComponentChildren, Fragment, type JSX, type VNode } from 'preact'
 import download from '../../lib/utils/download'
 
 import type Driver from '../../lib/drivers/impl'
@@ -6,7 +6,7 @@ import ValueSelector from '../selector'
 import { useCallback, useId } from 'preact/hooks'
 import { type Renderable } from '../../lib/graph/builders'
 import { type PanelProps } from '.'
-import ActionButton from '../button'
+import ActionButton, { ActionButtonGroup } from '../button'
 
 /** Control that provides only UI components */
 export function Control(props: {
@@ -18,6 +18,22 @@ export function Control(props: {
       <legend>{props.name}</legend>
       {props.children}
     </fieldset>
+  )
+}
+
+/** a group of multiple controls */
+export function ControlGroup(props: {
+  children: Array<VNode<any>>
+}): JSX.Element {
+  return (
+    <>
+      {props.children.map((child, idx) => (
+        <Fragment key={idx}>
+          {child}
+          <br />
+        </Fragment>
+      ))}
+    </>
   )
 }
 
@@ -67,15 +83,15 @@ export function DriverControl<
         automatically re-renders the graph.
       </p>
 
-      <p>
+      <ActionButtonGroup>
         <ActionButton
-          onClick={controller?.rerender}
+          onAction={controller?.rerender}
           disabled={typeof controller?.instance === 'undefined'}
           id={`${id}-reset`}
         >
           Re-Render
         </ActionButton>
-      </p>
+      </ActionButtonGroup>
 
       <table>
         <tbody>
@@ -136,18 +152,20 @@ function SimulationControls<
     <>
       <td>Animation:</td>
       <td>
-        <ActionButton
-          disabled={controller?.animating !== false}
-          onClick={controller?.instance?.startAnimation}
-        >
-          Start
-        </ActionButton>
-        <ActionButton
-          disabled={controller?.animating !== true}
-          onClick={controller?.instance?.stopAnimation}
-        >
-          Stop
-        </ActionButton>
+        <ActionButtonGroup inline>
+          <ActionButton
+            disabled={controller?.animating !== false}
+            onAction={controller?.instance?.startAnimation}
+          >
+            Start
+          </ActionButton>
+          <ActionButton
+            disabled={controller?.animating !== true}
+            onAction={controller?.instance?.stopAnimation}
+          >
+            Stop
+          </ActionButton>
+        </ActionButtonGroup>
       </td>
 
       <td colSpan={3}></td>
@@ -229,8 +247,7 @@ export function ExportControl<
   const { controller } = props
 
   const handleExport = useCallback(
-    (event: Event & { currentTarget: HTMLButtonElement }): void => {
-      event.preventDefault()
+    (button: HTMLButtonElement): void => {
       if (controller === null) {
         console.warn('handleExport called without mounted display')
         return
@@ -238,7 +255,7 @@ export function ExportControl<
 
       const { instance } = controller
 
-      const { format } = event.currentTarget.dataset
+      const { format } = button.dataset
       if (
         typeof format !== 'string' ||
         !instance.exportFormats.includes(format)
@@ -272,14 +289,17 @@ export function ExportControl<
         graph size, this might take a few seconds to generate.
       </p>
       <p>
-        {exportFormats.map(format => (
-          <Fragment key={format}>
-            <button onClick={handleExport} data-format={format}>
+        <ActionButtonGroup inline>
+          {exportFormats.map(format => (
+            <ActionButton
+              key={format}
+              onAction={handleExport}
+              data-format={format}
+            >
               {format}
-            </button>
-            &nbsp;
-          </Fragment>
-        ))}
+            </ActionButton>
+          ))}
+        </ActionButtonGroup>
       </p>
     </Control>
   )

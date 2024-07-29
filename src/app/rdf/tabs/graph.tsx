@@ -3,6 +3,7 @@ import GraphDisplay, {
   type PanelProps,
 } from '../../../components/graph-display'
 import {
+  ControlGroup,
   DriverControl,
   ExportControl,
 } from '../../../components/graph-display/controls'
@@ -56,7 +57,7 @@ function GraphTabPanel(
   const setSeed = useRDFStore(s => s.setRDFSeed)
 
   return (
-    <>
+    <ControlGroup>
       <DriverControl
         driverNames={triples.names}
         layout={layout}
@@ -67,6 +68,6 @@ function GraphTabPanel(
         {...props}
       />
       <ExportControl {...props} />
-    </>
+    </ControlGroup>
   )
 }

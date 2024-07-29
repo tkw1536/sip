@@ -3,7 +3,7 @@ import Spinner from '../../../components/spinner'
 import { StyledDropArea } from '../../../components/drop-area'
 import ErrorDisplay from '../../../components/error'
 import useRDFStore from '../state'
-import useEventCallback from '../../../components/hooks/event'
+import ActionButton from '../../../components/button'
 
 export default function RDFTab(): JSX.Element {
   const loadState = useRDFStore(s => s.loadStage)
@@ -46,7 +46,6 @@ function WelcomeView(): JSX.Element {
 
 function InfoView(): JSX.Element {
   const closeFile = useRDFStore(s => s.closeFile)
-  const handleClose = useEventCallback(closeFile, [closeFile])
 
   const filename = useRDFStore(s => s.filename)
   const theFilename = filename !== '' ? filename : 'statements.rdf'
@@ -57,7 +56,8 @@ function InfoView(): JSX.Element {
         RDF <code>{theFilename}</code> successfully loaded.
       </p>
       <p>
-        You can also <button onClick={handleClose}>Close</button> this file.
+        You can also <ActionButton onAction={closeFile}>Close</ActionButton>{' '}
+        this file.
       </p>
     </>
   )

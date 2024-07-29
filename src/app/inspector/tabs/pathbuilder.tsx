@@ -7,6 +7,7 @@ import { Type } from '../../../lib/utils/media'
 import Spinner from '../../../components/spinner'
 import { useCallback } from 'preact/hooks'
 import useInspectorStore from '../state'
+import ActionButton from '../../../components/button'
 
 export default function PathbuilderTab(): JSX.Element {
   const loadStage = useInspectorStore(s => s.loadStage)
@@ -80,27 +81,24 @@ function InfoView(): JSX.Element {
 
   const closeFile = useInspectorStore(s => s.closeFile)
 
-  const handleExport = useCallback(
-    (evt: MouseEvent): void => {
-      evt.preventDefault()
-
-      const file = new Blob([pathbuilder.toXML()], { type: 'application/xml' })
-      download(file, filename)
-    },
-    [pathbuilder, filename],
-  )
+  const handleExport = useCallback((): void => {
+    const file = new Blob([pathbuilder.toXML()], { type: 'application/xml' })
+    download(file, filename)
+  }, [pathbuilder, filename])
 
   const theFilename = filename !== '' ? filename : 'pathbuilder.xml'
 
   return (
     <>
       <p>
-        Pathbuilder <button onClick={handleExport}>{theFilename}</button>{' '}
+        Pathbuilder{' '}
+        <ActionButton onAction={handleExport}>{theFilename}</ActionButton>{' '}
         successfully loaded. You can use the other tabs to inspect the
         pathbuilder.
       </p>
       <p>
-        You can also close <button onClick={closeFile}>Close</button> this
+        You can also close{' '}
+        <ActionButton onAction={closeFile}>Close</ActionButton> this
         pathbuilder.
       </p>
     </>

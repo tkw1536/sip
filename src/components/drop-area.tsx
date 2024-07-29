@@ -2,6 +2,7 @@ import { type ComponentChild, type JSX, type VNode } from 'preact'
 import { classes } from '../lib/utils/classes'
 import * as styles from './drop-area.module.css'
 import { useCallback, useMemo, useRef, useState } from 'preact/hooks'
+import ActionButton from './button'
 
 interface DropAreaProps {
   onDropFile: (...files: File[]) => void
@@ -126,16 +127,11 @@ export default function DropArea(props: DropAreaProps): JSX.Element {
 
   const fileInput = useRef<HTMLInputElement>(null)
 
-  const handleClick = useCallback(
-    (event: MouseEvent): void => {
-      event.preventDefault()
-
-      const { current } = fileInput
-      if (current === null || disabled === true) return
-      current.click()
-    },
-    [disabled],
-  )
+  const handleClick = useCallback((): void => {
+    const { current } = fileInput
+    if (current === null || disabled === true) return
+    current.click()
+  }, [disabled])
 
   const handleUploadFile = useCallback(
     (event: Event): void => {
@@ -177,9 +173,13 @@ export default function DropArea(props: DropAreaProps): JSX.Element {
     )
   } else {
     main = (
-      <button class={classes(clz)} onClick={handleClick} disabled={disabled}>
+      <ActionButton
+        class={classes(clz)}
+        onAction={handleClick}
+        disabled={disabled}
+      >
         {childNodes}
-      </button>
+      </ActionButton>
     )
   }
 

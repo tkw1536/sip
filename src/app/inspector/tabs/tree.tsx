@@ -15,11 +15,17 @@ import { Panel } from '../../../components/layout/panel'
 import { useCallback, useMemo, useRef } from 'preact/hooks'
 import useInspectorStore from '../state'
 import useEventCallback from '../../../components/hooks/event'
-import ActionButton from '../../../components/button'
+import ActionButton, {
+  ActionButtonGroup,
+  ActionButtonGroupText,
+} from '../../../components/button'
 import { reasonAsError, useAsyncLoad } from '../../../components/hooks/async'
 import ColorMap from '../../../lib/pathbuilder/annotations/colormap'
 import ErrorDisplay from '../../../components/error'
-import { Control } from '../../../components/graph-display/controls'
+import {
+  Control,
+  ControlGroup,
+} from '../../../components/graph-display/controls'
 
 export default function TreeTab(): JSX.Element {
   const tree = useInspectorStore(s => s.pathtree)
@@ -50,11 +56,11 @@ export default function TreeTab(): JSX.Element {
 
 function TreeTabPanel(): JSX.Element {
   return (
-    <>
+    <ControlGroup>
       <OverviewControl />
       <SelectionControl />
       <ColorMapControl />
-    </>
+    </ControlGroup>
   )
 }
 
@@ -81,11 +87,10 @@ function OverviewControl(): JSX.Element {
         similar to the WissKI Interface, except read-only.
       </p>
 
-      <p>
-        <button onClick={collapseAll}>Collapse All</button>
-        {` `}
-        <button onClick={expandAll}>Expand All</button>
-      </p>
+      <ActionButtonGroup>
+        <ActionButton onAction={collapseAll}>Collapse All</ActionButton>
+        <ActionButton onAction={expandAll}>Expand All</ActionButton>
+      </ActionButtonGroup>
 
       <p>
         <span class={classes(styles.display_path, styles.path_concept)}>
@@ -159,15 +164,12 @@ function SelectionControl(): JSX.Element {
         Use the shift key to update the all child values recursively.
       </p>
 
-      <p>
-        <ActionButton onClick={selectAll}>Select All</ActionButton>
-        {` `}
-        <ActionButton onClick={selectNone}>Select None</ActionButton>
-        {` `}
-        <ActionButton onClick={selectBundles}>Select Bundles</ActionButton>
-        {` `}
-        <ActionButton onClick={selectFields}>Select Fields</ActionButton>
-      </p>
+      <ActionButtonGroup>
+        <ActionButton onAction={selectAll}>Select All</ActionButton>
+        <ActionButton onAction={selectNone}>Select None</ActionButton>
+        <ActionButton onAction={selectBundles}>Select Bundles</ActionButton>
+        <ActionButton onAction={selectFields}>Select Fields</ActionButton>
+      </ActionButtonGroup>
     </Control>
   )
 }
@@ -175,34 +177,33 @@ function SelectionControl(): JSX.Element {
 function ColorMapControl(): JSX.Element {
   const cm = useInspectorStore(s => s.cm)
 
-  const applyColorPreset = useInspectorStore(s => s.applyColorPreset)
-  const handleColorPreset = useEventCallback(
-    (evt: Event & { currentTarget: HTMLButtonElement }): void => {
-      evt.preventDefault()
-      const { preset } = evt.currentTarget.dataset
-      if (typeof preset !== 'string') return
-
-      applyColorPreset(preset as ColorPreset)
-    },
-    [applyColorPreset],
-  )
-
-  const handleColorMapExport = useCallback(
-    (evt: Event): void => {
-      const data = JSON.stringify(cm.toJSON(), null, 2)
-      const blob = new Blob([data], { type: Type.JSON })
-      download(blob, 'colors.json', 'json')
-    },
-    [cm],
-  )
-
   const setColorMap = useInspectorStore(s => s.setColorMap)
-  const [cmLoading, cmLoad] = useAsyncLoad(
+  const [cmLoading, cmLoad, cmClear] = useAsyncLoad(
     setColorMap,
     1000,
     10 * 1000,
     reasonAsError,
   )
+
+  const applyColorPreset = useInspectorStore(s => s.applyColorPreset)
+  const handleColorPreset = useCallback(
+    (button: HTMLButtonElement): void => {
+      const { preset } = button.dataset
+      if (typeof preset !== 'string') return
+
+      cmClear()
+      applyColorPreset(preset as ColorPreset)
+    },
+    [cmClear, applyColorPreset],
+  )
+
+  const handleColorMapExport = useCallback((): void => {
+    cmClear()
+    const data = JSON.stringify(cm.toJSON(), null, 2)
+    const blob = new Blob([data], { type: Type.JSON })
+    download(blob, 'colors.json', 'json')
+  }, [cmClear, cm])
+
   const loadColorMap = useCallback(
     (file: File) => {
       cmLoad(async () => {
@@ -228,17 +229,16 @@ function ColorMapControl(): JSX.Element {
       <p>
         {colorPresets.map(preset => (
           <Fragment key={preset}>
-            <button data-preset={preset} onClick={handleColorPreset}>
+            <ActionButton data-preset={preset} onAction={handleColorPreset}>
               {preset}
-            </button>
+            </ActionButton>
             {` `}
           </Fragment>
         ))}
       </p>
 
-      <p>
-        <button onClick={handleColorMapExport}>Export</button>
-        {` `}
+      <ActionButtonGroup>
+        <ActionButton onAction={handleColorMapExport}>Export</ActionButton>
         <DropArea
           types={[Type.JSON]}
           onDropFile={loadColorMap}
@@ -247,15 +247,17 @@ function ColorMapControl(): JSX.Element {
         >
           Import
         </DropArea>
-        {` `}
-        {cmLoading?.status === 'rejected' && (
-          <small>&nbsp; Import failed</small>
-        )}
-        {cmLoading?.status === 'fulfilled' && (
-          <small>&nbsp; Import successful</small>
-        )}
-        {cmLoading?.status === 'pending' && <small>&nbsp; Loading</small>}
-      </p>
+        <ActionButtonGroupText>
+          {cmLoading?.status === 'rejected' && (
+            <small>&nbsp; Import failed</small>
+          )}
+          {cmLoading?.status === 'fulfilled' && (
+            <small>&nbsp; Import successful</small>
+          )}
+          {cmLoading?.status === 'pending' && <small>&nbsp; Loading</small>}
+        </ActionButtonGroupText>
+      </ActionButtonGroup>
+
       {cmLoading?.status === 'rejected' && (
         <p>
           <ErrorDisplay error={cmLoading.reason} />
@@ -281,14 +283,9 @@ function BundleRows(props: {
   const hideParents = useInspectorStore(s => s.collapseParentPaths)
   const toggleNode = useInspectorStore(s => s.toggleNode)
 
-  const handleClick = useCallback(
-    (evt: Event): void => {
-      evt.preventDefault()
-
-      toggleNode(bundle)
-    },
-    [bundle, toggleNode],
-  )
+  const handleClick = useCallback((): void => {
+    toggleNode(bundle)
+  }, [bundle, toggleNode])
 
   const shiftHeld = useRef(false)
 
@@ -340,13 +337,13 @@ function BundleRows(props: {
           />
         </td>
         <td style={{ paddingLeft: INDENT_PER_LEVEL * level }}>
-          <button
-            onClick={handleClick}
+          <ActionButton
+            onAction={handleClick}
             aria-role='toggle'
             disabled={bundle.childCount === 0}
           >
             {expanded ? '∨' : '>'}
-          </button>
+          </ActionButton>
           &nbsp;
           {path.name}
         </td>

@@ -9,6 +9,10 @@ import { classes } from '../lib/utils/classes'
 import { useCallback, useId, useMemo, useState } from 'preact/hooks'
 import InputWithValidity from './input-with-validity'
 import { type AsyncLoadState, reasonAsError, useAsyncLoad } from './hooks/async'
+import ActionButton, {
+  ActionButtonGroup,
+  ActionButtonGroupText,
+} from './button'
 
 interface NamespaceEditorProps {
   ns: NamespaceMap
@@ -172,6 +176,7 @@ function AddMapRow(props: AddRowProps): JSX.Element {
       <td>
         <InputWithValidity
           type='text'
+          form={id}
           value={shortValue}
           class={classes(styles.validate)}
           onInput={handleShortChange}
@@ -190,7 +195,13 @@ function AddMapRow(props: AddRowProps): JSX.Element {
       </td>
       <td>
         <form id={id} onSubmit={handleSubmit}>
-          <button disabled={!(longValid && shortValid)}>Add</button>
+          <ActionButton
+            type='submit'
+            native
+            disabled={!(longValid && shortValid)}
+          >
+            Add
+          </ActionButton>
         </form>
       </td>
     </tr>
@@ -214,15 +225,12 @@ function ControlsRow(props: {
     [onReset],
   )
 
-  const handleNamespaceMapExport = useCallback(
-    (event: Event): void => {
-      clearLoading()
-      const data = JSON.stringify(ns.toJSON(), null, 2)
-      const blob = new Blob([data], { type: Type.JSON })
-      download(blob, 'namespaces.json', 'json')
-    },
-    [clearLoading, ns],
-  )
+  const handleNamespaceMapExport = useCallback((): void => {
+    clearLoading()
+    const data = JSON.stringify(ns.toJSON(), null, 2)
+    const blob = new Blob([data], { type: Type.JSON })
+    download(blob, 'namespaces.json', 'json')
+  }, [clearLoading, ns])
 
   const handleNamespaceMapImport = useCallback(
     (file: File): void => {
@@ -234,26 +242,30 @@ function ControlsRow(props: {
   return (
     <tr>
       <td colspan={2}>
-        <button onClick={handleNamespaceMapExport}>Export</button>
-        &nbsp;
-        <DropArea
-          types={[Type.JSON]}
-          onDropFile={handleNamespaceMapImport}
-          compact
-          disabled={loading?.status === 'pending'}
-        >
-          Import
-        </DropArea>
-        &nbsp;
-        {loading?.status === 'pending' && <>loading</>}
-        {loading?.status === 'fulfilled' && (
-          <>loaded NamespaceMap of size {loading.value.size}</>
-        )}
-        {loading?.status === 'rejected' && <>failed to load NamespaceMap</>}
+        <ActionButtonGroup inline>
+          <ActionButton onAction={handleNamespaceMapExport}>
+            Export
+          </ActionButton>
+          <DropArea
+            types={[Type.JSON]}
+            onDropFile={handleNamespaceMapImport}
+            compact
+            disabled={loading?.status === 'pending'}
+          >
+            Import
+          </DropArea>
+          <ActionButtonGroupText>
+            {loading?.status === 'pending' && <>loading</>}
+            {loading?.status === 'fulfilled' && (
+              <>loaded NamespaceMap of size {loading.value.size}</>
+            )}
+            {loading?.status === 'rejected' && <>failed to load NamespaceMap</>}
+          </ActionButtonGroupText>
+        </ActionButtonGroup>
       </td>
       <td>
         <form onSubmit={handleSubmit}>
-          <button>Reset To Default</button>
+          <ActionButton>Reset To Default</ActionButton>
         </form>
       </td>
     </tr>
@@ -289,25 +301,20 @@ function MapViewRow(props: MapViewProps): JSX.Element {
   )
   const longValid = typeof longValidity === 'undefined'
 
-  const handleApply = useCallback(
-    (evt: Event): void => {
-      evt.preventDefault()
+  const handleApply = useCallback((): void => {
+    const newShort = short !== shortValue ? shortValue : undefined
+    const newLong = long !== longValue ? longValue : undefined
 
-      const newShort = short !== shortValue ? shortValue : undefined
-      const newLong = long !== longValue ? longValue : undefined
+    // ensure that something has changed
+    if (typeof newShort === 'undefined' && typeof newLong === 'undefined') {
+      return
+    }
 
-      // ensure that something has changed
-      if (typeof newShort === 'undefined' && typeof newLong === 'undefined') {
-        return
-      }
+    // ensure that both elements are valid
+    if (!shortValid || !longValid) return
 
-      // ensure that both elements are valid
-      if (!shortValid || !longValid) return
-
-      onUpdate(short, newShort, newLong)
-    },
-    [long, longValid, longValue, onUpdate, short, shortValid, shortValue],
-  )
+    onUpdate(short, newShort, newLong)
+  }, [long, longValid, longValue, onUpdate, short, shortValid, shortValue])
 
   const handleEditShort = useCallback(
     (event: Event & { currentTarget: HTMLInputElement }): void => {
@@ -323,14 +330,9 @@ function MapViewRow(props: MapViewProps): JSX.Element {
     [],
   )
 
-  const handleDelete = useCallback(
-    (event: Event): void => {
-      event.preventDefault()
-
-      onDelete(short)
-    },
-    [onDelete, short],
-  )
+  const handleDelete = useCallback((): void => {
+    onDelete(short)
+  }, [onDelete, short])
 
   const valid = longValid && shortValid
   const dirty = longValue !== long || shortValue !== short
@@ -361,11 +363,12 @@ function MapViewRow(props: MapViewProps): JSX.Element {
         </form>
       </td>
       <td>
-        <button onClick={handleApply} disabled={!enabled}>
-          Apply
-        </button>
-        &nbsp;
-        <button onClick={handleDelete}>Delete</button>
+        <ActionButtonGroup inline>
+          <ActionButton onAction={handleApply} disabled={!enabled}>
+            Apply
+          </ActionButton>
+          <ActionButton onAction={handleDelete}>Delete</ActionButton>
+        </ActionButtonGroup>
       </td>
     </tr>
   )
