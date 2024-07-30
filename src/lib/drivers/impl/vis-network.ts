@@ -39,6 +39,7 @@ type NodeAttributes = Omit<VisNode<string | number>, 'id'>
 type EdgeAttributes = Omit<VisEdge<string | number>, 'from' | 'to'>
 
 interface NetworkContext {
+  data: Data
   network: Network
   styles: HTMLStyleElement
 }
@@ -140,14 +141,18 @@ abstract class VisNetworkDriver<
       navigationButtons: true,
     }
 
-    const network = new Network(element, dataset.toData(), options)
+    const data = dataset.toData()
+    const network = new Network(element, data, options)
+
     network.on('startStabilizing', () => {
       refs.animating(true)
     })
     network.on('stabilized', () => {
       refs.animating(false)
+      network.setOptions({ physics: { enabled: false } })
     })
-    return { network, styles }
+
+    return { network, data, styles }
   }
 
   protected resizeMountImpl(
@@ -187,6 +192,7 @@ abstract class VisNetworkDriver<
     details: ContextDetails<Dataset, Options>,
     { mount: { network }, refs }: MountInfo<NetworkContext>,
   ): void {
+    network.setOptions({ physics: { enabled: true } })
     network.startSimulation()
   }
 
@@ -272,15 +278,21 @@ abstract class VisNetworkDriver<
   }
   protected setPositionsImpl(
     details: ContextDetails<Dataset, Options>,
-    { mount: { network } }: MountInfo<NetworkContext>,
+    { mount: { network, data } }: MountInfo<NetworkContext>,
     positions: Snapshot['positions'],
   ): void {
+    // find all the nodes that exist
+    const nodes = new Set(
+      (data.nodes ?? [])
+        .map(node => node.id)
+        .filter(n => typeof n === 'string'),
+    )
+
+    // set positions for the nodes that exist
     Object.entries(positions).forEach(([id, { x, y }]) => {
-      const nodes = network.findNode(id)
-      if (nodes.length === 0) return
+      if (!nodes.has(id)) return
       network.moveNode(id, x, y)
     })
-    network.redraw()
   }
 }
 
