@@ -301,10 +301,14 @@ abstract class GraphvizDriver<
     })
   }
 
-  protected createCluster(context: Graph, id: string): Subgraph {
+  protected createCluster(
+    context: Graph,
+    id: string,
+    boxed: boolean,
+  ): Subgraph {
     return {
       name: id,
-      graphAttributes: { cluster: true, tooltip: '' },
+      graphAttributes: { cluster: boxed, tooltip: '' },
       nodeAttributes: {},
       edgeAttributes: {},
       nodes: [],

@@ -41,7 +41,16 @@ export class ConceptModelNode
       return element
     }
 
-    return { ...element, attached: { fields, bundles } }
+    return {
+      ...element,
+      attached: {
+        boxed: options.display.BoxCompoundNodes,
+        elements: {
+          fields,
+          bundles,
+        },
+      },
+    }
   }
 
   #renderSimple(id: string, options: ModelOptions): Element {
@@ -154,7 +163,16 @@ export class LiteralModelNode {
     }
 
     const { element, fields } = this.#renderComplex(id, options)
-    return { ...element, attached: { fields, bundles: [] } }
+    return {
+      ...element,
+      attached: {
+        boxed: options.display.BoxCompoundNodes,
+        elements: {
+          fields,
+          bundles: [],
+        },
+      },
+    }
   }
 
   #renderSimple(id: string, options: ModelOptions): Element {
@@ -261,6 +279,7 @@ export interface ModelOptions {
 export interface ModelDisplay {
   ComplexConceptNodes: boolean
   ComplexLiteralNodes: boolean
+  BoxCompoundNodes: boolean
   Labels: {
     Concept: boolean
     Property: boolean
@@ -279,6 +298,7 @@ export function newModelDisplay(): ModelDisplay {
   return {
     ComplexConceptNodes: true,
     ComplexLiteralNodes: true,
+    BoxCompoundNodes: true,
     Labels: {
       Concept: true,
       Property: true,

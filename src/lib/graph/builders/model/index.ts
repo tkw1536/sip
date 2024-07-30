@@ -46,6 +46,7 @@ export default class ModelGraphBuilder extends GraphBuilder<
       default:
         throw new Error('unknown specific builder')
     }
+    console.log('build done!')
   }
 
   protected async doBuild(): Promise<void> {

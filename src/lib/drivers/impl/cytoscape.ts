@@ -74,7 +74,7 @@ abstract class CytoscapeDriver<
   AttachmentKey,
   Attributes,
   Attributes,
-  string,
+  string | null,
   Elements,
   CytoMount
 > {
@@ -279,14 +279,20 @@ abstract class CytoscapeDriver<
     c.stop(true, true)
   }
 
-  protected createCluster(context: Elements, id: string): string {
+  protected createCluster(
+    context: Elements,
+    id: string,
+    boxed: boolean,
+  ): string | null {
+    if (!boxed) return null
     return id
   }
   protected placeCluster(
     elements: Elements,
     id: string,
-    cluster: string,
+    cluster: string | null,
   ): void {
+    if (cluster === null) return
     elements.push({ data: { id: cluster } })
   }
 
@@ -294,12 +300,12 @@ abstract class CytoscapeDriver<
     elements: Elements,
     id: string,
     attributes: Attributes,
-    cluster?: string,
+    cluster?: string | null,
   ): void {
     elements.push({
       data: {
         ...attributes,
-        parent: cluster,
+        parent: cluster ?? undefined,
         id,
       },
     })

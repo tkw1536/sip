@@ -356,7 +356,11 @@ export abstract class DriverImpl<
   ): void
 
   /** creates a new cluster */
-  protected abstract createCluster(context: HotContext, id: string): Cluster
+  protected abstract createCluster(
+    context: HotContext,
+    id: string,
+    boxed: boolean,
+  ): Cluster
 
   /** creates a new cluster with the given id */
   protected abstract placeCluster(
@@ -411,7 +415,7 @@ export abstract class DriverImpl<
 
     // complex node => create a cluster
     const clusterID = `${element.id}-cluster`
-    const cluster = this.createCluster(hot, clusterID)
+    const cluster = this.createCluster(hot, clusterID, attached.boxed)
 
     // add the node itself
     hot =
@@ -423,7 +427,7 @@ export abstract class DriverImpl<
       ) ?? hot
 
     // add all the attachments
-    Object.entries(attached).forEach(([attachment, sElements]) => {
+    Object.entries(attached.elements).forEach(([attachment, sElements]) => {
       ;(sElements as Attachment[]).forEach(({ node: aNode, edge: aEdge }) => {
         hot =
           this.placeNode(

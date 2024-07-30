@@ -177,6 +177,19 @@ function ModelGraphDisplayControl(
             </td>
           </tr>
           <tr>
+            <td>
+              <ComponentCheckbox
+                {...props}
+                value={props.display.BoxCompoundNodes}
+                set={(display, BoxCompoundNodes) => ({
+                  ...display,
+                  BoxCompoundNodes,
+                })}
+                label='Box Compound Nodes'
+              />
+            </td>
+          </tr>
+          <tr>
             <td colSpan={2}>
               Disabling these will render appropriate bundle and field labels
               directly at the respective nodes.

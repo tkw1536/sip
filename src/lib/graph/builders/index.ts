@@ -31,7 +31,10 @@ export interface Renderable<Options, Key extends string> {
 
 /** A unit that can be rendered onto a page  */
 export interface ElementWithAttachments<Key extends string> extends Element {
-  attached?: Record<Key, Attachment[]>
+  attached?: {
+    boxed: boolean
+    elements: Record<Key, Attachment[]>
+  }
 }
 
 /** something that can be rendered onto the page */
