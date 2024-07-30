@@ -127,9 +127,19 @@ abstract class CytoscapeDriver<
         {
           selector: 'node',
           style: {
-            'label': 'data(label)',
             'text-wrap': 'wrap',
-            'color': 'data(color)',
+          },
+        },
+        {
+          selector: 'node[label]',
+          style: {
+            label: 'data(label)',
+          },
+        },
+        {
+          selector: 'node[color]',
+          style: {
+            color: 'data(color)',
           },
         },
         {
@@ -142,6 +152,11 @@ abstract class CytoscapeDriver<
             'text-border-color': '#888',
             'text-border-width': 1,
             'text-border-opacity': 1,
+          },
+        },
+        {
+          selector: 'node[color]:selected',
+          style: {
             'background-color': 'data(color)',
           },
         },
@@ -149,10 +164,16 @@ abstract class CytoscapeDriver<
           selector: 'edge',
           style: {
             'width': 3,
-            'line-color': 'data(color)',
-            'target-arrow-color': 'data(color)',
+
             'target-arrow-shape': 'triangle',
             'curve-style': 'bezier',
+          },
+        },
+        {
+          selector: 'edge[color]',
+          style: {
+            'line-color': 'data(color)',
+            'target-arrow-color': 'data(color)',
           },
         },
         {
@@ -162,7 +183,7 @@ abstract class CytoscapeDriver<
           },
         },
         {
-          selector: 'edge[label]:selected',
+          selector: 'edge:selected',
           style: {
             'text-background-opacity': 1,
             'text-background-color': '#fff',
