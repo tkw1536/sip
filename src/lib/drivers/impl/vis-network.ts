@@ -276,8 +276,11 @@ abstract class VisNetworkDriver<
     positions: Snapshot['positions'],
   ): void {
     Object.entries(positions).forEach(([id, { x, y }]) => {
+      const nodes = network.findNode(id)
+      if (nodes.length === 0) return
       network.moveNode(id, x, y)
     })
+    network.redraw()
   }
 }
 
