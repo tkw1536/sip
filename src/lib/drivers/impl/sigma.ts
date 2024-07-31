@@ -5,6 +5,7 @@ import {
   type MountInfo,
   type Refs,
   type Snapshot,
+  type View,
   defaultLayout,
 } from '.'
 import Sigma from 'sigma'
@@ -233,6 +234,26 @@ abstract class SigmaDriver<
       graph.setNodeAttribute(node, 'y', y)
     })
     sigma.refresh()
+  }
+
+  protected getViewImpl(
+    details: ContextDetails<Graph<Attributes, Attributes, Attributes>, Options>,
+    { mount: { sigma } }: MountInfo<SigmaMount>,
+  ): View {
+    const camera = sigma.getCamera().getState()
+    return {
+      zoom: camera.ratio,
+      center: { x: camera.x, y: camera.y },
+    }
+  }
+  protected setViewImpl(
+    details: ContextDetails<Graph<Attributes, Attributes, Attributes>, Options>,
+    { mount: { sigma } }: MountInfo<SigmaMount>,
+    view: View,
+  ): void {
+    sigma
+      .getCamera()
+      .setState({ x: view.center.x, y: view.center.y, ratio: view.zoom })
   }
 }
 

@@ -99,10 +99,21 @@ export default interface Driver<
   export: (format: string) => Promise<Blob>
 }
 
+interface Position {
+  x: number
+  y: number
+}
+
+export interface View {
+  zoom: number
+  center: Position
+}
+
 /** Snapshot holds the positions of all elements within this graph */
 export interface Snapshot {
   animating: boolean | null
-  positions: Record<string, { x: number; y: number }>
+  view?: View
+  positions: Record<string, Position>
 }
 
 /** indicates to the caller that the driver has aborted it's current operation */
@@ -194,7 +205,8 @@ export abstract class DriverImpl<
   readonly #hot: HotContext
   #context: ContextDetails<Context, Options> | null = null
 
-  #mountData: { element: HTMLElement; refs: Refs } | null = null
+  #mountData: { element: HTMLElement; refs: Refs; snapshot?: Snapshot } | null =
+    null
   #mount: MountInfo<Mount> | null = null
 
   readonly initialize = async (ticket: () => boolean): Promise<void> => {
@@ -259,7 +271,7 @@ export abstract class DriverImpl<
     }
 
     // extract and clear the mount data
-    const { element, refs } = this.#mountData
+    const { element, refs, snapshot } = this.#mountData
     this.#mountData = null
 
     // do the actual mount!
@@ -269,6 +281,11 @@ export abstract class DriverImpl<
       refs,
       animating: this.#animating,
       size,
+    }
+
+    // apply the snapshot
+    if (typeof snapshot !== 'undefined') {
+      this.#doSnapshot(snapshot)
     }
   }
 
@@ -550,13 +567,22 @@ export abstract class DriverImpl<
     if (positions === null) {
       return null
     }
+    const view = this.getViewImpl(this.#context, this.#mount) ?? undefined
     return {
       animating: this.#mount.animating,
       positions,
+      view,
     }
   }
   /** snapshot sets the current node positions */
   set snapshot(snapshot: Snapshot) {
+    if (this.#mountData !== null) {
+      this.#mountData.snapshot = snapshot
+      return
+    }
+    this.#doSnapshot(snapshot)
+  }
+  #doSnapshot(snapshot: Snapshot): void {
     if (this.#context === null || this.#mount === null) {
       throw new Error('Driver error: snapshot called in wrong order')
     }
@@ -564,14 +590,25 @@ export abstract class DriverImpl<
     // always stop the animation before a restore
     this.stopAnimation()
 
+    const { view, positions } = snapshot
+
     // set the positions
     this.#mount = {
       ...this.#mount,
       mount:
-        this.setPositionsImpl(this.#context, this.#mount, snapshot.positions) ??
+        this.setPositionsImpl(this.#context, this.#mount, positions) ??
         this.#mount.mount,
     }
 
+    // set the view
+    if (typeof view !== 'undefined') {
+      this.#mount = {
+        ...this.#mount,
+        mount:
+          this.setViewImpl(this.#context, this.#mount, view) ??
+          this.#mount.mount,
+      }
+    }
     // if we were running before, start the animation
     if (snapshot.animating === true) {
       this.startAnimation()
@@ -587,5 +624,15 @@ export abstract class DriverImpl<
     details: ContextDetails<Context, Options>,
     info: MountInfo<Mount>,
     positions: Snapshot['positions'],
+  ): Mount | void
+
+  protected abstract getViewImpl(
+    details: ContextDetails<Context, Options>,
+    info: MountInfo<Mount>,
+  ): View | null
+  protected abstract setViewImpl(
+    details: ContextDetails<Context, Options>,
+    info: MountInfo<Mount>,
+    view: View,
   ): Mount | void
 }

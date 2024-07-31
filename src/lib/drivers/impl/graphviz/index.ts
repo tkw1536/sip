@@ -4,6 +4,8 @@ import {
   DriverImpl,
   type MountInfo,
   type Refs,
+  type Snapshot,
+  type View,
   defaultLayout,
 } from '..'
 import {
@@ -320,10 +322,36 @@ abstract class GraphvizDriver<
     graph.subgraphs.push(cluster)
   }
 
-  protected getPositionsImpl(): null {
-    return null
+  protected getPositionsImpl(
+    details: ContextDetails<Context, Options>,
+    info: MountInfo<Mount>,
+  ): Snapshot['positions'] {
+    return {}
   }
-  protected setPositionsImpl(): void {}
+  protected setPositionsImpl(
+    details: ContextDetails<Context, Options>,
+    info: MountInfo<Mount>,
+    positions: Snapshot['positions'],
+  ): void {}
+
+  protected getViewImpl(
+    details: ContextDetails<Context, Options>,
+    { mount: { zoom } }: MountInfo<Mount>,
+  ): View | null {
+    const { x, y } = zoom.getPan()
+    return {
+      zoom: zoom.getZoom(),
+      center: { x, y },
+    }
+  }
+  protected setViewImpl(
+    details: ContextDetails<Context, Options>,
+    { mount: { zoom } }: MountInfo<Mount>,
+    view: View,
+  ): Mount | void {
+    zoom.zoom(view.zoom)
+    zoom.pan(view.center)
+  }
 }
 
 export class GraphVizBundleDriver extends GraphvizDriver<

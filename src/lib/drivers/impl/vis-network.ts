@@ -5,6 +5,7 @@ import {
   type MountInfo,
   type Refs,
   type Snapshot,
+  type View,
   defaultLayout,
 } from '.'
 import { type Data, Network, type Options as VisOptions } from 'vis-network'
@@ -293,6 +294,29 @@ abstract class VisNetworkDriver<
       if (!nodes.has(id)) return
       network.moveNode(id, x, y)
     })
+  }
+
+  protected getViewImpl(
+    details: ContextDetails<Dataset, Options>,
+    { mount: { network } }: MountInfo<NetworkContext>,
+  ): View {
+    const { x, y } = network.getViewPosition()
+    return {
+      zoom: network.getScale(),
+      center: { x, y },
+    }
+  }
+  protected setViewImpl(
+    details: ContextDetails<Dataset, Options>,
+    { mount: { network } }: MountInfo<NetworkContext>,
+    view: View,
+  ): void {
+    network.moveTo({
+      scale: view.zoom,
+      position: view.center,
+      animation: false,
+    })
+    network.redraw()
   }
 }
 

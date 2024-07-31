@@ -11,6 +11,7 @@ import {
   type MountInfo,
   type Refs,
   type Snapshot,
+  type View,
   defaultLayout,
 } from '.'
 import {
@@ -357,6 +358,27 @@ abstract class CytoscapeDriver<
   ): void {
     Object.entries(positions).forEach(([id, { x, y }]) => {
       c.getElementById(id).position({ x, y }) // .lock()
+    })
+  }
+
+  protected getViewImpl(
+    details: ContextDetails<Elements, Options>,
+    { mount: { c } }: MountInfo<CytoMount>,
+  ): View | null {
+    const { x, y } = c.pan()
+    return {
+      center: { x, y },
+      zoom: c.zoom(),
+    }
+  }
+  protected setViewImpl(
+    details: ContextDetails<Elements, Options>,
+    { mount: { c } }: MountInfo<CytoMount>,
+    { zoom, center }: View,
+  ): void {
+    c.viewport({
+      zoom,
+      pan: center,
     })
   }
 }
