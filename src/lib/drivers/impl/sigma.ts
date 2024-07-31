@@ -36,7 +36,7 @@ import {
 import { type Size } from '../../../components/hooks/observer'
 
 interface SigmaMount {
-  stopLayout?: () => void
+  layout?: SigmaLayout
   sigma: Sigma
 }
 
@@ -83,7 +83,7 @@ abstract class SigmaDriver<
     element: HTMLElement,
     refs: Refs,
   ): SigmaMount {
-    let stopLayout: (() => void) | undefined
+    let sigmaLayout: SigmaLayout | undefined
     switch (layout === defaultLayout ? 'force2atlas' : layout) {
       case 'force2atlas':
         {
@@ -92,26 +92,7 @@ abstract class SigmaDriver<
             settings: inferSettings(graph),
           })
 
-          layout.start()
-
-          // poll if the layout is still animating
-          refs.animating(true)
-          const interval = setInterval(() => {
-            if (layout.isRunning()) {
-              return
-            }
-
-            clearInterval(interval)
-            refs.animating(null)
-          }, 500)
-
-          stopLayout = () => {
-            // notify that we're no longer animating
-            clearInterval(interval)
-            refs.animating(null)
-
-            layout.kill()
-          }
+          sigmaLayout = new SigmaLayout(layout, refs.animating)
         }
 
         break
@@ -124,10 +105,15 @@ abstract class SigmaDriver<
     }
     // setup an initial layout
 
+    // start the layout if we have it!
+    if (typeof sigmaLayout !== 'undefined') {
+      sigmaLayout.start()
+    }
+
     const settings = this.settings()
     return {
       sigma: new Sigma(graph, element, settings),
-      stopLayout,
+      layout: sigmaLayout,
     }
   }
 
@@ -141,12 +127,12 @@ abstract class SigmaDriver<
 
   protected unmountImpl(
     details: ContextDetails<Graph, Options>,
-    { mount: sigma }: MountInfo<SigmaMount>,
+    { mount: { sigma, layout } }: MountInfo<SigmaMount>,
   ): void {
-    sigma.sigma.kill()
-    if (typeof sigma.stopLayout === 'function') {
-      sigma.stopLayout()
+    if (typeof layout !== 'undefined') {
+      layout.kill()
     }
+    sigma.kill()
   }
 
   static readonly formats = []
@@ -160,17 +146,16 @@ abstract class SigmaDriver<
 
   protected startSimulationImpl(
     details: ContextDetails<Graph, Options>,
-    info: MountInfo<SigmaMount>,
-  ): void {}
+    { mount: { layout } }: MountInfo<SigmaMount>,
+  ): void {
+    layout?.start()
+  }
 
   protected stopSimulationImpl(
     details: ContextDetails<Graph, Options>,
-    info: MountInfo<SigmaMount>,
+    { mount: { layout } }: MountInfo<SigmaMount>,
   ): void {
-    const { stopLayout } = info.mount
-    if (typeof stopLayout === 'function') {
-      stopLayout()
-    }
+    layout?.stop()
   }
 
   protected createCluster(
@@ -243,11 +228,82 @@ abstract class SigmaDriver<
     positions: Snapshot['positions'],
   ): SigmaMount | void {
     Object.entries(positions).forEach(([node, { x, y }]) => {
+      if (!graph.hasNode(node)) return
       graph.setNodeAttribute(node, 'x', x)
       graph.setNodeAttribute(node, 'y', y)
     })
     sigma.refresh()
   }
+}
+
+class SigmaLayout {
+  #layout: LayoutLike | null
+  #animating: ((value: boolean | null) => void) | null
+  constructor(
+    layout: LayoutLike,
+    animatingRef: (value: boolean | null) => void,
+  ) {
+    this.#layout = layout
+    this.#animating = animatingRef
+  }
+
+  #poller: NodeJS.Timeout | null = null
+  #running: boolean = false
+  start = (): void => {
+    if (this.#running || this.#layout === null) return
+    this.#running = true
+    if (this.#animating !== null) {
+      this.#animating(true)
+    }
+    this.#layout.start()
+    this.#startPolling()
+  }
+  stop = (): void => {
+    if (!this.#running || this.#layout === null) return
+    this.#stopPolling()
+    this.#running = false
+    if (this.#animating !== null) {
+      this.#animating(false)
+    }
+    this.#layout.stop()
+  }
+  kill = (): void => {
+    this.#running = false
+    this.#stopPolling()
+
+    if (this.#animating !== null) {
+      this.#animating(null)
+      this.#animating = null
+    }
+
+    if (this.#layout !== null) {
+      this.#layout.kill()
+      this.#layout = null
+    }
+  }
+
+  #startPolling(): void {
+    this.#stopPolling()
+
+    this.#poller = setInterval(() => {
+      if (this.#layout === null || !this.#layout.isRunning()) {
+        this.stop()
+      }
+    }, 500)
+  }
+  #stopPolling(): void {
+    if (this.#poller !== null) {
+      clearInterval(this.#poller)
+      this.#poller = null
+    }
+  }
+}
+
+interface LayoutLike {
+  isRunning: () => boolean
+  start: () => void
+  stop: () => void
+  kill: () => void
 }
 
 export class SigmaBundleDriver extends SigmaDriver<
