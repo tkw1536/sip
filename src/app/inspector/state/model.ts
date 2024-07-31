@@ -10,9 +10,9 @@ import { nextInt } from '../../../lib/utils/prng'
 export type Slice = State & Actions
 
 interface State {
-  modelGraphDriver: string
+  modelDriver: string
   modelSeed: number
-  modelGraphLayout: string
+  modelLayout: string
   modelDeduplication: Deduplication
   modelDisplay: ModelDisplay
   modelSnapshot: Snapshot | null
@@ -28,8 +28,8 @@ interface Actions {
 }
 
 const initialState: State = {
-  modelGraphDriver: models.defaultDriver,
-  modelGraphLayout: defaultLayout,
+  modelDriver: models.defaultDriver,
+  modelLayout: defaultLayout,
   modelSeed: nextInt(),
   modelDeduplication: Deduplication.Bundle,
   modelDisplay: {
@@ -65,13 +65,13 @@ export const create: StateCreator<BoundState, [], [], Slice> = set => {
 
     setModelDriver(driver) {
       set({
-        modelGraphDriver: driver,
-        modelGraphLayout: defaultLayout,
+        modelDriver: driver,
+        modelLayout: defaultLayout,
         modelSnapshot: null,
       })
     },
     setModelLayout(layout) {
-      set({ modelGraphLayout: layout, modelSnapshot: null })
+      set({ modelLayout: layout, modelSnapshot: null })
     },
     setModelDeduplication(deduplication) {
       set({ modelDeduplication: deduplication })

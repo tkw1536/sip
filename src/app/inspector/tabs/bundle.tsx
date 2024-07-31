@@ -21,7 +21,7 @@ import useInspectorStore from '../state'
 export default function BundleGraphTab(): JSX.Element {
   const tree = useInspectorStore(s => s.pathtree)
   const selection = useInspectorStore(s => s.selection)
-  const driver = useInspectorStore(s => s.bundleGraphDriver)
+  const driver = useInspectorStore(s => s.bundleDriver)
   const layout = useInspectorStore(s => s.bundleGraphLayout)
   const seed = useInspectorStore(s => s.bundleSeed)
   const ns = useInspectorStore(s => s.ns)
@@ -58,7 +58,7 @@ export default function BundleGraphTab(): JSX.Element {
 function BundleGraphPanel(
   props: PanelProps<BundleNode, BundleEdge, BundleOptions, never>,
 ): JSX.Element {
-  const driver = useInspectorStore(s => s.bundleGraphDriver)
+  const driver = useInspectorStore(s => s.bundleDriver)
   const layout = useInspectorStore(s => s.bundleGraphLayout)
   const seed = useInspectorStore(s => s.bundleSeed)
 

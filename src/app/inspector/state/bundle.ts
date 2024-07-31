@@ -8,7 +8,7 @@ import { nextInt } from '../../../lib/utils/prng'
 export type Slice = State & Actions
 
 interface State {
-  bundleGraphDriver: string
+  bundleDriver: string
   bundleSeed: number
   bundleGraphLayout: string
   bundleSnapshot: Snapshot | null
@@ -22,7 +22,7 @@ interface Actions {
 }
 
 const initialState: State = {
-  bundleGraphDriver: bundles.defaultDriver,
+  bundleDriver: bundles.defaultDriver,
   bundleGraphLayout: defaultLayout,
   bundleSeed: nextInt(),
   bundleSnapshot: null,
@@ -41,7 +41,7 @@ export const create: StateCreator<BoundState, [], [], Slice> = set => {
 
     setBundleDriver(driver) {
       set({
-        bundleGraphDriver: driver,
+        bundleDriver: driver,
         bundleGraphLayout: defaultLayout,
       })
     },

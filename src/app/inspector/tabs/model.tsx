@@ -31,9 +31,9 @@ export default function ModelGraphView(): JSX.Element {
   const deduplication = useInspectorStore(s => s.modelDeduplication)
   const display = useInspectorStore(s => s.modelDisplay)
   const cm = useInspectorStore(s => s.cm)
-  const driver = useInspectorStore(s => s.modelGraphDriver)
+  const driver = useInspectorStore(s => s.modelDriver)
   const seed = useInspectorStore(s => s.modelSeed)
-  const layout = useInspectorStore(s => s.modelGraphLayout)
+  const layout = useInspectorStore(s => s.modelLayout)
 
   const snapshot = useInspectorStore(s => s.modelSnapshot)
   const setSnapshot = useInspectorStore(s => s.setModelSnapshot)
@@ -72,10 +72,10 @@ function ModelGraphPanel(
 ): JSX.Element {
   const id = useId()
 
-  const driver = useInspectorStore(s => s.modelGraphDriver)
+  const driver = useInspectorStore(s => s.modelDriver)
 
   const seed = useInspectorStore(s => s.modelSeed)
-  const layout = useInspectorStore(s => s.modelGraphLayout)
+  const layout = useInspectorStore(s => s.modelLayout)
   const deduplication = useInspectorStore(s => s.modelDeduplication)
   const display = useInspectorStore(s => s.modelDisplay)
 
