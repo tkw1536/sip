@@ -76,6 +76,9 @@ export default interface Driver<
   /** unmounts the {@link mount}ed instance from the page */
   unmount: () => void
 
+  /** remount remounts this driver, discarding any current positions */
+  remount: () => void
+
   startAnimation: () => void
   stopAnimation: () => void
 
@@ -194,7 +197,7 @@ export abstract class DriverImpl<
   #mountData: { element: HTMLElement; refs: Refs } | null = null
   #mount: MountInfo<Mount> | null = null
 
-  async initialize(ticket: () => boolean): Promise<void> {
+  readonly initialize = async (ticket: () => boolean): Promise<void> => {
     if (this.#hot === null) {
       throw new Error('Driver error: initialize called out of order')
     }
@@ -222,7 +225,7 @@ export abstract class DriverImpl<
   ): Promise<Context>
 
   protected delayMountUntilAfterResize = false
-  mount(element: HTMLElement, refs: Refs): void {
+  readonly mount = (element: HTMLElement, refs: Refs): void => {
     this.#mountData = { element, refs }
     if (this.delayMountUntilAfterResize) {
       return
@@ -269,7 +272,7 @@ export abstract class DriverImpl<
     size?: Size,
   ): Mount
 
-  resize(size: Size): void {
+  readonly resize = (size: Size): void => {
     // if we haven't mounted yet => do it
     if (this.#mountData !== null) {
       this.#doMount(size)
@@ -292,7 +295,7 @@ export abstract class DriverImpl<
     size: Size,
   ): Mount | void
 
-  unmount(): void {
+  readonly unmount = (): void => {
     // delayed the mount, but we never did it!
     if (this.#mountData !== null) {
       this.#mountData = null
@@ -311,7 +314,33 @@ export abstract class DriverImpl<
     info: MountInfo<Mount> | null,
   ): void
 
-  async export(format: string): Promise<Blob> {
+  readonly remount = (): void => {
+    // we're not actually mounted
+    if (this.#mount === null) {
+      if (this.#mountData !== null) {
+        return
+      }
+      throw new Error('remount called out of order')
+    }
+
+    // store the mount data and unmount
+    const { element, refs, size } = this.#mount
+    const mountData = { element, refs }
+    this.unmount()
+
+    // store the old mount data, and do mounting
+    this.#mountData = mountData
+    if (!this.delayMountUntilAfterResize) {
+      this.#doMount()
+    }
+
+    // if we had a resize, do it
+    if (typeof size !== 'undefined') {
+      this.resize(size)
+    }
+  }
+
+  readonly export = async (format: string): Promise<Blob> => {
     if (this.#mountData !== null) {
       throw new Error('Driver error: export called before initial resize')
     }
@@ -327,7 +356,7 @@ export abstract class DriverImpl<
     format: string,
   ): Promise<Blob>
 
-  startAnimation = (): void => {
+  readonly startAnimation = (): void => {
     if (this.#context === null || this.#mount === null) {
       throw new Error('Driver error: startSimulation called out of order')
     }
@@ -339,7 +368,7 @@ export abstract class DriverImpl<
     info: MountInfo<Mount> | null,
   ): void
 
-  stopAnimation = (): void => {
+  readonly stopAnimation = (): void => {
     if (this.#context === null || this.#mount === null) {
       throw new Error('Driver error: startSimulation called out of order')
     }

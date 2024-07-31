@@ -166,7 +166,7 @@ function SimulationControls<
         <ActionButtonGroup inline>
           <ActionButton
             disabled={controller === null}
-            onAction={controller?.reset}
+            onAction={controller?.instance?.remount}
           >
             Reset
           </ActionButton>
