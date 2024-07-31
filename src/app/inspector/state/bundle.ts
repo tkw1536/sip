@@ -3,27 +3,28 @@ import { loaders, resetters, type BoundState } from '.'
 import { type PathTree } from '../../../lib/pathbuilder/pathtree'
 import { bundles } from '../../../lib/drivers/collection'
 import { defaultLayout, type Snapshot } from '../../../lib/drivers/impl'
+import { nextInt } from '../../../lib/utils/prng'
 
 export type Slice = State & Actions
 
 interface State {
   bundleGraphDriver: string
+  bundleSeed: number
   bundleGraphLayout: string
-  bundleSeed: number | null
   bundleSnapshot: Snapshot | null
 }
 
 interface Actions {
   setBundleDriver: (driver: string) => void
   setBundleLayout: (layout: string) => void
-  setBundleSeed: (seed: number | null) => void
+  setBundleSeed: (seed: number) => void
   setBundleSnapshot: (snapshot: Snapshot | null) => void
 }
 
 const initialState: State = {
   bundleGraphDriver: bundles.defaultDriver,
   bundleGraphLayout: defaultLayout,
-  bundleSeed: null,
+  bundleSeed: nextInt(),
   bundleSnapshot: null,
 }
 const resetState: State = { ...initialState }
@@ -42,11 +43,10 @@ export const create: StateCreator<BoundState, [], [], Slice> = set => {
       set({
         bundleGraphDriver: driver,
         bundleGraphLayout: defaultLayout,
-        bundleSeed: null,
       })
     },
     setBundleLayout(layout) {
-      set({ bundleGraphLayout: layout, bundleSeed: null })
+      set({ bundleGraphLayout: layout })
     },
     setBundleSeed(seed) {
       set({ bundleSeed: seed })

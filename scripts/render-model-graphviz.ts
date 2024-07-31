@@ -8,6 +8,7 @@ import ModelGraphBuilder from '../src/lib/graph/builders/model'
 import Deduplication from '../src/app/inspector/state/datatypes/deduplication'
 import { GraphVizModelDriver } from '../src/lib/drivers/impl/graphviz'
 import { newModelDisplay } from '../src/lib/graph/builders/model/labels'
+import { nextInt } from '../src/lib/utils/prng'
 
 // Usage: node node_modules/vite-node/vite-node.mjs ./scripts/render-model-graphviz.ts -p pathbuilder
 
@@ -42,7 +43,7 @@ async function main(): Promise<void> {
   const driver = new GraphVizModelDriver(graph, {
     options: { ns, cm, display: newModelDisplay() },
     layout: GraphVizModelDriver.formats[0],
-    seed: null,
+    seed: nextInt(),
   })
   // initialize and create blob
   await driver.initialize(() => true)

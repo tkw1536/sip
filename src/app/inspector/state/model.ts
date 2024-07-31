@@ -5,13 +5,14 @@ import Deduplication from './datatypes/deduplication'
 import { type ModelDisplay } from '../../../lib/graph/builders/model/labels'
 import { models } from '../../../lib/drivers/collection'
 import { defaultLayout, type Snapshot } from '../../../lib/drivers/impl'
+import { nextInt } from '../../../lib/utils/prng'
 
 export type Slice = State & Actions
 
 interface State {
   modelGraphDriver: string
+  modelSeed: number
   modelGraphLayout: string
-  modelSeed: number | null
   modelDeduplication: Deduplication
   modelDisplay: ModelDisplay
   modelSnapshot: Snapshot | null
@@ -20,7 +21,7 @@ interface State {
 interface Actions {
   setModelDriver: (driver: string) => void
   setModelLayout: (layout: string) => void
-  setModelSeed: (seed: number | null) => void
+  setModelSeed: (seed: number) => void
   setModelDeduplication: (deduplication: Deduplication) => void
   setModelDisplay: (display: ModelDisplay) => void
   setModelSnapshot: (snapshot: Snapshot | null) => void
@@ -29,7 +30,7 @@ interface Actions {
 const initialState: State = {
   modelGraphDriver: models.defaultDriver,
   modelGraphLayout: defaultLayout,
-  modelSeed: null,
+  modelSeed: nextInt(),
   modelDeduplication: Deduplication.Bundle,
   modelDisplay: {
     ComplexConceptNodes: true,
@@ -65,8 +66,8 @@ export const create: StateCreator<BoundState, [], [], Slice> = set => {
     setModelDriver(driver) {
       set({
         modelGraphDriver: driver,
-        modelSnapshot: null,
         modelGraphLayout: defaultLayout,
+        modelSnapshot: null,
       })
     },
     setModelLayout(layout) {
@@ -79,7 +80,7 @@ export const create: StateCreator<BoundState, [], [], Slice> = set => {
       set({ modelDisplay: display })
     },
     setModelSeed(seed) {
-      set({ modelSeed: seed })
+      set({ modelSeed: seed, modelSnapshot: null })
     },
     setModelSnapshot(snapshot) {
       set({ modelSnapshot: snapshot })

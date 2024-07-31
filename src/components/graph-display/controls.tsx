@@ -7,6 +7,7 @@ import { useCallback, useId } from 'preact/hooks'
 import { type Renderable } from '../../lib/graph/builders'
 import { type PanelProps } from '.'
 import ActionButton, { ActionButtonGroup } from '../button'
+import { nextInt } from '../../lib/utils/prng'
 
 /** Control that provides only UI components */
 export function Control(props: {
@@ -46,12 +47,12 @@ interface DriverControlProps<
   driverNames: string[]
   driver: string
   layout: string | undefined
-  seed: number | null
+  seed: number
 
   /** controls */
   onChangeDriver: (driver: string) => void
   onChangeLayout: (layout: string) => void
-  onChangeSeed: (seed: number | null) => void
+  onChangeSeed: (seed: number) => void
 }
 
 /**
@@ -84,16 +85,6 @@ export function DriverControl<
         Show the graph using different renderers and layouts. Changing any value
         automatically re-renders the graph.
       </p>
-
-      <ActionButtonGroup>
-        <ActionButton
-          onAction={controller?.rerender}
-          disabled={typeof controller?.instance === 'undefined'}
-          id={`${id}-reset`}
-        >
-          Re-Render
-        </ActionButton>
-      </ActionButtonGroup>
 
       <table>
         <tbody>
@@ -169,8 +160,19 @@ function SimulationControls<
           </ActionButton>
         </ActionButtonGroup>
       </td>
+      <td></td>
 
-      <td colSpan={3}></td>
+      <td>
+        <ActionButtonGroup inline>
+          <ActionButton
+            disabled={controller === null}
+            onAction={controller?.reset}
+          >
+            Reset
+          </ActionButton>
+        </ActionButtonGroup>
+      </td>
+      <td></td>
     </>
   )
 }
@@ -183,18 +185,11 @@ function SeedControls<
 >(props: {
   driver: Driver<NodeLabel, EdgeLabel, Options, AttachmentKey> | null
 
-  seed: number | null
-  onChangeSeed: (seed: number | null) => void
+  seed: number
+  onChangeSeed: (seed: number) => void
 }): JSX.Element {
   const { driver, seed, onChangeSeed } = props
   const id = useId()
-
-  const handleChangeEnabled = useCallback(
-    (event: Event & { currentTarget: HTMLInputElement }): void => {
-      onChangeSeed(event.currentTarget.checked ? driver?.seed ?? 0 : null)
-    },
-    [onChangeSeed, driver?.seed],
-  )
 
   const handleChangeValue = useCallback(
     (event: Event & { currentTarget: HTMLInputElement }): void => {
@@ -208,31 +203,27 @@ function SeedControls<
     [onChangeSeed],
   )
 
-  const enabled = seed !== null
-  const value = seed ?? driver?.seed ?? undefined
+  const handleNextSeed = useCallback(() => {
+    onChangeSeed(nextInt())
+  }, [onChangeSeed])
 
   return (
     <>
       <td>
         <label for={id}>Seed</label>:
       </td>
-      <td>
+      <td colSpan={2}>
         <input
           type='number'
           id={id}
-          value={value}
-          disabled={!enabled}
+          value={seed}
+          disabled={driver === null}
           onInput={handleChangeValue}
         ></input>
       </td>
       <td>
-        <input
-          type='checkbox'
-          checked={enabled}
-          onInput={handleChangeEnabled}
-        ></input>
+        <ActionButton onAction={handleNextSeed}>Randomize</ActionButton>
       </td>
-      <td>Set Seed</td>
       <td></td>
     </>
   )

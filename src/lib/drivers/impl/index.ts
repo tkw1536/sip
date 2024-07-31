@@ -13,7 +13,7 @@ export const defaultLayout = 'auto'
 export type ContextFlags<Options> = Readonly<{
   options: Options
   layout: string
-  seed: number | null
+  seed: number
 }>
 
 export interface DriverClass<
@@ -54,9 +54,6 @@ export default interface Driver<
 
   readonly graph: Graph<NodeLabel, EdgeLabel>
   readonly flags: ContextFlags<Options>
-
-  /** gets the seed used by this driver, or null if not available */
-  readonly seed: number | null
 
   /**
    * Creates and initializes this instance of the driver for the given graph.
@@ -164,12 +161,9 @@ export abstract class DriverImpl<
   ) {
     this.flags = Object.freeze(flags)
 
-    this.seed =
-      this.flags.seed ?? Math.floor(Math.random() * Number.MAX_SAFE_INTEGER)
-
     const ids = new IDPool()
 
-    let hot: HotContext = this.newContextImpl(this.flags, this.seed)
+    let hot: HotContext = this.newContextImpl(this.flags, this.flags.seed)
 
     // add all nodes and edges
     for (const [id, node] of this.graph.getNodes()) {
@@ -195,7 +189,6 @@ export abstract class DriverImpl<
   }
 
   readonly #hot: HotContext
-  readonly seed: number
   #context: ContextDetails<Context, Options> | null = null
 
   #mountData: { element: HTMLElement; refs: Refs } | null = null
@@ -206,11 +199,15 @@ export abstract class DriverImpl<
       throw new Error('Driver error: initialize called out of order')
     }
     // finalize the context
-    const ctx = await this.initializeImpl(this.#hot, this.flags, this.seed)
+    const ctx = await this.initializeImpl(
+      this.#hot,
+      this.flags,
+      this.flags.seed,
+    )
     if (!ticket()) throw ErrorAborted
 
     // get the seed of this mount (if any)
-    this.#context = { context: ctx, flags: this.flags, seed: this.seed }
+    this.#context = { context: ctx, flags: this.flags, seed: this.flags.seed }
   }
 
   protected abstract newContextImpl(

@@ -22,14 +22,13 @@ export interface KernelProps<
 > {
   graph: Graph<NodeLabel, EdgeLabel>
   layout: string
+  seed: number
   options: Options
 
   driver: DriverClass<NodeLabel, EdgeLabel, Options, AttachmentKey>
 
   snapshot: Snapshot | null
   setSnapshot: (value: Snapshot | null) => void
-
-  seed: number | null
 
   controller: Ref<KernelController<
     NodeLabel,
@@ -45,8 +44,9 @@ interface KernelMountProps<
   Options,
   AttachmentKey extends string,
 > extends KernelProps<NodeLabel, EdgeLabel, Options, AttachmentKey> {
-  forceRerender: () => void
-  instance: Driver<NodeLabel, EdgeLabel, Options, AttachmentKey> /* whatever */
+  resetCounter: number
+  reset: () => void
+  instance: Driver<NodeLabel, EdgeLabel, Options, AttachmentKey>
   size: Size
 }
 
@@ -71,14 +71,17 @@ export default function Kernel<
 ): JSX.Element {
   const { graph, layout, options, seed, driver: DriverClass } = props
 
-  // introduce a counter for how many instances we have re-created.
-  // this allows the user to re-create the new instance on demand.
-  const [instanceCount, setInstanceCount] = useState(0)
+  // reset count forces a reset of the node positions
+  // but does not change the seed
+  const [resetCount, setResetCount] = useState(0)
+  const reset = useCallback(() => {
+    setResetCount(x => x + 1)
+  }, [])
 
   const instance = useAsyncState(
     ticket => async () => {
-      // re-create the instance, to allow the user to refresh the seed
-      const _ = instanceCount // eslint-disable-line @typescript-eslint/no-unused-vars
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const _ = resetCount
 
       const flags: ContextFlags<Options> = {
         options,
@@ -96,13 +99,9 @@ export default function Kernel<
       await instance.initialize(ticket)
       return instance
     },
-    [DriverClass, graph, instanceCount, layout, options, seed],
+    [DriverClass, graph, layout, options, resetCount, seed],
     reasonAsError,
   )
-
-  const forceRerender = useCallback(() => {
-    setInstanceCount(x => x + 1)
-  }, [])
 
   const [size, ref] = useVisibleSize<HTMLDivElement>()
 
@@ -121,7 +120,8 @@ export default function Kernel<
           {...props}
           size={size}
           instance={instance.value}
-          forceRerender={forceRerender}
+          resetCounter={resetCount}
+          reset={reset}
         />
       )
       break
@@ -147,7 +147,7 @@ interface KernelMountSnapshot<
 > {
   driver: DriverClass<NodeLabel, EdgeLabel, Options, AttachmentKey>
   graph: Graph<NodeLabel, EdgeLabel>
-  seed: number | null
+  seed: number
   flags: ContextFlags<Options>
   snapshot: Snapshot | null
 }
@@ -161,8 +161,7 @@ function KernelMount<
 >(
   props: KernelMountProps<NodeLabel, EdgeLabel, Options, AttachmentKey>,
 ): JSX.Element {
-  const { instance, controller, size, forceRerender, setSnapshot, snapshot } =
-    props
+  const { instance, controller, size, reset, setSnapshot, snapshot } = props
   const container = useRef<HTMLDivElement>(null)
 
   // mount the instance
@@ -177,14 +176,37 @@ function KernelMount<
         )
       }
 
-      let animating: boolean | null = null
+      let _controller = new KernelController<
+        NodeLabel,
+        EdgeLabel,
+        Options,
+        AttachmentKey
+      >(
+        instance,
+        null,
+        () => {
+          _controller = new KernelController(
+            _controller.instance,
+            _controller.animating,
+            _controller.reset,
+            true,
+          )
+          setRef(controller, _controller)
+          reset()
+        },
+        false,
+      )
+      setRef(controller, _controller)
+
       instance.mount(current, {
         animating: (newAnimating: boolean | null) => {
-          animating = newAnimating
-          setRef(
-            controller,
-            new KernelController(instance, animating, forceRerender),
+          _controller = new KernelController(
+            _controller.instance,
+            newAnimating,
+            _controller.reset,
+            _controller.didReset,
           )
+          setRef(controller, _controller)
         },
       })
 
@@ -193,17 +215,12 @@ function KernelMount<
         prev !== null &&
         prev.graph === instance.graph &&
         prev.driver === instance.driver &&
-        prev.seed === instance.seed &&
+        prev.seed === instance.flags.seed &&
         prev.flags.layout === instance.flags.layout &&
         prev.snapshot !== null
       ) {
         instance.snapshot = prev.snapshot
       }
-
-      setRef(
-        controller,
-        new KernelController(instance, animating, forceRerender),
-      )
 
       return (
         makeSnapshot: (
@@ -215,23 +232,25 @@ function KernelMount<
           >,
         ) => void,
       ) => {
-        makeSnapshot({
-          driver: instance.driver,
-          graph: instance.graph,
-          snapshot: instance.snapshot,
-          seed: instance.seed,
-          flags: instance.flags,
-        })
+        if (!_controller.didReset) {
+          makeSnapshot({
+            driver: instance.driver,
+            graph: instance.graph,
+            snapshot: instance.snapshot,
+            seed: instance.flags.seed,
+            flags: instance.flags,
+          })
+        }
 
         setRef(controller, null)
         instance.unmount()
       }
     },
-    [controller, instance, forceRerender],
+    [controller, instance, reset],
     {
       driver: instance.driver,
       graph: instance.graph,
-      seed: instance.seed,
+      seed: instance.flags.seed,
       flags: instance.flags,
       snapshot,
     },
@@ -271,6 +290,7 @@ export class KernelController<
       AttachmentKey
     >,
     public animating: boolean | null,
-    public rerender: () => void,
+    public reset: () => void,
+    public didReset: boolean,
   ) {}
 }

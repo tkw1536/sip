@@ -4,27 +4,28 @@ import { triples } from '../../../lib/drivers/collection'
 import { defaultLayout, type Snapshot } from '../../../lib/drivers/impl'
 
 import { type StateCreator } from 'zustand'
+import { nextInt } from '../../../lib/utils/prng'
 
 export type Slice = State & Actions
 
 interface State {
   rdfGraphDriver: string
+  rdfGraphSeed: number
   rdfGraphLayout: string
-  rdfGraphSeed: number | null
   rdfGraphSnapshot: Snapshot | null
 }
 
 interface Actions {
   setRDFDriver: (name: string) => void
   setRDFLayout: (name: string) => void
-  setRDFSeed: (seed: number | null) => void
+  setRDFSeed: (seed: number) => void
   setRDFSnapshot: (snapshot: Snapshot | null) => void
 }
 
 const initialState: State = {
   rdfGraphDriver: triples.defaultDriver,
   rdfGraphLayout: defaultLayout,
-  rdfGraphSeed: null,
+  rdfGraphSeed: nextInt(),
   rdfGraphSnapshot: null,
 }
 const resetState: State = { ...initialState }
@@ -39,20 +40,20 @@ export const create: StateCreator<BoundState, [], [], Slice> = set => {
   return {
     ...initialState,
 
-    setRDFDriver: (name: string) => {
+    setRDFDriver(name) {
       set({
         rdfGraphDriver: name,
         rdfGraphLayout: defaultLayout,
-        rdfGraphSeed: null,
+        rdfGraphSnapshot: null,
       })
     },
 
-    setRDFLayout: (layout: string) => {
-      set({ rdfGraphLayout: layout, rdfGraphSeed: null })
+    setRDFLayout(layout) {
+      set({ rdfGraphLayout: layout, rdfGraphSnapshot: null })
     },
 
-    setRDFSeed: (seed: number | null) => {
-      set({ rdfGraphSeed: seed })
+    setRDFSeed(seed) {
+      set({ rdfGraphSeed: seed, rdfGraphSnapshot: null })
     },
 
     setRDFSnapshot(snapshot) {

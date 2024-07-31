@@ -11,3 +11,10 @@ export function prng(seed: number): () => number {
     return state / (max - 1)
   }
 }
+
+const generator = prng(69420)
+/** next returns a new value from the global generator */
+export function nextInt(): number {
+  const value = generator()
+  return Math.floor(value * max)
+}

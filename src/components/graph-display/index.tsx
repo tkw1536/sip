@@ -31,7 +31,7 @@ interface GraphProps<
   // TODO: make this flags
   options: Options
   layout: string
-  seed: number | null
+  seed: number
 
   panel: ComponentType<PanelProps<NodeLabel, EdgeLabel, Options, AttachmentKey>>
 }

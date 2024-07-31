@@ -148,8 +148,6 @@ function ModelGraphDisplayControl(
 ): JSX.Element {
   return (
     <Control name='Display'>
-      <p>Changing this value will re-render the graph.</p>
-
       <table>
         <tbody>
           <tr>
