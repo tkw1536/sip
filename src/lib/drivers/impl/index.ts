@@ -224,9 +224,28 @@ export abstract class DriverImpl<
     seed: number,
   ): Promise<Context>
 
+  #animating: boolean | null = null
+  protected get animating(): boolean | null {
+    return this.#animating
+  }
+
   protected delayMountUntilAfterResize = false
   readonly mount = (element: HTMLElement, refs: Refs): void => {
-    this.#mountData = { element, refs }
+    // wrap the refs
+    const originalRef = refs.animating
+
+    this.#animating = null
+    const wrappedRefs: Refs = {
+      animating: animating => {
+        this.#animating = animating
+        if (this.#mount !== null) {
+          this.#mount.animating = animating
+        }
+        originalRef(animating)
+      },
+    }
+
+    this.#mountData = { element, refs: wrappedRefs }
     if (this.delayMountUntilAfterResize) {
       return
     }
@@ -243,24 +262,12 @@ export abstract class DriverImpl<
     const { element, refs } = this.#mountData
     this.#mountData = null
 
-    const originalRef = refs.animating
-
-    let initialAnimating: boolean | null = null
-    refs.animating = animating => {
-      if (this.#mount !== null) {
-        this.#mount.animating = animating
-      } else {
-        initialAnimating = animating
-      }
-      originalRef(animating)
-    }
-
     // do the actual mount!
     this.#mount = {
       mount: this.mountImpl(this.#context, element, refs, size),
       element,
       refs,
-      animating: initialAnimating,
+      animating: this.#animating,
       size,
     }
   }

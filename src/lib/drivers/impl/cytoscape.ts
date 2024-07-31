@@ -250,8 +250,10 @@ abstract class CytoscapeDriver<
 
   protected unmountImpl(
     details: ContextDetails<Elements, Options>,
-    { mount: { c } }: MountInfo<CytoMount>,
+    { mount: { c, l } }: MountInfo<CytoMount>,
   ): void {
+    l?.stop()
+    l?.removeAllListeners()
     c.destroy()
   }
 
