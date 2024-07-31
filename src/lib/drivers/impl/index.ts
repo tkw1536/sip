@@ -82,10 +82,9 @@ export default interface Driver<
   startAnimation: () => void
   stopAnimation: () => void
 
-  /** snapshot gets the current node positions */
-  get snapshot(): Snapshot | null
-  /** snapshot sets the current node positions */
-  set snapshot(value: Snapshot)
+  // take a snapshot of the current state or apply it
+  takeSnapshot: () => Snapshot | null
+  applySnapshot: (value: Snapshot) => void
 
   /**
    * Exports the rendered image into a blob.
@@ -559,7 +558,7 @@ export abstract class DriverImpl<
   }
 
   /** snapshot gets the current node positions */
-  get snapshot(): Snapshot | null {
+  takeSnapshot(): Snapshot | null {
     if (this.#context === null || this.#mount === null) {
       throw new Error('Driver error: snapshot called in wrong order')
     }
@@ -575,13 +574,16 @@ export abstract class DriverImpl<
     }
   }
   /** snapshot sets the current node positions */
-  set snapshot(snapshot: Snapshot) {
+  applySnapshot(snapshot: Snapshot): void {
     if (this.#mountData !== null) {
       this.#mountData.snapshot = snapshot
       return
     }
     this.#doSnapshot(snapshot)
   }
+
+  /** if true, skip restarting the animation */
+  protected readonly skipRestoreAnimating: boolean = false
   #doSnapshot(snapshot: Snapshot): void {
     if (this.#context === null || this.#mount === null) {
       throw new Error('Driver error: snapshot called in wrong order')
@@ -610,7 +612,7 @@ export abstract class DriverImpl<
       }
     }
     // if we were running before, start the animation
-    if (snapshot.animating === true) {
+    if (!this.skipRestoreAnimating && snapshot.animating === true) {
       this.startAnimation()
     }
   }

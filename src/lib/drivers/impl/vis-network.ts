@@ -311,12 +311,12 @@ abstract class VisNetworkDriver<
     { mount: { network } }: MountInfo<NetworkContext>,
     view: View,
   ): void {
+    network.stopSimulation()
     network.moveTo({
       scale: view.zoom,
       position: view.center,
       animation: false,
     })
-    network.redraw()
   }
 }
 

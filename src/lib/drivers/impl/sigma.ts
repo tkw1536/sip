@@ -221,6 +221,7 @@ abstract class SigmaDriver<
     return positions
   }
 
+  protected readonly skipRestoreAnimating = true
   protected setPositionsImpl(
     {
       context: graph,

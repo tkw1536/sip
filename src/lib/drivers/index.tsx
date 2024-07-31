@@ -182,7 +182,7 @@ function KernelMount<
         prev.flags.layout === instance.flags.layout &&
         prev.snapshot !== null
       ) {
-        instance.snapshot = prev.snapshot
+        instance.applySnapshot(prev.snapshot)
       }
 
       return (
@@ -198,7 +198,7 @@ function KernelMount<
         makeSnapshot({
           driver: instance.driver,
           graph: instance.graph,
-          snapshot: instance.snapshot,
+          snapshot: instance.takeSnapshot(),
           seed: instance.flags.seed,
           flags: instance.flags,
         })
