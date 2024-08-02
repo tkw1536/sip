@@ -7,7 +7,7 @@ import {
   type Snapshot,
   type View,
   defaultLayout,
-} from '.'
+} from '..'
 import Sigma from 'sigma'
 import Graph from 'graphology'
 import { type Settings } from 'sigma/dist/declarations/src/settings'
@@ -15,7 +15,7 @@ import {
   type BundleOptions,
   type BundleEdge,
   type BundleNode,
-} from '../../graph/builders/bundle'
+} from '../../../graph/builders/bundle'
 import FA2Layout from 'graphology-layout-forceatlas2/worker'
 import { inferSettings } from 'graphology-layout-forceatlas2'
 import circular from 'graphology-layout/circular'
@@ -25,16 +25,19 @@ import {
   type ModelEdge,
   type ModelNode,
   type ModelAttachmentKey,
-} from '../../graph/builders/model/labels'
+} from '../../../graph/builders/model/labels'
 import { type Attributes } from 'graphology-types'
-import { prng } from '../../utils/prng'
-import { type Element, type Renderable } from '../../graph/builders'
+import { prng } from '../../../utils/prng'
+import { type Element, type Renderable } from '../../../graph/builders'
 import {
   type RDFEdge,
   type RDFNode,
   type RDFOptions,
-} from '../../graph/builders/rdf'
-import { type Size } from '../../../components/hooks/observer'
+} from '../../../graph/builders/rdf'
+import { type Size } from '../../../../components/hooks/observer'
+import { SigmaLayout } from './layout'
+import exportRaster from './export'
+import { Type } from '../../../utils/media'
 
 interface SigmaMount {
   layout?: SigmaLayout
@@ -136,13 +139,16 @@ abstract class SigmaDriver<
     sigma.kill()
   }
 
-  static readonly formats = []
+  static readonly formats = ['png']
   protected async exportImpl(
     details: ContextDetails<Graph, Options>,
     info: MountInfo<SigmaMount> | null,
     format: string,
   ): Promise<Blob> {
-    throw ErrorUnsupported
+    if (info === null) {
+      throw ErrorUnsupported
+    }
+    return await exportRaster(info.mount.sigma, Type.PNG)
   }
 
   protected startSimulationImpl(
@@ -256,76 +262,6 @@ abstract class SigmaDriver<
       .getCamera()
       .setState({ x: view.center.x, y: view.center.y, ratio: view.zoom })
   }
-}
-
-class SigmaLayout {
-  #layout: LayoutLike | null
-  #animating: ((value: boolean | null) => void) | null
-  constructor(
-    layout: LayoutLike,
-    animatingRef: (value: boolean | null) => void,
-  ) {
-    this.#layout = layout
-    this.#animating = animatingRef
-  }
-
-  #poller: NodeJS.Timeout | null = null
-  #running: boolean = false
-  start = (): void => {
-    if (this.#running || this.#layout === null) return
-    this.#running = true
-    if (this.#animating !== null) {
-      this.#animating(true)
-    }
-    this.#layout.start()
-    this.#startPolling()
-  }
-  stop = (): void => {
-    if (!this.#running || this.#layout === null) return
-    this.#stopPolling()
-    this.#running = false
-    if (this.#animating !== null) {
-      this.#animating(false)
-    }
-    this.#layout.stop()
-  }
-  kill = (): void => {
-    this.#running = false
-    this.#stopPolling()
-
-    if (this.#animating !== null) {
-      this.#animating(null)
-      this.#animating = null
-    }
-
-    if (this.#layout !== null) {
-      this.#layout.kill()
-      this.#layout = null
-    }
-  }
-
-  #startPolling(): void {
-    this.#stopPolling()
-
-    this.#poller = setInterval(() => {
-      if (this.#layout === null || !this.#layout.isRunning()) {
-        this.stop()
-      }
-    }, 500)
-  }
-  #stopPolling(): void {
-    if (this.#poller !== null) {
-      clearInterval(this.#poller)
-      this.#poller = null
-    }
-  }
-}
-
-interface LayoutLike {
-  isRunning: () => boolean
-  start: () => void
-  stop: () => void
-  kill: () => void
 }
 
 export class SigmaBundleDriver extends SigmaDriver<
