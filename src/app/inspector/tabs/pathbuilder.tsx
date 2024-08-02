@@ -1,5 +1,5 @@
 import { type JSX } from 'preact'
-import { StyledDropArea } from '../../../components/drop-area'
+import { StyledDropArea } from '../../../components/form/drop-area'
 
 import ErrorDisplay from '../../../components/error'
 import download from '../../../lib/utils/download'
@@ -7,7 +7,7 @@ import { Type } from '../../../lib/utils/media'
 import Spinner from '../../../components/spinner'
 import { useCallback } from 'preact/hooks'
 import useInspectorStore from '../state'
-import ActionButton from '../../../components/button'
+import Button from '../../../components/form/button'
 
 export default function PathbuilderTab(): JSX.Element {
   const loadStage = useInspectorStore(s => s.loadStage)
@@ -60,7 +60,7 @@ function WelcomeView(): JSX.Element {
         All processing happens on-device, meaning the server host can not access
         any data contained within your pathbuilder.
       </p>
-      <StyledDropArea onDropFile={loadFile} types={[Type.XML]}>
+      <StyledDropArea onInput={loadFile} types={[Type.XML]}>
         {dragContent}
       </StyledDropArea>
       {typeof loadStage === 'object' && loadStage.error instanceof Error && (
@@ -91,14 +91,12 @@ function InfoView(): JSX.Element {
   return (
     <>
       <p>
-        Pathbuilder{' '}
-        <ActionButton onAction={handleExport}>{theFilename}</ActionButton>{' '}
+        Pathbuilder <Button onInput={handleExport}>{theFilename}</Button>{' '}
         successfully loaded. You can use the other tabs to inspect the
         pathbuilder.
       </p>
       <p>
-        You can also close{' '}
-        <ActionButton onAction={closeFile}>Close</ActionButton> this
+        You can also close <Button onInput={closeFile}>Close</Button> this
         pathbuilder.
       </p>
     </>

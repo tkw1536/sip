@@ -1,9 +1,9 @@
 import { type JSX } from 'preact'
 import Spinner from '../../../components/spinner'
-import { StyledDropArea } from '../../../components/drop-area'
+import { StyledDropArea } from '../../../components/form/drop-area'
 import ErrorDisplay from '../../../components/error'
 import useRDFStore from '../state'
-import ActionButton from '../../../components/button'
+import Button from '../../../components/form/button'
 
 export default function RDFTab(): JSX.Element {
   const loadState = useRDFStore(s => s.loadStage)
@@ -29,7 +29,7 @@ function WelcomeView(): JSX.Element {
         All processing happens on-device, meaning the server host can not access
         any data contained within your statements.
       </p>
-      <StyledDropArea onDropFile={openFile}>
+      <StyledDropArea onInput={openFile}>
         Click or drag an <code>RDF/XML</code> file here
       </StyledDropArea>
       {typeof loadStage === 'object' && loadStage.error instanceof Error && (
@@ -56,8 +56,7 @@ function InfoView(): JSX.Element {
         RDF <code>{theFilename}</code> successfully loaded.
       </p>
       <p>
-        You can also <ActionButton onAction={closeFile}>Close</ActionButton>{' '}
-        this file.
+        You can also <Button onInput={closeFile}>Close</Button> this file.
       </p>
     </>
   )

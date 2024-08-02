@@ -2,17 +2,14 @@ import { type JSX } from 'preact'
 import { NamespaceMap } from '../lib/pathbuilder/namespace'
 import { Type } from '../lib/utils/media'
 import download from '../lib/utils/download'
-import DropArea from './drop-area'
+import DropArea from './form/drop-area'
 import ErrorDisplay from './error'
 import * as styles from './namespace-editor.module.css'
 import { classes } from '../lib/utils/classes'
 import { useCallback, useId, useMemo, useState } from 'preact/hooks'
-import InputWithValidity from './input-with-validity'
 import { type AsyncLoadState, reasonAsError, useAsyncLoad } from './hooks/async'
-import ActionButton, {
-  ActionButtonGroup,
-  ActionButtonGroupText,
-} from './button'
+import Button, { ButtonGroup, ButtonGroupText } from './form/button'
+import Text from './form/value'
 
 interface NamespaceEditorProps {
   ns: NamespaceMap
@@ -95,7 +92,7 @@ export default function NamespaceEditor(
         </thead>
         <tbody>
           {Array.from(ns).map(([short, long]) => (
-            <MapViewRow
+            <MappingRow
               ns={ns}
               long={long}
               short={short}
@@ -104,7 +101,7 @@ export default function NamespaceEditor(
               onDelete={handleDelete}
             />
           ))}
-          <AddMapRow ns={ns} onAdd={handleAdd} />
+          <AddRow ns={ns} onAdd={handleAdd} />
           <ControlsRow
             loading={loading}
             clearLoading={clearLoading}
@@ -126,7 +123,7 @@ interface AddRowProps {
   onAdd: (long: string, short: string) => void
 }
 
-function AddMapRow(props: AddRowProps): JSX.Element {
+function AddRow(props: AddRowProps): JSX.Element {
   const { ns, onAdd } = props
 
   const [shortValue, setShort] = useState('')
@@ -144,8 +141,8 @@ function AddMapRow(props: AddRowProps): JSX.Element {
   const longValid = typeof longValidity === 'undefined'
 
   const handleSubmit = useCallback(
-    (evt: SubmitEvent): void => {
-      evt.preventDefault()
+    (evt?: SubmitEvent): void => {
+      evt?.preventDefault()
 
       if (!shortValid || !longValid) return
 
@@ -156,52 +153,30 @@ function AddMapRow(props: AddRowProps): JSX.Element {
     [shortValid, longValid, onAdd, shortValue, longValue],
   )
 
-  const handleShortChange = useCallback(
-    (event: Event & { currentTarget: HTMLInputElement }): void => {
-      setShort(event.currentTarget.value)
-    },
-    [],
-  )
-
-  const handleLongChange = useCallback(
-    (event: Event & { currentTarget: HTMLInputElement }): void => {
-      setLong(event.currentTarget.value)
-    },
-    [],
-  )
-
   const id = useId()
   return (
     <tr>
       <td>
-        <InputWithValidity
-          type='text'
+        <Text
           form={id}
           value={shortValue}
-          class={classes(styles.validate)}
-          onInput={handleShortChange}
-          validity={shortValidity}
+          placeholder='rdf'
+          onInput={setShort}
+          customValidity={shortValidity}
         />
       </td>
       <td>
-        <InputWithValidity
-          type='text'
+        <Text
           form={id}
           value={longValue}
-          class={classes(styles.stretch, styles.validate)}
-          onInput={handleLongChange}
-          validity={longValidity}
+          placeholder='http://www.w3.org/1999/02/22-rdf-syntax-ns#'
+          onInput={setLong}
+          customValidity={longValidity}
         />
       </td>
       <td>
         <form id={id} onSubmit={handleSubmit}>
-          <ActionButton
-            type='submit'
-            native
-            disabled={!(longValid && shortValid)}
-          >
-            Add
-          </ActionButton>
+          <Button disabled={!(longValid && shortValid)}>Add</Button>
         </form>
       </td>
     </tr>
@@ -242,37 +217,35 @@ function ControlsRow(props: {
   return (
     <tr>
       <td colspan={2}>
-        <ActionButtonGroup inline>
-          <ActionButton onAction={handleNamespaceMapExport}>
-            Export
-          </ActionButton>
+        <ButtonGroup inline>
+          <Button onInput={handleNamespaceMapExport}>Export</Button>
           <DropArea
             types={[Type.JSON]}
-            onDropFile={handleNamespaceMapImport}
+            onInput={handleNamespaceMapImport}
             compact
             disabled={loading?.status === 'pending'}
           >
             Import
           </DropArea>
-          <ActionButtonGroupText>
+          <ButtonGroupText>
             {loading?.status === 'pending' && <>loading</>}
             {loading?.status === 'fulfilled' && (
               <>loaded NamespaceMap of size {loading.value.size}</>
             )}
             {loading?.status === 'rejected' && <>failed to load NamespaceMap</>}
-          </ActionButtonGroupText>
-        </ActionButtonGroup>
+          </ButtonGroupText>
+        </ButtonGroup>
       </td>
       <td>
         <form onSubmit={handleSubmit}>
-          <ActionButton>Reset To Default</ActionButton>
+          <Button>Reset To Default</Button>
         </form>
       </td>
     </tr>
   )
 }
 
-interface MapViewProps {
+interface MappingRowProps {
   ns: NamespaceMap
   long: string
   short: string
@@ -284,7 +257,7 @@ interface MapViewProps {
   onDelete: (myShort: string) => void
 }
 
-function MapViewRow(props: MapViewProps): JSX.Element {
+function MappingRow(props: MappingRowProps): JSX.Element {
   const { short, long, ns, onUpdate, onDelete } = props
 
   const [shortValue, setShort] = useState(short)
@@ -316,20 +289,6 @@ function MapViewRow(props: MapViewProps): JSX.Element {
     onUpdate(short, newShort, newLong)
   }, [long, longValid, longValue, onUpdate, short, shortValid, shortValue])
 
-  const handleEditShort = useCallback(
-    (event: Event & { currentTarget: HTMLInputElement }): void => {
-      setShort(event.currentTarget.value)
-    },
-    [],
-  )
-
-  const handleEditLong = useCallback(
-    (event: Event & { currentTarget: HTMLInputElement }): void => {
-      setLong(event.currentTarget.value)
-    },
-    [],
-  )
-
   const handleDelete = useCallback((): void => {
     onDelete(short)
   }, [onDelete, short])
@@ -342,33 +301,29 @@ function MapViewRow(props: MapViewProps): JSX.Element {
     <tr>
       <td>
         <form onSubmit={handleApply}>
-          <InputWithValidity
-            type='text'
+          <Text
             value={shortValue}
-            validity={shortValidity}
-            onInput={handleEditShort}
-            class={classes(styles.validate)}
+            customValidity={shortValidity}
+            onInput={setShort}
           />
         </form>
       </td>
       <td>
         <form onSubmit={handleApply}>
-          <InputWithValidity
-            type='text'
+          <Text
             value={longValue}
-            validity={longValidity}
-            onInput={handleEditLong}
-            class={classes(styles.stretch, styles.validate)}
+            customValidity={longValidity}
+            onInput={setLong}
           />
         </form>
       </td>
       <td>
-        <ActionButtonGroup inline>
-          <ActionButton onAction={handleApply} disabled={!enabled}>
+        <ButtonGroup inline>
+          <Button onInput={handleApply} disabled={!enabled}>
             Apply
-          </ActionButton>
-          <ActionButton onAction={handleDelete}>Delete</ActionButton>
-        </ActionButtonGroup>
+          </Button>
+          <Button onInput={handleDelete}>Delete</Button>
+        </ButtonGroup>
       </td>
     </tr>
   )

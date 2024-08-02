@@ -1,11 +1,11 @@
 import { type ComponentChild, type JSX, type VNode } from 'preact'
-import { classes } from '../lib/utils/classes'
+import { classes } from '../../lib/utils/classes'
 import * as styles from './drop-area.module.css'
 import { useCallback, useMemo, useRef, useState } from 'preact/hooks'
-import ActionButton from './button'
+import Button from './button'
 
 interface DropAreaProps {
-  onDropFile: (...files: File[]) => void
+  onInput: (...files: File[]) => void
 
   compact?: boolean
   disabled?: boolean
@@ -71,7 +71,7 @@ export default function DropArea(props: DropAreaProps): JSX.Element {
     multiple,
     compact,
     disabled,
-    onDropFile,
+    onInput: onDropFile,
   } = props
 
   const [dragActive, setDragActive] = useState(false)
@@ -173,13 +173,9 @@ export default function DropArea(props: DropAreaProps): JSX.Element {
     )
   } else {
     main = (
-      <ActionButton
-        class={classes(clz)}
-        onAction={handleClick}
-        disabled={disabled}
-      >
+      <Button onInput={handleClick} disabled={disabled}>
         {childNodes}
-      </ActionButton>
+      </Button>
     )
   }
 

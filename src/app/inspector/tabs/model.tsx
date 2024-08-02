@@ -1,6 +1,5 @@
 import { type JSX } from 'preact'
 import ModelGraphBuilder from '../../../lib/graph/builders/model'
-import type Deduplication from '../state/datatypes/deduplication'
 import { explanations, names, values } from '../state/datatypes/deduplication'
 import { models } from '../../../lib/drivers/collection'
 import GraphDisplay, {
@@ -22,8 +21,10 @@ import {
   type ModelAttachmentKey,
 } from '../../../lib/graph/builders/model/labels'
 import { useCallback, useId, useMemo } from 'preact/hooks'
-import useEventCallback from '../../../components/hooks/event'
 import useInspectorStore from '../state'
+import { Radio } from '../../../components/form/dropdown'
+import Checkbox from '../../../components/form/checkbox'
+import { Label } from '../../../components/form/generic'
 
 export default function ModelGraphView(): JSX.Element {
   const tree = useInspectorStore(s => s.pathtree)
@@ -70,8 +71,6 @@ export default function ModelGraphView(): JSX.Element {
 function ModelGraphPanel(
   props: PanelProps<ModelNode, ModelEdge, ModelOptions, ModelAttachmentKey>,
 ): JSX.Element {
-  const id = useId()
-
   const driver = useInspectorStore(s => s.modelDriver)
 
   const seed = useInspectorStore(s => s.modelSeed)
@@ -84,15 +83,6 @@ function ModelGraphPanel(
   const setModelDisplay = useInspectorStore(s => s.setModelDisplay)
   const setModelLayout = useInspectorStore(s => s.setModelLayout)
   const setModelSeed = useInspectorStore(s => s.setModelSeed)
-
-  const handleChangeMode = useCallback(
-    (evt: Event): void => {
-      setModelDeduplication(
-        (evt.target as HTMLInputElement).value as Deduplication,
-      )
-    },
-    [setModelDeduplication],
-  )
 
   return (
     <ControlGroup>
@@ -115,24 +105,13 @@ function ModelGraphPanel(
         </p>
         <p>Changing this value will re-render the graph.</p>
 
-        <div onInput={handleChangeMode}>
-          {values.map(v => (
-            <p key={v}>
-              <input
-                name={`${id}-dedup-mode`}
-                id={`${id}-dedup-mode-${v}`}
-                type='radio'
-                checked={deduplication === v}
-                value={v}
-              />
-              <label for={`${id}-dedup-mode-${v}`}>
-                <em>{names[v]}.</em>
-                &nbsp;
-                {explanations[v]}
-              </label>
-            </p>
-          ))}
-        </div>
+        <Radio
+          value={deduplication}
+          values={values}
+          onInput={setModelDeduplication}
+          titles={names}
+          descriptions={explanations}
+        />
       </Control>
       <ExportControl {...props} />
     </ControlGroup>
@@ -333,9 +312,8 @@ interface ComponentCheckboxProps extends ModelDisplayControlProps {
 
 function ComponentCheckbox(props: ComponentCheckboxProps): JSX.Element {
   const { onUpdate, set, display, value, label } = props
-  const handleInput = useEventCallback(
-    (event: Event & { currentTarget: HTMLInputElement }) => {
-      const { checked } = event.currentTarget
+  const handleInput = useCallback(
+    (checked: boolean) => {
       onUpdate(set(display, checked))
     },
     [display, onUpdate, set],
@@ -344,15 +322,8 @@ function ComponentCheckbox(props: ComponentCheckboxProps): JSX.Element {
   const id = useId()
   return (
     <>
-      <input
-        type='checkbox'
-        id={id}
-        checked={value}
-        onInput={handleInput}
-      ></input>
-      <label for={id}>
-        <em>{label}</em>
-      </label>
+      <Checkbox id={id} value={value} onInput={handleInput} />
+      <Label id={id} title={label} />
     </>
   )
 }

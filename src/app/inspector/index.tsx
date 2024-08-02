@@ -1,5 +1,5 @@
 import { type JSX } from 'preact'
-import Tabs, { Label, Tab } from '../../components/tabs'
+import Tabs, { TabLabel, Tab } from '../../components/tabs'
 
 import DebugTab from './tabs/debug'
 import { LazyLoaded } from '../../components/spinner'
@@ -32,9 +32,9 @@ export default function InspectorApp(): JSX.Element {
     <>
       {modal && <Banner onClose={hideModal} />}
       <Tabs onChangeTab={setActiveTab} active={activeTab}>
-        <Label>
+        <TabLabel>
           <b>Supreme Inspector for Pathbuilders</b>
-        </Label>
+        </TabLabel>
 
         <Tab title='Pathbuilder' id=''>
           <PathbuilderTab />

@@ -8,17 +8,16 @@ import {
 import * as styles from './tree.module.css'
 import { classes } from '../../../lib/utils/classes'
 import { type ColorPreset, colorPresets } from '../state/datatypes/color'
-import DropArea from '../../../components/drop-area'
+import DropArea from '../../../components/form/drop-area'
 import download from '../../../lib/utils/download'
 import { Type } from '../../../lib/utils/media'
 import { Panel } from '../../../components/layout/panel'
-import { useCallback, useMemo, useRef } from 'preact/hooks'
+import { useCallback, useId, useMemo } from 'preact/hooks'
 import useInspectorStore from '../state'
-import useEventCallback from '../../../components/hooks/event'
-import ActionButton, {
-  ActionButtonGroup,
-  ActionButtonGroupText,
-} from '../../../components/button'
+import Button, {
+  ButtonGroup,
+  ButtonGroupText,
+} from '../../../components/form/button'
 import { reasonAsError, useAsyncLoad } from '../../../components/hooks/async'
 import ColorMap from '../../../lib/pathbuilder/annotations/colormap'
 import ErrorDisplay from '../../../components/error'
@@ -26,6 +25,10 @@ import {
   Control,
   ControlGroup,
 } from '../../../components/graph-display/controls'
+import Checkbox from '../../../components/form/checkbox'
+import { type ModifierKeys } from '../../../components/form/generic/modifiers'
+import { Label } from '../../../components/form/generic'
+import { Color } from '../../../components/form/value'
 
 export default function TreeTab(): JSX.Element {
   const tree = useInspectorStore(s => s.pathtree)
@@ -73,12 +76,8 @@ function OverviewControl(): JSX.Element {
   const setCollapseParentPaths = useInspectorStore(
     s => s.setCollapseParentPaths,
   )
-  const handleCollapseParentPaths = useEventCallback(
-    (evt: Event & { currentTarget: HTMLInputElement }): void => {
-      setCollapseParentPaths(evt.currentTarget.checked)
-    },
-    [setCollapseParentPaths],
-  )
+
+  const id = useId()
 
   return (
     <Control name='Overview'>
@@ -87,10 +86,10 @@ function OverviewControl(): JSX.Element {
         similar to the WissKI Interface, except read-only.
       </p>
 
-      <ActionButtonGroup>
-        <ActionButton onAction={collapseAll}>Collapse All</ActionButton>
-        <ActionButton onAction={expandAll}>Expand All</ActionButton>
-      </ActionButtonGroup>
+      <ButtonGroup>
+        <Button onInput={collapseAll}>Collapse All</Button>
+        <Button onInput={expandAll}>Expand All</Button>
+      </ButtonGroup>
 
       <p>
         <span class={classes(styles.display_path, styles.path_concept)}>
@@ -131,15 +130,12 @@ function OverviewControl(): JSX.Element {
         </span>
       </p>
       <p>
-        <input
-          id='hide-parent-paths'
-          type='checkbox'
-          checked={hideParents}
-          onInput={handleCollapseParentPaths}
+        <Checkbox
+          id={id}
+          value={hideParents}
+          onInput={setCollapseParentPaths}
         />
-        <label for='hide-parent-paths'>
-          Collapse shared paths into ellipses
-        </label>
+        <Label id={id}>Collapse shared paths into ellipses</Label>
       </p>
     </Control>
   )
@@ -164,12 +160,12 @@ function SelectionControl(): JSX.Element {
         Use the shift key to update the all child values recursively.
       </p>
 
-      <ActionButtonGroup>
-        <ActionButton onAction={selectAll}>Select All</ActionButton>
-        <ActionButton onAction={selectNone}>Select None</ActionButton>
-        <ActionButton onAction={selectBundles}>Select Bundles</ActionButton>
-        <ActionButton onAction={selectFields}>Select Fields</ActionButton>
-      </ActionButtonGroup>
+      <ButtonGroup>
+        <Button onInput={selectAll}>Select All</Button>
+        <Button onInput={selectNone}>Select None</Button>
+        <Button onInput={selectBundles}>Select Bundles</Button>
+        <Button onInput={selectFields}>Select Fields</Button>
+      </ButtonGroup>
     </Control>
   )
 }
@@ -187,12 +183,9 @@ function ColorMapControl(): JSX.Element {
 
   const applyColorPreset = useInspectorStore(s => s.applyColorPreset)
   const handleColorPreset = useCallback(
-    (button: HTMLButtonElement): void => {
-      const { preset } = button.dataset
-      if (typeof preset !== 'string') return
-
+    (preset: ColorPreset): void => {
       cmClear()
-      applyColorPreset(preset as ColorPreset)
+      applyColorPreset(preset)
     },
     [cmClear, applyColorPreset],
   )
@@ -229,25 +222,27 @@ function ColorMapControl(): JSX.Element {
       <p>
         {colorPresets.map(preset => (
           <Fragment key={preset}>
-            <ActionButton data-preset={preset} onAction={handleColorPreset}>
+            <Button value={preset} onInput={handleColorPreset}>
               {preset}
-            </ActionButton>
+            </Button>
             {` `}
           </Fragment>
         ))}
       </p>
 
-      <ActionButtonGroup>
-        <ActionButton onAction={handleColorMapExport}>Export</ActionButton>
+      <ButtonGroup>
+        <Button value={undefined} onInput={handleColorMapExport}>
+          Export
+        </Button>
         <DropArea
           types={[Type.JSON]}
-          onDropFile={loadColorMap}
+          onInput={loadColorMap}
           compact
           disabled={cmLoading?.status === 'pending'}
         >
           Import
         </DropArea>
-        <ActionButtonGroupText>
+        <ButtonGroupText>
           {cmLoading?.status === 'rejected' && (
             <small>&nbsp; Import failed</small>
           )}
@@ -255,8 +250,8 @@ function ColorMapControl(): JSX.Element {
             <small>&nbsp; Import successful</small>
           )}
           {cmLoading?.status === 'pending' && <small>&nbsp; Loading</small>}
-        </ActionButtonGroupText>
-      </ActionButtonGroup>
+        </ButtonGroupText>
+      </ButtonGroup>
 
       {cmLoading?.status === 'rejected' && (
         <p>
@@ -287,32 +282,23 @@ function BundleRows(props: {
     toggleNode(bundle)
   }, [bundle, toggleNode])
 
-  const shiftHeld = useRef(false)
-
-  const handleKeydown = useCallback(
-    (evt: MouseEvent): void => {
-      shiftHeld.current = evt.shiftKey
-    },
-    [shiftHeld],
-  )
-
   const updateSelection = useInspectorStore(s => s.updateSelection)
-  const handleSelectionChange = useEventCallback(
-    (evt: Event & { currentTarget: HTMLInputElement }): void => {
-      const { current: shift } = shiftHeld
-
-      const keys = shift ? Array.from(bundle.walk()) : [bundle]
-      const value = evt.currentTarget.checked
-
-      updateSelection(keys.map(k => [k, value]))
+  const handleSelectionChange = useCallback(
+    (
+      checked: boolean,
+      dataset: DOMStringMap,
+      modifiers: ModifierKeys,
+    ): void => {
+      const keys = modifiers.shift ? Array.from(bundle.walk()) : [bundle]
+      updateSelection(keys.map(k => [k, checked]))
     },
     [bundle, updateSelection],
   )
 
   const setColor = useInspectorStore(s => s.setColor)
   const handleColorChange = useCallback(
-    (evt: Event & { currentTarget: HTMLInputElement }): void => {
-      setColor(bundle, evt?.currentTarget.value)
+    (color: string): void => {
+      setColor(bundle, color)
     },
     [bundle, setColor],
   )
@@ -324,26 +310,20 @@ function BundleRows(props: {
     <>
       <tr class={!visible ? styles.hidden : ''}>
         <td>
-          <input
-            type='checkbox'
-            checked={selection.includes(bundle)}
-            onClick={handleKeydown}
+          <Checkbox
+            value={selection.includes(bundle)}
             onInput={handleSelectionChange}
           />
-          <input
-            type='color'
-            value={cm.getDefault(bundle)}
-            onInput={handleColorChange}
-          />
+          <Color value={cm.getDefault(bundle)} onInput={handleColorChange} />
         </td>
         <td style={{ paddingLeft: INDENT_PER_LEVEL * level }}>
-          <ActionButton
-            onAction={handleClick}
+          <Button
+            onInput={handleClick}
             aria-role='toggle'
             disabled={bundle.childCount === 0}
           >
             {expanded ? '∨' : '>'}
-          </ActionButton>
+          </Button>
           &nbsp;
           {path.name}
         </td>
@@ -390,17 +370,17 @@ function FieldRow(props: {
   const hideParents = useInspectorStore(s => s.collapseParentPaths)
 
   const updateSelection = useInspectorStore(s => s.updateSelection)
-  const handleSelectionChange = useEventCallback(
-    (evt: Event & { currentTarget: HTMLInputElement }): void => {
-      updateSelection([[field, evt.currentTarget.checked]])
+  const handleSelectionChange = useCallback(
+    (checked: boolean): void => {
+      updateSelection([[field, checked]])
     },
     [field, updateSelection],
   )
 
   const setColor = useInspectorStore(s => s.setColor)
-  const handleColorChange = useEventCallback(
-    (evt: Event & { currentTarget: HTMLInputElement }): void => {
-      setColor(field, evt.currentTarget.value)
+  const handleColorChange = useCallback(
+    (color: string): void => {
+      setColor(field, color)
     },
     [field, setColor],
   )
@@ -410,16 +390,11 @@ function FieldRow(props: {
   return (
     <tr class={!visible ? styles.hidden : ''}>
       <td>
-        <input
-          type='checkbox'
-          checked={selection.includes(field)}
+        <Checkbox
+          value={selection.includes(field)}
           onInput={handleSelectionChange}
         />
-        <input
-          type='color'
-          value={cm.getDefault(field)}
-          onInput={handleColorChange}
-        />
+        <Color value={cm.getDefault(field)} onInput={handleColorChange} />
       </td>
       <td style={{ paddingLeft: INDENT_PER_LEVEL * level }}>{path.name}</td>
       <td>

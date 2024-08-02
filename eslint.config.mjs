@@ -66,7 +66,7 @@ export default [
         'error',
         {
           additionalHooks:
-            '(useEventCallback|useAsyncEffect|useAsyncState|useEffectWithSnapshot|useComponentWillUnmount)',
+            '(useAsyncEffect|useAsyncState|useEffectWithSnapshot|useComponentWillUnmount)',
         },
       ],
     },

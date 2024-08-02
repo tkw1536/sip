@@ -2,12 +2,14 @@ import { type ComponentChildren, Fragment, type JSX, type VNode } from 'preact'
 import download from '../../lib/utils/download'
 
 import type Driver from '../../lib/drivers/impl'
-import ValueSelector from '../selector'
+import Dropdown from '../form/dropdown'
 import { useCallback, useId } from 'preact/hooks'
 import { type Renderable } from '../../lib/graph/builders'
 import { type PanelProps } from '.'
-import ActionButton, { ActionButtonGroup } from '../button'
+import Button, { ButtonGroup } from '../form/button'
 import { nextInt } from '../../lib/utils/prng'
+import { Label } from '../form/generic'
+import { Numeric } from '../form/value'
 
 /** Control that provides only UI components */
 export function Control(props: {
@@ -46,7 +48,7 @@ interface DriverControlProps<
 > extends PanelProps<NodeLabel, EdgeLabel, Options, AttachmentKey> {
   driverNames: string[]
   driver: string
-  layout: string | undefined
+  layout: string
   seed: number
 
   /** controls */
@@ -90,10 +92,10 @@ export function DriverControl<
         <tbody>
           <tr>
             <td>
-              <label for={`${id}-renderer`}>Renderer</label>:
+              <Label id={`${id}-renderer`}>Renderer</Label>
             </td>
             <td>
-              <ValueSelector
+              <Dropdown
                 values={driverNames}
                 value={driver}
                 onInput={onChangeDriver}
@@ -102,10 +104,10 @@ export function DriverControl<
 
             <td></td>
             <td>
-              <label for={`${id}-layout`}>Layout</label>:
+              <Label id={`${id}-layout`}>Layout</Label>
             </td>
             <td>
-              <ValueSelector
+              <Dropdown
                 disabled={controller === null}
                 value={layout}
                 values={controller?.instance?.driver?.layouts}
@@ -145,32 +147,32 @@ function SimulationControls<
     <>
       <td>Animation:</td>
       <td>
-        <ActionButtonGroup inline>
-          <ActionButton
+        <ButtonGroup inline>
+          <Button
             disabled={controller?.animating !== false}
-            onAction={controller?.instance?.startAnimation}
+            onInput={controller?.instance?.startAnimation}
           >
             Start
-          </ActionButton>
-          <ActionButton
+          </Button>
+          <Button
             disabled={controller?.animating !== true}
-            onAction={controller?.instance?.stopAnimation}
+            onInput={controller?.instance?.stopAnimation}
           >
             Stop
-          </ActionButton>
-        </ActionButtonGroup>
+          </Button>
+        </ButtonGroup>
       </td>
       <td></td>
 
       <td>
-        <ActionButtonGroup inline>
-          <ActionButton
+        <ButtonGroup inline>
+          <Button
             disabled={controller === null}
-            onAction={controller?.instance?.remount}
+            onInput={controller?.instance?.remount}
           >
             Reset
-          </ActionButton>
-        </ActionButtonGroup>
+          </Button>
+        </ButtonGroup>
       </td>
       <td></td>
     </>
@@ -192,9 +194,7 @@ function SeedControls<
   const id = useId()
 
   const handleChangeValue = useCallback(
-    (event: Event & { currentTarget: HTMLInputElement }): void => {
-      event.preventDefault()
-      const value = event.currentTarget.valueAsNumber
+    (value: number): void => {
       if (isNaN(value) || value < 0) {
         return
       }
@@ -210,19 +210,18 @@ function SeedControls<
   return (
     <>
       <td>
-        <label for={id}>Seed</label>:
+        <Label id={id}>Seed</Label>
       </td>
       <td colSpan={2}>
-        <input
-          type='number'
+        <Numeric
           id={id}
           value={seed}
           disabled={driver === null}
           onInput={handleChangeValue}
-        ></input>
+        />
       </td>
       <td>
-        <ActionButton onAction={handleNextSeed}>Randomize</ActionButton>
+        <Button onInput={handleNextSeed}>Randomize</Button>
       </td>
       <td></td>
     </>
@@ -240,19 +239,14 @@ export function ExportControl<
   const { controller } = props
 
   const handleExport = useCallback(
-    (button: HTMLButtonElement): void => {
+    (format: string): void => {
       if (controller === null) {
         console.warn('handleExport called without mounted display')
         return
       }
 
       const { instance } = controller
-
-      const { format } = button.dataset
-      if (
-        typeof format !== 'string' ||
-        !instance.driver.formats.includes(format)
-      ) {
+      if (!instance.driver.formats.includes(format)) {
         console.warn('handleExport clicked on invalid element')
         return
       }
@@ -282,17 +276,13 @@ export function ExportControl<
         graph size, this might take a few seconds to generate.
       </p>
       <p>
-        <ActionButtonGroup inline>
+        <ButtonGroup inline>
           {exportFormats.map(format => (
-            <ActionButton
-              key={format}
-              onAction={handleExport}
-              data-format={format}
-            >
+            <Button key={format} value={format} onInput={handleExport}>
               {format}
-            </ActionButton>
+            </Button>
           ))}
-        </ActionButtonGroup>
+        </ButtonGroup>
       </p>
     </Control>
   )

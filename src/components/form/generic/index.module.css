@@ -1,0 +1,9 @@
+.label {
+    text-align: justify;
+}
+.label .no_content_title {
+    font-style: italic;
+}
+.label .no_content_title::after {
+    content: ". ";
+}

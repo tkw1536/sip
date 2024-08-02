@@ -21,7 +21,7 @@ export function Tab(props: TabProps): JSX.Element {
 interface LabelProps {
   children?: ComponentChildren
 }
-export function Label(props: LabelProps): JSX.Element {
+export function TabLabel(props: LabelProps): JSX.Element {
   return <>{props.children}</>
 }
 
@@ -46,7 +46,7 @@ export default function Tabs(props: TabsProps): JSX.Element {
         if (c.type === Tab) {
           return { type: 'tab', ...c.props }
         }
-        if (c.type === Label) {
+        if (c.type === TabLabel) {
           return { type: 'label', ...c.props }
         }
         return null
@@ -102,7 +102,7 @@ export function TabInterface(props: TabInterfaceProps): JSX.Element {
           if (child.type === 'label') {
             return (
               <li key={index} class={styles.label}>
-                <Label {...child} />
+                <TabLabel {...child} />
               </li>
             )
           }

@@ -1,9 +1,9 @@
 import { type JSX } from 'preact'
 import useRDFStore from './state'
-import Tabs, { Label, Tab } from '../../components/tabs'
+import Tabs, { TabLabel, Tab } from '../../components/tabs'
 import { LazyLoaded } from '../../components/spinner'
 import Banner from '../../components/layout/banner'
-import useEventCallback from '../../components/hooks/event'
+import { useCallback } from 'preact/hooks'
 
 const RDFTab = LazyLoaded(async () => (await import('./tabs/rdf')).default)
 const MapTab = LazyLoaded(async () => (await import('./tabs/map')).default)
@@ -17,7 +17,13 @@ export default function RDFViewerApp(): JSX.Element {
 
   const modal = useRDFStore(s => s.modal)
   const closeModal = useRDFStore(s => s.hideModal)
-  const handleCloseModal = useEventCallback(closeModal, [closeModal])
+  const handleCloseModal = useCallback(
+    (event: Event) => {
+      event.preventDefault()
+      closeModal()
+    },
+    [closeModal],
+  )
 
   const loadStage = useRDFStore(s => s.loadStage)
   const loaded = loadStage === true
@@ -26,9 +32,9 @@ export default function RDFViewerApp(): JSX.Element {
     <>
       {modal && <Banner onClose={handleCloseModal} />}
       <Tabs onChangeTab={setActiveTab} active={activeTab}>
-        <Label>
+        <TabLabel>
           <b>RDF Viewer</b>
-        </Label>
+        </TabLabel>
         <Tab title='RDF File' id=''>
           <RDFTab />
         </Tab>
