@@ -2,7 +2,6 @@
     border: none; 
     outline: none;
 
-    /** use a custom font */
     font-family: monospace;
     color: inherit;
 
@@ -15,9 +14,13 @@
 
     font-size: 112.5%;
 
-    background: var(--value-background);
-    border: 1px solid var(--value-outline);
+    border-width: 1px;
+    border-style: solid;
     border-radius: 5px;
+
+    border-color: var(--value-outline);
+    background-color: var(--value-background);
+    transition: background-color 500ms linear, border-color 500ms linear;
 }
 
 .value {

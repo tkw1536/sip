@@ -1,34 +1,30 @@
-.button {
+/** styling for button and group texts */
+.button, .group span {
     font-family: inherit;
-    font-size: inherit;
+    font-size: 100%;
     font-style: inherit;
     font-weight: inherit;
     line-height: inherit;
 
-    border-width: 0;
-
-
-    font-size: 100%;
-
-    background: var(--button-background);
-    border: 1px solid var(--button-outline);
-
-    --button-radius: 5px;
-
-    border-radius: var(--button-radius); 
-}
-
-.button, .group span {
     display: inline-block;
     box-sizing: border-box;
     padding: 2px;
     min-width: 50px;
 }
 
+/* button coloring */
+.button {
+    --button-radius: 5px;
+    border-radius: var(--button-radius);
 
-.group .button:not(:last-of-type) {
-    border-right: 0px;
+    border-width: 1px;
+    border-style: solid;
+
+    background-color: var(--button-background);
+    border-color: var(--button-outline);
+    transition: background-color 500ms linear, border-color 500ms linear;
 }
+
 
 
 .button {
@@ -46,6 +42,13 @@
     --button-background: white;
     --button-outline: lightgray;
 }
+
+
+/* groups need some margins */
+.group .button:not(:last-of-type) {
+    margin-right: 1px;
+}
+
 
 /** setup rounding in groups */
 .group .button {
