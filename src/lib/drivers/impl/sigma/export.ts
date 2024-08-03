@@ -137,3 +137,5 @@ function getCanvasDimensions(sigma: Sigma): {
 
   return { width: width * pixelRatio, height: height * pixelRatio }
 }
+
+// spellchecker:words Jacomy Guillaume Plique Benoît Simard
