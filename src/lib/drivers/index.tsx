@@ -20,17 +20,15 @@ export interface KernelProps<
   Options,
   AttachmentKey extends string,
 > {
-  graph: Graph<NodeLabel, EdgeLabel>
-  layout: string
-  seed: number
-  options: Options
-
   driver: DriverClass<NodeLabel, EdgeLabel, Options, AttachmentKey>
+
+  graph: Graph<NodeLabel, EdgeLabel>
+  flags: ContextFlags<Options>
 
   snapshot: Snapshot | null
   setSnapshot: (value: Snapshot | null) => void
 
-  controller: Ref<KernelController<
+  controllerRef: Ref<KernelController<
     NodeLabel,
     EdgeLabel,
     Options,
@@ -67,17 +65,10 @@ export default function Kernel<
 >(
   props: KernelProps<NodeLabel, EdgeLabel, Options, AttachmentKey>,
 ): JSX.Element {
-  const { graph, layout, options, seed, driver: DriverClass } = props
+  const { graph, flags, driver: DriverClass } = props
 
   const instance = useAsyncState(
     ticket => async () => {
-      const flags: ContextFlags<Options> = {
-        options,
-
-        layout,
-        seed,
-      }
-
       const instance = new DriverClass(graph, flags)
       if (instance.driver !== DriverClass) {
         throw new Error(
@@ -87,7 +78,7 @@ export default function Kernel<
       await instance.initialize(ticket)
       return instance
     },
-    [DriverClass, graph, layout, options, seed],
+    [DriverClass, flags, graph],
     reasonAsError,
   )
 
@@ -143,7 +134,13 @@ function KernelMount<
 >(
   props: KernelMountProps<NodeLabel, EdgeLabel, Options, AttachmentKey>,
 ): JSX.Element {
-  const { instance, controller, size, setSnapshot, snapshot } = props
+  const {
+    instance,
+    controllerRef: controller,
+    size,
+    setSnapshot,
+    snapshot,
+  } = props
   const container = useRef<HTMLDivElement>(null)
 
   // mount the instance

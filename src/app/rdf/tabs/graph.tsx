@@ -16,6 +16,7 @@ import type Graph from '../../../lib/graph'
 import { triples } from '../../../lib/drivers/collection'
 import useRDFStore from '../state'
 import { useMemo } from 'preact/hooks'
+import { type ContextFlags } from '../../../lib/drivers/impl'
 
 export default function GraphTab(): JSX.Element {
   const store = useRDFStore(s => s.store)
@@ -34,14 +35,17 @@ export default function GraphTab(): JSX.Element {
     [store],
   )
 
+  const flags = useMemo<ContextFlags<RDFOptions>>(
+    () => ({ options: { ns }, layout, seed }),
+    [layout, ns, seed],
+  )
+
   return (
     <GraphDisplay
       loader={triples}
       name={driver}
-      seed={seed}
+      flags={flags}
       makeGraph={makeGraph}
-      options={{ ns }}
-      layout={layout}
       panel={GraphTabPanel}
       snapshot={snapshot}
       setSnapshot={setSnapshot}

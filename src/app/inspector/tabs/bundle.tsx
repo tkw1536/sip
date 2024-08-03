@@ -17,6 +17,7 @@ import { bundles } from '../../../lib/drivers/collection'
 import type Graph from '../../../lib/graph'
 import { useMemo } from 'preact/hooks'
 import useInspectorStore from '../state'
+import { type ContextFlags } from '../../../lib/drivers/impl'
 
 export default function BundleGraphTab(): JSX.Element {
   const tree = useInspectorStore(s => s.pathtree)
@@ -38,16 +39,17 @@ export default function BundleGraphTab(): JSX.Element {
     [tree, selection],
   )
 
-  const options = useMemo(() => ({ ns, cm }), [ns, cm])
+  const flags = useMemo<ContextFlags<BundleOptions>>(
+    () => ({ options: { ns, cm }, layout, seed }),
+    [cm, layout, ns, seed],
+  )
 
   return (
     <GraphDisplay
       loader={bundles}
       name={driver}
-      seed={seed}
       makeGraph={makeGraph}
-      options={options}
-      layout={layout}
+      flags={flags}
       panel={BundleGraphPanel}
       snapshot={snapshot}
       setSnapshot={setSnapshot}

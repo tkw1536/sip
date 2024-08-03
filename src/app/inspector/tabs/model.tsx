@@ -25,6 +25,7 @@ import useInspectorStore from '../state'
 import { Radio } from '../../../components/form/dropdown'
 import Checkbox from '../../../components/form/checkbox'
 import { Label } from '../../../components/form/generic'
+import { type ContextFlags } from '../../../lib/drivers/impl'
 
 export default function ModelGraphView(): JSX.Element {
   const tree = useInspectorStore(s => s.pathtree)
@@ -51,16 +52,17 @@ export default function ModelGraphView(): JSX.Element {
     }
   }, [tree, selection, deduplication])
 
-  const options = useMemo(() => ({ ns, cm, display }), [ns, cm, display])
+  const flags = useMemo<ContextFlags<ModelOptions>>(
+    () => ({ options: { ns, cm, display }, layout, seed }),
+    [cm, display, layout, ns, seed],
+  )
 
   return (
     <GraphDisplay
       loader={models}
       makeGraph={builder}
       name={driver}
-      seed={seed}
-      options={options}
-      layout={layout}
+      flags={flags}
       panel={ModelGraphPanel}
       snapshot={snapshot}
       setSnapshot={setSnapshot}

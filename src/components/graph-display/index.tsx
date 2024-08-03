@@ -11,7 +11,11 @@ import { useState } from 'preact/hooks'
 import { Panel } from '../layout/panel'
 import { type Renderable } from '../../lib/graph/builders'
 import useAsyncState, { reasonAsCause, type AsyncState } from '../hooks/async'
-import { type Snapshot, type DriverClass } from '../../lib/drivers/impl'
+import {
+  type Snapshot,
+  type DriverClass,
+  type ContextFlags,
+} from '../../lib/drivers/impl'
 import Spinner from '../spinner'
 
 interface GraphProps<
@@ -28,10 +32,7 @@ interface GraphProps<
   snapshot: Snapshot | null
   setSnapshot: (value: Snapshot | null) => void
 
-  // TODO: make this flags
-  options: Options
-  layout: string
-  seed: number
+  flags: ContextFlags<Options>
 
   panel: ComponentType<PanelProps<NodeLabel, EdgeLabel, Options, AttachmentKey>>
 }
@@ -61,9 +62,7 @@ export default function GraphDisplay<
   const {
     loader,
     name,
-    options,
-    layout,
-    seed,
+    flags,
     snapshot,
     setSnapshot,
     makeGraph,
@@ -97,12 +96,10 @@ export default function GraphDisplay<
       <GraphDisplayMain
         graph={graph}
         driver={driver}
+        flags={flags}
         snapshot={snapshot}
         setSnapshot={setSnapshot}
-        controller={setController}
-        options={options}
-        layout={layout}
-        seed={seed}
+        controllerRef={setController}
       />
     </Panel>
   )
