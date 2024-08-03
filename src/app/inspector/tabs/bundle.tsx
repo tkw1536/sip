@@ -14,8 +14,7 @@ import BundleGraphBuilder, {
 } from '../../../lib/graph/builders/bundle'
 import { bundles } from '../../../lib/drivers/collection'
 
-import type Graph from '../../../lib/graph'
-import { useMemo } from 'preact/hooks'
+import { useCallback, useMemo } from 'preact/hooks'
 import useInspectorStore from '../state'
 import { type ContextFlags } from '../../../lib/drivers/impl'
 
@@ -31,13 +30,10 @@ export default function BundleGraphTab(): JSX.Element {
   const snapshot = useInspectorStore(s => s.bundleSnapshot)
   const setSnapshot = useInspectorStore(s => s.setBundleSnapshot)
 
-  const makeGraph = useMemo(
-    () => async (): Promise<Graph<BundleNode, BundleEdge>> => {
-      const builder = new BundleGraphBuilder(tree, selection)
-      return builder.build()
-    },
-    [tree, selection],
-  )
+  const makeGraph = useCallback(() => {
+    const builder = new BundleGraphBuilder(tree, selection)
+    return builder.build()
+  }, [tree, selection])
 
   const flags = useMemo<ContextFlags<BundleOptions>>(
     () => ({ options: { ns, cm }, layout, seed }),

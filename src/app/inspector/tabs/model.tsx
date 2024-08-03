@@ -12,7 +12,6 @@ import {
   ExportControl,
 } from '../../../components/graph-display/controls'
 
-import type Graph from '../../../lib/graph'
 import {
   type ModelOptions,
   type ModelEdge,
@@ -42,14 +41,12 @@ export default function ModelGraphView(): JSX.Element {
 
   const ns = useInspectorStore(s => s.ns)
 
-  const builder = useMemo(() => {
-    return async (): Promise<Graph<ModelNode, ModelEdge>> => {
-      const builder = new ModelGraphBuilder(tree, {
-        include: selection.includes.bind(selection),
-        deduplication,
-      })
-      return builder.build()
-    }
+  const builder = useCallback(() => {
+    const builder = new ModelGraphBuilder(tree, {
+      include: selection.includes.bind(selection),
+      deduplication,
+    })
+    return builder.build()
   }, [tree, selection, deduplication])
 
   const flags = useMemo<ContextFlags<ModelOptions>>(

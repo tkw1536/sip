@@ -7,7 +7,7 @@ import Kernel, {
 import type Graph from '../../lib/graph'
 
 import ErrorDisplay from '../error'
-import { useState } from 'preact/hooks'
+import { useMemo, useState } from 'preact/hooks'
 import { Panel } from '../layout/panel'
 import { type Renderable } from '../../lib/graph/builders'
 import useAsyncState, { reasonAsCause, type AsyncState } from '../hooks/async'
@@ -27,7 +27,7 @@ interface GraphProps<
   loader: DriverLoader<NodeLabel, EdgeLabel, Options, AttachmentKey>
   name: string
 
-  makeGraph: () => Promise<Graph<NodeLabel, EdgeLabel>>
+  makeGraph: () => Graph<NodeLabel, EdgeLabel>
 
   snapshot: Snapshot | null
   setSnapshot: (value: Snapshot | null) => void
@@ -68,11 +68,20 @@ export default function GraphDisplay<
     makeGraph,
     panel: GraphDisplayPanel,
   } = props
-  const graph = useAsyncState(
-    ticket => makeGraph,
-    [makeGraph],
-    reasonAsCause('failed to create graph'),
-  )
+
+  // we use async state here, but it's actually synchronous!
+  const graph = useMemo<AsyncState<Graph<NodeLabel, EdgeLabel>, Error>>(() => {
+    try {
+      const value = makeGraph()
+      return { status: 'fulfilled', value }
+    } catch (cause: unknown) {
+      return {
+        status: 'rejected',
+        reason: reasonAsCause('failed to create graph')(cause),
+      }
+    }
+  }, [makeGraph])
+
   const driver = useAsyncState(
     ticket => async () => await loader.get(name),
     [name, loader],

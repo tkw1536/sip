@@ -12,10 +12,9 @@ import RDFGraphBuilder, {
   type RDFEdge,
   type RDFNode,
 } from '../../../lib/graph/builders/rdf'
-import type Graph from '../../../lib/graph'
 import { triples } from '../../../lib/drivers/collection'
 import useRDFStore from '../state'
-import { useMemo } from 'preact/hooks'
+import { useCallback, useMemo } from 'preact/hooks'
 import { type ContextFlags } from '../../../lib/drivers/impl'
 
 export default function GraphTab(): JSX.Element {
@@ -27,13 +26,10 @@ export default function GraphTab(): JSX.Element {
   const setSnapshot = useRDFStore(s => s.setRDFSnapshot)
   const ns = useRDFStore(s => s.ns)
 
-  const makeGraph = useMemo(
-    () => async (): Promise<Graph<RDFNode, RDFEdge>> => {
-      const builder = new RDFGraphBuilder(store)
-      return builder.build()
-    },
-    [store],
-  )
+  const makeGraph = useCallback(() => {
+    const builder = new RDFGraphBuilder(store)
+    return builder.build()
+  }, [store])
 
   const flags = useMemo<ContextFlags<RDFOptions>>(
     () => ({ options: { ns }, layout, seed }),
