@@ -19,16 +19,40 @@ export default function useVisibleSize<E extends HTMLElement>(): [
       throw new Error('useVisibleSize: element reference is not mounted')
     }
 
+    let animationFrame: number | null = null
+
     const observer = new ResizeObserver(entries => {
       if (entries.length !== 1) {
         throw new Error('never reached')
       }
-      setSize(getVisibleSize(entries[0].target))
+
+      if (animationFrame !== null) {
+        cancelAnimationFrame(animationFrame)
+      }
+      animationFrame = requestAnimationFrame(() => {
+        // because we're in an animation frame the size might have actually been changed by now.
+        const size = getVisibleSize(entries[0].target)
+
+        // if the size hasn't actually changed return the old size object.
+        // this allows referential equality checks elsewhere.
+        setSize(oldSize =>
+          oldSize !== null &&
+          oldSize.width === size.width &&
+          oldSize.height === size.height
+            ? oldSize
+            : size,
+        )
+        animationFrame = null
+      })
     })
     observer.observe(elementRef.current)
 
     return () => {
       observer.disconnect()
+      if (animationFrame !== null) {
+        cancelAnimationFrame(animationFrame)
+        animationFrame = null
+      }
       setSize(null)
     }
   }, [])
