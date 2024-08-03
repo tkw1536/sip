@@ -1,8 +1,9 @@
-import { type ComponentChildren, Fragment, toChildArray } from 'preact'
+import { type ComponentChildren } from 'preact'
 import { type JSX } from 'preact/compat'
 import { useCallback, useRef } from 'preact/hooks'
-import { datasetEntries, type InputLikeProps } from './generic'
+import { ariaEntries, datasetEntries, type InputLikeProps } from './generic'
 import useModifierRef from './generic/modifiers'
+import * as styles from './button.module.css'
 
 interface ButtonProps<T> extends InputLikeProps<T | undefined> {
   children?: ComponentChildren
@@ -23,6 +24,8 @@ function Button<T>({
   disabled,
   children,
   form,
+  customValidity,
+  reportValidity,
   ...rest
 }: ButtonProps<T> | ButtonPropsWithValue<T>): JSX.Element {
   const modifiers = useModifierRef()
@@ -56,8 +59,11 @@ function Button<T>({
     <button
       onClick={handleClick}
       {...datasetEntries(rest)}
+      {...ariaEntries({ disabled, customValidity, reportValidity })}
       form={form}
       ref={buttonRef}
+      class={styles.button}
+      disabled={disabled}
     >
       {children}
     </button>
@@ -70,14 +76,9 @@ export function ButtonGroup(props: {
   children: ComponentChildren
   inline?: boolean
 }): JSX.Element {
-  const elements = toChildArray(props.children).map((child, idx) => (
-    <Fragment key={idx}>
-      {child}
-      {` `}
-    </Fragment>
-  ))
-  if (props.inline === true) return <>{elements}</>
-  return <p>{elements}</p>
+  if (props.inline === true)
+    return <span class={styles.group}>{props.children}</span>
+  return <p class={styles.group}>{props.children}</p>
 }
 
 export function ButtonGroupText(props: {

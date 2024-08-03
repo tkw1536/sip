@@ -24,14 +24,14 @@ export type InputLikeProps<T> = ValidationProps &
     /** a function to call when the input is changed */
     onInput?: (value: T, dataset: DOMStringMap, modifiers: ModifierKeys) => void
 
-    /** if true, disable the input and prevent any calls to {@link onInput} */
-    disabled?: boolean
-
     /** the form to link the input element to, if any */
     form?: string
   }
 
 export interface ValidationProps {
+  /** if true, disable the input, and prevent any actions from taking place */
+  disabled?: boolean
+
   /**
    * A custom validity message to set for the element using {@link HTMLInputElement.setCustomValidity}
    * If the empty string, consider the element valid.
@@ -123,4 +123,16 @@ export function datasetEntries<T extends Dataset>(dataset: T): Dataset {
         (typeof v === 'string' || typeof v === 'undefined'),
     ),
   )
+}
+
+type Aria = Record<`aria-${string}`, string | boolean | undefined>
+export function ariaEntries(props: ValidationProps): Aria {
+  const aria: Aria = {}
+  if (typeof props.customValidity !== 'undefined') {
+    aria['aria-invalid'] = props.customValidity !== ''
+  }
+  if (typeof props.disabled !== 'undefined') {
+    aria['aria-disabled'] = props.disabled
+  }
+  return aria
 }

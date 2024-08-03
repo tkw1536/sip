@@ -1,12 +1,20 @@
 import { type JSX } from 'preact/jsx-runtime'
-import GenericInput, { datasetEntries, type InputLikeProps } from './generic'
+import GenericInput, {
+  ariaEntries,
+  datasetEntries,
+  type InputLikeProps,
+} from './generic'
 import { useCallback, useMemo } from 'preact/hooks'
 import useModifierRef from './generic/modifiers'
 import ColorInstance from 'color'
 import { type HTMLAttributes } from 'preact/compat'
+import * as styles from './value.module.css'
 
 interface ValueBasedInputProps<T> extends InputLikeProps<T> {
-  extra: Partial<HTMLAttributes<HTMLInputElement>>
+  style: string
+  extra: Partial<
+    Omit<HTMLAttributes<HTMLInputElement>, 'class' | 'className' | 'style'>
+  >
   setValue: (value: T) => HTMLAttributes<HTMLInputElement>['value']
   getValue: (element: HTMLInputElement) => T
 }
@@ -14,6 +22,7 @@ interface ValueBasedInputProps<T> extends InputLikeProps<T> {
 function ValueBasedInput<T>({
   id,
   value,
+  style,
   onInput,
   disabled,
   form,
@@ -48,12 +57,16 @@ function ValueBasedInput<T>({
     <GenericInput
       {...extra}
       id={id}
+      class={style}
+      disabled={disabled}
       value={raw}
       form={form}
       onInput={handleInput}
       customValidity={customValidity}
       reportValidity={reportValidity}
+      autoComplete='off'
       {...datasetEntries(rest)}
+      {...ariaEntries({ disabled, customValidity, reportValidity })}
     />
   )
 }
@@ -71,6 +84,7 @@ export function Color(props: ColorProps): JSX.Element {
   const extra = useMemo(() => ({ type: 'color' }), [])
   return (
     <ValueBasedInput
+      style=''
       {...props}
       extra={extra}
       setValue={setColor}
@@ -95,6 +109,7 @@ export function Numeric({ min, max, ...props }: NumericProps): JSX.Element {
   const extra = useMemo(() => ({ type: 'number', min, max }), [min, max])
   return (
     <ValueBasedInput
+      style={styles.value}
       {...props}
       extra={extra}
       setValue={setNumber}
@@ -118,6 +133,7 @@ export default function Text(props: TextProps): JSX.Element {
   const extra = useMemo(() => ({ type: 'text' }), [])
   return (
     <ValueBasedInput
+      style={styles.value}
       {...props}
       extra={extra}
       setValue={setText}

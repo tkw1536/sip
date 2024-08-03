@@ -1,0 +1,63 @@
+.button {
+    font-family: inherit;
+    font-size: inherit;
+    font-style: inherit;
+    font-weight: inherit;
+    line-height: inherit;
+
+    border-width: 0;
+
+
+    font-size: 100%;
+
+    background: var(--button-background);
+    border: 1px solid var(--button-outline);
+
+    --button-radius: 5px;
+
+    border-radius: var(--button-radius); 
+}
+
+.button, .group span {
+    display: inline-block;
+    box-sizing: border-box;
+    padding: 2px;
+    min-width: 50px;
+}
+
+
+.group .button:not(:last-of-type) {
+    border-right: 0px;
+}
+
+
+.button {
+    --button-background: #D6ECF3;
+    --button-outline: #0076F9;
+}
+
+.button:hover:not(:disabled) {
+    cursor: pointer;
+    --button-background: #0076F9;
+    --button-outline: #0000FF;
+}
+
+.button:disabled {
+    --button-background: white;
+    --button-outline: lightgray;
+}
+
+/** setup rounding in groups */
+.group .button {
+    border-radius: 0px;
+}
+
+.group .button:first-of-type {
+    border-top-left-radius: var(--button-radius);
+    border-bottom-left-radius: var(--button-radius);
+}
+
+.group .button:last-of-type {
+    border-top-right-radius: var(--button-radius);
+    border-bottom-right-radius: var(--button-radius);
+}

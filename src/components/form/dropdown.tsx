@@ -1,6 +1,7 @@
 import { Fragment, type ComponentChildren, type JSX } from 'preact'
 import { useCallback, useId } from 'preact/hooks'
 import GenericInput, {
+  ariaEntries,
   datasetEntries,
   Label,
   type InputLikeProps,
@@ -108,6 +109,9 @@ export function Radio<T extends string>(props: RadioProps<T>): JSX.Element {
             value={v}
             onChange={handleChange}
             disabled={disabled}
+            {...ariaEntries({
+              disabled,
+            })}
           />
         )
 

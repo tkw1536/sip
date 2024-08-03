@@ -2,6 +2,12 @@ import { Fragment, type JSX } from 'preact'
 import Spinner from '../../../components/spinner'
 import { Panel } from '../../../components/layout/panel'
 import { useState } from 'preact/hooks'
+import { Numeric } from '../../../components/form/value'
+import { Label } from '../../../components/form/generic'
+import Button, {
+  ButtonGroup,
+  ButtonGroupText,
+} from '../../../components/form/button'
 
 export default function DebugTab(): JSX.Element {
   const panel = []
@@ -35,6 +41,78 @@ export default function DebugTab(): JSX.Element {
       width='10vw'
     >
       <h2>Debug Page</h2>
+
+      <table>
+        <tbody>
+          <tr>
+            <td>
+              <Label id={'numeric-normal'}>Numeric Normal</Label>
+            </td>
+            <td>
+              <Numeric id='numeric-normal' value={42} />
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <Label id={'numeric-valid'}>Numeric Valid</Label>
+            </td>
+            <td>
+              <Numeric id='numeric-valid' value={42} customValidity='' />
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <Label id={'numeric-invalid'}>Numeric Invalid</Label>
+            </td>
+            <td>
+              <Numeric
+                id='numeric-invalid'
+                value={69}
+                customValidity={'not permitted'}
+                reportValidity
+              />
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <Label id={'numeric-disabled'}>Numeric Disabled</Label>
+            </td>
+            <td>
+              <Numeric id='numeric-disabled' value={112} disabled />
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p>
+        <Button>Not in a group</Button>
+      </p>
+
+      <p>
+        <Button disabled>Disabled</Button>
+      </p>
+
+      <p>
+        <ButtonGroup>
+          <Button>Active</Button>
+          <Button disabled>Disabled</Button>
+          <ButtonGroupText>Some Text Here</ButtonGroupText>
+        </ButtonGroup>
+      </p>
+
+      <p>
+        <ButtonGroup inline>
+          <Button>Active</Button>
+          <Button disabled>Disabled</Button>
+          <ButtonGroupText>Inline Button Group</ButtonGroupText>
+        </ButtonGroup>
+      </p>
+
+      <p>
+        <ButtonGroup inline>
+          <Button>One-Button-Box</Button>
+        </ButtonGroup>
+      </p>
 
       <Spinner message='Your message here' />
 

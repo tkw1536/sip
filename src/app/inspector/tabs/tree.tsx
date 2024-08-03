@@ -1,4 +1,4 @@
-import { Fragment, type JSX } from 'preact'
+import { type JSX } from 'preact'
 import { type NamespaceMap } from '../../../lib/pathbuilder/namespace'
 import {
   Bundle,
@@ -220,14 +220,13 @@ function ColorMapControl(): JSX.Element {
       </p>
 
       <p>
-        {colorPresets.map(preset => (
-          <Fragment key={preset}>
-            <Button value={preset} onInput={handleColorPreset}>
+        <ButtonGroup>
+          {colorPresets.map(preset => (
+            <Button value={preset} key={preset} onInput={handleColorPreset}>
               {preset}
             </Button>
-            {` `}
-          </Fragment>
-        ))}
+          ))}
+        </ButtonGroup>
       </p>
 
       <ButtonGroup>
@@ -317,11 +316,7 @@ function BundleRows(props: {
           <Color value={cm.getDefault(bundle)} onInput={handleColorChange} />
         </td>
         <td style={{ paddingLeft: INDENT_PER_LEVEL * level }}>
-          <Button
-            onInput={handleClick}
-            aria-role='toggle'
-            disabled={bundle.childCount === 0}
-          >
+          <Button onInput={handleClick} disabled={bundle.childCount === 0}>
             {expanded ? '∨' : '>'}
           </Button>
           &nbsp;

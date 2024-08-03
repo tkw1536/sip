@@ -1,5 +1,9 @@
 import { type JSX, useCallback } from 'preact/compat'
-import GenericInput, { datasetEntries, type InputLikeProps } from './generic'
+import GenericInput, {
+  ariaEntries,
+  datasetEntries,
+  type InputLikeProps,
+} from './generic'
 import useModifierRef from './generic/modifiers'
 
 interface CheckboxProps extends InputLikeProps<boolean> {}
@@ -39,6 +43,7 @@ export default function Checkbox({
       customValidity={customValidity}
       reportValidity={reportValidity}
       {...datasetEntries(rest)}
+      {...ariaEntries({ disabled, customValidity, reportValidity })}
     />
   )
 }

@@ -162,7 +162,7 @@ function AddRow(props: AddRowProps): JSX.Element {
           value={shortValue}
           placeholder='rdf'
           onInput={setShort}
-          customValidity={shortValidity}
+          customValidity={shortValidity ?? ''}
         />
       </td>
       <td>
@@ -171,7 +171,7 @@ function AddRow(props: AddRowProps): JSX.Element {
           value={longValue}
           placeholder='http://www.w3.org/1999/02/22-rdf-syntax-ns#'
           onInput={setLong}
-          customValidity={longValidity}
+          customValidity={longValidity ?? ''}
         />
       </td>
       <td>
