@@ -87,7 +87,6 @@ class ModifierKeyObserver {
     this.#refs.forEach(ref => {
       setRef(ref, this.#current)
     })
-    console.log('notified', this.#refs.size, 'refs')
   }
 }
 
