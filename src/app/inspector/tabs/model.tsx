@@ -19,11 +19,10 @@ import {
   type ModelDisplay,
   type ModelAttachmentKey,
 } from '../../../lib/graph/builders/model/labels'
-import { useCallback, useId, useMemo } from 'preact/hooks'
+import { useCallback, useMemo } from 'preact/hooks'
 import useInspectorStore from '../state'
 import { Radio } from '../../../components/form/dropdown'
-import Checkbox from '../../../components/form/checkbox'
-import { Label } from '../../../components/form/generic'
+import { Switch } from '../../../components/form/checkbox'
 import { type ContextFlags } from '../../../lib/drivers/impl'
 
 export default function ModelGraphView(): JSX.Element {
@@ -318,11 +317,5 @@ function ComponentCheckbox(props: ComponentCheckboxProps): JSX.Element {
     [display, onUpdate, set],
   )
 
-  const id = useId()
-  return (
-    <>
-      <Checkbox id={id} value={value} onInput={handleInput} />
-      <Label id={id} title={label} />
-    </>
-  )
+  return <Switch title={label} value={value} onInput={handleInput} />
 }

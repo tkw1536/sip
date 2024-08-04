@@ -12,7 +12,7 @@ import DropArea from '../../../components/form/drop-area'
 import download from '../../../lib/utils/download'
 import { Type } from '../../../lib/utils/media'
 import { Panel } from '../../../components/layout/panel'
-import { useCallback, useId, useMemo } from 'preact/hooks'
+import { useCallback, useMemo } from 'preact/hooks'
 import useInspectorStore from '../state'
 import Button, {
   ButtonGroup,
@@ -25,9 +25,8 @@ import {
   Control,
   ControlGroup,
 } from '../../../components/graph-display/controls'
-import Checkbox from '../../../components/form/checkbox'
+import Checkbox, { Switch } from '../../../components/form/checkbox'
 import { type ModifierKeys } from '../../../components/form/generic/modifiers'
-import { Label } from '../../../components/form/generic'
 import { Color } from '../../../components/form/value'
 
 export default function TreeTab(): JSX.Element {
@@ -76,8 +75,6 @@ function OverviewControl(): JSX.Element {
   const setCollapseParentPaths = useInspectorStore(
     s => s.setCollapseParentPaths,
   )
-
-  const id = useId()
 
   return (
     <Control name='Overview'>
@@ -130,12 +127,9 @@ function OverviewControl(): JSX.Element {
         </span>
       </p>
       <p>
-        <Checkbox
-          id={id}
-          value={hideParents}
-          onInput={setCollapseParentPaths}
-        />
-        <Label id={id}>Collapse shared paths into ellipses</Label>
+        <Switch value={hideParents} onInput={setCollapseParentPaths}>
+          Collapse shared paths into ellipses
+        </Switch>
       </p>
     </Control>
   )
