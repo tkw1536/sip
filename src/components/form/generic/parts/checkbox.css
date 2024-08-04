@@ -1,0 +1,85 @@
+.toggle {
+	appearance: none;
+
+	position: relative;
+	border: 0;
+	outline: 0;
+
+    vertical-align: middle;
+
+}
+
+.toggle:not(:disabled) {
+	cursor: pointer;
+}
+
+
+.toggle:after {
+	content: '';
+    display: inline-block;
+	clear: both;
+
+    width: var(--toggle-width);
+	height: var(--toggle-height);
+	border-radius: calc(var(--toggle-height) / 2);
+
+    background-color: var(--toggle-background-color);
+}
+
+/* animate all the things */
+.toggle:before, .toggle:after {
+    transition: left var(--input-transition) linear, background-color var(--input-transition) linear, border-color var(--input-transition) linear;
+}
+
+/** the toggle handle */
+.toggle:before {
+    content: '';
+    box-sizing: border-box;
+
+    /* position the handle in the center of the parent */
+    display: block;
+	position: absolute;
+    top: 0;
+	left: 0;
+
+    /* it is a circle */
+    width: var(--toggle-height);
+	height: var(--toggle-height);
+	border-radius: 50%;
+
+    border-width: 1px;
+    border-style: solid;
+    border-color: var(--toggle-handle-border);
+
+    background-color: var(--toggle-handle-color);
+}
+
+.toggle:checked:before {
+	left: calc(var(--toggle-width) - var(--toggle-height));
+}
+
+/* sizes */
+.toggle, .toggle:before, .toggle:after {
+    --toggle-height: 2em;
+    --toggle-width: calc(var(--toggle-height)*2);
+}
+
+/* colors */
+.toggle, .toggle:before, .toggle:after {
+    --toggle-handle-color: var(--input-generic-light);
+    --toggle-handle-border: var(--input-generic-dark);
+
+    --toggle-background-color: var(--input-generic-medium);
+}
+.toggle:hover:not(:disabled):before {
+    --toggle-handle-color: var(--input-active-light);
+    --toggle-handle-border: var(--input-generic-accent);
+}
+
+.toggle:checked:after {
+    --toggle-background-color: var(--input-active-medium);
+}
+
+.toggle:disabled {
+   filter: grayscale(); 
+}

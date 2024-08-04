@@ -1,0 +1,10 @@
+.label {
+    text-align: justify;
+    color: var(--input-generic-accent);
+}
+.label .no_content_title {
+    font-style: italic;
+}
+.label .no_content_title::after {
+    content: ". ";
+}

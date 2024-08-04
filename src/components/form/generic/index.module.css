@@ -1,9 +1,5 @@
-.label {
-    text-align: justify;
-}
-.label .no_content_title {
-    font-style: italic;
-}
-.label .no_content_title::after {
-    content: ". ";
-}
+@import url('./parts/_config.css');
+@import url('./parts/labels.css');
+@import url('./parts/buttons.css');
+@import url('./parts/checkbox.css');
+@import url('./parts/value.css');

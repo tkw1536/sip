@@ -1,57 +1,42 @@
-import {
-  type HTMLAttributes,
-  type JSX,
-  useCallback,
-  useId,
-} from 'preact/compat'
+import { type HTMLAttributes, type JSX, useCallback } from 'preact/compat'
 import GenericInput, {
   ariaEntries,
   datasetEntries,
   Label,
+  type ValidationProps,
   type InputLikeProps,
 } from './generic'
 import useModifierRef from './generic/modifiers'
 import { type ComponentChildren } from 'preact'
+import { useOptionalId } from '../hooks/id'
+import * as styles from './generic/index.module.css'
 
-interface CheckboxProps extends InputLikeProps<boolean> {}
-
-export default function Checkbox(props: CheckboxProps): JSX.Element {
-  return <BooleanInput {...props} switch={false} />
-}
-
-interface SwitchProps extends CheckboxProps {
+interface BooleanInputProps extends InputLikeProps<boolean> {
   title?: string
   children?: ComponentChildren
 }
 
-export function Switch({
-  title,
-  children,
-  ...props
-}: SwitchProps): JSX.Element {
-  // automatically generate an id
-  const autoID = useId()
-  const theID = props.id ?? autoID
+export default function Checkbox(props: BooleanInputProps): JSX.Element {
+  return <BooleanInput {...props} switch={false} />
+}
 
-  return (
-    <>
-      <BooleanInput {...props} id={theID} switch={true} />
-      <Label id={theID} title={title} children={children} />
-    </>
-  )
+export function Switch(props: BooleanInputProps): JSX.Element {
+  return <BooleanInput {...props} switch={true} />
 }
 
 function BooleanInput({
   value,
   disabled,
   onInput,
-  id,
+  id: userId,
   customValidity,
   reportValidity,
   form,
+  title,
+  children,
   switch: asSwitch,
   ...rest
-}: CheckboxProps & { switch: boolean }): JSX.Element {
+}: BooleanInputProps & { switch: boolean }): JSX.Element {
   const modifiers = useModifierRef()
 
   const handleChange = useCallback(
@@ -66,24 +51,38 @@ function BooleanInput({
     [disabled, modifiers, onInput],
   )
 
-  const switchAriaRoles: {
-    'role'?: HTMLAttributes<HTMLInputElement>['role']
-    'aria-checked'?: boolean
-  } = asSwitch ? { 'role': 'switch', 'aria-checked': value === true } : {}
+  const ariaRoleThings: Partial<
+    Omit<HTMLAttributes<HTMLInputElement>, keyof ValidationProps>
+  > = asSwitch
+    ? { 'role': 'switch', 'aria-checked': value === true }
+    : {
+        'role': 'checkbox',
+        'aria-checked': value ?? 'mixed',
+      }
+
+  const id = useOptionalId(userId)
 
   return (
-    <GenericInput
-      type='checkbox'
-      id={id}
-      form={form}
-      checked={value}
-      disabled={disabled}
-      onInput={handleChange}
-      customValidity={customValidity}
-      reportValidity={reportValidity}
-      {...datasetEntries(rest)}
-      {...ariaEntries({ disabled, customValidity, reportValidity })}
-      {...switchAriaRoles}
-    />
+    <>
+      <GenericInput
+        type='checkbox'
+        id={id}
+        class={asSwitch ? styles.toggle : styles.checkbox}
+        form={form}
+        checked={value}
+        disabled={disabled}
+        onInput={handleChange}
+        customValidity={customValidity}
+        reportValidity={reportValidity}
+        {...datasetEntries(rest)}
+        {...ariaEntries({ disabled, customValidity, reportValidity })}
+        {...ariaRoleThings}
+      />
+      {(typeof title !== 'undefined' || typeof children !== 'undefined') && (
+        <Label id={id} title={title}>
+          {children}
+        </Label>
+      )}
+    </>
   )
 }

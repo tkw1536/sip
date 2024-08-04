@@ -8,6 +8,7 @@ import Button, {
   ButtonGroup,
   ButtonGroupText,
 } from '../../../components/form/button'
+import { Switch } from '../../../components/form/checkbox'
 
 export default function DebugTab(): JSX.Element {
   const panel = []
@@ -84,6 +85,28 @@ export default function DebugTab(): JSX.Element {
         </tbody>
       </table>
 
+      <table>
+        <tbody>
+          <tr>
+            <td>Checked</td>
+            <td>
+              <Switch value={true} />
+            </td>
+          </tr>
+          <tr>
+            <td>Unchecked</td>
+            <td>
+              <Switch value={false} />
+            </td>
+          </tr>
+          <tr>
+            <td>Disabled</td>
+            <td>
+              <Switch value={true} disabled />
+            </td>
+          </tr>
+        </tbody>
+      </table>
       <p>
         <Button>Not in a group</Button>
       </p>

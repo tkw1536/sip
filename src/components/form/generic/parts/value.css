@@ -1,0 +1,58 @@
+.value {
+    border: none; 
+    outline: none;
+
+    font-family: monospace;
+    color: var(--input-generic-accent);
+
+    /** fill the parent with a min-width of 150px */
+    box-sizing: border-box;
+    padding: 2px;
+    min-width: var(--input-size);
+    width: 100%;
+    height: 100%;
+
+    font-size: 112.5%;
+
+    border-width: 1px;
+    border-style: solid;
+    border-radius: 5px;
+
+    border-color: var(--value-outline);
+    background-color: var(--value-background);
+    transition: background-color var(--input-transition) linear, border-color var(--input-transition) linear;
+}
+
+.value {
+    --value-background: var(--input-generic-light);
+    --value-outline: var(--input-generic-accent);
+
+    --value-focus-background: var(--input-active-light);
+    --value-focus-outline: var(--input-active-medium);
+}
+
+.value[aria-invalid="true"] {
+    --value-background: var(--input-invalid-light);
+    --value-outline: var(--input-invalid-medium);
+
+    --value-focus-background: var(--input-invalid-medium);
+    --value-focus-outline: var(--input-invalid-dark);
+}
+
+.value[aria-invalid="false"] {
+    --value-background: var(--input-valid-light);
+    --value-outline: var(--input-valid-medium);
+
+    --value-focus-background: var(--input-valid-medium);
+    --value-focus-outline: var(--input-valid-dark);
+}
+
+.value:focus, .value:active {
+    --value-background: var(--value-focus-background);
+    --value-outline: var(--value-focus-outline);
+}
+
+.value:disabled {
+    --value-background: var(--input-generic-medium);
+    --value-focus-background: var(--input-generic-dark);
+}

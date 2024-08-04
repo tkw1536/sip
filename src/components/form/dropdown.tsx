@@ -1,5 +1,5 @@
 import { Fragment, type ComponentChildren, type JSX } from 'preact'
-import { useCallback, useId } from 'preact/hooks'
+import { useCallback } from 'preact/hooks'
 import GenericInput, {
   ariaEntries,
   datasetEntries,
@@ -7,6 +7,7 @@ import GenericInput, {
   type InputLikeProps,
 } from './generic'
 import useModifierRef from './generic/modifiers'
+import { useOptionalId } from '../hooks/id'
 
 interface DropdownProps<T extends string> extends InputLikeProps<T> {
   /** titles of individual props */
@@ -94,16 +95,16 @@ export function Radio<T extends string>(props: RadioProps<T>): JSX.Element {
     [isDisabled, onInput, values, modifiers],
   )
 
-  const name = useId()
+  const id = useOptionalId(props.id)
 
   return (
     <>
       {(typeof values !== 'undefined' ? values : [value]).map(v => {
-        const id = `${name}-value-${v}`
+        const optionID = `${id}-value-${v}`
         const element = (
           <GenericInput
-            name={name}
-            id={id}
+            name={id}
+            id={optionID}
             type='radio'
             checked={value === v}
             value={v}
@@ -121,7 +122,7 @@ export function Radio<T extends string>(props: RadioProps<T>): JSX.Element {
         return description !== null || title !== null ? (
           <p key={v}>
             {element}
-            <Label id={id} title={title ?? undefined}>
+            <Label id={optionID} title={title ?? undefined}>
               {description}
             </Label>
           </p>
