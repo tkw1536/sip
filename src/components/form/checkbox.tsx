@@ -9,7 +9,7 @@ import GenericInput, {
 import useModifierRef from './generic/modifiers'
 import { type ComponentChildren } from 'preact'
 import { useOptionalId } from '../hooks/id'
-import * as styles from './generic/index.module.css'
+import * as styles from './checkbox.module.css'
 
 interface BooleanInputProps extends InputLikeProps<boolean> {
   title?: string

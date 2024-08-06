@@ -8,7 +8,6 @@
     /* default panel settings */
     --panel-width: 500px;
     --panel-margin: 0px;
-    --panel-transition-time: 0.5s;
 }
 
 .main {
@@ -20,14 +19,15 @@
     width: var(--panel-width);
 }
 
-.main, .sidebar {
+.main,
+.sidebar {
     overflow: scroll;
 }
 
 
 /* move main element */
 .main {
-    transition: margin-left var(--panel-transition-time) linear; 
+    transition: margin-left var(--theme-long-transition) linear;
 }
 
 .open .main {
@@ -39,20 +39,25 @@
 }
 
 /* move sidebar and handle to the lhs */
-.sidebar, .handle {
-    transition: transform var(--panel-transition-time) linear; 
+.sidebar,
+.handle {
+    transition: transform var(--theme-long-transition) linear, background-color var(--theme-transition) linear, border-color var(--theme-transition) linear;
 }
 
-.open .sidebar, .open .handle {
+.open .sidebar,
+.open .handle {
     transform: translateX(0px)
 }
 
-.closed .sidebar, .closed .handle {
+.closed .sidebar,
+.closed .handle {
     transform: translateX(calc(-1 * var(--panel-width)))
 }
 
 /** handle styling **/
 .handle {
+    box-sizing: border-box;
+
     /** it is a buttony-button */
     appearance: none;
     cursor: pointer;
@@ -60,7 +65,7 @@
     user-select: none;
     -webkit-user-select: none;
     touch-action: manipulation;
-    
+
     /** align the text */
     display: inline-block;
     text-align: center;
@@ -72,12 +77,17 @@
     margin-right: var(--panel-margin);
 
     /* colors */
-    border: 0;
-    background-color: lightgray;
+    border-width: 1px;
+    border-style: solid;
+
+    border-color: var(--theme-generic-dark);
+    background-color: var(--theme-generic-medium);
 }
 
-.handle:hover, .handle:active {
-  background-color: darkgray;
+.handle:hover,
+.handle:active {
+  border-color: var(--theme-active-medium);
+  background-color: var(--theme-active-light);
 }
 
 
@@ -85,6 +95,7 @@
 .open .handle::before {
     content: "<<"
 }
+
 /** set text for the handle **/
 .closed .handle::before {
     content: ">>"

@@ -28,7 +28,7 @@
 
 /* animate all the things */
 .toggle:before, .toggle:after {
-    transition: left var(--input-transition) linear, background-color var(--input-transition) linear, border-color var(--input-transition) linear;
+    transition: left var(--theme-transition) linear, background-color var(--theme-transition) linear, border-color var(--theme-transition) linear;
 }
 
 /** the toggle handle */
@@ -66,18 +66,18 @@
 
 /* colors */
 .toggle, .toggle:before, .toggle:after {
-    --toggle-handle-color: var(--input-generic-light);
-    --toggle-handle-border: var(--input-generic-dark);
+    --toggle-handle-color: var(--theme-generic-light);
+    --toggle-handle-border: var(--theme-generic-dark);
 
-    --toggle-background-color: var(--input-generic-medium);
+    --toggle-background-color: var(--theme-generic-medium);
 }
 .toggle:hover:not(:disabled):before {
-    --toggle-handle-color: var(--input-active-light);
-    --toggle-handle-border: var(--input-generic-accent);
+    --toggle-handle-color: var(--theme-active-light);
+    --toggle-handle-border: var(--theme-generic-accent);
 }
 
 .toggle:checked:after {
-    --toggle-background-color: var(--input-active-medium);
+    --toggle-background-color: var(--theme-active-medium);
 }
 
 .toggle:disabled {

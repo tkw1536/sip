@@ -3,6 +3,7 @@ import { useEffect, useRef } from 'preact/hooks'
 import HTML from '../html'
 import * as styles from './banner.module.css'
 import markdownDocument from '../../../macros/markdown' with { type: 'macro' }
+import Button from '../form/button'
 
 const bannerHTML = markdownDocument('banner.md')
 
@@ -21,12 +22,10 @@ export default function Banner({ onClose }: ModalProps): JSX.Element {
 
   return (
     <dialog ref={modalRef} onClose={onClose} class={styles.banner}>
-      <form method='dialog'>
-        <HTML html={bannerHTML} trim={false} noContainer />
-        <div>
-          <button type='submit'>I Understand And Wish To Continue</button>
-        </div>
-      </form>
+      <HTML html={bannerHTML} trim={false} noContainer />
+      <div>
+        <Button onInput={onClose}>I Understand And Agree To These Terms</Button>
+      </div>
     </dialog>
   )
 }

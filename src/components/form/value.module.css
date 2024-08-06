@@ -1,0 +1,58 @@
+.value {
+    border: none; 
+    outline: none;
+
+    font-family: monospace;
+    color: var(--theme-generic-accent);
+
+    /** fill the parent with a min-width of 150px */
+    box-sizing: border-box;
+    padding: 2px;
+    min-width: var(--theme-size);
+    width: 100%;
+    height: 100%;
+
+    font-size: 112.5%;
+
+    border-width: 1px;
+    border-style: solid;
+    border-radius: 5px;
+
+    border-color: var(--value-outline);
+    background-color: var(--value-background);
+    transition: background-color var(--theme-transition) linear, border-color var(--theme-transition) linear;
+}
+
+.value {
+    --value-background: var(--theme-generic-light);
+    --value-outline: var(--theme-generic-accent);
+
+    --value-focus-background: var(--theme-active-light);
+    --value-focus-outline: var(--theme-active-medium);
+}
+
+.value[aria-invalid="true"] {
+    --value-background: var(--theme-invalid-light);
+    --value-outline: var(--theme-invalid-medium);
+
+    --value-focus-background: var(--theme-invalid-medium);
+    --value-focus-outline: var(--theme-invalid-dark);
+}
+
+.value[aria-invalid="false"] {
+    --value-background: var(--theme-valid-light);
+    --value-outline: var(--theme-valid-medium);
+
+    --value-focus-background: var(--theme-valid-medium);
+    --value-focus-outline: var(--theme-valid-dark);
+}
+
+.value:focus, .value:active {
+    --value-background: var(--value-focus-background);
+    --value-outline: var(--value-focus-outline);
+}
+
+.value:disabled {
+    --value-background: var(--theme-generic-medium);
+    --value-focus-background: var(--theme-generic-dark);
+}

@@ -22,9 +22,6 @@ interface PanelProps {
 
   /** the margin between the handle and the beginning of the content */
   margin?: number | string
-
-  /** the time to transition the opening */
-  transitionTime?: number | string
 }
 
 type ControlKeys = 'open' | 'setOpen'
@@ -47,15 +44,7 @@ function UncontrolledPanel(props: UnPanelProps): JSX.Element {
 }
 
 function ControlledPanel(props: ConPanelProps): JSX.Element {
-  const {
-    open,
-    setOpen,
-    panel,
-    children,
-    width,
-    transitionTime,
-    margin: padding,
-  } = props
+  const { open, setOpen, panel, children, width, margin: padding } = props
   const toggle = useCallback(
     (event: Event) => {
       event.preventDefault()
@@ -67,7 +56,6 @@ function ControlledPanel(props: ConPanelProps): JSX.Element {
   const style = {
     '--panel-margin': addUnit(padding ?? 0, 'px'),
     '--panel-width': addUnit(width ?? 500, 'px'),
-    '--panel-transition-time': addUnit(transitionTime ?? 0.5, 's'),
   }
 
   return (

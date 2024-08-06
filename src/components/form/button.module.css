@@ -11,7 +11,7 @@
     padding: 2px;
     min-width: 50px;
 
-    color: var(--input-generic-accent);
+    color: var(--theme-generic-accent);
 }
 
 /* button coloring */
@@ -24,23 +24,23 @@
 
     background-color: var(--button-background);
     border-color: var(--button-outline);
-    transition: background-color var(--input-transition) linear, border-color var(--input-transition) linear;
+    transition: background-color var(--theme-transition) linear, border-color var(--theme-transition) linear;
 }
 
 .button {
-    --button-background: var(--input-active-light);
-    --button-outline: var(--input-active-medium);
+    --button-background: var(--theme-active-light);
+    --button-outline: var(--theme-active-medium);
 }
 
 .button:hover:not(:disabled) {
     cursor: pointer;
-    --button-background: var(--input-active-medium);
-    --button-outline: var(--input-active-hard);
+    --button-background: var(--theme-active-medium);
+    --button-outline: var(--theme-active-hard);
 }
 
 .button:disabled {
-    --button-background: var(--input-generic-light);
-    --button-outline: var(--input-generic-medium);
+    --button-background: var(--theme-generic-light);
+    --button-outline: var(--theme-generic-medium);
 }
 
 

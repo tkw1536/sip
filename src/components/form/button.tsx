@@ -3,7 +3,7 @@ import { type JSX } from 'preact/compat'
 import { useCallback, useRef } from 'preact/hooks'
 import { ariaEntries, datasetEntries, type InputLikeProps } from './generic'
 import useModifierRef from './generic/modifiers'
-import * as styles from './generic/index.module.css'
+import * as styles from './button.module.css'
 
 interface ButtonProps<T> extends InputLikeProps<T | undefined> {
   children?: ComponentChildren

@@ -8,7 +8,7 @@ import { useCallback, useMemo } from 'preact/hooks'
 import useModifierRef from './generic/modifiers'
 import ColorInstance from 'color'
 import { type HTMLAttributes } from 'preact/compat'
-import * as styles from './generic/index.module.css'
+import * as styles from './value.module.css'
 
 interface ValueBasedInputProps<T> extends InputLikeProps<T> {
   style: string
