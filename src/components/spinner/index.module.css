@@ -1,41 +1,61 @@
-.loader {
+.spinner {
     width: fit-content;
     cursor: progress;
     width: 100%;
     box-sizing: border-box;
+
+    --glass-size: 255px;
+    --molecule-size: 110px;
+    --molecule-image: 100px;
 }
+
 .message {
     width: 100%;
     text-align: center;
 }
+
 .logo {
     position: relative;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-
-    width: 230px;
-    height: 255px;
 
     margin: auto;
+    width: var(--glass-size);
+    height: var(--glass-size);
 
-    background-color: transparent;
-    background-size: cover;
-    background-image: url('./wisski_glass.svg');
-    width: 230px;
-    height: 255px;
 }
 
-.logo div {
-    background-image: url('./wisski_molecule.svg');
+.logo .glass {
+    position: absolute;
+    margin: auto;
+    z-index: 1;
+
+    width: var(--glass-size);
+    height: var(--glass-size);
+
+    background-image: url('./wisski_glass.svg');
+    background-size: cover;
     background-position: 50% 50%;
-    background-size: 100px 100px;
     background-repeat: no-repeat;
-    width: 110px;
-    height: 110px;
-    z-index: -1;
+
+
+}
+
+.logo .molecule {
+    position: absolute;
+    left: calc((var( --glass-size) - var(--molecule-size)) / 2);
+    top: calc((var( --glass-size) - var(--molecule-size)) / 2);
+    z-index: 0;
+
+    width: var(--molecule-size);
+    height: var(--molecule-size);
+
+    /** center the molecule */
+    background-image: url('./wisski_molecule.svg');
+    background-size: cover;
+    background-position: 50% 50%;
+    background-size: var(--molecule-image) var(--molecule-image);
+    background-repeat: no-repeat;
+
     animation: molecule 2s infinite linear;
-    
 }
 
 @keyframes molecule {
