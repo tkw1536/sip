@@ -92,17 +92,17 @@ export default function DebugTab(): JSX.Element {
             <td>
               <Switch value={true} />
             </td>
+            <td>
+              <Switch value={true} disabled />
+            </td>
           </tr>
           <tr>
             <td>Unchecked</td>
             <td>
               <Switch value={false} />
             </td>
-          </tr>
-          <tr>
-            <td>Disabled</td>
             <td>
-              <Switch value={true} disabled />
+              <Switch value={false} disabled />
             </td>
           </tr>
         </tbody>

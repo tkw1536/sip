@@ -1,33 +1,33 @@
 .toggle {
-	appearance: none;
+    appearance: none;
 
-	position: relative;
-	border: 0;
-	outline: 0;
+    position: relative;
+    border: 0;
+    outline: 0;
 
     vertical-align: middle;
-
 }
 
 .toggle:not(:disabled) {
-	cursor: pointer;
+    cursor: pointer;
 }
 
 
 .toggle:after {
-	content: '';
+    content: '';
     display: inline-block;
-	clear: both;
+    clear: both;
 
     width: var(--toggle-width);
-	height: var(--toggle-height);
-	border-radius: calc(var(--toggle-height) / 2);
+    height: var(--toggle-height);
+    border-radius: calc(var(--toggle-height) / 2);
 
     background-color: var(--toggle-background-color);
 }
 
 /* animate all the things */
-.toggle:before, .toggle:after {
+.toggle:before,
+.toggle:after {
     transition: left var(--theme-transition) linear, background-color var(--theme-transition) linear, border-color var(--theme-transition) linear;
 }
 
@@ -38,14 +38,14 @@
 
     /* position the handle in the center of the parent */
     display: block;
-	position: absolute;
+    position: absolute;
     top: 0;
-	left: 0;
+    left: 0;
 
     /* it is a circle */
     width: var(--toggle-height);
-	height: var(--toggle-height);
-	border-radius: 50%;
+    height: var(--toggle-height);
+    border-radius: 50%;
 
     border-width: 1px;
     border-style: solid;
@@ -55,31 +55,49 @@
 }
 
 .toggle:checked:before {
-	left: calc(var(--toggle-width) - var(--toggle-height));
+    left: calc(var(--toggle-width) - var(--toggle-height));
 }
 
 /* sizes */
-.toggle, .toggle:before, .toggle:after {
+.toggle,
+.toggle:before,
+.toggle:after {
     --toggle-height: 2em;
     --toggle-width: calc(var(--toggle-height)*2);
 }
 
 /* colors */
-.toggle, .toggle:before, .toggle:after {
+.toggle,
+.toggle:before,
+.toggle:after {
     --toggle-handle-color: var(--theme-generic-light);
+    --toggle-handle-hover-color: var(--theme-active-light);
+
     --toggle-handle-border: var(--theme-generic-dark);
+    --toggle-handle-border-hover: var(--theme-generic-accent);
 
     --toggle-background-color: var(--theme-generic-medium);
+    --toggle-background-checked-color: var(--theme-active-medium);
 }
-.toggle:hover:not(:disabled):before {
-    --toggle-handle-color: var(--theme-active-light);
-    --toggle-handle-border: var(--theme-generic-accent);
+
+.toggle:disabled, .toggle:disabled:before, .toggle:disabled:after {
+    --toggle-handle-color: var(--theme-generic-medium);
+    --toggle-handle-hover-color: var(--theme-generic-medium);
+
+    --toggle-handle-border: var(--theme-generic-dark);
+    --toggle-handle-border-hover: var(--theme-generic-dark);
+
+    --toggle-background-color: var(--theme-generic-medium);
+    --toggle-background-checked-color: var(--theme-generic-dark);
+}
+
+.toggle:hover:before {
+    --toggle-handle-color: var(--toggle-handle-hover-color);
+    --toggle-handle-border: var(--toggle-handle-border-hover);
 }
 
 .toggle:checked:after {
-    --toggle-background-color: var(--theme-active-medium);
+    --toggle-background-color: var(--toggle-background-checked-color);
 }
 
-.toggle:disabled {
-   filter: grayscale(); 
-}
+
