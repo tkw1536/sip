@@ -4,9 +4,10 @@
     width: 100%;
     box-sizing: border-box;
 
-    --glass-size: 255px;
-    --molecule-size: 110px;
-    --molecule-image: 100px;
+    --glass-size: 200px;
+    --glass-side: 10px;
+
+    --ball-size: 50px;
 }
 
 .message {
@@ -14,66 +15,80 @@
     text-align: center;
 }
 
-.logo {
+.icon {
     position: relative;
 
     margin: auto;
     width: var(--glass-size);
     height: var(--glass-size);
-
 }
 
-.logo::before {
+.icon::before {
     content: '';
     display: block;
+
+    box-sizing: border-box;
+    width: var(--glass-size);
+    height: var(--glass-size);
 
     position: absolute;
     margin: auto;
     z-index: 1;
 
-    width: var(--glass-size);
-    height: var(--glass-size);
+    border-width: var(--glass-side);
+    border-top-width: 0;
+    border-bottom-width: calc(2*var(--glass-side));
+    border-bottom-left-radius: calc(2*var(--glass-side));
+    border-bottom-right-radius: calc(2*var(--glass-side));
+    border-style: solid;
+    border-color: var(--theme-generic-medium);
 
-    background-image: url('./wisski_glass.svg');
-    background-size: cover;
-    background-position: 50% 50%;
-    background-repeat: no-repeat;
-
-
+    background-image: linear-gradient(to bottom, transparent 50%, var(--theme-generic-dark) 50%);
 }
 
-.logo::after {
+.icon::after {
     content: '';
     display: block;
 
+    box-sizing: border-box;
+    width: var(--ball-size);
+    height: var(--ball-size);
+
     position: absolute;
-    left: calc((var( --glass-size) - var(--molecule-size)) / 2);
-    top: calc((var( --glass-size) - var(--molecule-size)) / 2);
+    left: calc((var( --glass-size) - var(--ball-size)) / 2);
+    top: calc((var( --glass-size) - var(--ball-size)) / 2);
     z-index: 0;
 
-    width: var(--molecule-size);
-    height: var(--molecule-size);
+    border-radius: calc(var(--ball-size) / 2);
+    border-width: 1px; 
+    border-style: solid;
 
-    /** center the molecule */
-    background-image: url('./wisski_molecule.svg');
-    background-size: cover;
-    background-position: 50% 50%;
-    background-size: var(--molecule-image) var(--molecule-image);
-    background-repeat: no-repeat;
+    animation: bounce 2s infinite linear;
 
-    animation: molecule 2s infinite linear;
+    transition: background-color var(--theme-transition) linear, border-color var(--theme-transition) linear;
+
 }
 
-@keyframes molecule {
+@keyframes bounce {
     0% {
-        transform: translateY(0px) rotate(0deg);
+        transform: translateY(0px);
     }
 
     50% {
-        transform: translateY(-25px) rotate(180deg);
+        transform: translateY(calc(-1 * (var(--ball-size)/2)));
     }
 
     100% {
-        transform:  translateY(0px) rotate(360deg);
+        transform:  translateY(0px);
     }
+}
+
+.icon::after {
+    background-color: var(--theme-active-light);
+    border-color: var(--theme-active-medium);
+}
+
+.icon:hover::after {
+    background-color: var(--theme-active-medium);
+    border-color: var(--theme-active-dark);
 }
