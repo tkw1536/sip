@@ -23,7 +23,10 @@
 
 }
 
-.logo .glass {
+.logo::before {
+    content: '';
+    display: block;
+
     position: absolute;
     margin: auto;
     z-index: 1;
@@ -39,7 +42,10 @@
 
 }
 
-.logo .molecule {
+.logo::after {
+    content: '';
+    display: block;
+
     position: absolute;
     left: calc((var( --glass-size) - var(--molecule-size)) / 2);
     top: calc((var( --glass-size) - var(--molecule-size)) / 2);

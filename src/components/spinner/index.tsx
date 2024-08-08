@@ -15,10 +15,7 @@ export default function Spinner({ message }: LoaderProps): VNode<any> {
   return (
     <AvoidFlicker>
       <div class={styles.spinner}>
-        <div class={styles.logo} role='progressbar'>
-          <div class={styles.glass} />
-          <div class={styles.molecule} />
-        </div>
+        <div class={styles.logo} role='progressbar'></div>
         {typeof message !== 'undefined' && (
           <div class={styles.message}>{message}</div>
         )}
