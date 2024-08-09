@@ -2,22 +2,16 @@ import { type JSX } from 'preact'
 import Tabs, { TabLabel, Tab } from '../../components/tabs'
 
 import DebugTab from './tabs/debug'
-import { LazyLoaded } from '../../components/spinner'
 import Banner from '../../components/layout/banner'
 import useInspectorStore from './state'
+import { lazy } from 'preact/compat'
 
-const PathbuilderTab = LazyLoaded(
-  async () => (await import('./tabs/pathbuilder')).default,
-)
-const TreeTab = LazyLoaded(async () => (await import('./tabs/tree')).default)
-const BundleGraphTab = LazyLoaded(
-  async () => (await import('./tabs/bundle')).default,
-)
-const ModelGraphTab = LazyLoaded(
-  async () => (await import('./tabs/model')).default,
-)
-const MapTab = LazyLoaded(async () => (await import('./tabs/map')).default)
-const AboutTab = LazyLoaded(async () => (await import('./tabs/about')).default)
+const PathbuilderTab = lazy(async () => await import('./tabs/pathbuilder'))
+const TreeTab = lazy(async () => await import('./tabs/tree'))
+const BundleGraphTab = lazy(async () => await import('./tabs/bundle'))
+const ModelGraphTab = lazy(async () => await import('./tabs/model'))
+const MapTab = lazy(async () => await import('./tabs/map'))
+const AboutTab = lazy(async () => await import('./tabs/about'))
 
 export default function InspectorApp(): JSX.Element {
   const activeTab = useInspectorStore(s => s.activeTab)

@@ -1,12 +1,6 @@
-import {
-  type ComponentType,
-  type ComponentChildren,
-  type VNode,
-  type JSX,
-} from 'preact'
+import { type ComponentChildren, type VNode, type JSX } from 'preact'
 import * as styles from './index.module.css'
-import { Lazy as LazyImpl } from '../wrapper'
-import { useEffect, useState, type PropsWithoutRef } from 'preact/compat'
+import { useEffect, useState } from 'preact/hooks'
 
 interface LoaderProps {
   message?: ComponentChildren
@@ -22,14 +16,6 @@ export default function Spinner({ message }: LoaderProps): VNode<any> {
       </div>
     </AvoidFlicker>
   )
-}
-
-/** Like {@link Lazy} except that it uses the default spinner component */
-export function LazyLoaded<P>(
-  loader: () => Promise<ComponentType<P>>,
-  message?: string,
-): ComponentType<PropsWithoutRef<P>> {
-  return LazyImpl(loader, <Spinner message={message} />)
 }
 
 function AvoidFlicker(props: {

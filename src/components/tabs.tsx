@@ -7,6 +7,8 @@ import {
 import * as styles from './tabs.module.css'
 import { classes } from '../lib/utils/classes'
 import { useCallback, useId, useMemo } from 'preact/hooks'
+import { Suspense } from 'preact/compat'
+import Spinner from './spinner'
 
 interface TabProps {
   title: string
@@ -159,7 +161,7 @@ export function TabInterface(props: TabInterfaceProps): JSX.Element {
             aria-labelledby={tabID}
             class={clz}
           >
-            {childNodes}
+            <Suspense fallback={<Spinner />}>{childNodes}</Suspense>
           </div>
         )
       })}
