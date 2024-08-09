@@ -20,6 +20,7 @@ import FA2Layout from 'graphology-layout-forceatlas2/worker'
 import { inferSettings } from 'graphology-layout-forceatlas2'
 import circular from 'graphology-layout/circular'
 import circlepack from 'graphology-layout/circlepack'
+import random from 'graphology-layout/random'
 import {
   type ModelOptions,
   type ModelEdge,
@@ -91,7 +92,7 @@ abstract class SigmaDriver<
     switch (layout === defaultLayout ? 'force2atlas' : layout) {
       case 'force2atlas':
         {
-          circular.assign(graph, { scale: 100 })
+          random.assign(graph, { rng: prng(seed) })
           const layout = new FA2Layout(graph, {
             settings: inferSettings(graph),
           })
