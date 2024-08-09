@@ -47,7 +47,7 @@ export default class RDFGraphBuilder extends GraphBuilder<
     const subject = this.graph.addNode(
       {
         node: qSubject,
-        render: makeRenderMethod(qSubject),
+        render: makeRenderMethod(qSubject, false),
       },
       RDFGraphBuilder.#subjectID(qSubject),
     )
@@ -56,7 +56,7 @@ export default class RDFGraphBuilder extends GraphBuilder<
     const object = this.graph.addNode(
       {
         node: qObject,
-        render: makeRenderMethod(qObject),
+        render: makeRenderMethod(qObject, false),
       },
       RDFGraphBuilder.#objectID(qObject),
     )
@@ -64,7 +64,7 @@ export default class RDFGraphBuilder extends GraphBuilder<
     // and add the edge
     this.graph.addEdge(subject, object, {
       edge: qPredicate,
-      render: makeRenderMethod(qPredicate),
+      render: makeRenderMethod(qPredicate, true),
     })
   }
 
@@ -93,6 +93,7 @@ export default class RDFGraphBuilder extends GraphBuilder<
 
 function makeRenderMethod(
   node: SubjectType | ObjectType | PredicateType,
+  edge: boolean,
 ): RenderMethod {
   return (id: string, options: RDFOptions) => {
     const element: Element = {
@@ -100,41 +101,50 @@ function makeRenderMethod(
       label: null,
       tooltip: null,
       color: null,
+      shape: null,
     }
     switch (node.termType) {
       case 'BlankNode' /** fallthrough */:
         element.label = node.id
         element.tooltip = node.id
         element.color = 'yellow'
+        element.shape = 'ellipse'
         break
       case 'NamedNode':
         element.label = options.ns.apply(node.uri)
         element.tooltip = node.uri
         element.color = 'green'
+        element.shape = 'ellipse'
         break
       case 'Literal':
-        // element.shape = 'box'
         element.label = node.value
         element.tooltip = node.termType
         element.color = 'blue'
+        element.shape = 'box'
         break
       case 'Variable':
         element.label = '?' + node.value
         element.tooltip = '?' + node.value
         element.color = 'red'
+        element.shape = 'ellipse'
         break
       case 'Collection':
         element.label = 'Collection'
         element.tooltip = 'Collection'
         element.color = 'orange'
+        element.shape = 'ellipse'
         break
       case 'Empty':
         element.label = 'Empty'
         element.tooltip = 'Empty'
         element.color = 'white'
+        element.shape = 'ellipse'
         break
       default:
         throw new Error('never reached')
+    }
+    if (edge) {
+      element.shape = null
     }
     return element
   }

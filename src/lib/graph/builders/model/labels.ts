@@ -97,6 +97,7 @@ export class ConceptModelNode
       label: labelParts.length > 0 ? labelParts.join('\n\n') : null,
       tooltip: tooltipParts.length > 0 ? tooltipParts.join('\n\n') : null,
       color: options.cm.get(...fields, ...bundles),
+      shape: 'ellipse',
     }
   }
 
@@ -110,11 +111,12 @@ export class ConceptModelNode
     bundles: Attachment[]
     fields: Attachment[]
   } {
-    const element = {
+    const element: Element = {
       id,
       label: options.display.Labels.Concept ? options.ns.apply(this.clz) : null,
       tooltip: options.display.Labels.Concept ? this.clz : null,
       color: null,
+      shape: 'ellipse',
     }
 
     const {
@@ -123,7 +125,7 @@ export class ConceptModelNode
       ConceptFieldType: ConceptFieldTypes,
     } = options.display.Labels
 
-    const bundleRenders = bundles.map((bundle, idx) => {
+    const bundleRenders = bundles.map((bundle, idx): Attachment => {
       const bundleID = `${id}-bundle-${idx}`
       const color = options.cm.get(bundle)
       return {
@@ -132,17 +134,19 @@ export class ConceptModelNode
           label: BundleLabels ? bundle.path.name : null,
           tooltip: BundleLabels ? bundle.path.id : null,
           color,
+          shape: 'diamond',
         },
         edge: {
           id: bundleID + '-edge',
           label: null,
           tooltip: null,
           color,
+          shape: null,
         },
       }
     })
 
-    const fieldRenders = fields.map((field, idx) => {
+    const fieldRenders = fields.map((field, idx): Attachment => {
       const fieldID = `${id}-field-${idx}`
       const color = options.cm.get(field)
 
@@ -152,12 +156,14 @@ export class ConceptModelNode
           label: ConceptFieldLabels ? field.path.name : null,
           tooltip: ConceptFieldLabels ? field.path.id : null,
           color,
+          shape: 'diamond',
         },
         edge: {
           id: fieldID + '-edge',
           label: ConceptFieldTypes ? field.path.informativeFieldType : null,
           tooltip: ConceptFieldTypes ? field.path.fieldType : null,
           color,
+          shape: null,
         },
       }
     })
@@ -214,6 +220,7 @@ export class LiteralModelNode {
       label,
       tooltip: null,
       color: options.cm.get(...fields),
+      shape: 'box',
     }
   }
 
@@ -237,8 +244,9 @@ export class LiteralModelNode {
         label: null,
         tooltip: null,
         color: null,
+        shape: 'box',
       },
-      fields: Array.from(fields).map((field, idx) => {
+      fields: Array.from(fields).map((field, idx): Attachment => {
         const fieldID = `${id}-field-${idx}`
         const color = options.cm.get(field)
         return {
@@ -247,12 +255,14 @@ export class LiteralModelNode {
             label: DatatypeFieldLabels ? field.path.name : null,
             tooltip: DatatypeFieldLabels ? field.path.id : null,
             color,
+            shape: 'diamond',
           },
           edge: {
             id: fieldID + '-edge',
             label: DatatypeFieldTypes ? field.path.informativeFieldType : null,
             tooltip: DatatypeFieldTypes ? field.path.fieldType : null,
             color,
+            shape: null,
           },
         }
       }),
@@ -276,6 +286,7 @@ export class PropertyModelEdge {
         : null,
       tooltip: options.display.Labels.Property ? this.property : null,
       color: null,
+      shape: null,
     }
   }
 }
@@ -294,6 +305,7 @@ export class DataModelEdge {
         : null,
       tooltip: options.display.Labels.DatatypeProperty ? this.property : null,
       color: null,
+      shape: null,
     }
   }
 }

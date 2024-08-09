@@ -80,6 +80,7 @@ export default class BundleGraphBuilder extends GraphBuilder<
             label: bundle.path.name,
             tooltip: bundle.path.id,
             color: options.cm.get(bundle),
+            shape: 'ellipse',
           }),
         },
         id,
@@ -98,6 +99,7 @@ export default class BundleGraphBuilder extends GraphBuilder<
           label: null,
           tooltip: null,
           color: null,
+          shape: null,
         }),
       })
     }
@@ -118,6 +120,7 @@ export default class BundleGraphBuilder extends GraphBuilder<
             label: cf.path.name,
             tooltip: cf.path.id,
             color: options.cm.get(cf),
+            shape: 'ellipse',
           }),
         },
         fieldId,
@@ -131,6 +134,7 @@ export default class BundleGraphBuilder extends GraphBuilder<
           label: null,
           tooltip: null,
           color: null,
+          shape: null,
         }),
       })
     }

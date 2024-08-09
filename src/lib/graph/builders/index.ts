@@ -33,17 +33,31 @@ export interface Renderable<Options, Key extends string> {
 export interface ElementWithAttachments<Key extends string> extends Element {
   attached?: {
     boxed: boolean
-    elements: Record<Key, Attachment[]>
+    elements: AttachedElements<Key>
   }
 }
 
+export type AttachedElements<Key extends string> = Record<Key, Attachment[]>
+
 /** something that can be rendered onto the page */
 export interface Element {
+  /** globally unique id of this element */
   id: string
+
+  /** rendered label attached to this element */
   label: string | null
+
+  /** tooltip to be shown on hovering this element */
   tooltip: string | null
+
+  /** color (hex) of this element */
   color: string | null
+
+  /** shape of this element (always null for edges) */
+  shape: Shape | null
 }
+
+type Shape = 'ellipse' | 'box' | 'diamond'
 
 /** an element attached to an existing node */
 export interface Attachment {

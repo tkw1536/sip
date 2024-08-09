@@ -29,13 +29,8 @@ import {
   type ModelEdge,
   type ModelNode,
   type ModelAttachmentKey,
-  LiteralModelNode,
 } from '../../../graph/builders/model/labels'
-import {
-  type Renderable,
-  type Element,
-  type ElementWithAttachments,
-} from '../../../graph/builders'
+import { type Renderable, type Element } from '../../../graph/builders'
 import { type Size } from '../../../../components/hooks/observer'
 
 const spz = new LazyValue(
@@ -261,7 +256,7 @@ abstract class GraphvizDriver<
 
   protected attributes(
     type: 'node' | 'edge',
-    { color, label, tooltip }: Element,
+    { color, label, tooltip, shape }: Element,
   ): Attributes {
     const attributes: Attributes = {}
     if (typeof color === 'string') {
@@ -271,6 +266,9 @@ abstract class GraphvizDriver<
       } else {
         attributes.color = color
       }
+    }
+    if (type === 'node' && shape !== null) {
+      attributes.shape = shape === 'diamond' ? 'octagon' : shape
     }
     attributes.label = label ?? ''
     attributes.tooltip = tooltip ?? ''
@@ -370,27 +368,6 @@ export class GraphVizModelDriver extends GraphvizDriver<
   ModelAttachmentKey
 > {
   readonly driver = GraphVizModelDriver
-
-  protected renderAnyNode(
-    node: ModelNode,
-    element: ElementWithAttachments<ModelAttachmentKey>,
-  ): Attributes {
-    return {
-      ...super.renderAnyNode(node, element),
-      shape: node instanceof LiteralModelNode ? 'box' : 'ellipse',
-    }
-  }
-  protected renderAttachedNode(
-    parent: ModelNode,
-    attachment: ModelAttachmentKey,
-    element: Element,
-  ): Attributes {
-    return {
-      ...super.renderAttachedNode(parent, attachment, element),
-      // spellchecker:words doubleoctagon
-      shape: 'doubleoctagon',
-    }
-  }
 }
 
 export class GraphVizRDFDriver extends GraphvizDriver<
@@ -400,15 +377,6 @@ export class GraphVizRDFDriver extends GraphvizDriver<
   never
 > {
   readonly driver = GraphVizRDFDriver
-  protected renderSimpleNode(
-    { node }: RDFNode,
-    element: ElementWithAttachments<never>,
-  ): Attributes {
-    return {
-      shape: node.termType !== 'Literal' ? 'ellipse' : 'box',
-      ...this.attributes('node', element),
-    }
-  }
 }
 
 /** Graph represents a graph passed to the viz.js implementation */

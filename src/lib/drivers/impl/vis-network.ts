@@ -23,17 +23,12 @@ import {
   type ModelNode,
   type ModelAttachmentKey,
 } from '../../graph/builders/model/labels'
-import {
-  type Renderable,
-  type Element,
-  type ElementWithAttachments,
-} from '../../graph/builders'
+import { type Renderable, type Element } from '../../graph/builders'
 import {
   type RDFEdge,
   type RDFNode,
   type RDFOptions,
 } from '../../graph/builders/rdf'
-import { type Attributes } from 'graphology-types'
 import { type Size } from '../../../components/hooks/observer'
 
 type NodeAttributes = Omit<VisNode<string | number>, 'id'>
@@ -242,7 +237,7 @@ abstract class VisNetworkDriver<
 
   protected attributes(
     type: 'node' | 'edge',
-    { color, label, tooltip }: Element,
+    { color, label, tooltip, shape }: Element,
   ): NodeAttributes | EdgeAttributes {
     if (type === 'node') {
       return {
@@ -250,6 +245,7 @@ abstract class VisNetworkDriver<
           background: color ?? 'white',
           border: 'black',
         },
+        shape: shape ?? undefined,
         title: tooltip ?? undefined,
         label: label ?? undefined,
       }
@@ -336,17 +332,6 @@ export class VisNetworkModelDriver extends VisNetworkDriver<
   ModelAttachmentKey
 > {
   readonly driver = VisNetworkModelDriver
-
-  protected renderAttachedNode(
-    parent: ModelNode,
-    attachment: ModelAttachmentKey,
-    element: Element,
-  ): Attributes {
-    return {
-      shape: 'box',
-      ...super.renderAttachedNode(parent, attachment, element),
-    }
-  }
 }
 
 export class VisNetworkRDFDriver extends VisNetworkDriver<
@@ -356,15 +341,6 @@ export class VisNetworkRDFDriver extends VisNetworkDriver<
   never
 > {
   readonly driver = VisNetworkRDFDriver
-  protected renderSimpleNode(
-    { node }: RDFNode,
-    element: ElementWithAttachments<never>,
-  ): Attributes {
-    return {
-      shape: node.termType !== 'Literal' ? 'ellipse' : 'box',
-      ...this.attributes('node', element),
-    }
-  }
 }
 
 type VisNode<T extends string | number> = {

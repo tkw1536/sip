@@ -162,6 +162,14 @@ abstract class CytoscapeDriver<
           },
         },
         {
+          selector: 'node[shape]',
+          style: {
+            // HACK: data(shape) is expected to be a literal
+            // but we read it from data here
+            shape: 'data(shape)' as any,
+          },
+        },
+        {
           selector: 'edge',
           style: {
             'width': 3,
@@ -333,11 +341,12 @@ abstract class CytoscapeDriver<
 
   protected attributes(
     type: 'node' | 'edge',
-    { color, label, tooltip }: Element,
+    { color, label, tooltip, shape }: Element,
   ): Attributes {
     return {
       label: label ?? undefined,
       color: color ?? 'black',
+      shape: (shape === 'box' ? 'rectangle' : shape) ?? undefined,
     }
   }
 
