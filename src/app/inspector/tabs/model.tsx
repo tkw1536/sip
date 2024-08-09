@@ -124,6 +124,17 @@ interface ModelDisplayControlProps {
 function ModelGraphDisplayControl(
   props: ModelDisplayControlProps,
 ): JSX.Element {
+  const showLiterals = props.display.Compounds.DataFields
+  const complexLiterals = showLiterals && props.display.Literal.complex
+
+  const showBundles = props.display.Compounds.Bundles
+
+  const showFields = props.display.Compounds.ConceptFields
+  const complexFields = showFields && props.display.Concept.complex
+
+  const showConcepts = showBundles || showFields
+  const complexConcepts = showConcepts && props.display.Concept.complex
+
   return (
     <Control name='Display' class={styles.duals}>
       <fieldset>
@@ -133,31 +144,56 @@ function ModelGraphDisplayControl(
           <tbody>
             <tr>
               <td>
-                <ComponentCheckbox
+                <DisplayCheckbox
+                  a='Labels'
+                  b='Concept'
                   {...props}
-                  value={props.display.Labels.Concept}
-                  set={(display, ConceptLabels) => ({
-                    ...display,
-                    Labels: {
-                      ...display.Labels,
-                      Concept: ConceptLabels,
-                    },
-                  })}
-                  label='Concept Labels'
+                  label='Concept URIs'
                 />
               </td>
               <td>
-                <ComponentCheckbox
+                <DisplayCheckbox
+                  a='Labels'
+                  b='Property'
                   {...props}
-                  value={props.display.Labels.Property}
-                  set={(display, PropertyLabels) => ({
-                    ...display,
-                    Labels: {
-                      ...display.Labels,
-                      Property: PropertyLabels,
-                    },
-                  })}
-                  label='Property Labels'
+                  label='Property URIs'
+                />
+              </td>
+            </tr>
+
+            <tr>
+              <td colSpan={2}>
+                The following switches control if these are shown in addition to
+                the pure concept / predicate structure.
+              </td>
+            </tr>
+
+            <tr>
+              <td colspan={2}>
+                <DisplayCheckbox
+                  a='Compounds'
+                  b='Bundles'
+                  {...props}
+                  label='Bundles'
+                />
+              </td>
+            </tr>
+
+            <tr>
+              <td>
+                <DisplayCheckbox
+                  a='Compounds'
+                  b='DataFields'
+                  {...props}
+                  label='Data Fields'
+                />
+              </td>
+              <td>
+                <DisplayCheckbox
+                  a='Compounds'
+                  b='ConceptFields'
+                  {...props}
+                  label='Concept Fields'
                 />
               </td>
             </tr>
@@ -166,31 +202,26 @@ function ModelGraphDisplayControl(
       </fieldset>
 
       <fieldset>
-        <legend>Bundles & Fields</legend>
+        <legend>Concepts</legend>
 
         <table>
           <tbody>
             <tr>
               <td>
-                <ComponentCheckbox
+                <DisplayCheckbox
+                  a='Concept'
+                  b='complex'
                   {...props}
-                  value={props.display.ComplexConceptNodes}
-                  set={(display, ComplexConceptNodes) => ({
-                    ...display,
-                    ComplexConceptNodes,
-                  })}
+                  disabled={!showConcepts}
                   label='Complex'
                 />
               </td>
               <td>
-                <ComponentCheckbox
+                <DisplayCheckbox
+                  a='Concept'
+                  b='boxed'
                   {...props}
-                  disabled={!props.display.ComplexConceptNodes}
-                  value={props.display.BoxConceptNodes}
-                  set={(display, BoxConceptNodes) => ({
-                    ...display,
-                    BoxConceptNodes,
-                  })}
+                  disabled={!complexConcepts}
                   label='Boxed'
                 />
               </td>
@@ -203,17 +234,12 @@ function ModelGraphDisplayControl(
             </tr>
             <tr>
               <td>
-                <ComponentCheckbox
+                <DisplayCheckbox
+                  a='Labels'
+                  b='Bundle'
                   {...props}
-                  value={props.display.Labels.Bundle}
-                  set={(display, BundleLabels) => ({
-                    ...display,
-                    Labels: {
-                      ...display.Labels,
-                      Bundle: BundleLabels,
-                    },
-                  })}
-                  label='Bundle Labels'
+                  disabled={!showBundles}
+                  label='Bundle Names'
                 />
               </td>
               <td></td>
@@ -221,31 +247,20 @@ function ModelGraphDisplayControl(
 
             <tr>
               <td>
-                <ComponentCheckbox
+                <DisplayCheckbox
                   {...props}
-                  value={props.display.Labels.ConceptField}
-                  set={(display, ConceptFieldLabels) => ({
-                    ...display,
-                    Labels: {
-                      ...display.Labels,
-                      ConceptField: ConceptFieldLabels,
-                    },
-                  })}
+                  a='Labels'
+                  b='ConceptField'
+                  disabled={!showFields}
                   label='Field Names'
                 />
               </td>
               <td>
-                <ComponentCheckbox
+                <DisplayCheckbox
+                  a='Labels'
+                  b='ConceptFieldType'
                   {...props}
-                  value={props.display.Labels.ConceptFieldType}
-                  set={(display, ConceptFieldTypes) => ({
-                    ...display,
-                    Labels: {
-                      ...display.Labels,
-                      ConceptFieldType: ConceptFieldTypes,
-                    },
-                  })}
-                  disabled={!props.display.ComplexConceptNodes}
+                  disabled={!complexFields}
                   label='Field Types'
                 />
               </td>
@@ -261,25 +276,20 @@ function ModelGraphDisplayControl(
           <tbody>
             <tr>
               <td>
-                <ComponentCheckbox
+                <DisplayCheckbox
+                  a='Literal'
+                  b='complex'
                   {...props}
-                  value={props.display.ComplexLiteralNodes}
-                  set={(display, ComplexLiteralNodes) => ({
-                    ...display,
-                    ComplexLiteralNodes,
-                  })}
+                  disabled={!showLiterals}
                   label='Complex'
                 />
               </td>
               <td>
-                <ComponentCheckbox
+                <DisplayCheckbox
+                  a='Literal'
+                  b='boxed'
                   {...props}
-                  value={props.display.BoxLiteralNodes}
-                  disabled={!props.display.ComplexLiteralNodes}
-                  set={(display, BoxLiteralNodes) => ({
-                    ...display,
-                    BoxLiteralNodes,
-                  })}
+                  disabled={!complexLiterals}
                   label='Boxed'
                 />
               </td>
@@ -292,57 +302,80 @@ function ModelGraphDisplayControl(
             </tr>
             <tr>
               <td>
-                <ComponentCheckbox
+                <DisplayCheckbox
+                  a='Labels'
+                  b='DatatypeProperty'
                   {...props}
-                  value={props.display.Labels.DatatypeField}
-                  set={(display, DatatypeFieldLabels) => ({
-                    ...display,
-                    Labels: {
-                      ...display.Labels,
-                      DatatypeField: DatatypeFieldLabels,
-                    },
-                  })}
-                  label='Field Names'
+                  label='Datatype URIs'
                 />
               </td>
-              <td>
-                <ComponentCheckbox
-                  {...props}
-                  value={props.display.Labels.DatatypeProperty}
-                  set={(display, DatatypePropertyLabels) => ({
-                    ...display,
-                    Labels: {
-                      ...display.Labels,
-                      DatatypeProperty: DatatypePropertyLabels,
-                    },
-                  })}
-                  label='Property Labels'
-                />
-              </td>
+              <td></td>
             </tr>
 
             <tr>
               <td>
-                <ComponentCheckbox
+                <DisplayCheckbox
+                  a='Labels'
+                  b='DatatypeField'
                   {...props}
-                  value={props.display.Labels.DatatypeFieldType}
-                  set={(display, DatatypeFieldTypes) => ({
-                    ...display,
-                    Labels: {
-                      ...display.Labels,
-                      DatatypeFieldType: DatatypeFieldTypes,
-                    },
-                  })}
-                  disabled={!props.display.ComplexLiteralNodes}
+                  disabled={!showLiterals}
+                  label='Field Names'
+                />
+              </td>
+              <td>
+                <DisplayCheckbox
+                  a='Labels'
+                  b='DatatypeFieldType'
+                  {...props}
+                  disabled={!complexLiterals}
                   label='Field Types'
                 />
               </td>
-              <td></td>
             </tr>
           </tbody>
         </table>
       </fieldset>
     </Control>
+  )
+}
+
+interface DisplayCheckboxProps<
+  A extends keyof ModelDisplay,
+  B extends keyof ModelDisplay[A],
+> extends ModelDisplayControlProps {
+  a: A
+  b: B
+  disabled?: boolean
+  label: string
+}
+
+function DisplayCheckbox<
+  A extends keyof ModelDisplay,
+  B extends keyof ModelDisplay[A],
+>(props: DisplayCheckboxProps<A, B>): JSX.Element {
+  const { a, b, display, ...rest } = props
+
+  const value = display[a][b]
+  const set = useCallback(
+    (display: ModelDisplay, checked: boolean): ModelDisplay => {
+      return {
+        ...display,
+        [a]: {
+          ...display[a],
+          [b]: checked,
+        },
+      }
+    },
+    [a, b],
+  )
+
+  return (
+    <ComponentCheckbox
+      value={value as boolean}
+      set={set}
+      display={display}
+      {...rest}
+    />
   )
 }
 

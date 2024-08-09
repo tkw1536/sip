@@ -7,8 +7,8 @@ import ColorMap from '../src/lib/pathbuilder/annotations/colormap'
 import ModelGraphBuilder from '../src/lib/graph/builders/model'
 import Deduplication from '../src/app/inspector/state/datatypes/deduplication'
 import { GraphVizModelDriver } from '../src/lib/drivers/impl/graphviz'
-import { newModelDisplay } from '../src/lib/graph/builders/model/labels'
 import { nextInt } from '../src/lib/utils/prng'
+import { type ModelDisplay } from '../src/lib/graph/builders/model/labels'
 
 // Usage: node node_modules/vite-node/vite-node.mjs ./scripts/render-model-graphviz.ts -p pathbuilder
 
@@ -39,9 +39,37 @@ async function main(): Promise<void> {
     deduplication: Deduplication.Full,
   }).build()
 
+  const display: ModelDisplay = {
+    Compounds: {
+      Bundles: true,
+      ConceptFields: true,
+      DataFields: true,
+    },
+    Concept: {
+      complex: true,
+      boxed: true,
+    },
+    Literal: {
+      complex: true,
+      boxed: true,
+    },
+    Labels: {
+      Concept: true,
+      Property: true,
+
+      Bundle: true,
+      ConceptField: true,
+      ConceptFieldType: true,
+
+      DatatypeFieldType: true,
+      DatatypeField: true,
+      DatatypeProperty: true,
+    },
+  }
+
   // load the driver and setup flags to use
   const driver = new GraphVizModelDriver(graph, {
-    options: { ns, cm, display: newModelDisplay() },
+    options: { ns, cm, display },
     layout: GraphVizModelDriver.formats[0],
     seed: nextInt(),
   })

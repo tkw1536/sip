@@ -32,28 +32,44 @@ export class ConceptModelNode
     id: string,
     options: ModelOptions,
   ): ElementWithAttachments<ModelAttachmentKey> {
-    if (!options.display.ComplexConceptNodes) {
-      return this.#renderSimple(id, options)
+    const fields = options.display.Compounds.ConceptFields
+      ? Array.from(this.fields)
+      : []
+    const bundles = options.display.Compounds.Bundles
+      ? Array.from(this.bundles)
+      : []
+
+    if (!options.display.Concept.complex) {
+      return this.#renderSimple(id, options, fields, bundles)
     }
 
-    const { element, bundles, fields } = this.#renderComplex(id, options)
-    if (bundles.length === 0 && fields.length === 0) {
+    const {
+      element,
+      bundles: bundleRenders,
+      fields: fieldRenders,
+    } = this.#renderComplex(id, options, fields, bundles)
+    if (bundleRenders.length === 0 && fieldRenders.length === 0) {
       return element
     }
 
     return {
       ...element,
       attached: {
-        boxed: options.display.BoxConceptNodes,
+        boxed: options.display.Concept.boxed,
         elements: {
-          fields,
-          bundles,
+          fields: fieldRenders,
+          bundles: bundleRenders,
         },
       },
     }
   }
 
-  #renderSimple(id: string, options: ModelOptions): Element {
+  #renderSimple(
+    id: string,
+    options: ModelOptions,
+    fields: Field[],
+    bundles: Bundle[],
+  ): Element {
     const labelParts: string[] = []
     const tooltipParts: string[] = []
 
@@ -63,14 +79,14 @@ export class ConceptModelNode
     }
 
     if (options.display.Labels.Bundle) {
-      this.bundles.forEach(bundle => {
+      bundles.forEach(bundle => {
         labelParts.push('Bundle ' + bundle.path.name)
         tooltipParts.push('Bundle ' + bundle.path.id)
       })
     }
 
     if (options.display.Labels.ConceptField) {
-      this.fields.forEach(field => {
+      fields.forEach(field => {
         labelParts.push('Field ' + field.path.name)
         tooltipParts.push('Field ' + field.path.id)
       })
@@ -80,13 +96,15 @@ export class ConceptModelNode
       id,
       label: labelParts.length > 0 ? labelParts.join('\n\n') : null,
       tooltip: tooltipParts.length > 0 ? tooltipParts.join('\n\n') : null,
-      color: options.cm.get(...this.fields, ...this.bundles),
+      color: options.cm.get(...fields, ...bundles),
     }
   }
 
   #renderComplex(
     id: string,
     options: ModelOptions,
+    fields: Field[],
+    bundles: Bundle[],
   ): {
     element: Element
     bundles: Attachment[]
@@ -105,7 +123,7 @@ export class ConceptModelNode
       ConceptFieldType: ConceptFieldTypes,
     } = options.display.Labels
 
-    const bundles = Array.from(this.bundles).map((bundle, idx) => {
+    const bundleRenders = bundles.map((bundle, idx) => {
       const bundleID = `${id}-bundle-${idx}`
       const color = options.cm.get(bundle)
       return {
@@ -124,7 +142,7 @@ export class ConceptModelNode
       }
     })
 
-    const fields = Array.from(this.fields).map((field, idx) => {
+    const fieldRenders = fields.map((field, idx) => {
       const fieldID = `${id}-field-${idx}`
       const color = options.cm.get(field)
 
@@ -144,7 +162,7 @@ export class ConceptModelNode
       }
     })
 
-    return { element, bundles, fields }
+    return { element, bundles: bundleRenders, fields: fieldRenders }
   }
 }
 
@@ -158,41 +176,51 @@ export class LiteralModelNode {
     id: string,
     options: ModelOptions,
   ): ElementWithAttachments<ModelAttachmentKey> {
-    if (!options.display.ComplexLiteralNodes) {
-      return this.#renderSimple(id, options)
+    const fields = options.display.Compounds.DataFields
+      ? Array.from(this.fields)
+      : []
+
+    if (!options.display.Literal.complex) {
+      return this.#renderSimple(id, options, fields)
     }
 
-    const { element, fields } = this.#renderComplex(id, options)
+    const { element, fields: fieldRenders } = this.#renderComplex(
+      id,
+      options,
+      fields,
+    )
+    if (fieldRenders.length === 0) {
+      return element
+    }
     return {
       ...element,
       attached: {
-        boxed: options.display.BoxLiteralNodes,
+        boxed: options.display.Literal.boxed,
         elements: {
-          fields,
+          fields: fieldRenders,
           bundles: [],
         },
       },
     }
   }
 
-  #renderSimple(id: string, options: ModelOptions): Element {
+  #renderSimple(id: string, options: ModelOptions, fields: Field[]): Element {
     const label = options.display.Labels.DatatypeField
-      ? Array.from(this.fields)
-          .map(field => field.path.name)
-          .join('\n\n')
+      ? fields.map(field => field.path.name).join('\n\n')
       : null
 
     return {
       id,
       label,
       tooltip: null,
-      color: options.cm.get(...this.fields),
+      color: options.cm.get(...fields),
     }
   }
 
   #renderComplex(
     id: string,
     options: ModelOptions,
+    fields: Field[],
   ): {
     element: Element
     fields: Attachment[]
@@ -210,7 +238,7 @@ export class LiteralModelNode {
         tooltip: null,
         color: null,
       },
-      fields: Array.from(this.fields).map((field, idx) => {
+      fields: Array.from(fields).map((field, idx) => {
         const fieldID = `${id}-field-${idx}`
         const color = options.cm.get(field)
         return {
@@ -277,10 +305,13 @@ export interface ModelOptions {
 }
 
 export interface ModelDisplay {
-  ComplexConceptNodes: boolean
-  ComplexLiteralNodes: boolean
-  BoxConceptNodes: boolean
-  BoxLiteralNodes: boolean
+  Compounds: {
+    Bundles: boolean
+    ConceptFields: boolean
+    DataFields: boolean
+  }
+  Concept: ModelCompoundDisplay
+  Literal: ModelCompoundDisplay
   Labels: {
     Concept: boolean
     Property: boolean
@@ -295,23 +326,7 @@ export interface ModelDisplay {
   }
 }
 
-export function newModelDisplay(): ModelDisplay {
-  return {
-    ComplexConceptNodes: true,
-    ComplexLiteralNodes: true,
-    BoxLiteralNodes: true,
-    BoxConceptNodes: true,
-    Labels: {
-      Concept: true,
-      Property: true,
-
-      Bundle: true,
-      ConceptField: true,
-      ConceptFieldType: true,
-
-      DatatypeFieldType: true,
-      DatatypeField: true,
-      DatatypeProperty: true,
-    },
-  }
+interface ModelCompoundDisplay {
+  complex: boolean
+  boxed: boolean
 }

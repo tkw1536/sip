@@ -33,10 +33,19 @@ const initialState: State = {
   modelSeed: nextInt(),
   modelDeduplication: Deduplication.Bundle,
   modelDisplay: {
-    ComplexConceptNodes: true,
-    ComplexLiteralNodes: true,
-    BoxConceptNodes: true,
-    BoxLiteralNodes: true,
+    Compounds: {
+      Bundles: true,
+      DataFields: true,
+      ConceptFields: true,
+    },
+    Concept: {
+      complex: true,
+      boxed: true,
+    },
+    Literal: {
+      complex: true,
+      boxed: true,
+    },
     Labels: {
       Concept: true,
       Property: true,
