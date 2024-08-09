@@ -14,10 +14,11 @@ import { Numeric } from '../form/value'
 /** Control that provides only UI components */
 export function Control(props: {
   name: string
+  class?: string
   children?: ComponentChildren
 }): JSX.Element {
   return (
-    <fieldset>
+    <fieldset class={props.class}>
       <legend>{props.name}</legend>
       {props.children}
     </fieldset>

@@ -44,7 +44,7 @@ export class ConceptModelNode
     return {
       ...element,
       attached: {
-        boxed: options.display.BoxCompoundNodes,
+        boxed: options.display.BoxConceptNodes,
         elements: {
           fields,
           bundles,
@@ -166,7 +166,7 @@ export class LiteralModelNode {
     return {
       ...element,
       attached: {
-        boxed: options.display.BoxCompoundNodes,
+        boxed: options.display.BoxLiteralNodes,
         elements: {
           fields,
           bundles: [],
@@ -279,7 +279,8 @@ export interface ModelOptions {
 export interface ModelDisplay {
   ComplexConceptNodes: boolean
   ComplexLiteralNodes: boolean
-  BoxCompoundNodes: boolean
+  BoxConceptNodes: boolean
+  BoxLiteralNodes: boolean
   Labels: {
     Concept: boolean
     Property: boolean
@@ -298,7 +299,8 @@ export function newModelDisplay(): ModelDisplay {
   return {
     ComplexConceptNodes: true,
     ComplexLiteralNodes: true,
-    BoxCompoundNodes: true,
+    BoxLiteralNodes: true,
+    BoxConceptNodes: true,
     Labels: {
       Concept: true,
       Property: true,

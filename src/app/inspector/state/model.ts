@@ -35,7 +35,8 @@ const initialState: State = {
   modelDisplay: {
     ComplexConceptNodes: true,
     ComplexLiteralNodes: true,
-    BoxCompoundNodes: true,
+    BoxConceptNodes: true,
+    BoxLiteralNodes: true,
     Labels: {
       Concept: true,
       Property: true,

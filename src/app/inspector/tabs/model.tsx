@@ -24,6 +24,7 @@ import useInspectorStore from '../state'
 import { Radio } from '../../../components/form/dropdown'
 import { Switch } from '../../../components/form/checkbox'
 import { type ContextFlags } from '../../../lib/drivers/impl'
+import * as styles from './model.module.css'
 
 export default function ModelGraphView(): JSX.Element {
   const tree = useInspectorStore(s => s.pathtree)
@@ -124,192 +125,236 @@ function ModelGraphDisplayControl(
   props: ModelDisplayControlProps,
 ): JSX.Element {
   return (
-    <Control name='Display'>
-      <table>
-        <tbody>
-          <tr>
-            <td>
-              <ComponentCheckbox
-                {...props}
-                value={props.display.ComplexConceptNodes}
-                set={(display, ComplexConceptNodes) => ({
-                  ...display,
-                  ComplexConceptNodes,
-                })}
-                label='Complex Concept Nodes'
-              />
-            </td>
-            <td>
-              <ComponentCheckbox
-                {...props}
-                value={props.display.ComplexLiteralNodes}
-                set={(display, ComplexLiteralNodes) => ({
-                  ...display,
-                  ComplexLiteralNodes,
-                })}
-                label='Complex Literal Nodes'
-              />
-            </td>
-          </tr>
-          <tr>
-            <td>
-              <ComponentCheckbox
-                {...props}
-                value={props.display.BoxCompoundNodes}
-                set={(display, BoxCompoundNodes) => ({
-                  ...display,
-                  BoxCompoundNodes,
-                })}
-                label='Box Compound Nodes'
-              />
-            </td>
-          </tr>
-          <tr>
-            <td colSpan={2}>
-              Disabling these will render appropriate bundle and field labels
-              directly at the respective nodes.
-            </td>
-          </tr>
+    <Control name='Display' class={styles.duals}>
+      <fieldset>
+        <legend>Paths</legend>
 
-          <tr>
-            <td colSpan={2}>
-              <br />
-            </td>
-          </tr>
+        <table>
+          <tbody>
+            <tr>
+              <td>
+                <ComponentCheckbox
+                  {...props}
+                  value={props.display.Labels.Concept}
+                  set={(display, ConceptLabels) => ({
+                    ...display,
+                    Labels: {
+                      ...display.Labels,
+                      Concept: ConceptLabels,
+                    },
+                  })}
+                  label='Concept Labels'
+                />
+              </td>
+              <td>
+                <ComponentCheckbox
+                  {...props}
+                  value={props.display.Labels.Property}
+                  set={(display, PropertyLabels) => ({
+                    ...display,
+                    Labels: {
+                      ...display.Labels,
+                      Property: PropertyLabels,
+                    },
+                  })}
+                  label='Property Labels'
+                />
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </fieldset>
 
-          <tr>
-            <td>
-              <ComponentCheckbox
-                {...props}
-                value={props.display.Labels.Property}
-                set={(display, PropertyLabels) => ({
-                  ...display,
-                  Labels: {
-                    ...display.Labels,
-                    Property: PropertyLabels,
-                  },
-                })}
-                label='Property Labels'
-              />
-              <br />
-              <ComponentCheckbox
-                {...props}
-                value={props.display.Labels.ConceptField}
-                set={(display, ConceptFieldLabels) => ({
-                  ...display,
-                  Labels: {
-                    ...display.Labels,
-                    ConceptField: ConceptFieldLabels,
-                  },
-                })}
-                label='Field Labels'
-              />
-              <br />
-              <ComponentCheckbox
-                {...props}
-                value={props.display.Labels.ConceptFieldType}
-                set={(display, ConceptFieldTypes) => ({
-                  ...display,
-                  Labels: {
-                    ...display.Labels,
-                    ConceptFieldType: ConceptFieldTypes,
-                  },
-                })}
-                label='Field Types'
-              />
-            </td>
+      <fieldset>
+        <legend>Bundles & Fields</legend>
 
-            <td>
-              <ComponentCheckbox
-                {...props}
-                value={props.display.Labels.DatatypeProperty}
-                set={(display, DatatypePropertyLabels) => ({
-                  ...display,
-                  Labels: {
-                    ...display.Labels,
-                    DatatypeProperty: DatatypePropertyLabels,
-                  },
-                })}
-                label='Datatype Property Labels'
-              />
-              <br />
-              <ComponentCheckbox
-                {...props}
-                value={props.display.Labels.DatatypeField}
-                set={(display, DatatypeFieldLabels) => ({
-                  ...display,
-                  Labels: {
-                    ...display.Labels,
-                    DatatypeField: DatatypeFieldLabels,
-                  },
-                })}
-                label='Datatype Field Labels'
-              />
-              <br />
-              <ComponentCheckbox
-                {...props}
-                value={props.display.Labels.DatatypeFieldType}
-                set={(display, DatatypeFieldTypes) => ({
-                  ...display,
-                  Labels: {
-                    ...display.Labels,
-                    DatatypeFieldType: DatatypeFieldTypes,
-                  },
-                })}
-                label='Datatype Field Types'
-              />
-            </td>
-          </tr>
+        <table>
+          <tbody>
+            <tr>
+              <td>
+                <ComponentCheckbox
+                  {...props}
+                  value={props.display.ComplexConceptNodes}
+                  set={(display, ComplexConceptNodes) => ({
+                    ...display,
+                    ComplexConceptNodes,
+                  })}
+                  label='Complex'
+                />
+              </td>
+              <td>
+                <ComponentCheckbox
+                  {...props}
+                  disabled={!props.display.ComplexConceptNodes}
+                  value={props.display.BoxConceptNodes}
+                  set={(display, BoxConceptNodes) => ({
+                    ...display,
+                    BoxConceptNodes,
+                  })}
+                  label='Boxed'
+                />
+              </td>
+            </tr>
+            <tr>
+              <td colSpan={2}>
+                Complex bundle and field nodes show the attached bundles and
+                fields as separate nodes.
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <ComponentCheckbox
+                  {...props}
+                  value={props.display.Labels.Bundle}
+                  set={(display, BundleLabels) => ({
+                    ...display,
+                    Labels: {
+                      ...display.Labels,
+                      Bundle: BundleLabels,
+                    },
+                  })}
+                  label='Bundle Labels'
+                />
+              </td>
+              <td></td>
+            </tr>
 
-          <tr>
-            <td colSpan={2}>
-              <br />
-            </td>
-          </tr>
+            <tr>
+              <td>
+                <ComponentCheckbox
+                  {...props}
+                  value={props.display.Labels.ConceptField}
+                  set={(display, ConceptFieldLabels) => ({
+                    ...display,
+                    Labels: {
+                      ...display.Labels,
+                      ConceptField: ConceptFieldLabels,
+                    },
+                  })}
+                  label='Field Names'
+                />
+              </td>
+              <td>
+                <ComponentCheckbox
+                  {...props}
+                  value={props.display.Labels.ConceptFieldType}
+                  set={(display, ConceptFieldTypes) => ({
+                    ...display,
+                    Labels: {
+                      ...display.Labels,
+                      ConceptFieldType: ConceptFieldTypes,
+                    },
+                  })}
+                  disabled={!props.display.ComplexConceptNodes}
+                  label='Field Types'
+                />
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </fieldset>
 
-          <tr>
-            <td colSpan={2}>
-              <ComponentCheckbox
-                {...props}
-                value={props.display.Labels.Concept}
-                set={(display, ConceptLabels) => ({
-                  ...display,
-                  Labels: {
-                    ...display.Labels,
-                    Concept: ConceptLabels,
-                  },
-                })}
-                label='Concept Labels'
-              />
-              <br />
-              <ComponentCheckbox
-                {...props}
-                value={props.display.Labels.Bundle}
-                set={(display, BundleLabels) => ({
-                  ...display,
-                  Labels: {
-                    ...display.Labels,
-                    Bundle: BundleLabels,
-                  },
-                })}
-                label='Bundle Labels'
-              />
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <fieldset>
+        <legend>Literals</legend>
+
+        <table>
+          <tbody>
+            <tr>
+              <td>
+                <ComponentCheckbox
+                  {...props}
+                  value={props.display.ComplexLiteralNodes}
+                  set={(display, ComplexLiteralNodes) => ({
+                    ...display,
+                    ComplexLiteralNodes,
+                  })}
+                  label='Complex'
+                />
+              </td>
+              <td>
+                <ComponentCheckbox
+                  {...props}
+                  value={props.display.BoxLiteralNodes}
+                  disabled={!props.display.ComplexLiteralNodes}
+                  set={(display, BoxLiteralNodes) => ({
+                    ...display,
+                    BoxLiteralNodes,
+                  })}
+                  label='Boxed'
+                />
+              </td>
+            </tr>
+            <tr>
+              <td colSpan={2}>
+                Complex literal nodes show the attached field literals as
+                separate nodes.
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <ComponentCheckbox
+                  {...props}
+                  value={props.display.Labels.DatatypeField}
+                  set={(display, DatatypeFieldLabels) => ({
+                    ...display,
+                    Labels: {
+                      ...display.Labels,
+                      DatatypeField: DatatypeFieldLabels,
+                    },
+                  })}
+                  label='Field Names'
+                />
+              </td>
+              <td>
+                <ComponentCheckbox
+                  {...props}
+                  value={props.display.Labels.DatatypeProperty}
+                  set={(display, DatatypePropertyLabels) => ({
+                    ...display,
+                    Labels: {
+                      ...display.Labels,
+                      DatatypeProperty: DatatypePropertyLabels,
+                    },
+                  })}
+                  label='Property Labels'
+                />
+              </td>
+            </tr>
+
+            <tr>
+              <td>
+                <ComponentCheckbox
+                  {...props}
+                  value={props.display.Labels.DatatypeFieldType}
+                  set={(display, DatatypeFieldTypes) => ({
+                    ...display,
+                    Labels: {
+                      ...display.Labels,
+                      DatatypeFieldType: DatatypeFieldTypes,
+                    },
+                  })}
+                  disabled={!props.display.ComplexLiteralNodes}
+                  label='Field Types'
+                />
+              </td>
+              <td></td>
+            </tr>
+          </tbody>
+        </table>
+      </fieldset>
     </Control>
   )
 }
 
 interface ComponentCheckboxProps extends ModelDisplayControlProps {
   value: boolean
+  disabled?: boolean
   set: (display: ModelDisplay, checked: boolean) => ModelDisplay
   label: string
 }
 
 function ComponentCheckbox(props: ComponentCheckboxProps): JSX.Element {
-  const { onUpdate, set, display, value, label } = props
+  const { onUpdate, set, display, value, disabled, label } = props
   const handleInput = useCallback(
     (checked: boolean) => {
       onUpdate(set(display, checked))
@@ -317,5 +362,12 @@ function ComponentCheckbox(props: ComponentCheckboxProps): JSX.Element {
     [display, onUpdate, set],
   )
 
-  return <Switch title={label} value={value} onInput={handleInput} />
+  return (
+    <Switch
+      title={label}
+      value={value}
+      onInput={handleInput}
+      disabled={disabled}
+    />
+  )
 }
