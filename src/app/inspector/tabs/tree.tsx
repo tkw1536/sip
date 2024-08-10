@@ -34,13 +34,14 @@ import { type ModifierKeys } from '../../../components/form/generic/modifiers'
 export default function TreeTab(): JSX.Element {
   const tree = useInspectorStore(s => s.pathtree)
   const children = useMemo(() => Array.from(tree.children()), [tree])
+  const maxDepth = tree.maxDepth
 
   return (
     <Panel panel={<TreeTabPanel />} margin={5}>
       <table class={styles.table}>
         <thead>
           <tr>
-            <th />
+            <th colSpan={1 + maxDepth} />
             <th>Title</th>
             <th>ID</th>
             <th>Path</th>
@@ -50,7 +51,7 @@ export default function TreeTab(): JSX.Element {
         </thead>
         <tbody>
           {children.map(b => (
-            <BundleNode bundle={b} level={0} key={b.path.id} />
+            <BundleNode bundle={b} maxDepth={maxDepth} key={b.path.id} />
           ))}
         </tbody>
       </table>
@@ -257,10 +258,8 @@ function ColorMapControl(): JSX.Element {
   )
 }
 
-const INDENT_PER_LEVEL = 50
-
-function BundleNode(props: { bundle: Bundle; level: number }): JSX.Element {
-  const { bundle, level } = props
+function BundleNode(props: { bundle: Bundle; maxDepth: number }): JSX.Element {
+  const { bundle, maxDepth } = props
 
   const expanded = useInspectorStore(
     useShallow(s => !s.collapse.includes(bundle)),
@@ -269,17 +268,21 @@ function BundleNode(props: { bundle: Bundle; level: number }): JSX.Element {
 
   return (
     <>
-      <PathRow node={bundle} level={level}>
+      <PathRow node={bundle} maxDepth={maxDepth}>
         {control}
       </PathRow>
 
       {expanded &&
         Array.from(bundle.fields()).map(field => (
-          <FieldRow level={level + 1} field={field} key={field.path.id} />
+          <FieldRow maxDepth={maxDepth} field={field} key={field.path.id} />
         ))}
       {expanded &&
         Array.from(bundle.bundles()).map(bundle => (
-          <BundleNode level={level + 1} bundle={bundle} key={bundle.path.id} />
+          <BundleNode
+            maxDepth={maxDepth}
+            bundle={bundle}
+            key={bundle.path.id}
+          />
         ))}
     </>
   )
@@ -309,18 +312,18 @@ function BundleControl(props: BundleControlProps): JSX.Element {
   )
 }
 
-function FieldRow(props: { field: Field; level: number }): JSX.Element {
-  return <PathRow node={props.field} level={props.level} />
+function FieldRow(props: { field: Field; maxDepth: number }): JSX.Element {
+  return <PathRow node={props.field} maxDepth={props.maxDepth} />
 }
 
 interface PathRowProps {
   node: Bundle | Field
-  level: number
+  maxDepth: number
   children?: ComponentChildren
 }
 
 const PathRow = memo(function PathRow(props: PathRowProps): JSX.Element {
-  const { node, level } = props
+  const { node, maxDepth } = props
 
   const ns = useInspectorStore(s => s.ns)
 
@@ -352,16 +355,24 @@ const PathRow = memo(function PathRow(props: PathRowProps): JSX.Element {
   )
   const color = useInspectorStore(useShallow(c => c.cm.getDefault(node)))
 
-  const { path } = node
+  const { path, depth } = node
+
+  const treeLevels = Array(Math.max(depth - 1, 0)).fill(
+    <td class={styles.tree_level}></td>,
+  )
 
   return (
     <tr>
       <td>
         <Checkbox value={selected} onInput={handleSelectionChange} />
+      </td>
+      <td>
         <Color value={color} onInput={handleColorChange} />
       </td>
-      <td style={{ paddingLeft: INDENT_PER_LEVEL * level }}>
+      {treeLevels}
+      <td colSpan={1 + maxDepth - node.depth}>
         {props.children}
+        {` `}
         {path.name}
       </td>
       <td>

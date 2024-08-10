@@ -2,8 +2,12 @@
     vertical-align: top;
 }
 
-tr.hidden {
-    display: none;
+.table {
+    border-collapse: collapse;
+}
+
+td.tree_level {
+    min-width: 50px;
 }
 
 span.path, span.display_path {

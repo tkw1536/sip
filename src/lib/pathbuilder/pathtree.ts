@@ -95,6 +95,23 @@ export abstract class PathTreeNode {
     public readonly index: number,
   ) {}
 
+  #maxDepth: number | null = null
+  get maxDepth(): number {
+    // return cached max depth
+    if (this.#maxDepth !== null) {
+      return this.#maxDepth
+    }
+
+    // else cache the maximum depth
+    this.#maxDepth = this.depth
+    for (const node of this.walk()) {
+      if (node.depth > this.#maxDepth) {
+        this.#maxDepth = node.depth
+      }
+    }
+    return this.#maxDepth
+  }
+
   /** checks if this PathTreeNode equals another node */
   abstract equals(other: PathTreeNode): boolean
 
