@@ -22,7 +22,7 @@ interface Actions {
 }
 
 const initialState: State = {
-  collapse: NodeSelection.none(),
+  collapse: NodeSelection.all(),
   collapseParentPaths: false,
 }
 const resetState: State = { ...initialState }

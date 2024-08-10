@@ -1,4 +1,4 @@
-import { type JSX } from 'preact'
+import { type ComponentChildren, type JSX } from 'preact'
 import { type NamespaceMap } from '../../../lib/pathbuilder/namespace'
 import {
   Bundle,
@@ -26,10 +26,10 @@ import {
   ControlGroup,
 } from '../../../components/graph-display/controls'
 import Checkbox, { Switch } from '../../../components/form/checkbox'
-import { type ModifierKeys } from '../../../components/form/generic/modifiers'
 import { Color } from '../../../components/form/value'
 import { memo } from 'preact/compat'
 import { useShallow } from 'zustand/react/shallow'
+import { type ModifierKeys } from '../../../components/form/generic/modifiers'
 
 export default function TreeTab(): JSX.Element {
   const tree = useInspectorStore(s => s.pathtree)
@@ -50,7 +50,7 @@ export default function TreeTab(): JSX.Element {
         </thead>
         <tbody>
           {children.map(b => (
-            <BundleRows visible bundle={b} level={0} key={b.path.id} />
+            <BundleNode bundle={b} level={0} key={b.path.id} />
           ))}
         </tbody>
       </table>
@@ -259,16 +259,72 @@ function ColorMapControl(): JSX.Element {
 
 const INDENT_PER_LEVEL = 50
 
-function BundleRows(props: { bundle: Bundle; level: number }): JSX.Element {
+function BundleNode(props: { bundle: Bundle; level: number }): JSX.Element {
   const { bundle, level } = props
 
-  const ns = useInspectorStore(s => s.ns)
-  const hideParents = useInspectorStore(s => s.collapseParentPaths)
+  const expanded = useInspectorStore(
+    useShallow(s => !s.collapse.includes(bundle)),
+  )
+  const control = useMemo(() => <BundleControl bundle={bundle} />, [bundle])
+
+  return (
+    <>
+      <PathRow node={bundle} level={level}>
+        {control}
+      </PathRow>
+
+      {expanded &&
+        Array.from(bundle.fields()).map(field => (
+          <FieldRow level={level + 1} field={field} key={field.path.id} />
+        ))}
+      {expanded &&
+        Array.from(bundle.bundles()).map(bundle => (
+          <BundleNode level={level + 1} bundle={bundle} key={bundle.path.id} />
+        ))}
+    </>
+  )
+}
+
+interface BundleControlProps {
+  bundle: Bundle
+}
+
+function BundleControl(props: BundleControlProps): JSX.Element {
+  const { bundle } = props
+
   const toggleNode = useInspectorStore(s => s.toggleNode)
 
   const handleClick = useCallback((): void => {
     toggleNode(bundle)
   }, [bundle, toggleNode])
+
+  const expanded = useInspectorStore(
+    useShallow(s => !s.collapse.includes(bundle)),
+  )
+
+  return (
+    <Button onInput={handleClick} disabled={bundle.childCount === 0}>
+      {expanded ? '∨' : '>'}
+    </Button>
+  )
+}
+
+function FieldRow(props: { field: Field; level: number }): JSX.Element {
+  return <PathRow node={props.field} level={props.level} />
+}
+
+interface PathRowProps {
+  node: Bundle | Field
+  level: number
+  children?: ComponentChildren
+}
+
+const PathRow = memo(function PathRow(props: PathRowProps): JSX.Element {
+  const { node, level } = props
+
+  const ns = useInspectorStore(s => s.ns)
+
+  const hideParents = useInspectorStore(s => s.collapseParentPaths)
 
   const updateSelection = useInspectorStore(s => s.updateSelection)
   const handleSelectionChange = useCallback(
@@ -277,96 +333,26 @@ function BundleRows(props: { bundle: Bundle; level: number }): JSX.Element {
       dataset: DOMStringMap,
       modifiers: ModifierKeys,
     ): void => {
-      const keys = modifiers.shift ? Array.from(bundle.walk()) : [bundle]
+      const keys = modifiers.shift ? Array.from(node.walk()) : [node]
       updateSelection(keys.map(k => [k, checked]))
     },
-    [bundle, updateSelection],
+    [node, updateSelection],
   )
 
   const setColor = useInspectorStore(s => s.setColor)
   const handleColorChange = useCallback(
     (color: string): void => {
-      setColor(bundle, color)
+      setColor(node, color)
     },
-    [bundle, setColor],
+    [node, setColor],
   )
 
   const selected = useInspectorStore(
-    useShallow(s => s.selection.includes(bundle)),
+    useShallow(s => s.selection.includes(node)),
   )
-  const expanded = useInspectorStore(
-    useShallow(s => !s.collapse.includes(bundle)),
-  )
+  const color = useInspectorStore(useShallow(c => c.cm.getDefault(node)))
 
-  const color = useInspectorStore(useShallow(c => c.cm.getDefault(bundle)))
-
-  const path = bundle.path
-
-  return (
-    <>
-      <tr>
-        <td>
-          <Checkbox value={selected} onInput={handleSelectionChange} />
-          <Color value={color} onInput={handleColorChange} />
-        </td>
-        <td style={{ paddingLeft: INDENT_PER_LEVEL * level }}>
-          <Button onInput={handleClick} disabled={bundle.childCount === 0}>
-            {expanded ? '∨' : '>'}
-          </Button>
-          &nbsp;
-          {path.name}
-        </td>
-        <td>
-          <code>{path.id}</code>
-        </td>
-        <td>
-          <Path hideEqualParentPaths={hideParents} node={bundle} ns={ns} />
-        </td>
-        <td />
-        <td>{path.cardinality > 0 ? path.cardinality : 'unlimited'}</td>
-      </tr>
-
-      {expanded &&
-        Array.from(bundle.fields()).map(field => (
-          <FieldRow level={level + 1} field={field} key={field.path.id} />
-        ))}
-      {expanded &&
-        Array.from(bundle.bundles()).map(bundle => (
-          <BundleRows level={level + 1} bundle={bundle} key={bundle.path.id} />
-        ))}
-    </>
-  )
-}
-
-function FieldRow(props: { field: Field; level: number }): JSX.Element {
-  const { field, level } = props
-
-  const ns = useInspectorStore(s => s.ns)
-
-  const hideParents = useInspectorStore(s => s.collapseParentPaths)
-
-  const updateSelection = useInspectorStore(s => s.updateSelection)
-  const handleSelectionChange = useCallback(
-    (checked: boolean): void => {
-      updateSelection([[field, checked]])
-    },
-    [field, updateSelection],
-  )
-
-  const setColor = useInspectorStore(s => s.setColor)
-  const handleColorChange = useCallback(
-    (color: string): void => {
-      setColor(field, color)
-    },
-    [field, setColor],
-  )
-
-  const selected = useInspectorStore(
-    useShallow(s => s.selection.includes(field)),
-  )
-  const color = useInspectorStore(useShallow(c => c.cm.getDefault(field)))
-
-  const { path } = field
+  const { path } = node
 
   return (
     <tr>
@@ -374,18 +360,21 @@ function FieldRow(props: { field: Field; level: number }): JSX.Element {
         <Checkbox value={selected} onInput={handleSelectionChange} />
         <Color value={color} onInput={handleColorChange} />
       </td>
-      <td style={{ paddingLeft: INDENT_PER_LEVEL * level }}>{path.name}</td>
+      <td style={{ paddingLeft: INDENT_PER_LEVEL * level }}>
+        {props.children}
+        {path.name}
+      </td>
       <td>
         <code>{path.id}</code>
       </td>
       <td>
-        <Path hideEqualParentPaths={hideParents} node={field} ns={ns} />
+        <Path hideEqualParentPaths={hideParents} node={node} ns={ns} />
       </td>
       <td>{path.informativeFieldType}</td>
       <td>{path.cardinality > 0 ? path.cardinality : 'unlimited'}</td>
     </tr>
   )
-}
+})
 
 /** renders a single Path */
 const Path = memo(function Path(props: {

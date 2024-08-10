@@ -71,17 +71,20 @@ export default class NodeSelection {
 
   /** with returns a new selection with the specified key set to the specified value */
   with(pairs: Iterable<[Key, boolean]>): NodeSelection {
-    let selection = new ImmutableSet(this.#selection)
+    const selection = new Set(this.#selection)
+    let updated = false
     for (const [key, value] of new Map(pairs).entries()) {
       const id = toID(key)
       if (id === null) continue
 
       if (value === this.defaultValue) {
-        selection = selection.delete(id)
+        updated = selection.delete(id) || updated
       } else {
-        selection = selection.add(id)
+        updated = updated || !selection.has(id)
+        selection.add(id)
       }
     }
+    if (!updated) return this
     return new NodeSelection(this.defaultValue, selection)
   }
 
