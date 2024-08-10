@@ -1,6 +1,6 @@
 import { type JSX } from 'preact'
 import Spinner from '../../../components/spinner'
-import { StyledDropArea } from '../../../components/form/drop-area'
+import DropArea from '../../../components/form/drop-area'
 import ErrorDisplay from '../../../components/error'
 import useRDFStore from '../state'
 import Button from '../../../components/form/button'
@@ -29,9 +29,9 @@ function WelcomeView(): JSX.Element {
         All processing happens on-device, meaning the server host can not access
         any data contained within your statements.
       </p>
-      <StyledDropArea onInput={openFile}>
+      <DropArea onInput={openFile}>
         Click or drag an <code>RDF/XML</code> file here
-      </StyledDropArea>
+      </DropArea>
       {typeof loadStage === 'object' && loadStage.error instanceof Error && (
         <>
           <p>

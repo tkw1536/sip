@@ -1,5 +1,5 @@
 import { type JSX } from 'preact'
-import { StyledDropArea } from '../../../components/form/drop-area'
+import DropArea from '../../../components/form/drop-area'
 
 import ErrorDisplay from '../../../components/error'
 import download from '../../../lib/utils/download'
@@ -60,9 +60,9 @@ function WelcomeView(): JSX.Element {
         All processing happens on-device, meaning the server host can not access
         any data contained within your pathbuilder.
       </p>
-      <StyledDropArea onInput={loadFile} types={[Type.XML]}>
+      <DropArea onInput={loadFile} types={[Type.XML]}>
         {dragContent}
-      </StyledDropArea>
+      </DropArea>
       {typeof loadStage === 'object' && loadStage.error instanceof Error && (
         <>
           <p>

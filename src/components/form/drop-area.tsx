@@ -7,13 +7,10 @@ import Button from './button'
 interface DropAreaProps {
   onInput: (...files: File[]) => void
 
-  compact?: boolean
+  id?: string
   disabled?: boolean
 
-  class?: string
-  activeValidClass?: string
-  activeInvalidClass?: string
-  passiveClass?: string
+  compact?: boolean
 
   multiple?: boolean
   types?: string[]
@@ -62,10 +59,6 @@ function validateFiles(
 
 export default function DropArea(props: DropAreaProps): JSX.Element {
   const {
-    class: clz,
-    activeInvalidClass,
-    activeValidClass,
-    passiveClass,
     children,
     types,
     multiple,
@@ -142,27 +135,18 @@ export default function DropArea(props: DropAreaProps): JSX.Element {
     [disabled, callFileHandler],
   )
 
-  // determine classes to apply
-  const dropClasses = [clz]
-  switch (true) {
-    case dragActive && dragValid:
-      dropClasses.push(activeValidClass)
-      break
-    case dragActive && !dragValid:
-      dropClasses.push(activeInvalidClass ?? activeValidClass)
-      break
-    default:
-      dropClasses.push(passiveClass)
-  }
-
   const childNodes =
     typeof children === 'function' ? children(dragActive, dragValid) : children
 
   let main: VNode
-  if (!(compact ?? false)) {
+  if (compact !== true) {
     main = (
       <div
-        class={classes(...dropClasses)}
+        class={classes(
+          styles.area,
+          dragActive && dragValid && styles.valid,
+          dragActive && !dragValid && styles.invalid,
+        )}
         onDrop={handleDropFile}
         onDragOver={handleDropOver}
         onDragLeave={handleDragLeave}
@@ -191,21 +175,5 @@ export default function DropArea(props: DropAreaProps): JSX.Element {
       />
       {main}
     </>
-  )
-}
-
-export function StyledDropArea(
-  props: Omit<
-    DropAreaProps,
-    'class' | 'activeValidClass' | 'activeInvalidClass' | 'passiveClass'
-  >,
-): JSX.Element {
-  return (
-    <DropArea
-      {...props}
-      class={styles.area}
-      activeValidClass={styles.valid}
-      activeInvalidClass={styles.invalid}
-    />
   )
 }

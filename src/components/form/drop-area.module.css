@@ -7,22 +7,46 @@
 
     border-radius: 10px;
     padding: 10px;
-   
-    --upper-color: #b1b3b4;
-    --lower-color: #ffffff; 
-    
-    box-shadow: 0px 1px var(--upper-color);
-    background: linear-gradient(var(--upper-color), var(--lower-color)); 
+
+
+    transition: --drop-area-lower var(--theme-transition) linear, --drop-area-upper var(--theme-transition) linear;
+
+    box-shadow: 0px 1px var(--drop-area-upper);
+    background: linear-gradient(var(--drop-area-upper), var(--drop-area-lower));
 
 }
 
-.area:hover, .area.invalid {
-    --upper-color: #868789;
-    --lower-color: #e4f3f7; 
+@property --drop-area-upper {
+    syntax: '<color>';
+    initial-value: #000000;
+    inherits: false;
 }
+
+@property --drop-area-lower {
+    syntax: '<color>';
+    initial-value: #000000;
+    inherits: false;
+}
+
+.area {
+    --drop-area-upper: var(--theme-generic-medium);
+    --drop-area-lower: var(--theme-generic-light);
+}
+
+.area:hover
+{
+    --drop-area-upper: var(--theme-active-medium);
+    --drop-area-lower: var(--theme-active-light);
+}
+
 .area.valid {
-    --upper-color: #bf6e1c;
-    --lower-color: #ffb31c; 
+    --drop-area-upper: var(--theme-valid-medium);
+    --drop-area-lower: var(--theme-valid-light);
+}
+
+.area.invalid {
+    --drop-area-upper: var(--theme-invalid-medium);
+    --drop-area-lower: var(--theme-invalid-light);
 }
 
 .area.invalid {
