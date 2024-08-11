@@ -4,8 +4,8 @@
     min-width: 80vw;
     padding: .5em;
 
-    border: 1px solid red;
-    background-color: rgb(255, 96, 96);
+    border: 1px solid var(--theme-invalid-light);
+    background-color: var(--theme-invalid-medium);
 
     font-family: monospace, monospace;
 }
