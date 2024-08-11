@@ -41,8 +41,8 @@ export default function TreeTab(): JSX.Element {
       <table class={styles.table}>
         <thead>
           <tr>
-            <th colSpan={1 + maxDepth} />
-            <th>Title</th>
+            <th colSpan={2} />
+            <th colSpan={1 + maxDepth}>Title</th>
             <th>ID</th>
             <th>Path</th>
             <th>Field Type</th>
@@ -268,7 +268,7 @@ function BundleNode(props: { bundle: Bundle; maxDepth: number }): JSX.Element {
 
   return (
     <>
-      <PathRow node={bundle} maxDepth={maxDepth}>
+      <PathRow noChildren={false} node={bundle} maxDepth={maxDepth}>
         {control}
       </PathRow>
 
@@ -313,12 +313,15 @@ function BundleControl(props: BundleControlProps): JSX.Element {
 }
 
 function FieldRow(props: { field: Field; maxDepth: number }): JSX.Element {
-  return <PathRow node={props.field} maxDepth={props.maxDepth} />
+  return (
+    <PathRow node={props.field} maxDepth={props.maxDepth} noChildren={true} />
+  )
 }
 
 interface PathRowProps {
   node: Bundle | Field
   maxDepth: number
+  noChildren: boolean
   children?: ComponentChildren
 }
 
@@ -370,9 +373,8 @@ const PathRow = memo(function PathRow(props: PathRowProps): JSX.Element {
         <Color value={color} onInput={handleColorChange} />
       </td>
       {treeLevels}
-      <td colSpan={1 + maxDepth - node.depth}>
-        {props.children}
-        {` `}
+      <td class={styles.tree_level}>{props.children}</td>
+      <td colSpan={1 + maxDepth - node.depth} class={styles.tree_new}>
         {path.name}
       </td>
       <td>
