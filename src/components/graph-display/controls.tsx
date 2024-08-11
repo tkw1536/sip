@@ -109,7 +109,6 @@ export function DriverControl<
               />
             </td>
 
-            <td></td>
             <td>
               <Label id={`${id}-layout`}>Layout</Label>
             </td>
@@ -169,9 +168,8 @@ function SimulationControls<
           </Button>
         </ButtonGroup>
       </td>
-      <td></td>
 
-      <td>
+      <td colspan={2}>
         <ButtonGroup inline>
           <Button
             disabled={controller === null}
@@ -181,7 +179,6 @@ function SimulationControls<
           </Button>
         </ButtonGroup>
       </td>
-      <td></td>
     </>
   )
 }
@@ -219,7 +216,7 @@ function SeedControls<
       <td>
         <Label id={id}>Seed</Label>
       </td>
-      <td colSpan={2}>
+      <td>
         <Numeric
           id={id}
           value={seed}
@@ -227,10 +224,9 @@ function SeedControls<
           onInput={handleChangeValue}
         />
       </td>
-      <td>
+      <td colSpan={2}>
         <Button onInput={handleNextSeed}>Randomize</Button>
       </td>
-      <td></td>
     </>
   )
 }
