@@ -1,0 +1,10 @@
+.control {
+  border-color: var(--theme-generic-accent);
+  border-radius: 5px;
+  margin: 5px;
+}
+
+.control[data-nested] {
+  margin-left: 0px;
+  margin-right: 0px;
+}

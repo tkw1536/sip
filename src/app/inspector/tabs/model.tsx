@@ -137,9 +137,7 @@ function ModelGraphDisplayControl(
 
   return (
     <Control name='Display' class={styles.duals}>
-      <fieldset>
-        <legend>Paths</legend>
-
+      <Control name='Paths' nested>
         <table>
           <tbody>
             <tr>
@@ -199,11 +197,9 @@ function ModelGraphDisplayControl(
             </tr>
           </tbody>
         </table>
-      </fieldset>
+      </Control>
 
-      <fieldset>
-        <legend>Concepts</legend>
-
+      <Control name='Concepts' nested>
         <table>
           <tbody>
             <tr>
@@ -267,11 +263,9 @@ function ModelGraphDisplayControl(
             </tr>
           </tbody>
         </table>
-      </fieldset>
+      </Control>
 
-      <fieldset>
-        <legend>Literals</legend>
-
+      <Control name='Literals' nested>
         <table>
           <tbody>
             <tr>
@@ -334,7 +328,7 @@ function ModelGraphDisplayControl(
             </tr>
           </tbody>
         </table>
-      </fieldset>
+      </Control>
     </Control>
   )
 }

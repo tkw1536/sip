@@ -10,15 +10,21 @@ import Button, { ButtonGroup } from '../form/button'
 import { nextInt } from '../../lib/utils/prng'
 import { Label } from '../form/generic'
 import { Numeric } from '../form/value'
+import * as styles from './controls.module.css'
+import { classes } from '../../lib/utils/classes'
 
 /** Control that provides only UI components */
 export function Control(props: {
   name: string
+  nested?: boolean
   class?: string
   children?: ComponentChildren
 }): JSX.Element {
   return (
-    <fieldset class={props.class}>
+    <fieldset
+      class={classes(styles.control, props.class)}
+      data-nested={props.nested}
+    >
       <legend>{props.name}</legend>
       {props.children}
     </fieldset>
