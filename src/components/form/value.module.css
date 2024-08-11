@@ -59,3 +59,9 @@
   --value-background: var(--theme-generic-medium);
   --value-focus-background: var(--theme-generic-dark);
 }
+
+.color {
+  box-sizing: border-box;
+  width: 2em;
+  font-size: inherit;
+}

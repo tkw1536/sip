@@ -84,7 +84,7 @@ export function Color(props: ColorProps): JSX.Element {
   const extra = useMemo(() => ({ type: 'color' }), [])
   return (
     <ValueBasedInput
-      style=''
+      style={styles.color}
       {...props}
       extra={extra}
       setValue={setColor}
