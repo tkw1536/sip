@@ -1,66 +1,67 @@
 /** styling for button and group texts */
-.button, .group span {
-    font-family: inherit;
-    font-size: 100%;
-    font-style: inherit;
-    font-weight: inherit;
-    line-height: inherit;
+.button,
+.group span {
+  font-family: inherit;
+  font-size: 100%;
+  font-style: inherit;
+  font-weight: inherit;
+  line-height: inherit;
 
-    display: inline-block;
-    box-sizing: border-box;
-    padding: 2px;
-    min-width: 50px;
+  display: inline-block;
+  box-sizing: border-box;
+  padding: 2px;
+  min-width: 50px;
 
-    color: var(--theme-generic-accent);
+  color: var(--theme-generic-accent);
 }
 
 /* button coloring */
 .button {
-    --button-radius: 5px;
-    border-radius: var(--button-radius);
+  --button-radius: 5px;
+  border-radius: var(--button-radius);
 
-    border-width: 1px;
-    border-style: solid;
+  border-width: 1px;
+  border-style: solid;
 
-    background-color: var(--button-background);
-    border-color: var(--button-outline);
-    transition: background-color var(--theme-transition) linear, border-color var(--theme-transition) linear;
+  background-color: var(--button-background);
+  border-color: var(--button-outline);
+  transition:
+    background-color var(--theme-transition) linear,
+    border-color var(--theme-transition) linear;
 }
 
 .button {
-    --button-background: var(--theme-active-light);
-    --button-outline: var(--theme-active-medium);
+  --button-background: var(--theme-active-light);
+  --button-outline: var(--theme-active-medium);
 }
 
 .button:hover:not(:disabled) {
-    cursor: pointer;
-    --button-background: var(--theme-active-medium);
-    --button-outline: var(--theme-active-hard);
+  cursor: pointer;
+  --button-background: var(--theme-active-medium);
+  --button-outline: var(--theme-active-hard);
 }
 
 .button:disabled {
-    --button-background: var(--theme-generic-light);
-    --button-outline: var(--theme-generic-medium);
+  --button-background: var(--theme-generic-light);
+  --button-outline: var(--theme-generic-medium);
 }
-
 
 /* groups need some margins */
 .group .button:not(:last-of-type) {
-    margin-right: 1px;
+  margin-right: 1px;
 }
-
 
 /** setup rounding in groups */
 .group .button {
-    border-radius: 0px;
+  border-radius: 0px;
 }
 
 .group .button:first-of-type {
-    border-top-left-radius: var(--button-radius);
-    border-bottom-left-radius: var(--button-radius);
+  border-top-left-radius: var(--button-radius);
+  border-bottom-left-radius: var(--button-radius);
 }
 
 .group .button:last-of-type {
-    border-top-right-radius: var(--button-radius);
-    border-bottom-right-radius: var(--button-radius);
+  border-top-right-radius: var(--button-radius);
+  border-bottom-right-radius: var(--button-radius);
 }

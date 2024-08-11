@@ -1,103 +1,104 @@
-.table td, .table th {
-    vertical-align: top;
+.table td,
+.table th {
+  vertical-align: top;
 }
 
 .table {
-    border-collapse: collapse;
+  border-collapse: collapse;
 }
 
 td.tree_level {
-    min-width: 50px;
+  min-width: 50px;
 }
 
-span.path, span.display_path {
-    display: block;
-    font-family: monospace;
-    color: var(--path-color);
-    --arrow-color: black;
+span.path,
+span.display_path {
+  display: block;
+  font-family: monospace;
+  color: var(--path-color);
+  --arrow-color: black;
 }
-
-
 
 /** colors for each of the different types */
 span.path_concept {
-    --path-color: #ffb31c;
+  --path-color: #ffb31c;
 }
 span.path_predicate {
-    --path-color: black;
+  --path-color: black;
 }
 
-span.path_shared, span.path_skip {
-    --path-color: gray;
-    --arrow-color: gray;
+span.path_shared,
+span.path_skip {
+  --path-color: gray;
+  --arrow-color: gray;
 }
 
 span.path_disambiguation {
-    --path-color: red;
+  --path-color: red;
 }
 
 span.path_datatype {
-    --path-color: blue;
+  --path-color: blue;
 }
 
 span.path:first-child:before {
-    opacity: 0;
+  opacity: 0;
 }
 
 span.path::before {
-    color: var(--arrow-color);
-    content: "→";
-    font-weight: bold;
-    margin: 1em;
+  color: var(--arrow-color);
+  content: '→';
+  font-weight: bold;
+  margin: 1em;
 }
 
-
 /* display the type after the element */
-span.path::after, span.display_path::after {
-    padding: .1em;
+span.path::after,
+span.display_path::after {
+  padding: 0.1em;
 
-    display: inline-block;
-    width: 1em;
-    line-height: 1em;
-    height: 1em;
+  display: inline-block;
+  width: 1em;
+  line-height: 1em;
+  height: 1em;
 
-    margin-left: .5em;
+  margin-left: 0.5em;
 }
 
 span.path_concept::after,
 span.path_predicate::after,
 span.path_datatype::after {
-    background: var(--path-color);
-    border-radius: .5em;
-    color: white;
-    text-align: center;
-    vertical-align: center;
+  background: var(--path-color);
+  border-radius: 0.5em;
+  color: white;
+  text-align: center;
+  vertical-align: center;
 
-    font-family: inherit;
-    opacity: 0;
+  font-family: inherit;
+  opacity: 0;
 }
 
 span.path_concept:hover::after,
 span.path_predicate:hover::after,
 span.path_datatype:hover::after {
-    opacity: 1;
+  opacity: 1;
 }
 
 /** text for each of the types */
 span.path_concept::after {
-    content: "C";
+  content: 'C';
 }
 
 span.path_predicate::after {
-    content: "P"
+  content: 'P';
 }
 
 span.path_datatype::after {
-    content: "D"
+  content: 'D';
 }
 
 span.path_skip::after {
-    margin-left: 0px;
-    content: '…';
-    width: inherit;
+  margin-left: 0px;
+  content: '…';
+  width: inherit;
 }

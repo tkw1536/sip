@@ -1,29 +1,29 @@
 :root {
-    /* size of input elements */
-    --theme-size: 100px;
+  /* size of input elements */
+  --theme-size: 100px;
 
-    /* transition for color elements */
-    --theme-transition: 250ms;
-    --theme-long-transition: calc(2 * var(--theme-transition));
+  /* transition for color elements */
+  --theme-transition: 250ms;
+  --theme-long-transition: calc(2 * var(--theme-transition));
 
-    /** colors for generic elements (or inactive ones) */
-    --theme-generic-light: #FFFFFF;
-    --theme-generic-medium: #D3D3D3;
-    --theme-generic-dark: #6A6A6A;
-    --theme-generic-accent: #000000;
+  /** colors for generic elements (or inactive ones) */
+  --theme-generic-light: #ffffff;
+  --theme-generic-medium: #d3d3d3;
+  --theme-generic-dark: #6a6a6a;
+  --theme-generic-accent: #000000;
 
-    /** colors for active elements */
-    --theme-active-light: #D6ECF3;
-    --theme-active-medium: #0076F9;
-    --theme-active-dark: #0000FF;
+  /** colors for active elements */
+  --theme-active-light: #d6ecf3;
+  --theme-active-medium: #0076f9;
+  --theme-active-dark: #0000ff;
 
-    /** colors of valid elements */
-    --theme-valid-light: #90EE90;
-    --theme-valid-medium: #48B748;
-    --theme-valid-dark: #008000;
+  /** colors of valid elements */
+  --theme-valid-light: #90ee90;
+  --theme-valid-medium: #48b748;
+  --theme-valid-dark: #008000;
 
-    /** colors of invalid elements */
-    --theme-invalid-light: #FFCCCB;
-    --theme-invalid-medium: #FF6666;
-    --theme-invalid-dark: #FF0000;
+  /** colors of invalid elements */
+  --theme-invalid-light: #ffcccb;
+  --theme-invalid-medium: #ff6666;
+  --theme-invalid-dark: #ff0000;
 }

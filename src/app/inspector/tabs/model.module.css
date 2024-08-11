@@ -1,8 +1,9 @@
 .duals table {
-    box-sizing: border-box;
-    width: 100%;
+  box-sizing: border-box;
+  width: 100%;
 }
-.duals table th, .duals table td {
-    box-sizing: border-box;
-    width: 50%;
+.duals table th,
+.duals table td {
+  box-sizing: border-box;
+  width: 50%;
 }

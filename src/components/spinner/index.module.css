@@ -1,94 +1,99 @@
 .spinner {
-    width: fit-content;
-    cursor: progress;
-    width: 100%;
-    box-sizing: border-box;
+  width: fit-content;
+  cursor: progress;
+  width: 100%;
+  box-sizing: border-box;
 
-    --glass-size: 200px;
-    --glass-side: 10px;
+  --glass-size: 200px;
+  --glass-side: 10px;
 
-    --ball-size: 50px;
+  --ball-size: 50px;
 }
 
 .message {
-    width: 100%;
-    text-align: center;
+  width: 100%;
+  text-align: center;
 }
 
 .icon {
-    position: relative;
+  position: relative;
 
-    margin: auto;
-    width: var(--glass-size);
-    height: var(--glass-size);
+  margin: auto;
+  width: var(--glass-size);
+  height: var(--glass-size);
 }
 
 .icon::before {
-    content: '';
-    display: block;
+  content: '';
+  display: block;
 
-    box-sizing: border-box;
-    width: var(--glass-size);
-    height: var(--glass-size);
+  box-sizing: border-box;
+  width: var(--glass-size);
+  height: var(--glass-size);
 
-    position: absolute;
-    margin: auto;
-    z-index: 1;
+  position: absolute;
+  margin: auto;
+  z-index: 1;
 
-    border-width: var(--glass-side);
-    border-top-width: 0;
-    border-bottom-width: calc(2*var(--glass-side));
-    border-bottom-left-radius: calc(2*var(--glass-side));
-    border-bottom-right-radius: calc(2*var(--glass-side));
-    border-style: solid;
-    border-color: var(--theme-generic-medium);
+  border-width: var(--glass-side);
+  border-top-width: 0;
+  border-bottom-width: calc(2 * var(--glass-side));
+  border-bottom-left-radius: calc(2 * var(--glass-side));
+  border-bottom-right-radius: calc(2 * var(--glass-side));
+  border-style: solid;
+  border-color: var(--theme-generic-medium);
 
-    background-image: linear-gradient(to bottom, transparent 50%, var(--theme-generic-dark) 50%);
+  background-image: linear-gradient(
+    to bottom,
+    transparent 50%,
+    var(--theme-generic-dark) 50%
+  );
 }
 
 .icon::after {
-    content: '';
-    display: block;
+  content: '';
+  display: block;
 
-    box-sizing: border-box;
-    width: var(--ball-size);
-    height: var(--ball-size);
+  box-sizing: border-box;
+  width: var(--ball-size);
+  height: var(--ball-size);
 
-    position: absolute;
-    left: calc((var( --glass-size) - var(--ball-size)) / 2);
-    top: calc((var( --glass-size) - var(--ball-size)) / 2);
-    z-index: 0;
+  position: absolute;
+  left: calc((var(--glass-size) - var(--ball-size)) / 2);
+  top: calc((var(--glass-size) - var(--ball-size)) / 2);
+  z-index: 0;
 
-    border-radius: calc(var(--ball-size) / 2);
-    border-width: 1px; 
-    border-style: solid;
+  border-radius: calc(var(--ball-size) / 2);
+  border-width: 1px;
+  border-style: solid;
 
-    animation: bounce 2s infinite linear;
+  animation: bounce 2s infinite linear;
 
-    transition: background-color var(--theme-transition) linear, border-color var(--theme-transition) linear;
-
+  transition:
+    background-color var(--theme-transition) linear,
+    border-color var(--theme-transition) linear;
 }
 
 @keyframes bounce {
-    0% {
-        transform: translateY(0px);
-    }
+  0% {
+    transform: translateY(0px);
+  }
 
-    50% {
-        transform: translateY(calc(-1 * (var(--ball-size)/2)));
-    }
+  50% {
+    transform: translateY(calc(-1 * (var(--ball-size) / 2)));
+  }
 
-    100% {
-        transform:  translateY(0px);
-    }
+  100% {
+    transform: translateY(0px);
+  }
 }
 
 .icon::after {
-    background-color: var(--theme-active-light);
-    border-color: var(--theme-active-medium);
+  background-color: var(--theme-active-light);
+  border-color: var(--theme-active-medium);
 }
 
 .icon:hover::after {
-    background-color: var(--theme-active-medium);
-    border-color: var(--theme-active-dark);
+  background-color: var(--theme-active-medium);
+  border-color: var(--theme-active-dark);
 }

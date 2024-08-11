@@ -1,171 +1,176 @@
 .toggle {
-    appearance: none;
+  appearance: none;
 
-    position: relative;
-    border: 0;
-    outline: 0;
+  position: relative;
+  border: 0;
+  outline: 0;
 
-    vertical-align: middle;
+  vertical-align: middle;
 }
 
 .toggle:not(:disabled) {
-    cursor: pointer;
+  cursor: pointer;
 }
 
-
 .toggle::after {
-    content: '';
-    display: inline-block;
-    clear: both;
+  content: '';
+  display: inline-block;
+  clear: both;
 
-    width: var(--toggle-width);
-    height: var(--toggle-height);
-    border-radius: calc(var(--toggle-height) / 2);
+  width: var(--toggle-width);
+  height: var(--toggle-height);
+  border-radius: calc(var(--toggle-height) / 2);
 
-    background-color: var(--toggle-background-color);
+  background-color: var(--toggle-background-color);
 }
 
 /* animate all the things */
 .toggle::before,
 .toggle::after {
-    transition: left var(--theme-transition) linear, background-color var(--theme-transition) linear, border-color var(--theme-transition) linear;
+  transition:
+    left var(--theme-transition) linear,
+    background-color var(--theme-transition) linear,
+    border-color var(--theme-transition) linear;
 }
 
 /** the toggle handle */
 .toggle::before {
-    content: '';
-    box-sizing: border-box;
+  content: '';
+  box-sizing: border-box;
 
-    /* position the handle in the center of the parent */
-    display: block;
-    position: absolute;
-    top: 0;
-    left: 0;
+  /* position the handle in the center of the parent */
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
 
-    /* it is a circle */
-    width: var(--toggle-height);
-    height: var(--toggle-height);
-    border-radius: 50%;
+  /* it is a circle */
+  width: var(--toggle-height);
+  height: var(--toggle-height);
+  border-radius: 50%;
 
-    border-width: 1px;
-    border-style: solid;
-    border-color: var(--toggle-handle-border);
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--toggle-handle-border);
 
-    background-color: var(--toggle-handle-color);
+  background-color: var(--toggle-handle-color);
 }
 
 .toggle:checked::before {
-    left: calc(var(--toggle-width) - var(--toggle-height));
+  left: calc(var(--toggle-width) - var(--toggle-height));
 }
 
 /* sizes */
 .toggle,
 .toggle::before,
 .toggle::after {
-    --toggle-height: 2em;
-    --toggle-width: calc(var(--toggle-height)*2);
+  --toggle-height: 2em;
+  --toggle-width: calc(var(--toggle-height) * 2);
 }
 
 /* colors */
 .toggle,
 .toggle::before,
 .toggle::after {
-    --toggle-handle-color: var(--theme-generic-light);
-    --toggle-handle-hover-color: var(--theme-active-light);
+  --toggle-handle-color: var(--theme-generic-light);
+  --toggle-handle-hover-color: var(--theme-active-light);
 
-    --toggle-handle-border: var(--theme-generic-dark);
-    --toggle-handle-border-hover: var(--theme-generic-accent);
+  --toggle-handle-border: var(--theme-generic-dark);
+  --toggle-handle-border-hover: var(--theme-generic-accent);
 
-    --toggle-background-color: var(--theme-generic-medium);
-    --toggle-background-checked-color: var(--theme-active-medium);
+  --toggle-background-color: var(--theme-generic-medium);
+  --toggle-background-checked-color: var(--theme-active-medium);
 }
 
 .toggle:disabled,
 .toggle:disabled::before,
 .toggle:disabled::after {
-    --toggle-handle-color: var(--theme-generic-medium);
-    --toggle-handle-hover-color: var(--theme-generic-medium);
+  --toggle-handle-color: var(--theme-generic-medium);
+  --toggle-handle-hover-color: var(--theme-generic-medium);
 
-    --toggle-handle-border: var(--theme-generic-dark);
-    --toggle-handle-border-hover: var(--theme-generic-dark);
+  --toggle-handle-border: var(--theme-generic-dark);
+  --toggle-handle-border-hover: var(--theme-generic-dark);
 
-    --toggle-background-color: var(--theme-generic-medium);
-    --toggle-background-checked-color: var(--theme-generic-dark);
+  --toggle-background-color: var(--theme-generic-medium);
+  --toggle-background-checked-color: var(--theme-generic-dark);
 }
 
 .toggle:hover::before {
-    --toggle-handle-color: var(--toggle-handle-hover-color);
-    --toggle-handle-border: var(--toggle-handle-border-hover);
+  --toggle-handle-color: var(--toggle-handle-hover-color);
+  --toggle-handle-border: var(--toggle-handle-border-hover);
 }
 
 .toggle:checked::after {
-    --toggle-background-color: var(--toggle-background-checked-color);
+  --toggle-background-color: var(--toggle-background-checked-color);
 }
 
 /** checkbox **/
 .checkbox {
-    appearance: none;
+  appearance: none;
 
-    background-color: var(--checkbox-background-color);
-    border-color: var(--checkbox-border-color);
-    border-style: solid;
-    border-width: 1px;
+  background-color: var(--checkbox-background-color);
+  border-color: var(--checkbox-border-color);
+  border-style: solid;
+  border-width: 1px;
 
-    transition: background-color var(--theme-transition) linear, border-color var(--theme-transition) linear;
+  transition:
+    background-color var(--theme-transition) linear,
+    border-color var(--theme-transition) linear;
 
-    padding: 10px;
-    border-radius: 5px;
+  padding: 10px;
+  border-radius: 5px;
 
-    position: relative;
+  position: relative;
 }
 
-.checkbox, .checkbox::after {
-    box-sizing: border-box;
-    --checkbox-size: 1em;
+.checkbox,
+.checkbox::after {
+  box-sizing: border-box;
+  --checkbox-size: 1em;
 
-    width: var(--checkbox-size);
-    height: var(--checkbox-size);
+  width: var(--checkbox-size);
+  height: var(--checkbox-size);
 }
 
 .checkbox:not(:disabled) {
-    cursor: pointer;
+  cursor: pointer;
 }
 
 .checkbox::after {
-    display: block;
-    content: '\2713';
+  display: block;
+  content: '\2713';
 
-    font-size: var(--checkbox-height);
-    font-weight: bold;
+  font-size: var(--checkbox-height);
+  font-weight: bold;
 
-    color: transparent;
+  color: transparent;
 
-    position: relative;
-    top: calc(-1 * (var(--checkbox-size)) / 2);
-    left: calc(-1 * (var(--checkbox-size)) / 2);
+  position: relative;
+  top: calc(-1 * (var(--checkbox-size)) / 2);
+  left: calc(-1 * (var(--checkbox-size)) / 2);
 }
 
 .checkbox:checked::after {
-    color: var(--checkbox-mark-color);
+  color: var(--checkbox-mark-color);
 }
 
 .checkbox {
-    --checkbox-background-color: var(--theme-generic-light);
-    --checkbox-border-color: var(--theme-generic-dark);
-    --checkbox-mark-color: var(--theme-generic-light);
+  --checkbox-background-color: var(--theme-generic-light);
+  --checkbox-border-color: var(--theme-generic-dark);
+  --checkbox-mark-color: var(--theme-generic-light);
 }
 
 .checkbox:checked {
-    --checkbox-background-color: var(--theme-active-medium);
-    --checkbox-border-color: var(--theme-active-dark);
+  --checkbox-background-color: var(--theme-active-medium);
+  --checkbox-border-color: var(--theme-active-dark);
 }
 
 .checkbox:disabled {
-    --checkbox-background-color: var(--theme-generic-medium);
-    --checkbox-border-color: var(--theme-generic-dark);
+  --checkbox-background-color: var(--theme-generic-medium);
+  --checkbox-border-color: var(--theme-generic-dark);
 }
 
 .checkbox:checked:disabled {
-    --checkbox-background-color: var(--theme-generic-dark);
-    --checkbox-border-color: var(--theme-generic-accent);
+  --checkbox-background-color: var(--theme-generic-dark);
+  --checkbox-border-color: var(--theme-generic-accent);
 }

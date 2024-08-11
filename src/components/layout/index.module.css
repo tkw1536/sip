@@ -1,7 +1,9 @@
-.header, .main, .footer {
-    padding: 5px;
+.header,
+.main,
+.footer {
+  padding: 5px;
 }
 .footer {
-    font-size: small;
-    border-top: 1px solid black;    
+  font-size: small;
+  border-top: 1px solid black;
 }

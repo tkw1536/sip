@@ -1,31 +1,31 @@
 .display {
-    box-sizing: border-box;
-    
-    min-width: 80vw;
-    padding: .5em;
+  box-sizing: border-box;
 
-    border: 1px solid var(--theme-invalid-light);
-    background-color: var(--theme-invalid-medium);
+  min-width: 80vw;
+  padding: 0.5em;
 
-    font-family: monospace, monospace;
+  border: 1px solid var(--theme-invalid-light);
+  background-color: var(--theme-invalid-medium);
+
+  font-family: monospace, monospace;
 }
 
 .header {
-    margin-bottom: 1em;
+  margin-bottom: 1em;
 }
 
 .title {
-    font-weight: bold;
+  font-weight: bold;
 }
 .title::after {
-    content: ": ";
+  content: ': ';
 }
 
 .line {
-    display: block;
-    white-space: pre;
+  display: block;
+  white-space: pre;
 }
 
 .display details {
-    padding-top: 1em;
+  padding-top: 1em;
 }
