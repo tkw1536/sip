@@ -27,15 +27,15 @@
 }
 
 .tab.selected {
-  background: #fff;
-  border-color: #aaa;
-  border-bottom: 2px solid white;
-  color: black;
+  background: var(--theme-generic-light);
+  border-color: var(--theme-generic-medium);
+  border-bottom: 2px solid var(--theme-generic-light);
+  color: var(--theme-generic-accent);
   border-radius: 5px 5px 0 0;
 }
 
 .tab.disabled {
-  color: gray;
+  color: var(--theme-generic-dark);
   cursor: default;
 }
 
