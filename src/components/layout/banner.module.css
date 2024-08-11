@@ -1,3 +1,51 @@
 .banner {
+  -webkit-user-select: none;
+  user-select: none;
+
   max-width: 80%;
+  outline: none;
+
+  background: var(--theme-generic-light);
+  border: solid 1px var(--theme-generic-accent);
+  border-radius: 1em;
+}
+
+.banner::backdrop {
+  -webkit-backdrop-filter: blur(2px) grayscale(100%);
+  backdrop-filter: blur(2px) grayscale(100%);
+}
+
+.banner button {
+  outline: none;
+}
+
+.banner h1 {
+  background-image: linear-gradient(
+    to left,
+    violet,
+    indigo,
+    blue,
+    green,
+    yellow,
+    orange,
+    red
+  );
+  color: transparent;
+  background-clip: text;
+  -webkit-background-clip: text;
+
+  background-size: 200% 100%;
+  animation: rainbow 5s ease infinite;
+}
+
+@keyframes rainbow {
+  0% {
+    background-position: 0% 0%;
+  }
+  50% {
+    background-position: 100% 0%;
+  }
+  100% {
+    background-position: 0% 0%;
+  }
 }
