@@ -113,6 +113,7 @@ export function Radio<T extends string>(props: RadioProps<T>): JSX.Element {
             value={v}
             onChange={handleChange}
             disabled={disabled}
+            class={styles.radio}
             {...ariaEntries({
               disabled,
             })}
