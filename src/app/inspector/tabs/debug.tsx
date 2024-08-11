@@ -9,6 +9,7 @@ import Button, {
   ButtonGroupText,
 } from '../../../components/form/button'
 import Checkbox, { Switch } from '../../../components/form/checkbox'
+import Dropdown, { Radio } from '../../../components/form/dropdown'
 
 export default function DebugTab(): JSX.Element {
   const panel = []
@@ -115,6 +116,57 @@ export default function DebugTab(): JSX.Element {
             </td>
             <td>
               <Checkbox value={false} disabled />
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <table>
+        <tbody>
+          <tr>
+            <td>Enabled</td>
+            <td>
+              <Dropdown
+                value='a'
+                values={['a', 'b', 'c']}
+                titles={{ a: 'Alpha', b: 'Beta', c: 'Gamma' }}
+              />
+            </td>
+            <td>
+              <Radio
+                value='a'
+                values={['a', 'b', 'c']}
+                titles={{ a: 'Alpha', b: 'Beta', c: 'Gamma' }}
+                descriptions={{
+                  a: 'The first letter',
+                  b: 'The second letter',
+                  c: 'The third letter',
+                }}
+              />
+            </td>
+          </tr>
+          <tr>
+            <td>Disabled</td>
+            <td>
+              <Dropdown
+                disabled
+                value='a'
+                values={['a', 'b', 'c']}
+                titles={{ a: 'Alpha', b: 'Beta', c: 'Gamma' }}
+              />
+            </td>
+            <td>
+              <Radio
+                disabled
+                value='a'
+                values={['a', 'b', 'c']}
+                titles={{ a: 'Alpha', b: 'Beta', c: 'Gamma' }}
+                descriptions={{
+                  a: 'The first letter',
+                  b: 'The second letter',
+                  c: 'The third letter',
+                }}
+              />
             </td>
           </tr>
         </tbody>

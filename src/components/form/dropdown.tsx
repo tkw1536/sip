@@ -8,6 +8,7 @@ import GenericInput, {
 } from './generic'
 import useModifierRef from './generic/modifiers'
 import { useOptionalId } from '../hooks/id'
+import * as styles from './dropdown.module.css'
 
 interface DropdownProps<T extends string> extends InputLikeProps<T> {
   /** titles of individual props */
@@ -49,20 +50,22 @@ export default function Dropdown<T extends string>({
   )
 
   return (
-    <select
-      id={id}
-      value={value}
-      disabled={isDisabled}
-      onInput={handleChange}
-      form={form}
-      {...datasetEntries(rest)}
-    >
-      {(typeof values !== 'undefined' ? values : [value]).map(value => (
-        <option key={value} value={value}>
-          {titles?.[value] ?? value}
-        </option>
-      ))}
-    </select>
+    <div class={styles.dropdown}>
+      <select
+        id={id}
+        value={value}
+        disabled={isDisabled}
+        onInput={handleChange}
+        form={form}
+        {...datasetEntries(rest)}
+      >
+        {(typeof values !== 'undefined' ? values : [value]).map(value => (
+          <option key={value} value={value}>
+            {titles?.[value] ?? value}
+          </option>
+        ))}
+      </select>
+    </div>
   )
 }
 

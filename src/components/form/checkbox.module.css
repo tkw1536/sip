@@ -143,15 +143,17 @@
   font-size: var(--checkbox-height);
   font-weight: bold;
 
-  color: transparent;
+  color: var(--checkbox-mark-color);
 
   position: relative;
   top: calc(-1 * (var(--checkbox-size)) / 2);
   left: calc(-1 * (var(--checkbox-size)) / 2);
+
+  opacity: 0;
 }
 
 .checkbox:checked::after {
-  color: var(--checkbox-mark-color);
+  opacity: 1;
 }
 
 .checkbox {
