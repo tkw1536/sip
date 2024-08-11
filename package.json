@@ -79,8 +79,9 @@
   "scripts": {
     "start": "vite dev --port 1234 --strict-port",
     "build": "vite build",
-    "ci": "yarn tsc && yarn lint && yarn spellcheck && yarn test",
+    "ci": "yarn tsc && yarn lint && yarn csslint && yarn spellcheck && yarn test",
     "lint": "eslint .",
+    "csslint": "prettier 'src/**/*.css' --check",
     "spellcheck": "cspell lint . --config cspell.json --quiet",
     "test": "vitest run"
   }

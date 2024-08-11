@@ -27,6 +27,9 @@ jobs:
     - name: Run Linter
       run: |
         yarn lint
+    - name: Run CSS Linter
+      run: |
+        yarn csslint
     - name: Run Spellchecker
       run: |
         yarn spellcheck
