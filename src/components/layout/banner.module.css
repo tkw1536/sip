@@ -5,6 +5,8 @@
   max-width: 80%;
   outline: none;
 
+  color: var(--theme-generic-accent);
+
   background: var(--theme-generic-light);
   border: solid 1px var(--theme-generic-accent);
   border-radius: 1em;
