@@ -1,10 +1,39 @@
 import { readFileSync } from 'fs'
-import { Marked } from 'marked'
+import { Marked, type RendererObject, type Renderer } from 'marked'
 import markedFootnote from 'marked-footnote'
 import { join } from 'path'
 
 const marked = new Marked()
 marked.use(markedFootnote())
+
+const renderer: RendererObject = {
+  // @ts-expect-error the typing for marked are incorrect, and this is the correct signature
+  link(
+    this: Renderer,
+    href: string,
+    title: string | null,
+    text: string,
+  ): string {
+    // check for an internal url
+    const isInternal =
+      href.startsWith('.') ||
+      href.startsWith('/') ||
+      href.startsWith('#') ||
+      href.startsWith('?')
+
+    let out = '<a href="' + href + '"'
+    if (title !== null) {
+      out += ' title="' + title + '"'
+    }
+    if (!isInternal) {
+      // spellchecker:words noopener noreferrer
+      out += ' target="_blank" rel="noopener noreferrer"'
+    }
+    out += '>' + text + '</a>'
+    return out
+  },
+}
+marked.use({ renderer })
 
 const DOCS_DIR = join(__dirname, '..', 'docs')
 
