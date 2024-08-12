@@ -415,8 +415,6 @@ class Dataset {
     type?: string,
     quality?: number,
   ): Promise<Blob> {
-    const { DataSet } = await import('vis-data')
-
     // get the original canvas size
     const orgCanvas = (await draw(network)).canvas
 
