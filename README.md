@@ -8,6 +8,8 @@ While the code to this project is open source and you may inspect it to your hea
 This means that you may not run, create derivative works of or distribute this code.
 
 In particular you are __not__ granted a license to use this code to create visualizations of your own pathbuilders for publications.
+
+You may only use this tool in non-chromium-based browsers, such as [Firefox](https://www.mozilla.org/en-US/firefox/new/) (or Safari if you must). 
 </b>
 
 ## User-facing Documentation

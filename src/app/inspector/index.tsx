@@ -1,10 +1,9 @@
 import { type JSX } from 'preact'
 import Tabs, { TabLabel, Tab } from '../../components/tabs'
-
 import DebugTab from './tabs/debug'
-import Banner from '../../components/layout/banner'
 import useInspectorStore from './state'
 import { lazy } from 'preact/compat'
+import { LegalModal } from '../../components/legal'
 
 const PathbuilderTab = lazy(async () => await import('./tabs/pathbuilder'))
 const TreeTab = lazy(async () => await import('./tabs/tree'))
@@ -18,13 +17,13 @@ export default function InspectorApp(): JSX.Element {
   const loadStage = useInspectorStore(s => s.loadStage)
   const modal = useInspectorStore(s => s.modal)
   const setActiveTab = useInspectorStore(s => s.setActiveTab)
-  const hideModal = useInspectorStore(s => s.hideModal)
+  const closeModal = useInspectorStore(s => s.closeModal)
 
   const loaded = loadStage === true
 
   return (
     <>
-      {modal && <Banner onClose={hideModal} />}
+      <LegalModal open={modal} onClose={closeModal} />
       <Tabs onChangeTab={setActiveTab} active={activeTab}>
         <TabLabel>
           <b>Supreme Inspector for Pathbuilders</b>

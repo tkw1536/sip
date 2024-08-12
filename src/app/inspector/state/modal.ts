@@ -9,7 +9,7 @@ interface State {
 }
 
 interface Actions {
-  hideModal: () => void
+  closeModal: () => void
 }
 
 const initialState: State = {
@@ -27,7 +27,7 @@ export const create: StateCreator<BoundState, [], [], Slice> = set => {
   return {
     ...initialState,
 
-    hideModal: () => {
+    closeModal: (): void => {
       set({ modal: false })
     },
   }

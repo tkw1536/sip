@@ -1,39 +1,85 @@
-import { type JSX } from 'preact'
+import { type ComponentChildren, type JSX } from 'preact'
 import { useCallback, useEffect, useRef } from 'preact/hooks'
-import HTML from '../html'
 import * as styles from './banner.module.css'
-import markdownDocument from '../../../macros/markdown' with { type: 'macro' }
 import Button from '../form/button'
 
-const bannerHTML = markdownDocument('banner.md')
-
 interface ModalProps {
-  onClose: () => void
+  children?: ComponentChildren
+  buttonText?: ComponentChildren
+  onClose: () => boolean
 }
 
-export default function Banner({ onClose }: ModalProps): JSX.Element {
+export default function UnClosableModal({
+  onClose,
+  children,
+  buttonText,
+}: ModalProps): JSX.Element {
   const modalRef = useRef<HTMLDialogElement>(null)
 
-  const onCloseNative = useCallback(
-    (event: Event) => {
-      event.preventDefault()
-      onClose()
-    },
-    [onClose],
-  )
-
+  // show the modal dialog on first render
   useEffect(() => {
     const modal = modalRef.current
     if (modal === null) throw new Error('never reached')
     modal.showModal()
   }, [])
 
+  // do not allow the dialog element to be removed from the DOM by hand
+  // this is not triggered by the cleanup
+  useEffect(() => {
+    const modal = modalRef.current
+    if (modal === null) throw new Error('never reached')
+    const parent = modal.parentElement
+    if (parent === null) throw new Error('never reached')
+
+    const observer = new MutationObserver(() => {
+      if (!document.contains(modal)) {
+        // eslint-disable-next-line no-self-assign
+        location.href = location.href
+      }
+    })
+    observer.observe(parent, { childList: true })
+
+    return () => {
+      observer.disconnect()
+    }
+  })
+
+  const handleButton = useCallback(() => {
+    modalRef.current?.close()
+  }, [])
+
+  const handleCancel = useCallback((event: Event) => {
+    event.preventDefault()
+  }, [])
+
+  const handleClose = useCallback(
+    (event: Event) => {
+      event.preventDefault()
+
+      if (!onClose()) {
+        const modal = modalRef.current
+        if (modal === null) throw new Error('never reached')
+
+        // hack: on Chrome we need to re-open the dialog element
+        // because preventDefault() is ineffective.
+        queueMicrotask(() => {
+          if (modal.open) return
+          modal.showModal()
+        })
+      }
+    },
+    [onClose],
+  )
+
   return (
-    <dialog ref={modalRef} onClose={onCloseNative} class={styles.banner}>
-      <HTML html={bannerHTML} trim={false} noContainer />
-      <div>
-        <Button onInput={onClose}>I Understand And Agree To These Terms</Button>
-      </div>
+    <dialog
+      ref={modalRef}
+      onCancel={handleCancel}
+      onClose={handleClose}
+      class={styles.banner}
+    >
+      {children}
+      <Button onInput={handleButton}>{buttonText}</Button>
     </dialog>
   )
 }

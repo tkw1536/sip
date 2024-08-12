@@ -1,5 +1,9 @@
-import { type VNode } from 'preact'
+import { type JSX, type VNode } from 'preact'
 import generateDisclaimer from '../../macros/disclaimer' with { type: 'macro' }
+import markdownDocument from '../../macros/markdown' with { type: 'macro' }
+import UnClosableModal from './layout/banner'
+import HTML from './html'
+import { useCallback } from 'preact/hooks'
 
 const disclaimer = generateDisclaimer()
 
@@ -41,4 +45,61 @@ export function LegalDisclaimer(): VNode<any> {
       <code>{disclaimer}</code>
     </pre>
   )
+}
+
+const bannerHTML = markdownDocument('banner.md')
+
+export function LegalModal(props: {
+  open: boolean
+  onClose: () => void
+}): JSX.Element | null {
+  const { open, onClose } = props
+  const handleClose = useCallback((): boolean => {
+    if (!isAllowedBrowser()) {
+      return false
+    }
+    onClose()
+    return true
+  }, [onClose])
+
+  if (!open) return null
+
+  return (
+    <UnClosableModal
+      onClose={handleClose}
+      buttonText='I Understand And Agree To These Terms'
+    >
+      <p>
+        <HTML
+          html={bannerHTML}
+          trim={false}
+          noContainer
+          components={{ Legal: LegalDisclaimer }}
+        />
+      </p>
+    </UnClosableModal>
+  )
+}
+
+const skipBrowserCheckEnv = import.meta.env.VITE_SKIP_ALLOWED_BROWSER_CHECK
+const skipBrowserCheck =
+  typeof skipBrowserCheckEnv === 'string' && skipBrowserCheckEnv !== ''
+
+/**
+ * Checks if the browser is allowed to use this software.
+ * If so, returns true.
+ * If not, returns false and {@link window.alert}s the user.
+ */
+function isAllowedBrowser(): boolean {
+  if (skipBrowserCheck) {
+    return true
+  }
+  if ('chrome' in globalThis) {
+    alert(
+      'RTFM: You MAY NOT use this in Chromium-based browsers. Use Firefox. ',
+    )
+    return false
+  }
+
+  return true
 }

@@ -34,14 +34,14 @@ function Button<T>({
   const handleClick = useCallback(
     (event: Event & { currentTarget: HTMLButtonElement }) => {
       event.preventDefault()
+      if (disabled === true) {
+        return
+      }
       if (typeof onInput !== 'function') {
         const { current: button } = buttonRef
         if (button instanceof HTMLButtonElement) {
           button.form?.requestSubmit(button)
         }
-        return
-      }
-      if (disabled === true) {
         return
       }
       const { dataset } = event.currentTarget
