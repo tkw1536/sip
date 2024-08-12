@@ -23,6 +23,16 @@ export default defineConfig({
         inspector: resolve(__dirname, 'index.html'),
         rdf: resolve(__dirname, 'rdf', 'index.html'),
       },
+      output: {
+        manualChunks: {
+          // define a couple smaller chunks for vis-network
+          'vis-network': ['vis-network'],
+          'vis-data': ['vis-data'],
+          'vis-network-css': [
+            'vis-network/dist/dist/vis-network.min.css?inline',
+          ],
+        },
+      },
     },
   },
   test: {
