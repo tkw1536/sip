@@ -1582,10 +1582,10 @@
     loupe "^2.3.7"
     pretty-format "^29.7.0"
 
-"@viz-js/viz@^3.6.0":
-  version "3.6.0"
-  resolved "https://registry.yarnpkg.com/@viz-js/viz/-/viz-3.6.0.tgz#1f89d48ff4d26083ea984981e626f8ad2f5a000f"
-  integrity sha512-DvDvP5lcrZrBMZ39OJxOfpM1gO1h6+bsT0ES29XmRyvYgqG4QvDQGP9aaFOytIwp9BWl5okUzjAmvUs/80tBTg==
+"@viz-js/viz@^3.7.0":
+  version "3.7.0"
+  resolved "https://registry.yarnpkg.com/@viz-js/viz/-/viz-3.7.0.tgz#f8f509ff9d1067c87c678137052289db750db648"
+  integrity sha512-+nZ5LWe09ypRDk43pDU09wLW80kLAEonM7xES4s6AWiCUfAy5Vb+rxnQ3hKw79ptdaHJsyNIfwnzpEFtfMIyGA==
 
 "@xmldom/xmldom@^0.8.10":
   version "0.8.10"
