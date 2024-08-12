@@ -101,7 +101,7 @@ export const Label = forwardRef(function Label(
       {typeof title === 'string' && (
         <span
           class={classes(
-            styles.title,
+            // styles.title,
             Children.count(children) > 0 && styles.no_content_title,
           )}
         >
