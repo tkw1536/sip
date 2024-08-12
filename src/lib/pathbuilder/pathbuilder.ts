@@ -13,6 +13,7 @@ export class Pathbuilder {
     if (pbInterface.length !== 1) {
       throw new Error('expected exactly one child element in top-level xml')
     }
+    console.log(result.childNodes)
     return this.fromNode(pbInterface[0])
   }
 

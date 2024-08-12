@@ -15,7 +15,7 @@ interface State {
 }
 
 interface Actions {
-  loadFile: (file: File) => void
+  loadFile: (source: File | (() => Promise<File>)) => void
   closeFile: () => void
 }
 
@@ -37,7 +37,7 @@ export const create: StateCreator<BoundState, [], [], Slice> = set => {
   return {
     ...initialState,
 
-    loadFile: (file: File) => {
+    loadFile: (source: File | (() => Promise<File>)) => {
       // tell the caller that we're loading
       set({ loadStage: 'loading' })
 
@@ -48,10 +48,12 @@ export const create: StateCreator<BoundState, [], [], Slice> = set => {
         let pathbuilder: Pathbuilder
         let tree: PathTree
 
+        let file: File
         try {
-          const source = await file.text()
+          file = typeof source === 'function' ? await source() : source
+          const fileText = await file.text()
 
-          pathbuilder = Pathbuilder.parse(source)
+          pathbuilder = Pathbuilder.parse(fileText)
           tree = PathTree.fromPathbuilder(pathbuilder)
 
           // load the entire initial state

@@ -42,6 +42,15 @@ function WelcomeView(): JSX.Element {
   const loadStage = useInspectorStore(s => s.loadStage)
   const loadFile = useInspectorStore(s => s.loadFile)
 
+  const loadSampleFile = useCallback(() => {
+    loadFile(async (): Promise<File> => {
+      const text = await import(
+        '../../../../fixtures/pathbuilder/example_file_in_ui.xml?raw'
+      ).then(m => m.default)
+      return new File([text], 'sample.xml', { type: Type.XML })
+    })
+  }, [loadFile])
+
   if (loadStage === 'loading') {
     return <Spinner message='Loading pathbuilder' />
   }
@@ -54,7 +63,8 @@ function WelcomeView(): JSX.Element {
         <a href='https://wiss-ki.eu' target='_blank' rel='noopener noreferrer'>
           WissKI
         </a>{' '}
-        software. Click below to load a pathbuilder.
+        software. Click below to load a pathbuilder or{' '}
+        <Button onInput={loadSampleFile}>Use An Example</Button>.
       </p>
       <p>
         All processing happens on-device, meaning the server host can not access

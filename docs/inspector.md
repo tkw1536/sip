@@ -21,13 +21,12 @@ For a more thorough introduction to to those topics please refer to the WissKI D
 
 The SIP project is entirely open source and it's source code can be found on GitHub [^4]. 
 
-
 **Even though you may inspect the source code to your heart's content, SIP (currently) does not have a license. This means that you may not publicly perform, create derivative works of or distribute this code . In particular you are not granted a license to use this code to create visualizations of your own pathbuilders.**
 
 This app makes use of several JavaScript libraries. Some of these require that attribution is given to their authors. You can look at these notices below.
 
 <details>
-    <summary>Legal Notices</summary>
+    <summary>Attribution Notices</summary>
 
 <Legal>(the app will include legal notices here)</Legal>
 
@@ -40,6 +39,8 @@ SIP runs entirely inside the browser.
 The interface is split into several tabs. 
 Each tab is documented below. 
 
+Each tab usually contains a main panel, as well as an expandable sidebar with additional controls. 
+
 **NOTE**: This documentation is still a work-in-progress.
 
 ## The Pathbuilder Tab
@@ -49,6 +50,8 @@ A pathbuilder can be loaded via the `Pathbuilder` tab.
 The inspector supports only `.xml` files at the moment. 
 Clicking on the Pathbuilder box opens a dialog where the file can be selected. 
 Alternatively, it can be dragged and dropped into the box to be loaded. 
+
+Alternatively, a button to load a sample file is also provided.
 
 <details>
     <summary>How To Create a Pathbuilder XML from within WissKI</summary>
@@ -67,18 +70,36 @@ When loading fails (e.g. because the file is invalid), an error message is displ
 
 After a pathbuilder has been opened, it's name is displayed in the tab instead. 
 You can chose to download the opened pathbuilder, or close the file. 
+All tabs ignore disabled paths.
 
 ## The Tree Tab
 
-Not yet documented.
+The Tree Tab shows the pathbuilder as a hierarchical structure: A set of bundles and field associated with them.
+It is similar, although not quite identical, to the pathbuilder overview in WissKI.
 
-## The Bundle Graph Tab
+In the main panel, each path is represented as a table row.
+The collapsible side panel holds additional controls.
 
-Not yet documented.
+The indentation of paths shows their level of nesting within the tree. 
+Bundles can be collapsed and expanded using a button to hide or reveal the paths that belong to them.
+For performance reasons, all bundles are collapsed by default. 
+For convenience, the side panel holds two buttons `Expand All` and `Collapse All` that expand or collapse all bundles.
 
-## The Model Graph Tab
+Each path displays title, ID, elements, field type as well as cardinality.
+The path elements are displayed in a list.
+Each type of path element is associated a color, a legend can be found in the side panel.
+Importantly, path elements shared with the parent path (e.g. the bundle a field is found in) is displayed in gray.
+To save space, all parent elements can be collapsed into a single ellipse (`...`) by enabling a toggle in the sidebar. 
 
-Not yet documented.
+Paths can be selected using a checkbox. 
+These checkboxes determine if the selected path is included in the `Bundle Graph` and `Model Graph` views.
+Users can click a checkbox to toggle selection of a single path, or hold the shift key to toggle a path and all its' children.
+The side panel also holds buttons to select `All`, `None`, only `Bundles` or only `Fields`.
+These buttons overwrite any previously made selections.
+
+Each path can be given a color to be used in the Graph Displays using a color input.
+Two presets can be applied via the side panel.
+The side panel also allows exporting and importing the colors as a json file.
 
 ## The Namespace Map Tab
 
@@ -101,6 +122,93 @@ To reset the namespace map to its' default value, click the `Reset To Default` b
 The `Export` and `Import` can be used to export and import the namespace map to a file on disk.
 The Namespace Map is saved as a json file.
 
+## The Graph Tabs
+
+The Graph Tabs display the Model and Bundle Graph respectively.
+These are explained in the next sections; we first explain the generic graph tab functionality.
+
+A Graph Tab consists of a main panel, which shows the rendered graph, and a side panel, which holds additional controls.
+The user can choose a different renderer to show the graph.
+
+The supported renderers are:
+
+- [viz-js](https://github.com/mdaines/viz-js), a JavaScript port of the popular [GraphViz](https://graphviz.org/) application;
+- [vis-network](https://github.com/visjs/vis-network);
+- [sigma.js](https://www.sigmajs.org/); and
+- [Cytoscape.js](https://js.cytoscape.org/)
+
+Each renderer supports different layouts for the graph.
+After selecting a renderer, a layout can also be chosen.
+
+Some layouts involve randomness in the initial node positions.
+For this purpose, a random `Seed` can be specified, or randomized.
+This is used to initialize an appropriate PRNG [^5].
+Not all renderers and layouts make use of the seed, and the graph layout make look identical despite choosing a different seed.
+
+Some renderers do not produce a static graph layout; instead they use a physics simulation to progressively animate the node positions.
+This simulation can be stopped and started using `Start` and `Stop` buttons.
+These are disabled, when an animation is not supported.
+As some renderers also support dragging nodes around, a `Reset` button exists to completely reset their positions.
+
+Some renderers also allow exporting the graph in various formats.
+The formats include SVG (`Graphviz` only), GV (`Graphviz only`) and PNG (`vis-network`, `Sigma.js` only). 
+If supported by the currently selected renderer, one button is displayed for each format.
+
+### Bundle Graph
+
+The Bundle graph displays each path as a node in a graph.
+Two such nodes are connected if their corresponding paths have a `parent-child` relationship.
+For example a field is connected with its' containing bundle.
+
+The Bundle graph uses the path titles as labels for each node.
+It only includes paths selected in the `Tree` Tab; coloring each with the configured color.
+
+### Model Graph
+
+The Model Graph visualizes structure of the graph produced by WissKI when using the pathbuilder.
+Its' nodes are the concept and literal nodes, it's edges are the appropriate properties.
+Additionally, the model graph annotates where each bundle and (datatype and non-datatype)field is located.
+
+As before, this graph only includes nodes selected in the tree tab. 
+An additional `Display` control allows toggling on and off different kinds of labels.
+If supported by the renderer, changing the `Display` control does not reset the nodes positions within the displayed graph.
+
+#### Path Drawing
+To produce a model graph, SIP iterates over all included paths.
+For the elements of these paths, each class is drawn as a concept node.
+Then these concepts are connected using edges labeled with their properties.
+Finally literal nodes are drawn where a datatype property exists.
+
+Classes typically occur in the pathbuilder more than once.
+Usually, each class would be shown as many times as each occurs.
+Instead, it sometimes makes sense to deduplicate nodes and only show classes fewer times.
+
+This can be configured in the side panel using the `Deduplication` control.
+It has the following options:
+
+- **Bundle**. Draw each class once within the current bundle. Default.
+- **Full**. Draws each class at most once. This corresponds to drawing a subset of the associated ontology with its' domains and ranges.
+- **Parents**. Re-uses nodes when they occur in the parent path. 
+- **None**. Does not deduplicate nodes at all.
+
+As changing the deduplication strategy produces a different model graph, changing the setting resets node positions for the current renderer.
+
+#### Path Annotations
+
+In addition, the model graph overlays the model nodes with the location of each bundle and field.
+Fields are split into `Data Fields` (those at a literal node that have a `Datatype Property`) and `Concept Fields` (those at a concept node).
+Each of these can be toggled off individually in the `Display` control.
+
+By default these annotations are associated with the corresponding concept or literal node using a box [^6].
+Then, each annotation is given the color selected in the `Tree` Tab.
+For concepts and literals, the boxes around these annotations can be toggled on or off, allowing the renderers layout to position the nodes more freely.
+The new positioning is only applied once the node positions are reset using the `Reset` button in the `Renderer` control.
+
+Instead of showing each annotation as an attached node, it is also possible to collapse them into a single node along with the concept or literal node.
+This is achieved by toggling off the `Complex` switch.
+In this case it's color is determined by the most important annotation. 
+Most important means the path with the fewest number of descendants, or (if several nodes have the same number of descendants) the one higher in the pathbuilder.
+
 ## The About Tab
 
 Contains this document. 
@@ -109,3 +217,7 @@ Contains this document.
 [^2]: A future version of SIP may allow editing of Pathbuilders; in such a case this document will be updated.
 [^3]: https://wiss-ki.eu/documentation
 [^4]: https://github.com/tkw1536/sip
+[^5]: https://en.wikipedia.org/wiki/Pseudorandom_number_generator
+[^6]: Not all renderers support boxes.
+
+<!-- spellchecker:words PRNG -->

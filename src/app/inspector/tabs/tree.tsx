@@ -374,9 +374,7 @@ const PathRow = memo(function PathRow(props: PathRowProps): JSX.Element {
       </td>
       {treeLevels}
       <td class={styles.tree_level}>{props.children}</td>
-      <td colSpan={1 + maxDepth - node.depth} class={styles.tree_new}>
-        {path.name}
-      </td>
+      <td colSpan={1 + maxDepth - node.depth}>{path.name}</td>
       <td>
         <code>{path.id}</code>
       </td>
