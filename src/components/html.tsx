@@ -6,11 +6,13 @@ import { classes } from '../lib/utils/classes'
 
 type MarkupProps = ComponentProps<typeof Markup>
 type HTMLProps = Omit<MarkupProps, 'type' | 'markup'> & { html: string } & {
+  narrow?: boolean
   noContainer?: boolean
 }
 export default function HTML({
   html,
   noContainer,
+  narrow,
   ...rest
 }: HTMLProps): VNode<any> {
   const markup = (
@@ -24,5 +26,9 @@ export default function HTML({
   if (noContainer ?? false) {
     return markup
   }
-  return <div class={classes(styles.container)}>{markup}</div>
+  return (
+    <div class={classes(styles.container, narrow === true && styles.narrow)}>
+      {markup}
+    </div>
+  )
 }

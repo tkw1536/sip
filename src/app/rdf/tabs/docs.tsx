@@ -5,5 +5,5 @@ import markdownDocument from '../../../../macros/markdown' with { type: 'macro' 
 const html = markdownDocument('rdf.md')
 
 export default function DocsTab(): VNode<any> {
-  return <HTML html={html} trim={false} />
+  return <HTML narrow html={html} trim={false} />
 }

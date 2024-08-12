@@ -8,6 +8,11 @@ const html = markdownDocument('inspector.md')
 
 export default function DocsTab(): JSX.Element {
   return (
-    <HTML html={html} trim={false} components={{ Legal: LegalDisclaimer }} />
+    <HTML
+      narrow
+      html={html}
+      trim={false}
+      components={{ Legal: LegalDisclaimer }}
+    />
   )
 }
