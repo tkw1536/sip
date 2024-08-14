@@ -31,7 +31,7 @@ export const create: StateCreator<BoundState, [], [], Slice> = (set, get) => {
 
   loaders.add(
     async (tree: PathTree): Promise<Partial<State>> => ({
-      cm: applyColorPreset(tree, ColorPreset.BlueAndOrange),
+      cm: applyColorPreset(tree, ColorPreset.OrangeAndGray),
     }),
   )
 

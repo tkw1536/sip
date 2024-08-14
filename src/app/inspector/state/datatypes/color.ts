@@ -6,12 +6,12 @@ import {
 } from '../../../../lib/pathbuilder/pathtree'
 
 export enum ColorPreset {
-  BlueAndOrange = 'Blue And Orange',
+  OrangeAndGray = 'Orange And Gray',
   OnePerBundle = 'One Color Per Bundle',
 }
 
 export const colorPresets: ColorPreset[] = [
-  ColorPreset.BlueAndOrange,
+  ColorPreset.OrangeAndGray,
   ColorPreset.OnePerBundle,
 ]
 
@@ -28,7 +28,7 @@ export function applyColorPreset(
 }
 
 function bluePreset(node: PathTreeNode): ColorMap {
-  return ColorMap.generate(node, { field: '#f6b73c', bundle: '#add8e6' })
+  return ColorMap.generate(node, { bundle: '#f6b73c', field: '#d3d3d3' })
 }
 
 const GOLDEN_ANGLE = 137.508
