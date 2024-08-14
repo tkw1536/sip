@@ -13,7 +13,6 @@ export class Pathbuilder {
     if (pbInterface.length !== 1) {
       throw new Error('expected exactly one child element in top-level xml')
     }
-    console.log(result.childNodes)
     return this.fromNode(pbInterface[0])
   }
 
@@ -26,7 +25,7 @@ export class Pathbuilder {
 
     // parse all the paths
     const paths = Array.from(node.childNodes).filter(
-      node => node.nodeType === node.ELEMENT_NODE,
+      node => node.nodeType === node.ELEMENT_NODE && node.nodeName === 'path',
     )
     return new Pathbuilder(paths.map(n => Path.fromNode(n as Element)))
   }
