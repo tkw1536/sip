@@ -109,7 +109,11 @@ abstract class CytoscapeDriver<
       case 'avsdf':
         return { name: 'avsdf' }
       case 'cola':
-        return { name: 'cola', maxSimulationTime } as unknown as any
+        return {
+          name: 'cola',
+          maxSimulationTime,
+          nodeSpacing: () => 100,
+        } as unknown as any
       case 'elk':
         return { name: 'elk', maxSimulationTime } as unknown as any
       case 'fcose':
