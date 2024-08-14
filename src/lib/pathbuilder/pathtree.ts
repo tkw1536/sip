@@ -1,24 +1,25 @@
 import { type Path, type Pathbuilder } from './pathbuilder'
 
 interface MutableProtoBundle {
+  type: 'bundle'
   id: string
   data: { index: number; path: Path } | null
   parent: MutableProtoBundle | null
-  bundles: MutableProtoBundle[]
-  fields: ProtoField[]
+  children: Array<MutableProtoBundle | ProtoField>
 }
 interface ProtoBundle {
+  readonly type: 'bundle'
   readonly index: number
   readonly path: Path
 
-  readonly bundles: ProtoBundle[]
-  readonly fields: ProtoField[]
+  readonly children: Array<ProtoBundle | ProtoField>
 }
 
 interface ProtoField {
-  index: number
-  id: string
-  path: Path
+  readonly type: 'field'
+  readonly index: number
+  readonly id: string
+  readonly path: Path
 }
 
 export type Diagnostic = OrphanedField | OrphanedBundle | DuplicateBundle
@@ -335,11 +336,11 @@ export class PathTree extends PathTreeNode {
       }
 
       const create: MutableProtoBundle = {
+        type: 'bundle',
         id,
         data: null,
         parent: null,
-        fields: [],
-        bundles: [],
+        children: [],
       }
       bundles.set(id, create)
       return create
@@ -353,13 +354,13 @@ export class PathTree extends PathTreeNode {
 
       // not a group => it is just a field
       if (!path.isGroup) {
-        const field = { id: path.field, index, path }
+        const field: ProtoField = { type: 'field', id: path.field, index, path }
 
         if (parent === null) {
           emitDiagnostic({ type: 'orphaned_field', path })
           return
         }
-        parent.fields.push(field)
+        parent.children.push(field)
         return
       }
 
@@ -372,7 +373,7 @@ export class PathTree extends PathTreeNode {
       group.parent = parent
 
       if (parent !== null) {
-        parent.bundles.push(group)
+        parent.children.push(group)
       } else {
         mainBundles.push(group)
       }
@@ -395,22 +396,41 @@ export class PathTree extends PathTreeNode {
   static #validateBundle({
     id,
     data,
-    bundles,
-    fields,
+    children,
   }: MutableProtoBundle): ProtoBundle | null {
     if (data === null) {
       return null
     }
 
-    const children = bundles
-      .map(bundle => this.#validateBundle(bundle))
-      .filter(bundle => bundle !== null)
+    const validatedChildren = children
+      .map(child =>
+        child.type === 'field' ? child : this.#validateBundle(child),
+      )
+      .filter(child => child !== null)
+      .sort((l, r) => {
+        const {
+          path: { weight: lWeight },
+          index: lIndex,
+        } = l
+        const {
+          path: { weight: rWeight },
+          index: rIndex,
+        } = r
+
+        // sort first by weight
+        if (lWeight !== rWeight) {
+          return lWeight - rWeight
+        }
+
+        // and then by index
+        return lIndex - rIndex
+      })
 
     return {
+      type: 'bundle',
       path: data.path,
       index: data.index,
-      bundles: children,
-      fields,
+      children: validatedChildren,
     }
   }
 }
@@ -418,63 +438,57 @@ export class PathTree extends PathTreeNode {
 export class Bundle extends PathTreeNode {
   constructor(
     public readonly parent: Bundle | PathTree,
-    { index, path, bundles, fields }: ProtoBundle,
+    { index, path, children }: ProtoBundle,
   ) {
     // ensure that the proto bundle object is valid
     super(parent.depth + 1, index)
     this.path = path
 
-    bundles.forEach(bundle => {
-      this.#childBundles.push(new Bundle(this, bundle))
-    })
-    fields.forEach(field => {
-      this.#childFields.push(new Field(this, field))
-    })
+    this.#children = children.map(child =>
+      child.type === 'bundle'
+        ? new Bundle(this, child)
+        : new Field(this, child),
+    )
   }
 
   equals(other: PathTreeNode): boolean {
     return (
       other instanceof Bundle &&
       this.path.equals(other.path) && // TODO: path equality
-      this.#childBundles.length === other.#childBundles.length &&
-      this.#childBundles.every((bundle, index) =>
-        bundle.equals(other.#childBundles[index]),
-      ) &&
-      this.#childFields.length === other.#childFields.length &&
-      this.#childFields.every((field, index) =>
-        field.equals(other.#childFields[index]),
+      this.#children.length === other.#children.length &&
+      this.#children.every((child, index) =>
+        child.equals(other.#children[index]),
       )
     )
   }
 
   public readonly path: Path
-  readonly #childBundles: Bundle[] = []
-  readonly #childFields: Field[] = [];
-
-  *children(): IterableIterator<PathTreeNode> {
-    for (const bundle of this.#childBundles) {
-      yield bundle
-    }
-    for (const field of this.#childFields) {
-      yield field
+  readonly #children: Array<Bundle | Field> = [];
+  *children(): IterableIterator<Bundle | Field> {
+    for (const child of this.#children) {
+      yield child
     }
   }
 
   get childCount(): number {
-    return this.#childBundles.length + this.#childFields.length
+    return this.#children.length
   }
 
   /** the direct bundle descendants */
   *bundles(): IterableIterator<Bundle> {
-    for (const bundle of this.#childBundles) {
-      yield bundle
+    for (const child of this.#children) {
+      if (child instanceof Bundle) {
+        yield child
+      }
     }
   }
 
   /** the direct field descendants */
   *fields(): IterableIterator<Field> {
-    for (const field of this.#childFields) {
-      yield field
+    for (const child of this.#children) {
+      if (child instanceof Field) {
+        yield child
+      }
     }
   }
 }

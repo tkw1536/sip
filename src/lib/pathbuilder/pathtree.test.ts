@@ -9,20 +9,29 @@ const samplePB = Pathbuilder.parse(
 
 const sampleTree = new PathTree([
   {
+    type: 'bundle',
     path: samplePB.paths[0],
     index: 0,
-    bundles: [
+    children: [
       {
+        type: 'field',
+        id: 'f5125ed9c39b9e25742c6496b8fceead',
+        index: 1,
+        path: samplePB.paths[1],
+      },
+      {
+        type: 'bundle',
         path: samplePB.paths[8],
         index: 8,
-        bundles: [],
-        fields: [
+        children: [
           {
+            type: 'field',
             id: 'f656b0be125190ac4f0ace586b097653',
             index: 2,
             path: samplePB.paths[2],
           },
           {
+            type: 'field',
             id: 'fd0587b2561c7f2ee4d68e91da9641c9',
             index: 7,
             path: samplePB.paths[7],
@@ -30,11 +39,12 @@ const sampleTree = new PathTree([
         ],
       },
       {
+        type: 'bundle',
         path: samplePB.paths[9],
         index: 9,
-        bundles: [],
-        fields: [
+        children: [
           {
+            type: 'field',
             id: 'ea6cd7a9428f121a9a042fe66de406eb',
             index: 10,
             path: samplePB.paths[10],
@@ -42,20 +52,14 @@ const sampleTree = new PathTree([
         ],
       },
     ],
-    fields: [
-      {
-        id: 'f5125ed9c39b9e25742c6496b8fceead',
-        index: 1,
-        path: samplePB.paths[1],
-      },
-    ],
   },
   {
+    type: 'bundle',
     path: samplePB.paths[3],
     index: 3,
-    bundles: [],
-    fields: [
+    children: [
       {
+        type: 'field',
         id: 'f25b780a7baa987e05a48b2050a48937',
         index: 4,
         path: samplePB.paths[4],
@@ -63,11 +67,12 @@ const sampleTree = new PathTree([
     ],
   },
   {
+    type: 'bundle',
     path: samplePB.paths[5],
     index: 5,
-    bundles: [],
-    fields: [
+    children: [
       {
+        type: 'field',
         id: 'fb04c30bbbcd629a0ddea44d4a6b3408',
         index: 6,
         path: samplePB.paths[6],
@@ -87,24 +92,24 @@ describe(PathTree, async () => {
     const indexes = descendants.map(d => d.index)
 
     expect(descendants.length).toEqual(12)
-    expect(indexes).toEqual([-1, 0, 8, 2, 7, 9, 10, 1, 3, 4, 5, 6])
+    expect(indexes).toEqual([-1, 0, 1, 8, 2, 7, 9, 10, 3, 4, 5, 6])
   })
 
   test('paths iterates over the paths in order', () => {
     expect(Array.from(sampleTree.paths())).toEqual(
-      [0, 8, 2, 7, 9, 10, 1, 3, 4, 5, 6].map(i => samplePB.paths[i]),
+      [0, 1, 8, 2, 7, 9, 10, 3, 4, 5, 6].map(i => samplePB.paths[i]),
     )
   })
 
   test('walkIDs iterates over all children in the right order', () => {
     expect(Array.from(sampleTree.walkIDs())).toEqual([
       'publication',
+      'title',
       'creation',
       'date_of_writing',
       'author',
       'scientific_publication',
       'figure_image',
-      'title',
       'scientific_figure',
       'image',
       'person',
@@ -145,6 +150,9 @@ describe(PathTree, async () => {
     const got = sampleTree.uris
     const want = new Set([
       'http://erlangen-crm.org/240307/E31_Document',
+      'http://erlangen-crm.org/240307/P102_has_title',
+      'http://erlangen-crm.org/240307/E35_Title',
+      'http://erlangen-crm.org/240307/P3_has_note',
       'http://erlangen-crm.org/240307/P94i_was_created_by',
       'http://erlangen-crm.org/240307/E65_Creation',
       'http://erlangen-crm.org/240307/P4_has_time-span',
@@ -158,9 +166,6 @@ describe(PathTree, async () => {
       'http://erlangen-crm.org/240307/E36_Visual_Item',
       'http://erlangen-crm.org/240307/P48_has_preferred_identifier',
       'http://erlangen-crm.org/240307/E42_Identifier',
-      'http://erlangen-crm.org/240307/P3_has_note',
-      'http://erlangen-crm.org/240307/P102_has_title',
-      'http://erlangen-crm.org/240307/E35_Title',
       'http://erlangen-crm.org/240307/P1_is_identified_by',
     ])
     expect(Array.from(got)).toEqual(Array.from(want))
