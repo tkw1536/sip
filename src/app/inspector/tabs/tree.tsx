@@ -273,17 +273,23 @@ function BundleNode(props: { bundle: Bundle; maxDepth: number }): JSX.Element {
       </PathRow>
 
       {expanded &&
-        Array.from(bundle.fields()).map(field => (
-          <FieldRow maxDepth={maxDepth} field={field} key={field.path.id} />
-        ))}
-      {expanded &&
-        Array.from(bundle.bundles()).map(bundle => (
-          <BundleNode
-            maxDepth={maxDepth}
-            bundle={bundle}
-            key={bundle.path.id}
-          />
-        ))}
+        Array.from(bundle.children()).map(node => {
+          if (node instanceof Bundle) {
+            return (
+              <BundleNode
+                maxDepth={maxDepth}
+                bundle={node}
+                key={node.path.id}
+              />
+            )
+          }
+          if (node instanceof Field) {
+            return (
+              <FieldRow maxDepth={maxDepth} field={node} key={node.path.id} />
+            )
+          }
+          return null
+        })}
     </>
   )
 }
@@ -364,8 +370,10 @@ const PathRow = memo(function PathRow(props: PathRowProps): JSX.Element {
     <td class={styles.tree_level}></td>,
   )
 
+  const isMainBundle = node instanceof Bundle && node.depth === 1
+
   return (
-    <tr>
+    <tr class={classes(isMainBundle && styles.main_bundle)}>
       <td>
         <Checkbox value={selected} onInput={handleSelectionChange} />
       </td>
@@ -374,7 +382,15 @@ const PathRow = memo(function PathRow(props: PathRowProps): JSX.Element {
       </td>
       {treeLevels}
       <td class={styles.tree_level}>{props.children}</td>
-      <td colSpan={1 + maxDepth - node.depth}>{path.name}</td>
+      <td
+        colSpan={1 + maxDepth - node.depth}
+        class={classes(
+          node instanceof Bundle && styles.bundle_name,
+          node instanceof Field && styles.field_name,
+        )}
+      >
+        {path.name}
+      </td>
       <td>
         <code>{path.id}</code>
       </td>
