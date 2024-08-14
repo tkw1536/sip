@@ -122,6 +122,10 @@ export const bundles = new DriverCollection<
       await import('./impl/graphviz').then(m => m.GraphVizBundleDriver),
   ],
   [
+    'Cytoscape',
+    async () => await import('./impl/cytoscape').then(m => m.CytoBundleDriver),
+  ],
+  [
     'vis-network',
     async () =>
       await import('./impl/vis-network').then(m => m.VisNetworkBundleDriver),
@@ -129,10 +133,6 @@ export const bundles = new DriverCollection<
   [
     'Sigma.js',
     async () => await import('./impl/sigma').then(m => m.SigmaBundleDriver),
-  ],
-  [
-    'Cytoscape',
-    async () => await import('./impl/cytoscape').then(m => m.CytoBundleDriver),
   ],
 )
 
@@ -148,6 +148,10 @@ export const triples = new DriverCollection<
     async () => await import('./impl/graphviz').then(m => m.GraphVizRDFDriver),
   ],
   [
+    'Cytoscape',
+    async () => await import('./impl/cytoscape').then(m => m.CytoRDFDriver),
+  ],
+  [
     'vis-network',
     async () =>
       await import('./impl/vis-network').then(m => m.VisNetworkRDFDriver),
@@ -155,9 +159,5 @@ export const triples = new DriverCollection<
   [
     'Sigma.js',
     async () => await import('./impl/sigma').then(m => m.SigmaRDFDriver),
-  ],
-  [
-    'Cytoscape',
-    async () => await import('./impl/cytoscape').then(m => m.CytoRDFDriver),
   ],
 )
