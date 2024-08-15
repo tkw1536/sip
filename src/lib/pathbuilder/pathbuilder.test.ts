@@ -7,17 +7,20 @@ const sampleJSON = await readFixtureJSON<PathParams[]>(
   'pathbuilder',
   'sample.json',
 )
-const samplePB = new Pathbuilder(sampleJSON.map(p => new Path(p)))
+const samplePB = new Pathbuilder(
+  sampleJSON.map(p => new Path(p)),
+  sampleJSON.map(_ => null),
+)
 
 const aDocumentBundlePath = samplePB.paths[0] // path for a document group
 const regularPropertyPath = samplePB.paths[1] // path with a regular property
 const entityReferencePath = samplePB.paths[7] // path with disambiguation
 
 describe(Pathbuilder, async () => {
-  test('parses valid xml', async () => {
+  test('parses valid paths', async () => {
     const sampleXML = await readFixture('pathbuilder', 'sample.xml')
     const got = Pathbuilder.parse(sampleXML)
-    expect(got).toEqual(samplePB)
+    expect(got.paths).toEqual(samplePB.paths)
   })
 
   test('does not parse invalid xml', async () => {

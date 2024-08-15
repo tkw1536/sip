@@ -1,6 +1,11 @@
 import { DOMImplementation, DOMParser, XMLSerializer } from '@xmldom/xmldom'
 export class Pathbuilder {
-  constructor(public paths: Path[]) {}
+  constructor(
+    public paths: Path[],
+
+    /** nodes are the non-path nodes contained in the pathbuilder xml */
+    public nodes: Array<Node | null> = [],
+  ) {}
 
   static parse(source: string): Pathbuilder {
     const parser = new DOMParser()
@@ -24,10 +29,16 @@ export class Pathbuilder {
     }
 
     // parse all the paths
-    const paths = Array.from(node.childNodes).filter(
-      node => node.nodeType === node.ELEMENT_NODE && node.nodeName === 'path',
-    )
-    return new Pathbuilder(paths.map(n => Path.fromNode(n as Element)))
+
+    const paths: Path[] = []
+    const extraNodes = Array.from(node.childNodes).map((node, index) => {
+      if (node.nodeType === node.ELEMENT_NODE && node.nodeName === 'path') {
+        paths.push(Path.fromNode(node as Element))
+        return null
+      }
+      return node.cloneNode(true)
+    })
+    return new Pathbuilder(paths, extraNodes)
   }
 
   static readonly #dom = new DOMImplementation()
@@ -39,11 +50,25 @@ export class Pathbuilder {
     const header = xml.createProcessingInstruction('xml', 'version="1.0"')
     xml.insertBefore(header, xml.firstChild)
 
-    // add all the <path>s to the <pathbuilderinterface>
+    // turn all the path nodes into xml
+    const paths = this.paths.map(path => path.toXML(xml))
+
+    // add all the paths and extra nodes to the pb interface
     const pathbuilderinterface = xml.documentElement
-    this.paths
-      .map(path => path.toXML(xml))
-      .forEach(path => pathbuilderinterface.appendChild(path))
+    this.nodes
+      .map(node => {
+        // a gap is replaced by the appropriate path
+        if (node === null) {
+          return paths.shift() ?? null
+        }
+
+        return node.cloneNode(true)
+      })
+      .concat(paths)
+      .forEach(node => {
+        if (node === null) return
+        pathbuilderinterface.appendChild(node)
+      })
 
     // and serialize
     return Pathbuilder.#serializer.serializeToString(xml)
