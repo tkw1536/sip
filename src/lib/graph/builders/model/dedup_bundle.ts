@@ -2,6 +2,7 @@ import {
   Bundle,
   type ConceptPathElement,
   Field,
+  type PathElement,
   type PropertyPathElement,
 } from '../../../pathbuilder/pathtree'
 import {
@@ -37,6 +38,7 @@ export default class BundleBuilder extends DeduplicatingBuilder {
   }
   protected getConceptContext(
     elem: ConceptPathElement,
+    elements: PathElement[],
     omitted: boolean,
     previous: NodeContext,
     node: Bundle | Field,
@@ -59,6 +61,7 @@ export default class BundleBuilder extends DeduplicatingBuilder {
 
   protected getDatatypeContext(
     elem: PropertyPathElement & { role: 'datatype' },
+    elements: PathElement[],
     omitted: boolean,
     node: Field,
     parent: NodeContext,

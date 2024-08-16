@@ -6,6 +6,7 @@ import {
   type PathTreeNode,
   type ConceptPathElement,
   type PropertyPathElement,
+  type PathElement,
 } from '../../../pathbuilder/pathtree'
 import ArrayTracker from '../../../utils/array-tracker'
 import ImmutableSet from '../../../utils/immutable-set'
@@ -100,6 +101,7 @@ export abstract class DeduplicatingBuilder {
       // find the context for the new element
       const newContextSpec = this.getConceptContext(
         element,
+        elements,
         omitted,
         context,
         node,
@@ -217,6 +219,7 @@ export abstract class DeduplicatingBuilder {
         // get the context to draw the datatype in
         const dtContextSpec = this.getDatatypeContext(
           dataElement,
+          elements,
           omitted,
           node,
           parent,
@@ -338,6 +341,7 @@ export abstract class DeduplicatingBuilder {
    */
   protected abstract getConceptContext(
     elem: ConceptPathElement,
+    elements: PathElement[],
     omitted: boolean,
     previous: NodeContext,
     node: Bundle | Field,
@@ -355,6 +359,7 @@ export abstract class DeduplicatingBuilder {
    */
   protected abstract getDatatypeContext(
     elem: PropertyPathElement & { role: 'datatype' },
+    elements: PathElement[],
     omitted: boolean,
     node: Field,
     parent: NodeContext,
