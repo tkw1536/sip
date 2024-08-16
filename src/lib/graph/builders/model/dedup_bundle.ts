@@ -66,8 +66,6 @@ export default class BundleBuilder extends DeduplicatingBuilder {
     node: Field,
     parent: NodeContext,
   ): NodeContextSpec {
-    // draw it in the context of the previous node
-    if (typeof parent !== 'string') return true
-    return parent
+    return elem.uri
   }
 }

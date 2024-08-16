@@ -37,12 +37,13 @@ export type NodeContextSpec = NodeContext | true
  * A context in which a node was or was not drawn in.
  * - a string uniquely identifies a context the node was drawn in.
  * - a node uniquely identifies an internal node.
+ * - arrays define a new context that is equal if it is recursively equal.
  * - `false` means that node was not drawn
  *
  * Number contexts are never equal to string contexts.
  * Number contexts MUST NOT be created by code outside of DeduplicationBuilder.
  */
-export type NodeContext = number | string | false
+export type NodeContext = number | string | Array<number | string> | false
 
 /** A builder that deduplicates within a specific context */
 export abstract class DeduplicatingBuilder {
@@ -224,7 +225,14 @@ export abstract class DeduplicatingBuilder {
           node,
           parent,
         )
-        context = this.#resolveContextSpec(dtContextSpec)
+        context = this.#resolveContextSpec(
+          this.wrapDatatypeContext(
+            dataElement,
+            elements,
+            parent,
+            dtContextSpec,
+          ),
+        )
         contexts.push(context)
 
         // no need to draw it
@@ -365,13 +373,71 @@ export abstract class DeduplicatingBuilder {
     parent: NodeContext,
   ): NodeContextSpec
 
+  /**
+   * special context used for {@link wrapDatatypeContext}
+   */
+  readonly #specialDatatypeContext = -1
+
+  /** wraps a context for a datatype to render it uniquely for the given parent node */
+  private wrapDatatypeContext(
+    elem: PropertyPathElement & { role: 'datatype' },
+    elements: PathElement[],
+    parent: NodeContext,
+    context: NodeContextSpec,
+  ): Array<number | string> | true | false {
+    // find the parent element
+    const parentElement = elements[elem.index - 1]
+
+    // if it's supposed to be unique, then return it now!
+    if (typeof context === 'boolean') {
+      return context
+    }
+
+    // get the unique context as an array
+    const theContext =
+      typeof context === 'number' || typeof context === 'string'
+        ? [this.#specialDatatypeContext, 'one', context]
+        : [this.#specialDatatypeContext, 'many', ...context]
+
+    let parentSlice: Array<number | string>
+    if (parent === false) {
+      parentSlice = ['false']
+    } else if (Array.isArray(parent)) {
+      parentSlice = ['multiple', ...parent]
+    } else {
+      parentSlice = ['single', parent]
+    }
+
+    // turn it into a unique context that no other code may ever generate
+    // (because of the -1)
+    return [
+      this.#specialDatatypeContext,
+      parentElement?.uri ?? this.#specialDatatypeContext,
+      this.#specialDatatypeContext,
+      ...parentSlice,
+      this.#specialDatatypeContext,
+      ...theContext,
+    ]
+  }
+
   /** makes an id for a node within a deduplication context */
-  #makeID(context: string | number, typ: 'class' | 'data', id: string): string {
+  #makeID(
+    context: string | number | Array<string | number>,
+    typ: 'class' | 'data',
+    id: string,
+  ): string {
     return `context=${encodeURIComponent(JSON.stringify(context))}&typ=${encodeURIComponent(typ)}&id=${encodeURIComponent(id)}`
   }
 
   #resolveContextSpec(next: NodeContextSpec): NodeContext {
     if (next === true) return this.#newContext()
+    if (
+      typeof next === 'string' ||
+      typeof next === 'number' ||
+      typeof next === 'boolean'
+    )
+      return next
+
     return next
   }
 

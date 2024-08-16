@@ -41,6 +41,6 @@ export default class ParentsBuilder extends DeduplicatingBuilder {
     node: Field,
     parent: NodeContext,
   ): NodeContextSpec {
-    return true
+    return elem.uri
   }
 }
