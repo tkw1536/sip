@@ -3,7 +3,7 @@ import generateDisclaimer from '../../macros/disclaimer' with { type: 'macro' }
 import markdownDocument from '../../macros/markdown' with { type: 'macro' }
 import UnClosableModal from './layout/banner'
 import HTML from './html'
-import { useCallback } from 'preact/hooks'
+import { useCallback, useState } from 'preact/hooks'
 
 const disclaimer = generateDisclaimer()
 
@@ -62,11 +62,22 @@ export function LegalModal(props: {
     return true
   }, [onClose])
 
+  // create a key that identifies the <Modal> component.
+  // This is incremented to force a re-create; triggered when the dialog element is
+  // manually removed from the dom.
+  // The re-creation should force re-adding the element.
+  const [key, setKey] = useState(0)
+  const forceRecreateModal = useCallback(() => {
+    setKey(key => key + 1)
+  }, [])
+
   if (!open) return null
 
   return (
     <UnClosableModal
+      key={key.toString()}
       onClose={handleClose}
+      onDisappear={forceRecreateModal}
       buttonText='I Understand And Agree To These Terms'
     >
       <p>

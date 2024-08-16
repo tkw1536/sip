@@ -7,10 +7,12 @@ interface ModalProps {
   children?: ComponentChildren
   buttonText?: ComponentChildren
   onClose: () => boolean
+  onDisappear?: () => void
 }
 
 export default function UnClosableModal({
   onClose,
+  onDisappear,
   children,
   buttonText,
 }: ModalProps): JSX.Element {
@@ -23,9 +25,12 @@ export default function UnClosableModal({
     modal.showModal()
   }, [])
 
-  // do not allow the dialog element to be removed from the DOM by hand
-  // this is not triggered by the cleanup
+  // check that the element is not removed by hand
   useEffect(() => {
+    if (typeof onDisappear !== 'function') {
+      return
+    }
+
     const modal = modalRef.current
     if (modal === null) throw new Error('never reached')
     const parent = modal.parentElement
@@ -33,8 +38,7 @@ export default function UnClosableModal({
 
     const observer = new MutationObserver(() => {
       if (!document.contains(modal)) {
-        // eslint-disable-next-line no-self-assign
-        location.href = location.href
+        onDisappear()
       }
     })
     observer.observe(parent, { childList: true })
@@ -42,7 +46,7 @@ export default function UnClosableModal({
     return () => {
       observer.disconnect()
     }
-  })
+  }, [onDisappear])
 
   const handleButton = useCallback(() => {
     modalRef.current?.close()
