@@ -198,7 +198,7 @@ export abstract class PathTreeNode {
 
     // pathArray must be a prefix of the parent's pathArray
     if (
-      parentPath.length >= nodePath.length ||
+      parentPath.length > nodePath.length ||
       parentPath.some((parentURI, index) => nodePath[index] !== parentURI)
     ) {
       return null
