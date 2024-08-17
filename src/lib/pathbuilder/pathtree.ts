@@ -187,12 +187,20 @@ export abstract class PathTreeNode {
    */
   #ownPathIndex(nodePath: string[] | undefined): number | null {
     if (!Array.isArray(nodePath)) {
+      console.warn('#ownPathIndex: nodePath is not an array')
       return null
     }
 
     // parent must have an odd length pathArray
     const parentPath = this.parent?.path?.pathArray
-    if (!Array.isArray(parentPath) || parentPath.length % 2 === 0) {
+    if (!Array.isArray(parentPath)) {
+      if (typeof parentPath !== 'undefined') {
+        console.warn('#ownPathIndex: parentPath is not an array')
+      }
+      return null
+    }
+    if (parentPath.length % 2 === 0) {
+      console.warn('#ownPathIndex: parentPath is of odd length')
       return null
     }
 
@@ -201,6 +209,11 @@ export abstract class PathTreeNode {
       parentPath.length > nodePath.length ||
       parentPath.some((parentURI, index) => nodePath[index] !== parentURI)
     ) {
+      console.warn(
+        '#ownPathIndex: parentPath is not equal with this path',
+        nodePath,
+        parentPath,
+      )
       return null
     }
 
