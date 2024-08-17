@@ -1,17 +1,33 @@
 import { DOMImplementation, DOMParser, XMLSerializer } from '@xmldom/xmldom'
 export class Pathbuilder {
+  readonly #nodes: Array<Node | null>
   constructor(
     public paths: Path[],
 
     /** nodes are the non-path nodes contained in the pathbuilder xml */
-    public nodes: Array<Node | null> = [],
-  ) {}
+    nodes: Array<Node | null> = [],
+  ) {
+    // own all of the nodes
+    this.#nodes = nodes.map(node => {
+      if (node === null) return null
+      return cloneNodeInDocument(this.#document, node)
+    })
+  }
+
+  static readonly #dom = new DOMImplementation()
+  static readonly #serializer = new XMLSerializer()
+
+  /** the document that owns all nodes created within this context */
+  readonly #document = Pathbuilder.#dom.createDocument(
+    null,
+    'pathbuilderinterface',
+  )
 
   /** returns a copy of this pathbuilder that can be modified without changing the original */
   clone(): Pathbuilder {
     return new Pathbuilder(
       this.paths.map(path => path.clone()),
-      this.nodes.map(node => (node !== null ? node.cloneNode(true) : null)),
+      this.#nodes,
     )
   }
 
@@ -49,8 +65,6 @@ export class Pathbuilder {
     return new Pathbuilder(paths, extraNodes)
   }
 
-  static readonly #dom = new DOMImplementation()
-  static readonly #serializer = new XMLSerializer()
   toXML(): string {
     const xml = Pathbuilder.#dom.createDocument(null, 'pathbuilderinterface')
 
@@ -63,7 +77,7 @@ export class Pathbuilder {
 
     // add all the paths and extra nodes to the pb interface
     const pathbuilderinterface = xml.documentElement
-    this.nodes
+    this.#nodes
       .map(node => {
         // a gap is replaced by the appropriate path
         if (node === null) {
@@ -422,6 +436,51 @@ export class Path {
 
     return path
   }
+}
+
+function cloneNodeInDocument(document: Document, node: Node): Node {
+  // if we already own the node, we can just do a plain clone!
+  if (document === node.ownerDocument) {
+    return node.cloneNode(true)
+  }
+
+  // if the document can adopt nodes, we can just adopt the clone
+  if (typeof document.adoptNode === 'function') {
+    const clone = node.cloneNode(true)
+    document.adoptNode(clone)
+    return clone
+  }
+
+  switch (node.nodeType) {
+    case document.ELEMENT_NODE: {
+      const origElement = node as Element
+
+      const element = document.createElement(origElement.nodeName)
+      for (let i = 0; i < origElement.attributes.length; i++) {
+        const attribute = origElement.attributes[i]
+        element.setAttribute(attribute.name, attribute.value)
+      }
+      for (let i = 0; i < origElement.childNodes.length; i++) {
+        const child = origElement.childNodes[i]
+        element.appendChild(cloneNodeInDocument(document, child))
+      }
+      return element
+    }
+    case document.TEXT_NODE:
+      return document.createTextNode((node as Text).data)
+    case document.CDATA_SECTION_NODE:
+      return document.createCDATASection((node as CDATASection).data)
+    case document.PROCESSING_INSTRUCTION_NODE:
+      return document.createProcessingInstruction(
+        (node as ProcessingInstruction).target,
+        (node as ProcessingInstruction).data,
+      )
+    case document.COMMENT_NODE:
+      return document.createComment((node as Comment).data)
+  }
+
+  console.warn('cloneNodeInDocument: falling back to native implementation')
+  return node.cloneNode(true)
 }
 
 // spellchecker:words disamb pathbuilderinterface fieldtype displaywidget formatterwidget
