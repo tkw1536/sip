@@ -7,6 +7,14 @@ export class Pathbuilder {
     public nodes: Array<Node | null> = [],
   ) {}
 
+  /** returns a copy of this pathbuilder that can be modified without changing the original */
+  clone(): Pathbuilder {
+    return new Pathbuilder(
+      this.paths.map(path => path.clone()),
+      this.nodes.map(node => (node !== null ? node.cloneNode(true) : null)),
+    )
+  }
+
   static parse(source: string): Pathbuilder {
     const parser = new DOMParser()
     const result = parser.parseFromString(source, 'text/xml')
@@ -119,6 +127,36 @@ export class Path {
     this.uuid = params.uuid
     this.isGroup = params.isGroup
     this.name = params.name
+  }
+
+  /** returns a clone of this path that can be modified without having to worry about the original */
+  clone(): Path {
+    return new Path(this.params)
+  }
+
+  /** an object that can be used to construct an equivalent path */
+  get params(): PathParams {
+    return {
+      id: this.id,
+      weight: this.weight,
+      enabled: this.enabled,
+      groupId: this.groupId,
+      bundle: this.bundle,
+      field: this.field,
+      fieldType: this.fieldType,
+      displayWidget: this.displayWidget,
+      formatterWidget: this.formatterWidget,
+      cardinality: this.cardinality,
+      fieldTypeInformative: this.fieldTypeInformative,
+      pathArray: this.pathArray,
+      datatypeProperty: this.datatypeProperty,
+      shortName: this.shortName,
+      disambiguation: this.disambiguation,
+      description: this.description,
+      uuid: this.uuid,
+      isGroup: this.isGroup,
+      name: this.name,
+    }
   }
 
   public readonly id: string
