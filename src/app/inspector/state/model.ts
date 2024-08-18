@@ -6,6 +6,7 @@ import { type ModelDisplay } from '../../../lib/graph/builders/model/labels'
 import { models } from '../../../lib/drivers/collection'
 import { defaultLayout, type Snapshot } from '../../../lib/drivers/impl'
 import { nextInt } from '../../../lib/utils/prng'
+import { type Pathbuilder } from '../../../lib/pathbuilder/pathbuilder'
 
 export type Slice = State & Actions
 
@@ -68,7 +69,18 @@ export const create: StateCreator<BoundState, [], [], Slice> = set => {
     set(resetState)
   })
 
-  loaders.add(async (tree: PathTree): Promise<Partial<State>> => ({}))
+  loaders.add(
+    async (
+      tree: PathTree,
+      pathbuilder: Pathbuilder,
+    ): Promise<Partial<State>> => {
+      const snapshot = pathbuilder.getSnapshotData(snapshotKey, validate)
+      if (snapshot === null) return {}
+
+      const { type, ...rest } = snapshot
+      return rest
+    },
+  )
 
   return {
     ...initialState,
@@ -96,4 +108,46 @@ export const create: StateCreator<BoundState, [], [], Slice> = set => {
       set({ modelSnapshot: snapshot })
     },
   }
+}
+
+interface ModelExport extends State {
+  type: 'model'
+}
+
+export const snapshotKey = 'v1/model'
+export function snapshot(state: State): ModelExport {
+  const {
+    modelDriver,
+    modelSeed,
+    modelLayout,
+    modelDeduplication,
+    modelDisplay,
+    modelSnapshot,
+  } = state
+  return {
+    type: 'model',
+    modelDriver,
+    modelSeed,
+    modelLayout,
+    modelDeduplication,
+    modelDisplay,
+    modelSnapshot,
+  }
+}
+function validate(data: any): data is ModelExport {
+  return (
+    typeof data === 'object' &&
+    data !== null &&
+    'type' in data &&
+    data.type === 'model' &&
+    'modelDriver' in data &&
+    typeof data.modelDriver === 'string' &&
+    'modelSeed' in data &&
+    typeof data.modelSeed === 'number' &&
+    'modelLayout' in data &&
+    typeof data.modelLayout === 'string' &&
+    'modelDeduplication' in data &&
+    'modelDisplay' in data &&
+    'modelSnapshot' in data
+  )
 }

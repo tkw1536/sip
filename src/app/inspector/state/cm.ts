@@ -5,8 +5,11 @@ import {
   type PathTreeNode,
   type PathTree,
 } from '../../../lib/pathbuilder/pathtree'
-import ColorMap from '../../../lib/pathbuilder/annotations/colormap'
+import ColorMap, {
+  type ColorMapExport,
+} from '../../../lib/pathbuilder/annotations/colormap'
 import { applyColorPreset, ColorPreset } from './datatypes/color'
+import { type Pathbuilder } from '../../../lib/pathbuilder/pathbuilder'
 export type Slice = State & Actions
 
 interface State {
@@ -30,9 +33,17 @@ export const create: StateCreator<BoundState, [], [], Slice> = (set, get) => {
   })
 
   loaders.add(
-    async (tree: PathTree): Promise<Partial<State>> => ({
-      cm: applyColorPreset(tree, ColorPreset.OrangeAndGray),
-    }),
+    async (
+      tree: PathTree,
+      pathbuilder: Pathbuilder,
+    ): Promise<Partial<State>> => {
+      const cm =
+        ColorMap.fromJSON(pathbuilder.getSnapshotData(snapshotKey, validate)) ??
+        applyColorPreset(tree, ColorPreset.OrangeAndGray)
+      return {
+        cm,
+      }
+    },
   )
 
   return {
@@ -52,4 +63,12 @@ export const create: StateCreator<BoundState, [], [], Slice> = (set, get) => {
       set({ cm })
     },
   }
+}
+
+export const snapshotKey = 'v1/cm'
+export function snapshot(state: State): ColorMapExport {
+  return state.cm.toJSON()
+}
+function validate(data: any): data is ColorMapExport {
+  return ColorMap.isValidColorMap(data)
 }

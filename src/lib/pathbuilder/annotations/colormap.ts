@@ -29,8 +29,10 @@ export default class ColorMap {
     }
   }
 
-  static #isValidColorMap(data: any): data is ColorMapExport {
+  static isValidColorMap(data: unknown): data is ColorMapExport {
     return (
+      typeof data === 'object' &&
+      data !== null &&
       'type' in data &&
       data.type === 'colormap' &&
       'defaultColor' in data &&
@@ -45,7 +47,7 @@ export default class ColorMap {
 
   /** parses a colormap from json */
   static fromJSON(data: any): ColorMap | null {
-    if (!this.#isValidColorMap(data)) {
+    if (!this.isValidColorMap(data)) {
       return null
     }
 

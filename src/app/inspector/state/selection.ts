@@ -4,7 +4,10 @@ import {
   type PathTreeNode,
   type PathTree,
 } from '../../../lib/pathbuilder/pathtree'
-import NodeSelection from '../../../lib/pathbuilder/annotations/selection'
+import NodeSelection, {
+  type NodeSelectionExport,
+} from '../../../lib/pathbuilder/annotations/selection'
+import { type Pathbuilder } from '../../../lib/pathbuilder/pathbuilder'
 
 export type Slice = State & Actions
 
@@ -29,7 +32,22 @@ export const create: StateCreator<BoundState, [], [], Slice> = set => {
     set(resetState)
   })
 
-  loaders.add(async (tree: PathTree): Promise<Partial<State>> => ({}))
+  loaders.add(
+    async (
+      tree: PathTree,
+      pathbuilder: Pathbuilder,
+    ): Promise<Partial<State>> => {
+      const selection = NodeSelection.fromJSON(
+        pathbuilder.getSnapshotData(snapshotKey, validate),
+      )
+      if (selection === null) {
+        return {}
+      }
+      return {
+        selection,
+      }
+    },
+  )
 
   return {
     ...initialState,
@@ -54,4 +72,12 @@ export const create: StateCreator<BoundState, [], [], Slice> = set => {
       set(({ selection }) => ({ selection: selection.with(pairs) }))
     },
   }
+}
+
+export const snapshotKey = 'v1/selection'
+export function snapshot(state: State): NodeSelectionExport {
+  return state.selection.toJSON()
+}
+function validate(data: any): data is NodeSelectionExport {
+  return NodeSelection.isValidNodeSelection(data)
 }

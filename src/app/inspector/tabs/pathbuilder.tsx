@@ -8,6 +8,7 @@ import Spinner from '../../../components/spinner'
 import { useCallback } from 'preact/hooks'
 import useInspectorStore from '../state'
 import Button from '../../../components/form/button'
+import SnapshotIntoPathbuilder from '../state/datatypes/snapshot'
 
 export default function PathbuilderTab(): JSX.Element {
   const loadStage = useInspectorStore(s => s.loadStage)
@@ -89,12 +90,25 @@ function InfoView(): JSX.Element {
   const pathbuilder = useInspectorStore(s => s.pathbuilder)
   const filename = useInspectorStore(s => s.filename)
 
+  const loadFile = useInspectorStore(s => s.loadFile)
   const closeFile = useInspectorStore(s => s.closeFile)
 
   const handleExport = useCallback((): void => {
+    const pathbuilder = SnapshotIntoPathbuilder(useInspectorStore.getState())
     const file = new Blob([pathbuilder.toXML()], { type: 'application/xml' })
     download(file, filename)
-  }, [pathbuilder, filename])
+  }, [filename])
+
+  const handleReset = useCallback((): void => {
+    // re-create the file
+    const file = new File([pathbuilder.onlyPaths().toXML()], filename, {
+      type: Type.XML,
+    })
+
+    // close, then reload the file
+    closeFile()
+    loadFile(file)
+  }, [closeFile, filename, loadFile, pathbuilder])
 
   const theFilename = filename !== '' ? filename : 'pathbuilder.xml'
 
@@ -102,8 +116,14 @@ function InfoView(): JSX.Element {
     <>
       <p>
         Pathbuilder <Button onInput={handleExport}>{theFilename}</Button>{' '}
-        successfully loaded. You can use the other tabs to inspect the
+        successfully loaded. Click the button to export it, along with any sip
+        settings you have made. You can use the other tabs to inspect the
         pathbuilder.
+      </p>
+      <p>
+        Click to <Button onInput={handleReset}>Reset The Interface</Button>.
+        This will forget any interface state, acting as if you had freshly
+        exported the Pathbuilder from your WissKI.
       </p>
       <p>
         You can also close <Button onInput={closeFile}>Close</Button> this

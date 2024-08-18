@@ -10,6 +10,7 @@ import * as Tab from './tab'
 import * as Tree from './tree'
 
 import { type PathTree } from '../../../lib/pathbuilder/pathtree'
+import { type Pathbuilder } from '../../../lib/pathbuilder/pathbuilder'
 
 /** the set of all states */
 export type BoundState = Bundle.Slice &
@@ -28,7 +29,7 @@ export const resetters = new Set<() => void>()
 
 /** contains all functions that load some state */
 export const loaders = new Set<
-  (tree: PathTree) => Promise<Partial<BoundState>>
+  (tree: PathTree, pb: Pathbuilder) => Promise<Partial<BoundState>>
 >()
 
 /** the store for rdf */

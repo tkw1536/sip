@@ -58,7 +58,9 @@ export const create: StateCreator<BoundState, [], [], Slice> = set => {
 
           // load the entire initial state
           states = await Promise.all(
-            Array.from(loaders).map(async load => await load(tree)),
+            Array.from(loaders).map(
+              async load => await load(tree, pathbuilder),
+            ),
           )
           states.push({})
         } catch (error: unknown) {

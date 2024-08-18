@@ -69,7 +69,8 @@ Alternatively, a button to load a sample file is also provided.
 When loading fails (e.g. because the file is invalid), an error message is displayed. 
 
 After a pathbuilder has been opened, it's name is displayed in the tab instead. 
-You can chose to download the opened pathbuilder, or close the file. 
+You can chose to save the opened pathbuilder, or close the file. 
+Saving the pathbuilder also stores the state of the SIP interface in the exported file.
 All tabs ignore disabled paths.
 
 ## The Tree Tab

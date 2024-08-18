@@ -4,7 +4,10 @@ import {
   type PathTreeNode,
   type PathTree,
 } from '../../../lib/pathbuilder/pathtree'
-import NodeSelection from '../../../lib/pathbuilder/annotations/selection'
+import NodeSelection, {
+  type NodeSelectionExport,
+} from '../../../lib/pathbuilder/annotations/selection'
+import { type Pathbuilder } from '../../../lib/pathbuilder/pathbuilder'
 
 export type Slice = State & Actions
 
@@ -32,8 +35,21 @@ export const create: StateCreator<BoundState, [], [], Slice> = set => {
     set(resetState)
   })
 
-  loaders.add(async (tree: PathTree): Promise<Partial<State>> => ({}))
+  loaders.add(
+    async (
+      tree: PathTree,
+      pathbuilder: Pathbuilder,
+    ): Promise<Partial<State>> => {
+      const snapshot = pathbuilder.getSnapshotData(snapshotKey, validate)
+      if (snapshot === null) return {}
 
+      const { collapse, collapseParentPaths } = snapshot
+      const collapseParse = NodeSelection.fromJSON(collapse)
+      if (collapseParse === null) return {}
+
+      return { collapseParentPaths, collapse: collapseParse }
+    },
+  )
   return {
     ...initialState,
     setCollapseParentPaths: (value: boolean) => {
@@ -51,4 +67,32 @@ export const create: StateCreator<BoundState, [], [], Slice> = set => {
       set({ collapse: NodeSelection.none() })
     },
   }
+}
+
+interface TreeExport {
+  type: 'tree'
+  collapse: NodeSelectionExport
+  collapseParentPaths: boolean
+}
+
+export const snapshotKey = 'v1/tree'
+export function snapshot(state: State): TreeExport {
+  const { collapse, collapseParentPaths } = state
+  return {
+    type: 'tree',
+    collapse: collapse.toJSON(),
+    collapseParentPaths,
+  }
+}
+function validate(data: any): data is TreeExport {
+  return (
+    typeof data === 'object' &&
+    data !== null &&
+    'type' in data &&
+    data.type === 'tree' &&
+    'collapse' in data &&
+    NodeSelection.isValidNodeSelection(data.collapse) &&
+    'collapseParentPaths' in data &&
+    typeof data.collapseParentPaths === 'boolean'
+  )
 }

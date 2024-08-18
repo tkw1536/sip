@@ -1,4 +1,5 @@
 import { DOMImplementation, DOMParser, XMLSerializer } from '@xmldom/xmldom'
+import { cloneNodeInDocument, isTag } from '../utils/fakedom'
 export class Pathbuilder {
   readonly #nodes: Array<Node | null>
   constructor(
@@ -22,6 +23,91 @@ export class Pathbuilder {
     null,
     'pathbuilderinterface',
   )
+
+  /** gets an element with the given name, or null if it does not exist */
+  #getElement(tagName: string): Element | null {
+    const node = this.#nodes.find(n => n !== null && isTag(n, tagName)) ?? null
+    if (node === null) {
+      return null
+    }
+    return node
+  }
+
+  getSnapshotData<T>(
+    name: string,
+    validator: (data: unknown) => data is T,
+  ): T | null {
+    // find the sip element
+    const sip = this.#getElement('sip')
+    if (sip === null) return null
+
+    // find the snapshot element
+    const snapshot: Element | undefined = Array.from(sip.childNodes).find(
+      (n): n is Element =>
+        isTag(n, 'snapshot') && n.getAttribute('name') === name,
+    )
+    if (typeof snapshot === 'undefined') {
+      return null
+    }
+
+    // parse it as json
+    let data: unknown
+    try {
+      data = JSON.parse(snapshot.textContent ?? '')
+    } catch (err: unknown) {
+      console.warn('unable to read snapshot data', name, err)
+      return null
+    }
+
+    // ensure it is actually valid
+    if (!validator(data)) {
+      console.warn('snapshot data is invalid: ', name, data)
+      return null
+    }
+
+    // and return it!
+    return data
+  }
+
+  /** onlyPaths returns a new pathbuilder containing only the paths in this node */
+  onlyPaths(): Pathbuilder {
+    return new Pathbuilder(
+      this.paths,
+      this.paths.map(() => null),
+    )
+  }
+
+  /** sets the snapshot data for a given node */
+  withSnapshot(values: Map<string, any>): Pathbuilder {
+    const clone = this.clone()
+    clone.#setSnapshot(values)
+    return clone
+  }
+  #setSnapshot(values: Map<string, any>): void {
+    // create a sip element if it doesn't exist
+    const sip = this.#getElement('sip') ?? this.#document.createElement('sip')
+    if (!this.#nodes.includes(sip)) {
+      this.#nodes.push(sip)
+    }
+
+    // remove old nodes
+    Array.from(sip.childNodes)
+      .filter(
+        n => isTag(n, 'snapshot') && values.has(n.getAttribute('name') ?? ''),
+      )
+      .forEach(t => t.parentNode?.removeChild(t))
+
+    // set the new values
+    values.forEach((data, name) => {
+      // create a new snapshot element
+      const snapshot = this.#document.createElement('snapshot')
+      snapshot.setAttribute('name', name)
+      snapshot.appendChild(this.#document.createTextNode(JSON.stringify(data)))
+
+      // append this child
+      sip.appendChild(snapshot)
+    })
+  }
 
   /** returns a copy of this pathbuilder that can be modified without changing the original */
   clone(): Pathbuilder {
@@ -436,51 +522,6 @@ export class Path {
 
     return path
   }
-}
-
-function cloneNodeInDocument(document: Document, node: Node): Node {
-  // if we already own the node, we can just do a plain clone!
-  if (document === node.ownerDocument) {
-    return node.cloneNode(true)
-  }
-
-  // if the document can adopt nodes, we can just adopt the clone
-  if (typeof document.adoptNode === 'function') {
-    const clone = node.cloneNode(true)
-    document.adoptNode(clone)
-    return clone
-  }
-
-  switch (node.nodeType) {
-    case document.ELEMENT_NODE: {
-      const origElement = node as Element
-
-      const element = document.createElement(origElement.nodeName)
-      for (let i = 0; i < origElement.attributes.length; i++) {
-        const attribute = origElement.attributes[i]
-        element.setAttribute(attribute.name, attribute.value)
-      }
-      for (let i = 0; i < origElement.childNodes.length; i++) {
-        const child = origElement.childNodes[i]
-        element.appendChild(cloneNodeInDocument(document, child))
-      }
-      return element
-    }
-    case document.TEXT_NODE:
-      return document.createTextNode((node as Text).data)
-    case document.CDATA_SECTION_NODE:
-      return document.createCDATASection((node as CDATASection).data)
-    case document.PROCESSING_INSTRUCTION_NODE:
-      return document.createProcessingInstruction(
-        (node as ProcessingInstruction).target,
-        (node as ProcessingInstruction).data,
-      )
-    case document.COMMENT_NODE:
-      return document.createComment((node as Comment).data)
-  }
-
-  console.warn('cloneNodeInDocument: falling back to native implementation')
-  return node.cloneNode(true)
 }
 
 // spellchecker:words disamb pathbuilderinterface fieldtype displaywidget formatterwidget

@@ -37,7 +37,10 @@ export class NamespaceMap {
     }
   }
 
-  static #isValidNamespaceMap(data: any): data is NamespaceMapExport {
+  static isValidNamespaceMap(data: any): data is NamespaceMapExport {
+    if (typeof data !== 'object' || data === null) {
+      return false
+    }
     if (!('type' in data && data.type === 'namespace-map')) {
       return false
     }
@@ -59,7 +62,7 @@ export class NamespaceMap {
   }
 
   static fromJSON(data: any): NamespaceMap | null {
-    if (!this.#isValidNamespaceMap(data)) {
+    if (!this.isValidNamespaceMap(data)) {
       return null
     }
 

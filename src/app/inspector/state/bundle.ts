@@ -4,6 +4,7 @@ import { type PathTree } from '../../../lib/pathbuilder/pathtree'
 import { bundles } from '../../../lib/drivers/collection'
 import { defaultLayout, type Snapshot } from '../../../lib/drivers/impl'
 import { nextInt } from '../../../lib/utils/prng'
+import { type Pathbuilder } from '../../../lib/pathbuilder/pathbuilder'
 
 export type Slice = State & Actions
 
@@ -34,7 +35,18 @@ export const create: StateCreator<BoundState, [], [], Slice> = set => {
     set(resetState)
   })
 
-  loaders.add(async (tree: PathTree): Promise<Partial<State>> => ({}))
+  loaders.add(
+    async (
+      tree: PathTree,
+      pathbuilder: Pathbuilder,
+    ): Promise<Partial<State>> => {
+      const snapshot = pathbuilder.getSnapshotData(snapshotKey, validate)
+      if (snapshot === null) return {}
+
+      const { type, ...rest } = snapshot
+      return rest
+    },
+  )
 
   return {
     ...initialState,
@@ -55,4 +67,35 @@ export const create: StateCreator<BoundState, [], [], Slice> = set => {
       set({ bundleSnapshot: snapshot })
     },
   }
+}
+
+interface BundleExport extends State {
+  type: 'bundle'
+}
+
+export const snapshotKey = 'v1/bundle'
+export function snapshot(state: State): BundleExport {
+  const { bundleDriver, bundleSeed, bundleGraphLayout, bundleSnapshot } = state
+  return {
+    type: 'bundle',
+    bundleDriver,
+    bundleSeed,
+    bundleGraphLayout,
+    bundleSnapshot,
+  }
+}
+function validate(data: any): data is BundleExport {
+  return (
+    typeof data === 'object' &&
+    data !== null &&
+    'type' in data &&
+    data.type === 'bundle' &&
+    'bundleDriver' in data &&
+    typeof data.bundleDriver === 'string' &&
+    'bundleSeed' in data &&
+    typeof data.bundleSeed === 'number' &&
+    'bundleGraphLayout' in data &&
+    typeof data.bundleGraphLayout === 'string' &&
+    'bundleSnapshot' in data
+  )
 }

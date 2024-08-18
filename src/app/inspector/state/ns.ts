@@ -1,8 +1,12 @@
 import { type BoundState, loaders, resetters } from '.'
 
 import { type StateCreator } from 'zustand'
-import { NamespaceMap } from '../../../lib/pathbuilder/namespace'
+import {
+  NamespaceMap,
+  type NamespaceMapExport,
+} from '../../../lib/pathbuilder/namespace'
 import { type PathTree } from '../../../lib/pathbuilder/pathtree'
+import { type Pathbuilder } from '../../../lib/pathbuilder/pathbuilder'
 export type Slice = State & Actions
 
 interface State {
@@ -25,9 +29,18 @@ export const create: StateCreator<BoundState, [], [], Slice> = (set, get) => {
   })
 
   loaders.add(
-    async (tree: PathTree): Promise<Partial<State>> => ({
-      ns: newNamespaceMap(tree),
-    }),
+    async (
+      tree: PathTree,
+      pathbuilder: Pathbuilder,
+    ): Promise<Partial<State>> => {
+      const ns =
+        NamespaceMap.fromJSON(
+          pathbuilder.getSnapshotData(snapshotKey, validate),
+        ) ?? newNamespaceMap(tree)
+      return {
+        ns,
+      }
+    },
   )
 
   return {
@@ -46,4 +59,12 @@ export const create: StateCreator<BoundState, [], [], Slice> = (set, get) => {
 
 function newNamespaceMap(tree: PathTree): NamespaceMap {
   return NamespaceMap.generate(tree.uris, undefined, NamespaceMap.KnownPrefixes)
+}
+
+export const snapshotKey = 'v1/ns'
+export function snapshot(state: State): NamespaceMapExport {
+  return state.ns.toJSON()
+}
+function validate(data: any): data is NamespaceMapExport {
+  return NamespaceMap.isValidNamespaceMap(data)
 }
