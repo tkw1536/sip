@@ -66,18 +66,41 @@ abstract class GraphvizDriver<
   Graph
 > {
   static readonly id: string = 'GraphViz'
-  static readonly layouts = [defaultLayout, 'dot', 'fdp', 'circo', 'neato']
+  static readonly layouts = [
+    defaultLayout,
+    'dot',
+    'dot-lr',
+    'dot-rl',
+    'dot-tb',
+    'dot-bt',
+    'fdp',
+    'circo',
+    'neato',
+  ]
   protected options({ layout }: ContextFlags<Options>): RenderOptions {
-    const engine = layout === defaultLayout ? 'dot' : layout
+    const engine =
+      layout === defaultLayout
+        ? 'dot'
+        : layout.startsWith('dot-')
+          ? 'dot'
+          : layout
     return { engine }
   }
 
+  static readonly #rankdir: Record<string, string> = {
+    'auto': 'LR',
+    'dot-lr': 'LR',
+    'dot-rl': 'RL',
+    'dot-tb': 'TB',
+    'dot-bt': 'BT',
+  }
   protected newContextImpl(flags: ContextFlags<Options>, seed: number): Graph {
+    const rankdir = GraphvizDriver.#rankdir[flags.layout] ?? undefined
     return {
       name: '',
       strict: false,
       directed: true,
-      graphAttributes: { compound: true, start: seed },
+      graphAttributes: { compound: true, start: seed, rankdir },
       nodeAttributes: { label: '""', tooltip: '""' },
       edgeAttributes: { label: '""', tooltip: '""' },
       nodes: [],
