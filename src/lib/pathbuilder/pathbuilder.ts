@@ -1,5 +1,6 @@
 import { DOMImplementation, DOMParser, XMLSerializer } from '@xmldom/xmldom'
 import { cloneNodeInDocument, isTag } from '../utils/fakedom'
+
 export class Pathbuilder {
   readonly #nodes: Array<Node | null>
   constructor(
@@ -33,18 +34,22 @@ export class Pathbuilder {
     return node
   }
 
+  static readonly snapshotRoot = 'sip'
+  static readonly snapshotElement = 'snapshot'
+
   getSnapshotData<T>(
     name: string,
     validator: (data: unknown) => data is T,
   ): T | null {
-    // find the sip element
-    const sip = this.#getElement('sip')
-    if (sip === null) return null
+    // find the root element for snapshots
+    const root = this.#getElement(Pathbuilder.snapshotRoot)
+    if (root === null) return null
 
     // find the snapshot element
-    const snapshot: Element | undefined = Array.from(sip.childNodes).find(
+    const snapshot: Element | undefined = Array.from(root.childNodes).find(
       (n): n is Element =>
-        isTag(n, 'snapshot') && n.getAttribute('name') === name,
+        isTag(n, Pathbuilder.snapshotElement) &&
+        n.getAttribute('name') === name,
     )
     if (typeof snapshot === 'undefined') {
       return null
@@ -84,28 +89,32 @@ export class Pathbuilder {
     return clone
   }
   #setSnapshot(values: Map<string, any>): void {
-    // create a sip element if it doesn't exist
-    const sip = this.#getElement('sip') ?? this.#document.createElement('sip')
-    if (!this.#nodes.includes(sip)) {
-      this.#nodes.push(sip)
+    // create a root element if it doesn't exist
+    const root =
+      this.#getElement(Pathbuilder.snapshotRoot) ??
+      this.#document.createElement(Pathbuilder.snapshotRoot)
+    if (!this.#nodes.includes(root)) {
+      this.#nodes.push(root)
     }
 
     // remove old nodes
-    Array.from(sip.childNodes)
+    Array.from(root.childNodes)
       .filter(
-        n => isTag(n, 'snapshot') && values.has(n.getAttribute('name') ?? ''),
+        n =>
+          isTag(n, Pathbuilder.snapshotElement) &&
+          values.has(n.getAttribute('name') ?? ''),
       )
       .forEach(t => t.parentNode?.removeChild(t))
 
     // set the new values
     values.forEach((data, name) => {
       // create a new snapshot element
-      const snapshot = this.#document.createElement('snapshot')
+      const snapshot = this.#document.createElement(Pathbuilder.snapshotElement)
       snapshot.setAttribute('name', name)
       snapshot.appendChild(this.#document.createTextNode(JSON.stringify(data)))
 
       // append this child
-      sip.appendChild(snapshot)
+      root.appendChild(snapshot)
     })
   }
 
