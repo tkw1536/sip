@@ -8,20 +8,20 @@ The exact data model can be specified using the so-called Pathbuilder.
 A typical WissKI use case is recording of objects in a scientific university collection.
 Here the ontology used is the conceptual reference model developed by the international council of museums.
 
-<!-- spellchecker:words upreme nspector athbuilders -->
-The **S**upreme **I**nspector for **P**athbuilders, or SIP for short, is a tool adjacent to WissKI. 
+<!-- spellchecker:words upreme nspector athbuilder aaaaaahs -->
+**T**om's **I**nspector for **P**athbuilder**s** **Y**aaaaaahs!, or TIPSY for short, is a tool adjacent to WissKI. 
 Its' goal is to inspect and visualize pathbuilders[^2].
 It was built in 2024 by Tom Wiesing to improve on the WissKI interface. 
 
-This document is meant to provide generic information about the functionality of the SIP tool.
+This document is meant to provide generic information about the functionality of the TIPSY tool.
 It assumes basic knowledge about pathbuilders and the WissKI software. 
 For a more thorough introduction to to those topics please refer to the WissKI Documentation at [^3]. 
 
 ## Legal Notices
 
-The SIP project is entirely open source and it's source code can be found on GitHub [^4]. 
+The TIPSY project is entirely open source and it's source code can be found on GitHub [^4]. 
 
-**Even though you may inspect the source code to your heart's content, SIP (currently) does not have a license. This means that you may not publicly perform, create derivative works of or distribute this code . In particular you are not granted a license to use this code to create visualizations of your own pathbuilders.**
+**Even though you may inspect the source code to your heart's content, TIPSY (currently) does not have a license. This means that you may not publicly perform, create derivative works of or distribute this code . In particular you are not granted a license to use this code to create visualizations of your own pathbuilders.**
 
 This app makes use of several JavaScript libraries. Some of these require that attribution is given to their authors. You can look at these notices below.
 
@@ -35,7 +35,7 @@ This app makes use of several JavaScript libraries. Some of these require that a
 
 ## Interface Documentation
 
-SIP runs entirely inside the browser.
+TIPSY runs entirely inside the browser.
 The interface is split into several tabs. 
 Each tab is documented below. 
 
@@ -70,7 +70,7 @@ When loading fails (e.g. because the file is invalid), an error message is displ
 
 After a pathbuilder has been opened, it's name is displayed in the tab instead. 
 You can chose to save the opened pathbuilder, or close the file. 
-Saving the pathbuilder also stores the state of the SIP interface in the exported file.
+Saving the pathbuilder also stores the state of the TIPSY interface in the exported file.
 All tabs ignore disabled paths.
 
 ## The Tree Tab
@@ -175,7 +175,7 @@ An additional `Display` control allows toggling on and off different kinds of la
 If supported by the renderer, changing the `Display` control does not reset the nodes positions within the displayed graph.
 
 #### Path Drawing
-To produce a model graph, SIP iterates over all included paths.
+To produce a model graph, TIPSY iterates over all included paths.
 For the elements of these paths, each class is drawn as a concept node.
 Then these concepts are connected using edges labeled with their properties.
 Finally literal nodes are drawn where a datatype property exists.
@@ -215,9 +215,9 @@ Most important means the path with the fewest number of descendants, or (if seve
 Contains this document. 
 
 [^1]: https://wiss-ki.eu/
-[^2]: A future version of SIP may allow editing of Pathbuilders; in such a case this document will be updated.
+[^2]: A future version of TIPSY may allow editing of Pathbuilders; in such a case this document will be updated.
 [^3]: https://wiss-ki.eu/documentation
-[^4]: https://github.com/tkw1536/sip
+[^4]: https://github.com/tkw1536/TIPSY
 [^5]: https://en.wikipedia.org/wiki/Pseudorandom_number_generator
 [^6]: Not all renderers support boxes.
 

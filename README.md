@@ -1,6 +1,6 @@
-# SIP - Supreme Inspector for Pathbuilders
+# TIPSY - Tom's Inspector for Pathbuilders <sub>Yaaaaaahs!</sub>
 
-This repository contains SIP, an advanced inspector for Pathbuilders produced by the [WissKI](https://wiss-ki.eu) software.
+This repository contains TIPSY, an advanced inspector for Pathbuilders produced by the [WissKI](https://wiss-ki.eu) software.
 It is a work in progress, and made available for evaluation purposes only.
 
 <b>

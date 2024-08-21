@@ -40,7 +40,7 @@ export default function Layout(props: {
           </>
         )}
         <a
-          href={'https://github.com/tkw1536/sip'}
+          href={'https://github.com/tkw1536/TIPSY'}
           target='_blank'
           rel='noopener noreferrer'
         >

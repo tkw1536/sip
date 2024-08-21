@@ -1,7 +1,7 @@
 {
-  "name": "sip",
+  "name": "tipsy",
   "version": "1.0.0",
-  "description": "Supreme Inspector For Pathbuilders",
+  "description": "Tom's Inspector For Pathbuilders Yaaaaaahs!",
   "author": "Tom Wiesing <tom.wiesing@gmail.com>",
   "type": "module",
   "devDependencies": {

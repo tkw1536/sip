@@ -1,6 +1,6 @@
-# SIP (and related tools) are available for evaluation only 
+# TIPSY - Tom's Inspector for Pathbuilders <sub>Yaaaaaahs!</sub>
 
-SIP is an advanced inspector for Pathbuilders produced by the [WissKI](https://wiss-ki.eu) software.
+TIPSY is an advanced inspector for Pathbuilders produced by the [WissKI](https://wiss-ki.eu) software.
 
 The current version you are using exists for demo purposes only.
 You may play around with it, but you __are not__ granted a license to use it to create visualizations of your own pathbuilders for publications or other purposes. 

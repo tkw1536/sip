@@ -8,7 +8,8 @@ export default function AboutTab(): VNode<any> {
 
       <p>
         This tool provides an interface for visualizing rdf files. It exists to
-        re-use the SIP codebase and create RDF visualizations in the same style.
+        re-use the TIPSY codebase and create RDF visualizations in the same
+        style.
       </p>
 
       <h3>License</h3>

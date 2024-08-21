@@ -34,7 +34,7 @@ export class Pathbuilder {
     return node
   }
 
-  static readonly snapshotRoot = 'sip'
+  static readonly snapshotRoot = 'tipsy'
   static readonly snapshotElement = 'snapshot'
 
   getSnapshotData<T>(

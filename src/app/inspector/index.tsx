@@ -26,7 +26,9 @@ export default function InspectorApp(): JSX.Element {
       <LegalModal open={modal} onClose={closeModal} />
       <Tabs onChangeTab={setActiveTab} active={activeTab}>
         <TabLabel>
-          <b>Supreme Inspector for Pathbuilders</b>
+          <b>
+            Tom's Inspector for Pathbuilders <sub>Yaaaaaahs!</sub>
+          </b>
         </TabLabel>
 
         <Tab title='Pathbuilder' id=''>

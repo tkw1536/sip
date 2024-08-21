@@ -116,7 +116,7 @@ function InfoView(): JSX.Element {
     <>
       <p>
         Pathbuilder <Button onInput={handleExport}>{theFilename}</Button>{' '}
-        successfully loaded. Click the button to export it, along with any sip
+        successfully loaded. Click the button to export it, along with any TIPSY
         settings you have made. You can use the other tabs to inspect the
         pathbuilder.
       </p>

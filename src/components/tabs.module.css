@@ -15,10 +15,10 @@
 .tab,
 .label {
   display: inline-block;
-  bottom: -1px;
+  bottom: -3px;
   position: relative;
   list-style: none;
-  padding: 6px 12px;
+  padding: 8px 12px;
 }
 .tab {
   border: 1px solid transparent;
