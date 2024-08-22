@@ -250,13 +250,17 @@ abstract class GraphvizDriver<
     element.removeChild(svg)
   }
 
-  static readonly formats = ['svg', 'gv']
+  static readonly formats = ['svg', 'gv', 'png']
   protected async exportImpl(
     { context: { canon, svg } }: ContextDetails<Context, Options>,
     info: MountInfo<Mount> | null,
     format: string,
   ): Promise<Blob> {
     switch (format) {
+      case 'png': {
+        const SVG2Image = (await import('../../../utils/svg2image')).default
+        return await SVG2Image(svg, 10000, 10000, Type.PNG)
+      }
       case 'svg': {
         return new Blob([svg], { type: Type.SVG })
       }
