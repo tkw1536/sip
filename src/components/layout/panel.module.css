@@ -92,12 +92,23 @@
   background-color: var(--theme-active-light);
 }
 
+.handle span {
+  display: block;
+
+  text-transform: uppercase;
+  font-weight: bold;
+  writing-mode: vertical-lr;
+  text-orientation: upright;
+}
+
 /** set text for the handle **/
-.open .handle::before {
+.open .handle::before,
+.open .handle:has(span)::after {
   content: '<<';
 }
 
 /** set text for the handle **/
-.closed .handle::before {
+.closed .handle::before,
+.closed .handle:has(span)::after {
   content: '>>';
 }

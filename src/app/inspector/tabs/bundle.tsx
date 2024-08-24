@@ -47,6 +47,7 @@ export default function BundleGraphTab(): JSX.Element {
       makeGraph={makeGraph}
       flags={flags}
       panel={BundleGraphPanel}
+      handle='Customize'
       snapshot={snapshot}
       setSnapshot={setSnapshot}
     />

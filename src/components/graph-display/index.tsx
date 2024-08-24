@@ -34,6 +34,7 @@ interface GraphProps<
 
   flags: ContextFlags<Options>
 
+  handle?: string
   panel: ComponentType<PanelProps<NodeLabel, EdgeLabel, Options, AttachmentKey>>
 }
 
@@ -64,6 +65,7 @@ export default function GraphDisplay<
     name,
     flags,
     snapshot,
+    handle,
     setSnapshot,
     makeGraph,
     panel: GraphDisplayPanel,
@@ -101,6 +103,7 @@ export default function GraphDisplay<
       panel={<GraphDisplayPanel controller={controller} />}
       open={open}
       setOpen={setOpen}
+      handle={handle}
     >
       <GraphDisplayMain
         graph={graph}

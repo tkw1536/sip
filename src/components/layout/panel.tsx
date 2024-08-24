@@ -17,6 +17,9 @@ interface PanelProps {
   /** contents of the panel */
   panel: ComponentChildren
 
+  /** the text of the handle (if any) */
+  handle?: string
+
   /** the width of the panel when opened */
   width?: number | string
 
@@ -44,7 +47,15 @@ function UncontrolledPanel(props: UnPanelProps): JSX.Element {
 }
 
 function ControlledPanel(props: ConPanelProps): JSX.Element {
-  const { open, setOpen, panel, children, width, margin: padding } = props
+  const {
+    open,
+    setOpen,
+    panel,
+    children,
+    width,
+    margin: padding,
+    handle,
+  } = props
   const toggle = useCallback(
     (event: Event) => {
       event.preventDefault()
@@ -71,7 +82,9 @@ function ControlledPanel(props: ConPanelProps): JSX.Element {
         onClick={toggle}
         role='button'
         title={open ? 'Close Sidebar' : 'Open Sidebar'}
-      ></button>
+      >
+        {typeof handle === 'string' && <span>{handle}</span>}
+      </button>
       <div class={classes(styles.main)}>{children}</div>
     </div>
   )

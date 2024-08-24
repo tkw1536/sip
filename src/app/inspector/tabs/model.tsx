@@ -61,6 +61,7 @@ export default function ModelGraphView(): JSX.Element {
       name={driver}
       flags={flags}
       panel={ModelGraphPanel}
+      handle='Customize'
       snapshot={snapshot}
       setSnapshot={setSnapshot}
     />
