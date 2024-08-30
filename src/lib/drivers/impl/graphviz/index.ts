@@ -19,6 +19,7 @@ import { type GraphVizRequest, type GraphVizResponse } from './impl'
 import { LazyValue } from '../../../utils/once'
 // lazy import svg-pan-zoom (so that we can skip loading it in server-side mode)
 import { type default as SvgPanZoom } from 'svg-pan-zoom'
+import { type default as HammerStatic } from '@egjs/hammerjs'
 import {
   type RDFOptions,
   type RDFEdge,
@@ -33,9 +34,13 @@ import {
 import { type Renderable, type Element } from '../../../graph/builders'
 import { type Size } from '../../../../components/hooks/observer'
 
-const spz = new LazyValue(
-  async () => await import('svg-pan-zoom').then(spz => spz.default),
-)
+type HammerManager = HammerStatic extends new (...vars: any[]) => infer T
+  ? T
+  : never
+
+// spellchecker:words egjs
+const spz = new LazyValue(async () => (await import('svg-pan-zoom')).default)
+const hjs = new LazyValue(async () => (await import('@egjs/hammerjs')).default)
 
 interface Context {
   graph: Graph
@@ -117,7 +122,7 @@ abstract class GraphvizDriver<
     const options = this.options(flags)
 
     if (Object.hasOwn(globalThis, 'window')) {
-      await spz.load()
+      await Promise.all([spz.load(), hjs.load()])
     }
 
     const canon = await GraphvizDriver.#callImpl({
@@ -221,14 +226,97 @@ abstract class GraphvizDriver<
     element.appendChild(svg)
 
     // add zoom controls
+    const zoom = this.#newPanZoom(svg)
+    zoom.reset()
+    return { svg, zoom }
+  }
+
+  /**
+   * Creates a new pan-zoom-svg instance with support for touch events.
+   */
+  #newPanZoom(svg: SVGSVGElement): SvgPanZoom.Instance {
+    // spellchecker:words touchleave doubletap panstart panmove pinchstart pinchmove
+    const eventsHandler: SvgPanZoom.CustomEventHandler & {
+      hammer?: HammerManager
+    } = {
+      haltEventListeners: [
+        'touchstart',
+        'touchend',
+        'touchmove',
+        'touchleave',
+        'touchcancel',
+      ],
+      init(options) {
+        const Hammer = hjs.value
+
+        this.hammer = new Hammer(options.svgElement, {
+          inputClass:
+            typeof window.PointerEvent !== 'undefined'
+              ? Hammer.PointerEventInput
+              : Hammer.TouchInput,
+        })
+
+        // during zoom events, store initial values
+        let initialScale = 1
+        let pannedX = 0
+        let pannedY = 0
+
+        const instance = options.instance
+
+        this.hammer.get('pinch').set({ enable: true })
+        this.hammer.on('doubletap', () => {
+          instance.zoomIn()
+        })
+
+        this.hammer.on('panstart panmove', ev => {
+          // reset how much we have panned
+          if (ev.type === 'panstart') {
+            pannedX = 0
+            pannedY = 0
+          }
+
+          // pan the difference only
+          instance.panBy({ x: ev.deltaX - pannedX, y: ev.deltaY - pannedY })
+          pannedX = ev.deltaX
+          pannedY = ev.deltaY
+        })
+
+        this.hammer.on('pinchstart pinchmove', ev => {
+          // reset how much we have pinned
+          if (ev.type === 'pinchstart') {
+            initialScale = instance.getZoom()
+            instance.zoomAtPoint(initialScale * ev.scale, {
+              x: ev.center.x,
+              y: ev.center.y,
+            })
+          }
+
+          // and do the zoom
+          instance.zoomAtPoint(initialScale * ev.scale, {
+            x: ev.center.x,
+            y: ev.center.y,
+          })
+        })
+
+        // don't allow concurrent pinch and move
+        options.svgElement.addEventListener('touchmove', e => {
+          e.preventDefault()
+        })
+      },
+
+      destroy() {
+        this.hammer?.destroy()
+      },
+    }
+
     const zoom = spz.value(svg, {
       maxZoom: 1000,
       minZoom: 1 / 1000,
       controlIconsEnabled: true,
       dblClickZoomEnabled: false,
+      customEventsHandler: eventsHandler,
     })
-    zoom.reset()
-    return { svg, zoom }
+    return zoom
   }
 
   protected resizeMountImpl(
