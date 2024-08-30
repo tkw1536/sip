@@ -1,4 +1,9 @@
-import { DOMImplementation, DOMParser, XMLSerializer } from '@xmldom/xmldom'
+import {
+  DOMImplementation,
+  DOMParser,
+  MIME_TYPE,
+  XMLSerializer,
+} from '@xmldom/xmldom'
 import { cloneNodeInDocument, isTag } from '../utils/fakedom'
 
 export class Pathbuilder {
@@ -27,7 +32,9 @@ export class Pathbuilder {
 
   /** gets an element with the given name, or null if it does not exist */
   #getElement(tagName: string): Element | null {
-    const node = this.#nodes.find(n => n !== null && isTag(n, tagName)) ?? null
+    const node =
+      this.#nodes.find((n): n is Element => n !== null && isTag(n, tagName)) ??
+      null
     if (node === null) {
       return null
     }
@@ -127,8 +134,8 @@ export class Pathbuilder {
   }
 
   static parse(source: string): Pathbuilder {
-    const parser = new DOMParser()
-    const result = parser.parseFromString(source, 'text/xml')
+    const parser = new DOMParser({ onError: () => {} })
+    const result = parser.parseFromString(source, MIME_TYPE.XML_TEXT)
 
     // find the top level node
     const pbInterface = Array.from(result.childNodes).filter(

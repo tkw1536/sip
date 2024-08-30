@@ -120,9 +120,9 @@ export function Radio<T extends string>(props: RadioProps<T>): JSX.Element {
           />
         )
 
-        const title = typeof v !== 'undefined' ? titles?.[v] ?? null : null
+        const title = typeof v !== 'undefined' ? (titles?.[v] ?? null) : null
         const description =
-          typeof v !== 'undefined' ? descriptions?.[v] ?? null : null
+          typeof v !== 'undefined' ? (descriptions?.[v] ?? null) : null
         return description !== null || title !== null ? (
           <p key={v}>
             {element}

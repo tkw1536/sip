@@ -20,7 +20,7 @@ export default function HTML({
       markup={html}
       type='html'
       {...rest}
-      wrap={noContainer ?? false ? false : undefined}
+      wrap={(noContainer ?? false) ? false : undefined}
     />
   )
   if (noContainer ?? false) {

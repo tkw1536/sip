@@ -7,13 +7,7 @@ const marked = new Marked()
 marked.use(markedFootnote())
 
 const renderer: RendererObject = {
-  // @ts-expect-error the typing for marked are incorrect, and this is the correct signature
-  link(
-    this: Renderer,
-    href: string,
-    title: string | null,
-    text: string,
-  ): string {
+  link(this: Renderer, { href, title, text }): string {
     // check for an internal url
     const isInternal =
       href.startsWith('.') ||

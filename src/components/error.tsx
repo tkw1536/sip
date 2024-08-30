@@ -68,7 +68,7 @@ function ErrorDisplayError(props: { error: Error }): JSX.Element {
     [error],
   )
 
-  const stack = error === sErr ? sStack ?? sErr.stack : error.stack
+  const stack = error === sErr ? (sStack ?? sErr.stack) : error.stack
   return (
     <>
       <ErrorTitle title={error.name} message={error.message} />

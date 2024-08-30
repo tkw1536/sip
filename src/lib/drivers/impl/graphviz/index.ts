@@ -33,6 +33,7 @@ import {
 } from '../../../graph/builders/model/labels'
 import { type Renderable, type Element } from '../../../graph/builders'
 import { type Size } from '../../../../components/hooks/observer'
+import { MIME_TYPE } from '@xmldom/xmldom'
 
 type HammerManager = HammerStatic extends new (...vars: any[]) => infer T
   ? T
@@ -143,7 +144,7 @@ abstract class GraphvizDriver<
 
   static async #removeTitleHack(svg: string): Promise<string> {
     const { DOMParser, XMLSerializer } = await import('@xmldom/xmldom')
-    const doc = new DOMParser().parseFromString(svg, 'image/svg+xml')
+    const doc = new DOMParser().parseFromString(svg, MIME_TYPE.XML_SVG_IMAGE)
 
     const nodes: Node[] = [doc.documentElement]
     while (nodes.length > 0) {
