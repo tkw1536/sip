@@ -5,10 +5,11 @@ import ErrorDisplay from '../../../components/error'
 import download from '../../../lib/utils/download'
 import { Type } from '../../../lib/utils/media'
 import Spinner from '../../../components/spinner'
-import { useCallback } from 'preact/hooks'
+import { useCallback, useEffect } from 'preact/hooks'
 import useInspectorStore from '../state'
 import Button from '../../../components/form/button'
 import SnapshotIntoPathbuilder from '../state/datatypes/snapshot'
+import receiveFileFromParent from '../../../lib/utils/receive-file'
 
 export default function PathbuilderTab(): JSX.Element {
   const loadStage = useInspectorStore(s => s.loadStage)
@@ -50,6 +51,10 @@ function WelcomeView(): JSX.Element {
       ).then(m => m.default)
       return new File([text], 'sample.xml', { type: Type.XML })
     })
+  }, [loadFile])
+
+  useEffect(() => {
+    return receiveFileFromParent(loadFile)
   }, [loadFile])
 
   if (loadStage === 'loading') {
